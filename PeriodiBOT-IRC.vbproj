@@ -77,6 +77,7 @@
     <Compile Include="CommFunctions.vb" />
     <Compile Include="DirectApiCalls.vb" />
     <Compile Include="GlobalVars.vb" />
+    <Compile Include="GrillitusArchive.vb" />
     <Compile Include="IRC_Client.vb" />
     <Compile Include="IRC_Comands.vb" />
     <Compile Include="LogCore.vb" />
@@ -96,6 +97,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Page.vb" />
     <Compile Include="TextFunctions.vb" />
     <Compile Include="WebFunctions.vb" />
   </ItemGroup>

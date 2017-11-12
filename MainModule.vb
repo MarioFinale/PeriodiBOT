@@ -15,11 +15,11 @@ Module MainModule
         BotIRC.Connect()
 
         Do
-            Dim command As String = Console.ReadLine()
+            ' Dim command As String = Console.ReadLine()
             ' Mainwikibot.ArchiveAllInclusions()
-            Dim p As Page = Mainwikibot.Getpage("User:PeriodiBOT")
+            ' Dim p As Page = Mainwikibot.Getpage("User:PeriodiBOT")
             ' Dim pagetext As String = p.Text
-            Mainwikibot.GrillitusArchive(p)
+            ' Mainwikibot.GrillitusArchive(p)
 
             Thread.Sleep(500)
         Loop
