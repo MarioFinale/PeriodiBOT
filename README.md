@@ -14,6 +14,7 @@ R: Por lo general escribo los programas en inglés, por costumbre ha quedado as�
 R: Gusto personal, así se puede controlar al BOT desde cualquier lugar con conexión a Internet.
 
 - ¡Pero que tontería! ¿Qué es eso de TextInBetween? ¿no podrías simplemente haber usado un Parser para XML o Json?
+
 R: En primera instancia, lo hice así, pero sin importar de qué forma se implemente, no tenían el mismo comportamiento bajo .NET y MONO. Al final decidí ir por lo simple: Las respuestas de Wikipedia en formato JSON siguen un formato regular, aprovecho eso para usar expresiones regulares y extraer los parámetros necesarios. ¡Y quién lo diría! funciona perfectamente bien tanto en MONO como en .NET Bajo Windows o Unix-Linux.
 
 - Hay demasiadas funciones que podrían eliminarse si se usa una expresión lambda.
