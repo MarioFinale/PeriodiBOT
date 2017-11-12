@@ -25,6 +25,6 @@ R: Si bien es cierto, prefiero no hacerlo porque hace que el código sea menos l
 
 R: Me manejo más en .NET y excepto por ciertas cosas menores, C# y VB.NET son capaces de lo mismo. Elegí VB porque es más fácil de entender para principiantes en general (He de ahí BASIC: Begginers All purpose Symbolic Instruction Code, o Código de instrucciones simbólico multipropósito enfocado a principiantes). El lenguaje tiene su belleza sintáctica que lo hace perfecto para RAD (Rapid Application Development).
 
--Esto es una basura, ¡podría hacer algo mucho mejor, y con ponys!
+- Esto es una basura, ¡podría hacer algo mucho mejor, y con ponys!
 
 R: Pues eres libre de hacerlo, nadie lo impide. Si quieres aportar a mejorar el código, pues ya está abierto :).
