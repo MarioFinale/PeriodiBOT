@@ -9,3 +9,14 @@ C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.vbproj.CoreCompi
 C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.exe
 C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.xml
 C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.pdb
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\bin\Debug\PeriodiBOT-IRC.exe.config
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\bin\Debug\PeriodiBOT-IRC.exe
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\bin\Debug\PeriodiBOT-IRC.pdb
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\bin\Debug\PeriodiBOT-IRC.xml
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.vbprojResolveAssemblyReference.cache
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\obj\Debug\PeriodiBOT_IRC.Resources.resources
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.vbproj.GenerateResource.Cache
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.vbproj.CoreCompileInputs.cache
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.exe
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.xml
+C:\Users\MarioFinale\Source\repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.pdb

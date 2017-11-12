@@ -829,7 +829,8 @@ Namespace WikiBot
         ''' <returns></returns>
         Function GetPageThreads(ByVal pagetext As String) As String()
             Dim threads As New List(Of String)
-            For Each m As Match In Regex.Matches(pagetext, "(==.+==)[\s\S]+?(?===.+==|$)")
+            Dim newline As String = Environment.NewLine
+            For Each m As Match In Regex.Matches(pagetext, "(" & newline & "==(?!=))[\s\S]+?(?=" & newline & "==(?!=)|$)")
                 threads.Add(m.Value)
             Next
             Return threads.ToArray
@@ -894,7 +895,8 @@ Namespace WikiBot
                 Return dattimelist.Last
             Else
                 Debug_Log("GetMostRecentDateTime: Returning nothing ", "LOCAL", BOTName)
-                Return Nothing
+                Return New Date(9999, 12, 31)
+
             End If
 
         End Function
@@ -908,22 +910,22 @@ Namespace WikiBot
         ''' <param name="Pagetext">Texto a evaluar</param>
         ''' <returns></returns>
         Function GetGrillitusTemplateData(PageText As String) As String()
-            Dim template As String = Regex.Match(PageText, "{{Usuario:Grillitus\/Archivar[\s\S]+?}}").Value
+            Dim template As String = Regex.Match(PageText, "{{ *[Uu]suario *: *[Gg]rillitus\/Archivar[\s\S]+?}}").Value
 
-            Dim Destiny As String = Regex.Match(template, "(\|Destino)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
-            Destiny = Regex.Replace(Destiny, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char()))
+            Dim Destiny As String = Regex.Match(template, "(\| *Destino *)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
+            Destiny = Regex.Replace(Destiny, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
 
-            Dim Days As String = Regex.Match(template, "(\|Días a mantener)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
-            Days = Regex.Replace(Days, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char()))
+            Dim Days As String = Regex.Match(template, "(\| *Días a mantener *)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
+            Days = Regex.Replace(Days, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
 
-            Dim Notice As String = Regex.Match(template, "(\|Avisar al archivar)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
-            Notice = Regex.Replace(Notice, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char()))
+            Dim Notice As String = Regex.Match(template, "(\| *Avisar al archivar *)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
+            Notice = Regex.Replace(Notice, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
 
-            Dim Estrategy As String = Regex.Match(template, "(\|Estrategia)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
-            Estrategy = Regex.Replace(Estrategy, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char()))
+            Dim Estrategy As String = Regex.Match(template, "(\| *Estrategia *)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
+            Estrategy = Regex.Replace(Estrategy, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
 
-            Dim Box As String = Regex.Match(template, "(\|MantenerCajaDeArchivos)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
-            Box = Regex.Replace(Box, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char()))
+            Dim Box As String = Regex.Match(template, "(\| *MantenerCajaDeArchivos *)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
+            Box = Regex.Replace(Box, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
 
             Return {Destiny, Days, Notice, Estrategy, Box}
 
@@ -1040,11 +1042,16 @@ Namespace WikiBot
 
                     If Strategy = "FirmaMásRecienteEnLaSección" Then
                         Dim threaddate As DateTime = MostRecentDate(t)
-                        If Not t.Contains("{{Usuario:Grillitus/No archivar}}") Then
 
-                            If t.Contains("{{Usuario:Grillitus/Archivo programado") Then
-                                Dim fechastr As String = TextInBetween(t, "{{Usuario:Grillitus/Archivo programado|fecha=", "}}")(0)
+                        Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Uu]suario *: *Grillitus\/Archivo programado *\| *fecha\=")
+                        Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Uu]suario *: *Grillitus\/No archivar *\| *fecha\=")
+
+                        If Not DoNotArchiveMatch.Success Then
+
+                            If ProgrammedMatch.Success Then
+                                Dim fechastr As String = TextInBetween(t, ProgrammedMatch.Value, "}}")(0)
                                 Dim fecha As DateTime = DateTime.ParseExact(fechastr, "dd'-'mm'-'yyyy", System.Globalization.CultureInfo.InvariantCulture)
+
                                 If DateTime.Now >= fecha Then
                                     Newpagetext = Newpagetext.Replace(t, "")
                                     ArchivePageText = ArchivePageText & t
@@ -1064,10 +1071,13 @@ Namespace WikiBot
 
                     ElseIf Strategy = "FirmaEnÚltimoPárrafo" Then
                         Dim threaddate As DateTime = LastParagraphDateTime(t)
-                        If Not t.Contains("{{Usuario:Grillitus/No archivar}}") Then
+                        Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Uu]suario *: *Grillitus\/Archivo programado *\| *fecha\=")
+                        Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Uu]suario *: *Grillitus\/No archivar *\| *fecha\=")
 
-                            If t.Contains("{{Usuario:Grillitus/Archivo programado") Then
-                                Dim fechastr As String = TextInBetween(t, "{{Usuario:Grillitus/Archivo programado|fecha=", "}}")(0)
+                        If Not DoNotArchiveMatch.Success Then
+
+                            If ProgrammedMatch.Success Then
+                                Dim fechastr As String = TextInBetween(t, ProgrammedMatch.Value, "}}")(0)
                                 fechastr = " " & fechastr & " "
                                 fechastr = fechastr.Replace(" 1-", "01-").Replace(" 2-", "02-").Replace(" 3-", "03-").Replace(" 4-", "04-") _
                                     .Replace(" 5-", "05-").Replace(" 6-", "06-").Replace(" 7-", "07-").Replace(" 8-", "08-").Replace(" 9-", "09-") _
@@ -1675,7 +1685,8 @@ Namespace WikiBot
         ''' <returns></returns>
         Function GetPageThreads(ByVal pagetext As String) As String()
             Dim threads As New List(Of String)
-            For Each m As Match In Regex.Matches(pagetext, "(==.+==)[\s\S]+?(?===.+==|$)")
+            Dim newline As String = Environment.NewLine
+            For Each m As Match In Regex.Matches(pagetext, "(" & newline & "==(?!=))[\s\S]+?(?=" & newline & "==(?!=)|$)")
                 threads.Add(m.Value)
             Next
             Return threads.ToArray
