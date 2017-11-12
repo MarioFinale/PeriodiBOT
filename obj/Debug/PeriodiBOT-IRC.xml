@@ -543,10 +543,100 @@ PeriodiBOT-IRC
 </member>
 <member name="M:PeriodiBOT_IRC.LogCore.SaveData(System.String,System.Collections.Generic.Queue{System.String[]}@)">
  <summary>
- 
+ Guarda los datos desde un queue a un archivo de log.
  </summary>
  <param name="filepath"></param>
  <param name="_queue"></param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.Log(System.String,System.String,System.String)">
+ <summary>
+ Inicia otro thread para guardar un evento de log
+ </summary>
+ <param name="text">Texto a registrar</param>
+ <param name="source">Fuente del evento</param>
+ <param name="user">Usuario origen del evento</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.Debug_log(System.String,System.String,System.String)">
+ <summary>
+ Inicia otro thread para guardar un evento de log (debug)
+ </summary>
+ <param name="text">Texto a registrar</param>
+ <param name="source">Fuente del evento</param>
+ <param name="user">Usuario origen del evento</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.AddEvent(System.String,System.String,System.String,System.String)">
+ <summary>
+ Añade un evento al queue
+ </summary>
+ <param name="text">Texto a registrar</param>
+ <param name="Source">Fuente del evento</param>
+ <param name="User">Usuario origen del evento</param>
+ <param name="Type">Tipo de evento</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.LoadLinesFromFile(System.String@)">
+ <summary>
+ Regresa una lista de string() con todas las lineas en un archivo de texto.
+ </summary>
+ <param name="filename">Nombre y ruta del archivo</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.AppendLinesToText(System.String,System.String[])">
+ <summary>
+ Añade línteas a un archivo de texto
+ </summary>
+ <param name="FilePath">Ruta y nombre del archivo</param>
+ <param name="Lines">Líneas a añadir</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.Lastlog(System.String@,System.String)">
+ <summary>
+ Entrega el último registro de eventos.
+ </summary>
+ <param name="source">Fuente desde donde se solicita el último evento.</param>
+ <param name="user">Usuario que lo solicita.</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.SaveUsersToFile">
+ <summary>
+ Guarda todos los usuarios y operadores en memoria al archivo.
+ </summary>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.SetUserTime(System.String[])">
+ <summary>
+ Añade un nuevo usuario a la lista de aviso de inactividad de usuario
+ </summary>
+ <param name="UserAndTime">Array con {usuario a avisar, tiempo en formato d.hh:mm, operador} </param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.LoadUsers">
+ <summary>
+ Carga los usuarios desde el archivo de usuarios y los guarda en la variable local.
+ </summary>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.GetUsersFromFile">
+ <summary>
+ Obtiene los usuarios desde el el archivo y los regresa como lista de string()
+ </summary>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.SafeEnqueue(System.Collections.Generic.Queue{System.String[]},System.String[])">
+ <summary>
+ Añade un item al queue de forma segura para ser llamado desde múltiples threads.
+ </summary>
+ <param name="_QueueToEnqueue">Queue a modificar</param>
+ <param name="str">Cadea de texto a añadir</param>
+</member>
+<member name="M:PeriodiBOT_IRC.LogCore.SafeDequeue(System.Collections.Generic.Queue{System.String[]})">
+ <summary>
+ Saca un ítem de un queue de forma segura para ser llamado desde múltiples threads.
+ </summary>
+ <param name="QueueToDequeue"></param>
  <returns></returns>
 </member>
 <member name="M:PeriodiBOT_IRC.TextFunctions.StripTags(System.String)">
