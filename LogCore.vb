@@ -12,19 +12,28 @@ Class LogCore
     Private _logPath As String
     Private _userPath As String
     Private _logging As Boolean
-
+    ''' <summary>
+    ''' Retorna una lista con todos los eventos en el LOG hasta el momento que se solicita.
+    ''' </summary>
+    ''' <returns></returns>
     Public ReadOnly Property Logdata() As List(Of String())
         Get
             Return _logData
         End Get
     End Property
-
+    ''' <summary>
+    ''' Retorna una lista con los usuarios que tienen programados avisos de inactividad.
+    ''' </summary>
+    ''' <returns></returns>
     Public ReadOnly Property LogUserData As List(Of String())
         Get
             Return _userData
         End Get
     End Property
-
+    ''' <summary>
+    ''' Si se establece como true, finaliza toda actividad de log y los eventos siguientes no serán guardados en el archivo de LOG (Pero sí en memoria). Es recomendable usar el método .Dispose en su lugar.
+    ''' </summary>
+    ''' <returns></returns>
     Public Property EndLog As Boolean
         Get
             Return _endLog
@@ -34,8 +43,12 @@ Class LogCore
         End Set
     End Property
 
+    ''' <summary>
+    ''' Crea una nueva instancia del motor de LOG's locales.
+    ''' </summary>
+    ''' <param name="LogPath">Archivo con ruta donde se guardará el archivo de LOG.</param>
+    ''' <param name="UserPath">Archivo con ruta donde se guardará el archivo de usuarios.</param>
     Public Sub New(ByVal LogPath As String, ByVal UserPath As String)
-
         _logPath = LogPath
         _userPath = UserPath
         Task.Run(Sub()
@@ -48,22 +61,31 @@ Class LogCore
                  End Sub)
         LoadUsers()
     End Sub
-
+    ''' <summary>
+    ''' Cierra los eventos de log correctamente.
+    ''' </summary>
     Public Sub Dispose()
         EndLog = True
         Do Until _logging = False
             System.Threading.Thread.Sleep(100)
         Loop
     End Sub
-
+    ''' <summary>
+    ''' Guarda los datos en el archivo de log, es llamado por otros threads.
+    ''' </summary>
     Sub SaveLogWorker()
         SaveData(_LogPath, LogQueue)
     End Sub
-
+    ''' <summary>
+    ''' Guarda los datos desde un queue a un archivo de log.
+    ''' </summary>
+    ''' <param name="filepath"></param>
+    ''' <param name="_queue"></param>
+    ''' <returns></returns>
     Private Function SaveData(ByVal filepath As String, ByRef _queue As Queue(Of String())) As Boolean
         Try
             Do Until _queue.Count = 0
-                AppendLinesToText(filepath, SafeDequeue)
+                AppendLinesToText(filepath, SafeDequeue(_queue))
                 System.Threading.Thread.Sleep(100)
             Loop
             Return True
@@ -72,7 +94,13 @@ Class LogCore
             Return False
         End Try
     End Function
-
+    ''' <summary>
+    ''' Inicia otro thread para guardar un evento de log
+    ''' </summary>
+    ''' <param name="text">Texto a registrar</param>
+    ''' <param name="source">Fuente del evento</param>
+    ''' <param name="user">Usuario origen del evento</param>
+    ''' <returns></returns>
     Public Function Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
 
         Task.Run(Sub()
@@ -82,21 +110,37 @@ Class LogCore
 
         Return True
     End Function
-
+    ''' <summary>
+    ''' Inicia otro thread para guardar un evento de log (debug)
+    ''' </summary>
+    ''' <param name="text">Texto a registrar</param>
+    ''' <param name="source">Fuente del evento</param>
+    ''' <param name="user">Usuario origen del evento</param>
+    ''' <returns></returns>
     Public Function Debug_log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
         Task.Run(Sub()
                      AddEvent(text, source, user, "DEBUG")
                  End Sub)
         Return True
     End Function
-
+    ''' <summary>
+    ''' Añade un evento al queue
+    ''' </summary>
+    ''' <param name="text">Texto a registrar</param>
+    ''' <param name="Source">Fuente del evento</param>
+    ''' <param name="User">Usuario origen del evento</param>
+    ''' <param name="Type">Tipo de evento</param>
+    ''' <returns></returns>
     Private Function AddEvent(ByVal text As String, Source As String, User As String, Type As String) As Boolean
         Dim CurrDate As String = Date.Now().ToString("dd/MM/yyyy HH:mm:ss")
-
-        SafeEnqueue({CurrDate, text, Source, User, Type})
+        SafeEnqueue(LogQueue, {CurrDate, text, Source, User, Type})
         Return True
     End Function
-
+    ''' <summary>
+    ''' Regresa una lista de string() con todas las lineas en un archivo de texto.
+    ''' </summary>
+    ''' <param name="filename">Nombre y ruta del archivo</param>
+    ''' <returns></returns>
     Private Function LoadLinesFromFile(ByRef filename As String) As List(Of String())
 
         Dim ItemList As New List(Of String())
@@ -111,7 +155,12 @@ Class LogCore
         Next
         Return ItemList
     End Function
-
+    ''' <summary>
+    ''' Añade línteas a un archivo de texto
+    ''' </summary>
+    ''' <param name="FilePath">Ruta y nombre del archivo</param>
+    ''' <param name="Lines">Líneas a añadir</param>
+    ''' <returns></returns>
     Private Function AppendLinesToText(ByVal FilePath As String, Lines As String()) As Boolean
 
         Try
@@ -136,13 +185,22 @@ Class LogCore
         End Try
 
     End Function
-
+    ''' <summary>
+    ''' Entrega el último registro de eventos.
+    ''' </summary>
+    ''' <param name="source">Fuente desde donde se solicita el último evento.</param>
+    ''' <param name="user">Usuario que lo solicita.</param>
+    ''' <returns></returns>
     Public Function Lastlog(ByRef source As String, user As String) As String()
         Dim logresponse As String() = LogData.Last
         Log("Request of lastlog", source, user)
         Return logresponse
     End Function
 
+    ''' <summary>
+    ''' Guarda todos los usuarios y operadores en memoria al archivo.
+    ''' </summary>
+    ''' <returns></returns>
     Function SaveUsersToFile() As Boolean
         Dim StringToFile As New List(Of String)
 
@@ -166,7 +224,11 @@ Class LogCore
             Return False
         End Try
     End Function
-
+    ''' <summary>
+    ''' Añade un nuevo usuario a la lista de aviso de inactividad de usuario
+    ''' </summary>
+    ''' <param name="UserAndTime">Array con {usuario a avisar, tiempo en formato d.hh:mm, operador} </param>
+    ''' <returns></returns>
     Public Function SetUserTime(ByVal UserAndTime As String()) As Boolean
         Try
 
@@ -210,6 +272,10 @@ Class LogCore
 
     End Function
 
+    ''' <summary>
+    ''' Carga los usuarios desde el archivo de usuarios y los guarda en la variable local.
+    ''' </summary>
+    ''' <returns></returns>
     Public Function LoadUsers() As Boolean
         Try
             _userData = GetUsersFromFile()
@@ -222,6 +288,10 @@ Class LogCore
 
     End Function
 
+    ''' <summary>
+    ''' Obtiene los usuarios desde el el archivo y los regresa como lista de string()
+    ''' </summary>
+    ''' <returns></returns>
     Private Function GetUsersFromFile() As List(Of String())
         Dim UserList As New List(Of String())
 
@@ -240,20 +310,27 @@ Class LogCore
         End If
     End Function
 
-
-
-    Sub SafeEnqueue(ByVal str As String())
+    ''' <summary>
+    ''' Añade un item al queue de forma segura para ser llamado desde múltiples threads.
+    ''' </summary>
+    ''' <param name="_QueueToEnqueue">Queue a modificar</param>
+    ''' <param name="str">Cadea de texto a añadir</param>
+    Sub SafeEnqueue(ByVal _QueueToEnqueue As Queue(Of String()), ByVal str As String())
         SyncLock (_logData)
             Logdata.Add(str)
         End SyncLock
-        SyncLock (LogQueue)
-            LogQueue.Enqueue(str)
+        SyncLock (_QueueToEnqueue)
+            _QueueToEnqueue.Enqueue(str)
         End SyncLock
     End Sub
-
-    Function SafeDequeue() As String()
-        SyncLock (LogQueue)
-            Return LogQueue.Dequeue()
+    ''' <summary>
+    ''' Saca un ítem de un queue de forma segura para ser llamado desde múltiples threads.
+    ''' </summary>
+    ''' <param name="QueueToDequeue"></param>
+    ''' <returns></returns>
+    Function SafeDequeue(ByVal QueueToDequeue As Queue(Of String())) As String()
+        SyncLock (QueueToDequeue)
+            Return QueueToDequeue.Dequeue()
         End SyncLock
     End Function
 

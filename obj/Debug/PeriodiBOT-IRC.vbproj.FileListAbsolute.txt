@@ -1,0 +1,11 @@
+C:\Users\mario\Source\Repos\PeriodiBOT\bin\Debug\PeriodiBOT-IRC.exe.config
+C:\Users\mario\Source\Repos\PeriodiBOT\bin\Debug\PeriodiBOT-IRC.exe
+C:\Users\mario\Source\Repos\PeriodiBOT\bin\Debug\PeriodiBOT-IRC.pdb
+C:\Users\mario\Source\Repos\PeriodiBOT\bin\Debug\PeriodiBOT-IRC.xml
+C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.vbprojResolveAssemblyReference.cache
+C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT_IRC.Resources.resources
+C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.vbproj.GenerateResource.Cache
+C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.vbproj.CoreCompileInputs.cache
+C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.exe
+C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.xml
+C:\Users\mario\Source\Repos\PeriodiBOT\obj\Debug\PeriodiBOT-IRC.pdb

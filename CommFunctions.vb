@@ -3,8 +3,6 @@ Imports System.Text.RegularExpressions
 
 Public Module CommFunctions
 
-
-
     Public Function Log(ByVal text As String, source As String, user As String) As Boolean
         Return LogC.Log(text, source, user)
     End Function
