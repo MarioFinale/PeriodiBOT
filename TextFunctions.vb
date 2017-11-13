@@ -87,10 +87,7 @@ Module TextFunctions
     ''' <returns></returns>
     Function GetTitlesOfTemplate(ByVal SourceString As String) As String()
         Dim mlist As New List(Of String)
-
         mlist = TextInBetween(SourceString, "|" & Environment.NewLine & "|", "=").ToList
-
-
         Return mlist.ToArray
     End Function
     ''' <summary>

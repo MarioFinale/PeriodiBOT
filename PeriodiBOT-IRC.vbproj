@@ -98,6 +98,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Page.vb" />
+    <Compile Include="Template.vb" />
     <Compile Include="TextFunctions.vb" />
     <Compile Include="WebFunctions.vb" />
   </ItemGroup>
