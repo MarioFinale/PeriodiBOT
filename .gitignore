@@ -11,6 +11,7 @@
 *.cfg
 *.psv
 *.exe
+*.cache
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
