@@ -208,18 +208,28 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         TimeToUnix = CInt(DateDiff(DateInterval.Second, #1/1/1970#, dteDate))
     End Function
 
-
-    Function SplitStringArrayIntoChunks(keys As String(), chunkSize As Integer) As List(Of List(Of String))
-        Return keys.
+    ''' <summary>
+    ''' Separa un array de string segun lo especificado. Retorna una lista con listas de texto.
+    ''' </summary>
+    ''' <param name="StrArray">Lista a partir</param>
+    ''' <param name="chunkSize">En cuantos items se parte</param>
+    ''' <returns></returns>
+    Function SplitStringArrayIntoChunks(StrArray As String(), chunkSize As Integer) As List(Of List(Of String))
+        Return StrArray.
                 Select(Function(x, i) New With {Key .Index = i, Key .Value = x}).
                 GroupBy(Function(x) (x.Index \ chunkSize)).
                 Select(Function(x) x.Select(Function(v) v.Value).ToList()).
                 ToList()
     End Function
 
-
-    Function SplitIntegerArrayIntoChunks(keys As Integer(), chunkSize As Integer) As List(Of List(Of Integer))
-        Return keys.
+    ''' <summary>
+    ''' Separa un array de integer segun lo especificado. Retorna una lista con listas de integer.
+    ''' </summary>
+    ''' <param name="IntArray">Lista a partir</param>
+    ''' <param name="chunkSize">En cuantos items se parte</param>
+    ''' <returns></returns>
+    Function SplitIntegerArrayIntoChunks(IntArray As Integer(), chunkSize As Integer) As List(Of List(Of Integer))
+        Return IntArray.
                 Select(Function(x, i) New With {Key .Index = i, Key .Value = x}).
                 GroupBy(Function(x) (x.Index \ chunkSize)).
                 Select(Function(x) x.Select(Function(v) v.Value).ToList()).
