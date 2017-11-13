@@ -204,7 +204,7 @@ PeriodiBOT-IRC
  <param name="user">Nombre exacto del usuario</param>
  <returns></returns>
 </member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Bot.Replacetext(PeriodiBOT_IRC.WikiBot.Page,System.String,System.String,System.String)">
+<member name="M:PeriodiBOT_IRC.WikiBot.Bot.Replacetext(PeriodiBOT_IRC.Page,System.String,System.String,System.String)">
  <summary>
  Busca un texto exacto en una página y lo reemplaza.
  </summary>
@@ -214,7 +214,7 @@ PeriodiBOT-IRC
  <param name="reason">Motivo del reemplazo</param>
  <returns></returns>
 </member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Bot.RemoveRef(PeriodiBOT_IRC.WikiBot.Page,System.String)">
+<member name="M:PeriodiBOT_IRC.WikiBot.Bot.RemoveRef(PeriodiBOT_IRC.Page,System.String)">
  <summary>
  Elimina una referencia que contenga una cadena exacta.
  (No usar a menos de que se esté absolutamente seguro de lo que se hace).
@@ -251,7 +251,41 @@ PeriodiBOT-IRC
  <param name="comment"></param>
  <returns></returns>
 </member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Bot.GetGrillitusTemplateData(System.String)">
+<member name="M:PeriodiBOT_IRC.WikiBot.Bot.GrillitusArchive(PeriodiBOT_IRC.Page)">
+ <summary>
+ Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo la lógica de Grillitus.
+ </summary>
+ <param name="PageToArchive">Página a archivar</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.WikiBot.Bot.ArchiveAllInclusions(System.Boolean)">
+ <summary>
+ Crea una nueva instancia de la clase de archivado y actualiza todas las paginas que incluyan la pseudoplantilla de archivado de grillitus.
+ </summary>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.CommFunctions.SplitStringArrayIntoChunks(System.String[],System.Int32)">
+ <summary>
+ Separa un array de string segun lo especificado. Retorna una lista con listas de texto.
+ </summary>
+ <param name="StrArray">Lista a partir</param>
+ <param name="chunkSize">En cuantos items se parte</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.CommFunctions.SplitIntegerArrayIntoChunks(System.Int32[],System.Int32)">
+ <summary>
+ Separa un array de integer segun lo especificado. Retorna una lista con listas de integer.
+ </summary>
+ <param name="IntArray">Lista a partir</param>
+ <param name="chunkSize">En cuantos items se parte</param>
+ <returns></returns>
+</member>
+<member name="F:PeriodiBOT_IRC.GlobalVars.DecimalSeparator">
+ <summary>
+ El separador de decimales varia segun OS y configuracion regional, eso puede afectar a los calculos.
+ </summary>
+</member>
+<member name="M:PeriodiBOT_IRC.GrillitusArchive.GetGrillitusTemplateData(System.String)">
  <summary>
  Busca en el texto una plantilla de archivado usada por grillitus.
  De encontrar la plantilla entrega un array de tipo string con: {Destino del archivado, Días a mantener, Avisar archivado, Estrategia de archivado, mantener caja}.
@@ -261,250 +295,18 @@ PeriodiBOT-IRC
  <param name="Pagetext">Texto a evaluar</param>
  <returns></returns>
 </member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Bot.ArchiveAllInclusions(System.Boolean)">
+<member name="M:PeriodiBOT_IRC.GrillitusArchive.ArchiveAllInclusions(System.Boolean)">
  <summary>
  Actualiza todas las paginas que incluyan la pseudoplantilla de archivado de grillitus.
  </summary>
  <returns></returns>
 </member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Bot.GrillitusArchive(PeriodiBOT_IRC.WikiBot.Page)">
+<member name="M:PeriodiBOT_IRC.GrillitusArchive.GrillitusArchive(PeriodiBOT_IRC.Page)">
  <summary>
  Realiza un archivado siguiendo la lógica de Grillitus.
  </summary>
  <param name="PageToArchive">Página a archivar</param>
  <returns></returns>
-</member>
-<member name="P:PeriodiBOT_IRC.WikiBot.Page.ORESScores">
- <summary>
- Entrega el puntaje ORES {reverted,goodfaith} de la página.
- </summary>
- <returns></returns>
-</member>
-<member name="P:PeriodiBOT_IRC.WikiBot.Page.Text">
- <summary>
- Entrega el wikitexto de la página.
- </summary>
- <returns></returns>
-</member>
-<member name="P:PeriodiBOT_IRC.WikiBot.Page.CurrentRevID">
- <summary>
- Entrega el revid actual de la página.
- </summary>
- <returns></returns>
-</member>
-<member name="P:PeriodiBOT_IRC.WikiBot.Page.Lastuser">
- <summary>
- entrega el último usuario en editar la página.
- </summary>
- <returns></returns>
-</member>
-<member name="P:PeriodiBOT_IRC.WikiBot.Page.Title">
- <summary>
- Entrega el título de la página (con el namespace).
- </summary>
- <returns></returns>
-</member>
-<member name="P:PeriodiBOT_IRC.WikiBot.Page.Timestamp">
- <summary>
- Entrega el timestamp de la edición actual de la página
- </summary>
- <returns></returns>
-</member>
-<member name="P:PeriodiBOT_IRC.WikiBot.Page.Sections">
- <summary>
- Entrega las secciones de la página
- </summary>
- <returns></returns>
-</member>
-<member name="P:PeriodiBOT_IRC.WikiBot.Page.Categories">
- <summary>
- Entrega las primeras 10 categorías de la página.
- </summary>
- <returns></returns>
-</member>
-<member name="P:PeriodiBOT_IRC.WikiBot.Page.PageViews">
- <summary>
- Entrega el promedio de visitas diarias de la página en los últimos 2 meses.
- </summary>
- <returns></returns>
-</member>
-<member name="P:PeriodiBOT_IRC.WikiBot.Page.Size">
- <summary>
- Tamaño de la página en bytes.
- </summary>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.Exists">
- <summary>
- ¿La página existe?
- </summary>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.#ctor(System.String,System.String,System.Net.CookieContainer@,System.String)">
- <summary>
- Inicializa una nueva página, por lo general no se llama de forma directa. Se puede obtener una página creandola con Bot.Getpage.
- </summary>
- <param name="PageTitle">Título exacto de la página</param>
- <param name="site">Sitio de la página</param>
- <param name="Cookies">Cookiecontainer con los permisos de usuario</param>
- <param name="username">Nombre de usuario que realiza las ediciones</param>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.Load">
- <summary>
- Inicializa de nuevo la página (al crear una página esta ya está inicializada).
- </summary>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.Loadpage(System.String,System.String,System.Net.CookieContainer@)">
- <summary>
- Inicializa la página, esta función no se llama de forma directa
- </summary>
- <param name="PageTitle">Título exacto de la página</param>
- <param name="site">Sitio de la página</param>
- <param name="Cookies">CookieContainer con loging del usuario</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.GetLastRevID(System.String)">
- <summary>
- Retorna el ultimo REVID (como integer) de la pagina indicada como integer. 
- En caso de no existir la pagina, retorna -1 como REVID.
- </summary>
- <param name="Page_Name">Nombre exacto de la pagina.</param> 
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.GetORESScores(System.Int32)">
- <summary>
- Retorna el valor ORES (en %) de un EDIT ID (eswiki) indicados como porcentaje en double. 
- En caso de no existir el EDIT ID, retorna 0.
- </summary>
- <param name="revid">EDIT ID de la edicion a revisar</param>
- <remarks>Los EDIT ID deben ser distintos</remarks>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.SavePage(System.String,System.String,System.Boolean,System.Boolean)">
- <summary>
- Guarda la página en la wiki. Si la página no existe, la crea.
- </summary>
- <param name="text">Texto (wikicódigo) de la página</param>
- <param name="EditSummary">Resumen de la edición</param>
- <param name="IsMinor">¿Marcar como menor?</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.Save(System.String,System.String,System.Boolean,System.Boolean)">
- <summary>
- Guarda la página en la wiki. Si la página no existe, la crea.
- </summary>
- <param name="text">Texto (wikicódigo) de la página</param>
- <param name="Summary">Resumen de la edición</param>
- <param name="IsMinor">¿Marcar como menor?</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.Save(System.String,System.String,System.Boolean)">
- <summary>
- Guarda la página en la wiki. Si la página no existe, la crea.
- </summary>
- <param name="text">Texto (wikicódigo) de la página</param>
- <param name="Summary">Resumen de la edición</param>
- <param name="IsMinor">¿Marcar como menor?</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.Save(System.String,System.String)">
- <summary>
- Guarda la página en la wiki. Si la página no existe, la crea.
- </summary>
- <param name="text">Texto (wikicódigo) de la página</param>
- <param name="Summary">Resumen de la edición</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.Save(System.String)">
- <summary>
- Guarda la página en la wiki. Si la página no existe, la crea.
- </summary>
- <param name="text">Texto (wikicódigo) de la página</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.AddSectionPage(System.String,System.String,System.String,System.Boolean)">
- <summary>
- Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
- </summary>
- <param name="SectionTitle">Título de la sección nueva</param>
- <param name="text">Texto de la sección</param>
- <param name="EditSummary">Resumen de edición</param>
- <param name="IsMinor">¿Marcar como menor?</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.AddSection(System.String,System.String,System.String,System.Boolean)">
- <summary>
- Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
- </summary>
- <param name="SectionTitle">Título de la sección nueva</param>
- <param name="text">Texto de la sección</param>
- <param name="EditSummary">Resumen de edición</param>
- <param name="IsMinor">¿Marcar como menor?</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.AddSection(System.String,System.String,System.String)">
- <summary>
- Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
- </summary>
- <param name="SectionTitle">Título de la sección nueva</param>
- <param name="text">Texto de la sección</param>
- <param name="EditSummary">Resumen de edición</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.AddSection(System.String,System.String)">
- <summary>
- Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
- </summary>
- <param name="SectionTitle">Título de la sección nueva</param>
- <param name="text">Texto de la sección</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.BotCanEdit(System.String,System.String)">
- <summary>
- Función que verifica si la página puede ser editada por bots (se llama desde Save() y es obligatoria)
- </summary>
- <param name="text">Texto de la página</param>
- <param name="user">Usuario que edita</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.GetEditToken">
- <summary>
- Obtiene un Token de edición desde la API de MediaWiki
- </summary>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.PageInfoData(System.String)">
- <summary>
- HAce una solicitud a la API respecto a una página y retorna un array con valores sobre ésta.
- {Título de la página, ID de la página, Ultimo usuario que la editó,Fecha de última edición,Wikitexto de la página,tamaño de la página (en bytes)}
- </summary>
- <param name="Pagename">Título exacto de la página</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.GetPageThreads(System.String)">
- <summary>
- Evalua texto (wikicódigo) y regresa un array de string con cada uno de los hilos o secciones del mismo (los que comienzan con == ejemplo == y terminan en otro comienzo o el final de la página).
- </summary>
- <param name="pagetext">Texto a evaluar</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.GetCategories(System.String)">
- <summary>
- Entrega las primeras 10 categorías de la página
- </summary>
- <param name="Page">Título exacto de la página</param>
- <returns></returns>
-</member>
-<member name="M:PeriodiBOT_IRC.WikiBot.Page.GetPageViewsAvg(System.String)">
- <summary>
- Retorna el promedio de los últimos dos meses de la página entregada (solo para páginas wikimedia)
- El proyecto se deduce extrayendo el texto entre "https://" y ".org"
- </summary>
- <param name="Page">Nombre exacto de la página a evaluar</param>
- <returns></returns>
-</member>
-<member name="F:PeriodiBOT_IRC.GlobalVars.DecimalSeparator">
- <summary>
- El separador de decimales varia segun OS y configuracion regional, eso puede afectar a los calculos.
- </summary>
 </member>
 <member name="P:PeriodiBOT_IRC.LogCore.Logdata">
  <summary>
@@ -637,6 +439,233 @@ PeriodiBOT-IRC
  Saca un ítem de un queue de forma segura para ser llamado desde múltiples threads.
  </summary>
  <param name="QueueToDequeue"></param>
+ <returns></returns>
+</member>
+<member name="P:PeriodiBOT_IRC.Page.ORESScores">
+ <summary>
+ Entrega el puntaje ORES {reverted,goodfaith} de la página.
+ </summary>
+ <returns></returns>
+</member>
+<member name="P:PeriodiBOT_IRC.Page.Text">
+ <summary>
+ Entrega el wikitexto de la página.
+ </summary>
+ <returns></returns>
+</member>
+<member name="P:PeriodiBOT_IRC.Page.CurrentRevID">
+ <summary>
+ Entrega el revid actual de la página.
+ </summary>
+ <returns></returns>
+</member>
+<member name="P:PeriodiBOT_IRC.Page.Lastuser">
+ <summary>
+ entrega el último usuario en editar la página.
+ </summary>
+ <returns></returns>
+</member>
+<member name="P:PeriodiBOT_IRC.Page.Title">
+ <summary>
+ Entrega el título de la página (con el namespace).
+ </summary>
+ <returns></returns>
+</member>
+<member name="P:PeriodiBOT_IRC.Page.Timestamp">
+ <summary>
+ Entrega el timestamp de la edición actual de la página
+ </summary>
+ <returns></returns>
+</member>
+<member name="P:PeriodiBOT_IRC.Page.Sections">
+ <summary>
+ Entrega las secciones de la página
+ </summary>
+ <returns></returns>
+</member>
+<member name="P:PeriodiBOT_IRC.Page.Categories">
+ <summary>
+ Entrega las primeras 10 categorías de la página.
+ </summary>
+ <returns></returns>
+</member>
+<member name="P:PeriodiBOT_IRC.Page.PageViews">
+ <summary>
+ Entrega el promedio de visitas diarias de la página en los últimos 2 meses.
+ </summary>
+ <returns></returns>
+</member>
+<member name="P:PeriodiBOT_IRC.Page.Size">
+ <summary>
+ Tamaño de la página en bytes.
+ </summary>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.Exists">
+ <summary>
+ ¿La página existe?
+ </summary>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.#ctor(System.String,System.String,System.Net.CookieContainer@,System.String)">
+ <summary>
+ Inicializa una nueva página, por lo general no se llama de forma directa. Se puede obtener una página creandola con Bot.Getpage.
+ </summary>
+ <param name="PageTitle">Título exacto de la página</param>
+ <param name="site">Sitio de la página</param>
+ <param name="Cookies">Cookiecontainer con los permisos de usuario</param>
+ <param name="username">Nombre de usuario que realiza las ediciones</param>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.Load">
+ <summary>
+ Inicializa de nuevo la página (al crear una página esta ya está inicializada).
+ </summary>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.Loadpage(System.String,System.String,System.Net.CookieContainer@)">
+ <summary>
+ Inicializa la página, esta función no se llama de forma directa
+ </summary>
+ <param name="PageTitle">Título exacto de la página</param>
+ <param name="site">Sitio de la página</param>
+ <param name="Cookies">CookieContainer con loging del usuario</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.GetLastRevID(System.String)">
+ <summary>
+ Retorna el ultimo REVID (como integer) de la pagina indicada como integer. 
+ En caso de no existir la pagina, retorna -1 como REVID.
+ </summary>
+ <param name="Page_Name">Nombre exacto de la pagina.</param> 
+</member>
+<member name="M:PeriodiBOT_IRC.Page.GetORESScores(System.Int32)">
+ <summary>
+ Retorna el valor ORES (en %) de un EDIT ID (eswiki) indicados como porcentaje en double. 
+ En caso de no existir el EDIT ID, retorna 0.
+ </summary>
+ <param name="revid">EDIT ID de la edicion a revisar</param>
+ <remarks>Los EDIT ID deben ser distintos</remarks>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.SavePage(System.String,System.String,System.Boolean,System.Boolean)">
+ <summary>
+ Guarda la página en la wiki. Si la página no existe, la crea.
+ </summary>
+ <param name="text">Texto (wikicódigo) de la página</param>
+ <param name="EditSummary">Resumen de la edición</param>
+ <param name="IsMinor">¿Marcar como menor?</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.Save(System.String,System.String,System.Boolean,System.Boolean)">
+ <summary>
+ Guarda la página en la wiki. Si la página no existe, la crea.
+ </summary>
+ <param name="text">Texto (wikicódigo) de la página</param>
+ <param name="Summary">Resumen de la edición</param>
+ <param name="IsMinor">¿Marcar como menor?</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.Save(System.String,System.String,System.Boolean)">
+ <summary>
+ Guarda la página en la wiki. Si la página no existe, la crea.
+ </summary>
+ <param name="text">Texto (wikicódigo) de la página</param>
+ <param name="Summary">Resumen de la edición</param>
+ <param name="IsMinor">¿Marcar como menor?</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.Save(System.String,System.String)">
+ <summary>
+ Guarda la página en la wiki. Si la página no existe, la crea.
+ </summary>
+ <param name="text">Texto (wikicódigo) de la página</param>
+ <param name="Summary">Resumen de la edición</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.Save(System.String)">
+ <summary>
+ Guarda la página en la wiki. Si la página no existe, la crea.
+ </summary>
+ <param name="text">Texto (wikicódigo) de la página</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.AddSectionPage(System.String,System.String,System.String,System.Boolean)">
+ <summary>
+ Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
+ </summary>
+ <param name="SectionTitle">Título de la sección nueva</param>
+ <param name="text">Texto de la sección</param>
+ <param name="EditSummary">Resumen de edición</param>
+ <param name="IsMinor">¿Marcar como menor?</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.AddSection(System.String,System.String,System.String,System.Boolean)">
+ <summary>
+ Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
+ </summary>
+ <param name="SectionTitle">Título de la sección nueva</param>
+ <param name="text">Texto de la sección</param>
+ <param name="EditSummary">Resumen de edición</param>
+ <param name="IsMinor">¿Marcar como menor?</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.AddSection(System.String,System.String,System.String)">
+ <summary>
+ Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
+ </summary>
+ <param name="SectionTitle">Título de la sección nueva</param>
+ <param name="text">Texto de la sección</param>
+ <param name="EditSummary">Resumen de edición</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.AddSection(System.String,System.String)">
+ <summary>
+ Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
+ </summary>
+ <param name="SectionTitle">Título de la sección nueva</param>
+ <param name="text">Texto de la sección</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.BotCanEdit(System.String,System.String)">
+ <summary>
+ Función que verifica si la página puede ser editada por bots (se llama desde Save() y es obligatoria)
+ </summary>
+ <param name="text">Texto de la página</param>
+ <param name="user">Usuario que edita</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.GetEditToken">
+ <summary>
+ Obtiene un Token de edición desde la API de MediaWiki
+ </summary>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.PageInfoData(System.String)">
+ <summary>
+ HAce una solicitud a la API respecto a una página y retorna un array con valores sobre ésta.
+ {Título de la página, ID de la página, Ultimo usuario que la editó,Fecha de última edición,Wikitexto de la página,tamaño de la página (en bytes)}
+ </summary>
+ <param name="Pagename">Título exacto de la página</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.GetPageThreads(System.String)">
+ <summary>
+ Evalua texto (wikicódigo) y regresa un array de string con cada uno de los hilos o secciones del mismo (los que comienzan con == ejemplo == y terminan en otro comienzo o el final de la página).
+ </summary>
+ <param name="pagetext">Texto a evaluar</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.GetCategories(System.String)">
+ <summary>
+ Entrega las primeras 10 categorías de la página
+ </summary>
+ <param name="Page">Título exacto de la página</param>
+ <returns></returns>
+</member>
+<member name="M:PeriodiBOT_IRC.Page.GetPageViewsAvg(System.String)">
+ <summary>
+ Retorna el promedio de los últimos dos meses de la página entregada (solo para páginas wikimedia)
+ El proyecto se deduce extrayendo el texto entre "https://" y ".org"
+ </summary>
+ <param name="Page">Nombre exacto de la página a evaluar</param>
  <returns></returns>
 </member>
 <member name="M:PeriodiBOT_IRC.TextFunctions.StripTags(System.String)">

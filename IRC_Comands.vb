@@ -255,7 +255,7 @@ Class IRC_Comands
             Dim pretext As String = "Entradilla de " & ColoredText(PageName, "03") & " en Wikipedia: "
             responsestring = pretext & Mainwikibot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
             responsestring = IrcStringBuilder(source, responsestring) & Environment.NewLine &
-            IrcStringBuilder(source, "Enlace al artículo: " & ColoredText(site & "/wiki/" & PageName.Replace(" ", "_"), "10"))
+            IrcStringBuilder(source, "Enlace al artículo: " & ColoredText(site & "wiki/" & PageName.Replace(" ", "_"), "10"))
             Return responsestring
         Else
             responsestring = "No se ha encontrado ninguna página llamada """ & ColoredText(Page, "03") & """ o similar."
