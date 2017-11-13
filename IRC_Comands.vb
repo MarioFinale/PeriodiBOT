@@ -518,7 +518,7 @@ Class IRC_Comands
                                            "Dañina: " & ColoredText(pag.ORESScores(0).ToString, "04") & " Buena fé: " & ColoredText(pag.ORESScores(1).ToString, "09"), ColoredText(pag.Size.ToString, "03"))
 
             responsestring = IrcStringBuilder(source, responsestring) & Environment.NewLine &
-            IrcStringBuilder(source, "Enlace al artículo: " & ColoredText(site & "/wiki/" & PageName.Replace(" ", "_"), "10"))
+            IrcStringBuilder(source, "Enlace al artículo: " & ColoredText(site & "wiki/" & PageName.Replace(" ", "_"), "10"))
             Return responsestring
         Else
             responsestring = "No se ha encontrado ninguna página llamada """ & ColoredText(page, "03") & """ o similar."
