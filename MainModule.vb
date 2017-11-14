@@ -1,5 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
+Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports PeriodiBOT_IRC.WikiBot
 
@@ -19,6 +20,7 @@ Module MainModule
 |nombre = Escudo: {{Archivo|Escudo de Mark.jpg}}
 |edad =
 |nota =
+|test|pan
 }}
 
 {{Ficha de ejemplo2
@@ -36,7 +38,7 @@ Module MainModule
 {{Ficha de ejemplo4
 |nombre = Escudo: {{Archivo|{{Archivsso|Escudo de Mark.jpg}} Escudo de Mark.jpg}} 
 |edad =
-|nota =
+|nota
 }}"
 
         Do
@@ -100,13 +102,10 @@ Module MainModule
 
         For Each t As String In templates
             Dim newt As String = t.Substring(2, t.Length - 4)
-
             innertlist.AddRange(GetTemplateTextArray(newt))
-
         Next
 
         templates.AddRange(innertlist)
-
         Return templates
 
     End Function
@@ -130,10 +129,77 @@ Module MainModule
             temp.Name = tempname.Trim(CType(" ", Char())).Trim(CType(Environment.NewLine, Char()))
             temp.Text = t
             TemplateList.Add(temp)
-            Dim a As Int16 = 1
+
+            Dim containstemplates As Boolean = True
+
+            Dim newtext As String = temp.Text
+            Dim replacedtemplates As New List(Of String)
+
+            Dim TemplateInnerText = newtext.Substring(2, newtext.Length - 4)
+
+            Dim temparray As List(Of String) = GetTemplateTextArray(TemplateInnerText)
+
+            For templ As Integer = 0 To temparray.Count - 1
+                Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & templ.ToString, "01")
+                newtext = newtext.Replace(temparray(templ), tempreplace)
+                replacedtemplates.Add(temparray(templ))
+            Next
+
+
+            Dim params As MatchCollection = Regex.Matches(newtext, "\|[^|{}]+")
+            Dim NamedParams As New List(Of Tuple(Of String, String))
+            Dim UnnamedParams As New List(Of String)
+            For Each m As Match In params
+                Dim ntext As String = newtext.Substring(1, m.Value.Length - 1)
+                For reptempindex As Integer = 0 To replacedtemplates.Count - 1
+                    Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & reptempindex.ToString, "01")
+                    ntext = ntext.Replace(tempreplace, replacedtemplates(reptempindex))
+                Next
+
+                Dim ParamNamematch As Match = Regex.Match(m.Value, "\|[^\|={}]+=")
+
+                If ParamNamematch.Success Then
+                    
+                    Dim ParamName As String = ParamNamematch.Value.Substring(1, ParamNamematch.Length - 2)
+                    Dim Paramvalue As String = m.Value.Replace(ParamNamematch.Value, "")
+
+                    NamedParams.Add(New Tuple(Of String, String)(ParamName, Paramvalue))
+
+                Else
+
+                    Dim UnnamedParamValue As String = m.Value.Substring(1, m.Value.Length - 1)
+                    UnnamedParams.Add(UnnamedParamValue)
+
+                End If
+
+                For param As Integer = 0 To UnnamedParams.Count - 1
+                    NamedParams.Add(New Tuple(Of String, String)(param.ToString, UnnamedParams(param)))
+                Next
+
+                temp.Values.AddRange(NamedParams)
+
+
+            Next
+
+
+
+
+
+                Dim a As Integer = 1
+
+
+
 
 
         Next
+
+
+
+
+
+
+
+
 
 
         Return TemplateList

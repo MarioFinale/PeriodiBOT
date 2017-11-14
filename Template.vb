@@ -2,7 +2,7 @@
 
 
     Private _name As String
-    Private _values As List(Of Tuple(Of String, String))
+    Private _values As New List(Of Tuple(Of String, String))
     Private _text As String
 
     Public Property Name As String
