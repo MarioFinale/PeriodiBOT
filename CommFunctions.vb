@@ -301,7 +301,10 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
     End Function
 
 
-
+    ''' <summary>
+    ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
+    ''' </summary>
+    ''' <returns></returns>
     Function CheckUsers() As String()
         Dim returnstring As New List(Of String)
         Try
@@ -365,6 +368,20 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
         Return returnstring.ToArray
 
+    End Function
+
+    ''' <summary>
+    ''' Retorna una lista de plantillas si se le entrega como parámetro un array de tipo string con texto en formato válido de plantilla.
+    ''' Si uno de los items del array no tiene formato válido, entregará una plantilla vacia en su lugar ("{{}}").
+    ''' </summary>
+    ''' <param name="templatearray"></param>
+    ''' <returns></returns>
+    Function GetTemplates(ByVal templatearray As List(Of String)) As List(Of Template)
+        Dim TemplateList As New List(Of Template)
+        For Each t As String In templatearray
+            TemplateList.Add(New Template(t, False))
+        Next
+        Return TemplateList
     End Function
 
 

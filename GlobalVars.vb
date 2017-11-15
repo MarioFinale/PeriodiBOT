@@ -1,4 +1,7 @@
-﻿Imports System.Text.RegularExpressions
+﻿Option Strict On
+Option Explicit On
+Imports System.Text.RegularExpressions
+
 
 Module GlobalVars
 
@@ -15,9 +18,9 @@ Module GlobalVars
 
     Public Exepath As String = AppDomain.CurrentDomain.BaseDirectory
     ''' <summary>
-    ''' El separador de decimales varia segun OS y configuracion regional, eso puede afectar a los calculos.
+    ''' El separador de decimales varia segun OS y configuracion regional, eso puede afectar los calculos.
     ''' </summary>
-    Public DecimalSeparator As String = String.Format(1.1).Substring(1, 1)
+    Public DecimalSeparator As String = String.Format(CType(1.1, String)).Substring(1, 1)
 
     Public OS As String = My.Computer.Info.OSFullName & " Version:" & My.Computer.Info.OSVersion
     Public Version As String = Reflection.Assembly.GetExecutingAssembly.GetName.Version.ToString

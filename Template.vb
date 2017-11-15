@@ -8,7 +8,10 @@ Public Class Template
     Private _name As String
     Private _parameters As List(Of Tuple(Of String, String))
     Private _text As String
-
+    ''' <summary>
+    ''' Nombre de la plantilla (con el espacio de nombres)
+    ''' </summary>
+    ''' <returns></returns>
     Public Property Name As String
         Get
             Return _name
@@ -18,6 +21,10 @@ Public Class Template
         End Set
     End Property
 
+    ''' <summary>
+    ''' Lista con pares de (Nombre de parámetro, Valor).
+    ''' </summary>
+    ''' <returns></returns>
     Public Property Parameters As List(Of Tuple(Of String, String))
         Get
             Return _parameters
@@ -27,22 +34,28 @@ Public Class Template
         End Set
     End Property
 
-    Public Property Text As String
+    ''' <summary>
+    ''' Texto de la plantilla,
+    ''' </summary>
+    ''' <returns></returns>
+    Public ReadOnly Property Text As String
         Get
             Return _text
         End Get
-        Set(value As String)
-            _text = value
-        End Set
     End Property
 
-    Sub New(ByVal Text As String, ByVal newtemplate As Boolean)
+    ''' <summary>
+    ''' Crea una nueva plantilla. Si es una nueva se con
+    ''' </summary>
+    ''' <param name="Texto"></param>
+    ''' <param name="newtemplate"></param>
+    Sub New(ByVal Texto As String, ByVal newtemplate As Boolean)
         If newtemplate Then
-            _name = Text
-            _text = MakeSimpleTemplateText(Text)
+            _name = Texto
+            _text = MakeSimpleTemplateText(Texto)
             _parameters = New List(Of Tuple(Of String, String))
         Else
-            GetTemplateOfText(Text)
+            GetTemplateOfText(Texto)
         End If
     End Sub
 
