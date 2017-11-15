@@ -81,7 +81,7 @@ Class GrillitusArchive
         Dim ArchivePageTitle As String = GrillitusCfg(0)
         Dim MaxDays As Integer = 0
         Dim ArchivedThreads As Integer = 0
-        Dim quarter As Integer = CInt((DateTime.Now.Month - 1) / 3 + 1)
+        Dim quarter As Integer = CInt((DateTime.Now.Month - 1) / 2 + 1)
         Dim Currentyear As String = DateTime.Now.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
         Dim CurrentMonth As String = DateTime.Now.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
         Dim CurrentMonthStr As String = DateTime.Now.ToString("MMMM", New Globalization.CultureInfo("es-ES"))
