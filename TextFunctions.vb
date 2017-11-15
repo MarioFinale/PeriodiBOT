@@ -1,4 +1,5 @@
 ﻿Option Strict On
+Option Explicit On
 Imports System.Text.RegularExpressions
 
 Module TextFunctions
@@ -291,6 +292,60 @@ Module TextFunctions
         Else
             Return Chr(3) & ForegroundColor & "," & BackgroundColor & text & Chr(3)
         End If
+    End Function
+
+    ''' <summary>
+    ''' Retorna un array de string con todas las plantillas contenidas en un texto.
+    ''' Pueden repetirse si hay plantillas que contienen otras en su interior.
+    ''' </summary>
+    ''' <param name="text"></param>
+    ''' <returns></returns>
+    Function GetTemplateTextArray(ByVal text As String) As List(Of String)
+        Dim templatetext As String = text
+        Dim hasinited As Boolean = False
+        Dim AbsolutelyInited As Boolean = False
+        Dim templates As New List(Of String)
+
+
+        Dim tmptext As String = String.Empty
+        For i As Integer = 0 To templatetext.Count - 1
+
+            tmptext = tmptext & templatetext(i)
+
+
+            If AbsolutelyInited Then
+                If CountCharacter(tmptext, CChar("{")) = CountCharacter(tmptext, CChar("}")) Then
+                    templates.Add(tmptext)
+                    AbsolutelyInited = False
+                    hasinited = False
+                    tmptext = String.Empty
+                End If
+            Else
+                If hasinited Then
+                    If templatetext(i) = "{" Then
+                        AbsolutelyInited = True
+                        tmptext = "{{"
+                        Continue For
+                    End If
+                Else
+                    If templatetext(i) = "{" Then
+                        hasinited = True
+                        Continue For
+                    End If
+                End If
+            End If
+
+        Next
+        Dim innertlist As New List(Of String)
+
+        For Each t As String In templates
+            Dim newt As String = t.Substring(2, t.Length - 4)
+            innertlist.AddRange(GetTemplateTextArray(newt))
+        Next
+
+        templates.AddRange(innertlist)
+        Return templates
+
     End Function
 
 

@@ -37,7 +37,7 @@ Module MainModule
             Dim templist As List(Of Template) = GetTemplates(t)
             Dim temp As Template = templist(0)
 
-
+            'Declaración sin utilidad. Solo para efectos de debug.
             Dim a As Integer = 1
 
             Thread.Sleep(500)
@@ -49,62 +49,10 @@ Module MainModule
 
 
 
-    Function GetTemplateTextArray(ByVal text As String) As List(Of String)
-        Dim templatetext As String = text
-        Dim hasinited As Boolean = False
-        Dim AbsolutelyInited As Boolean = False
-        Dim templates As New List(Of String)
 
 
-        Dim tmptext As String = String.Empty
-        For i As Integer = 0 To templatetext.Count - 1
-
-            tmptext = tmptext & templatetext(i)
 
 
-            If AbsolutelyInited Then
-                If CountCharacter(tmptext, CChar("{")) = CountCharacter(tmptext, CChar("}")) Then
-                    templates.Add(tmptext)
-                    AbsolutelyInited = False
-                    hasinited = False
-                    tmptext = String.Empty
-                End If
-            Else
-                If hasinited Then
-                    If templatetext(i) = "{" Then
-                        AbsolutelyInited = True
-                        tmptext = "{{"
-                        Continue For
-                    End If
-                Else
-                    If templatetext(i) = "{" Then
-                        hasinited = True
-                        Continue For
-                    End If
-                End If
-            End If
-
-        Next
-        Dim innertlist As New List(Of String)
-
-        For Each t As String In templates
-            Dim newt As String = t.Substring(2, t.Length - 4)
-            innertlist.AddRange(GetTemplateTextArray(newt))
-        Next
-
-        templates.AddRange(innertlist)
-        Return templates
-
-    End Function
-
-
-    Function GetTemplates(ByVal templatearray As List(Of String)) As List(Of Template)
-        Dim TemplateList As New List(Of Template)
-        For Each t As String In templatearray
-            TemplateList.Add(New Template(t, False))
-        Next
-        Return TemplateList
-    End Function
 
 
 

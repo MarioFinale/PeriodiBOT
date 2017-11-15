@@ -1,4 +1,7 @@
-﻿Imports System.Text.RegularExpressions
+﻿Option Strict On
+Option Explicit On
+Imports System.Text.RegularExpressions
+
 
 Class GrillitusArchive
     Private Bot As WikiBot.Bot

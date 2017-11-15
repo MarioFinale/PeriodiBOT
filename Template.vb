@@ -9,7 +9,7 @@ Public Class Template
     Private _parameters As List(Of Tuple(Of String, String))
     Private _text As String
     ''' <summary>
-    ''' Nombre de la plantilla (con el espacio de nombres)
+    ''' Nombre de la plantilla (con el espacio de nombres).
     ''' </summary>
     ''' <returns></returns>
     Public Property Name As String
@@ -35,7 +35,7 @@ Public Class Template
     End Property
 
     ''' <summary>
-    ''' Texto de la plantilla,
+    ''' Texto de la plantilla.
     ''' </summary>
     ''' <returns></returns>
     Public ReadOnly Property Text As String
@@ -45,10 +45,11 @@ Public Class Template
     End Property
 
     ''' <summary>
-    ''' Crea una nueva plantilla. Si es una nueva se con
+    ''' Crea una nueva plantilla. Si es una nueva se considera el texto como el título, de lo contrario se considera como el contenido de la plantilla y se extrae de este los parámetros.
+    ''' El texto de ser inválido, genera una plantilla vacía ("{{}}").
     ''' </summary>
-    ''' <param name="Texto"></param>
-    ''' <param name="newtemplate"></param>
+    ''' <param name="Texto">Texto a evaluar.</param>
+    ''' <param name="newtemplate">¿Es una plantilla nueva?</param>
     Sub New(ByVal Texto As String, ByVal newtemplate As Boolean)
         If newtemplate Then
             _name = Texto
@@ -58,23 +59,40 @@ Public Class Template
             GetTemplateOfText(Texto)
         End If
     End Sub
-
+    ''' <summary>
+    ''' Crea una nueva plantilla con los parámetros indicados.
+    ''' </summary>
+    ''' <param name="Templatename">Nombre de la plantilla.</param>
+    ''' <param name="templateparams">Parámetros de la plantilla.</param>
     Sub New(ByVal Templatename As String, ByVal templateparams As List(Of Tuple(Of String, String)))
         _name = Templatename
         _parameters = templateparams
         _text = MakeTemplateText(Templatename, templateparams)
     End Sub
-
+    ''' <summary>
+    ''' Crea una nueva plantilla vacía ("{{}}")
+    ''' </summary>
     Sub New()
         _name = String.Empty
         _text = String.Empty
         _parameters = New List(Of Tuple(Of String, String))
     End Sub
 
+    ''' <summary>
+    ''' Crea el texto de una plantilla simple, que solo contiene el nombre de la misma.
+    ''' </summary>
+    ''' <param name="tempname">Nombre de la plantilla</param>
+    ''' <returns></returns>
     Private Function MakeSimpleTemplateText(ByVal tempname As String) As String
         Return "{{" & tempname & "}}"
     End Function
 
+    ''' <summary>
+    ''' Genera el texto de una plantilla a partir del nombre y parámetros indicados.
+    ''' </summary>
+    ''' <param name="tempname">Nombre de la plantilla.</param>
+    ''' <param name="tempparams">Parámetros de la plantilla.</param>
+    ''' <returns></returns>
     Private Function MakeTemplateText(ByVal tempname As String, ByVal tempparams As List(Of Tuple(Of String, String))) As String
         Dim templatetext As String = String.Empty
         Dim opening As String = "{{"
@@ -100,8 +118,10 @@ Public Class Template
 
     End Function
 
-
-
+    ''' <summary>
+    ''' Inicializa la plantilla extrayendo los datos de un texto que debería ser en formato de plantilla.
+    ''' </summary>
+    ''' <param name="text"></param>
     Sub GetTemplateOfText(ByVal text As String)
 
         If Not text.Substring(0, 2) = "{{" Then
@@ -130,8 +150,8 @@ Public Class Template
         Dim newtext As String = _text
         Dim replacedtemplates As New List(Of String)
         Dim TemplateInnerText = newtext.Substring(2, newtext.Length - 4)
-        Dim temparray As List(Of String) = GetTemplateTextArray(TemplateInnerText)
 
+        Dim temparray As List(Of String) = GetTemplateTextArray(TemplateInnerText)
 
         For templ As Integer = 0 To temparray.Count - 1
             Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & templ.ToString, "01")
@@ -183,6 +203,7 @@ Public Class Template
         _parameters.AddRange(TotalParams)
 
     End Sub
+
 
 
 
