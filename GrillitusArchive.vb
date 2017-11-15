@@ -81,7 +81,7 @@ Class GrillitusArchive
         Dim ArchivePageTitle As String = GrillitusCfg(0)
         Dim MaxDays As Integer = 0
         Dim ArchivedThreads As Integer = 0
-        Dim quarter As Integer = CInt((DateTime.Now.Month - 1) / 2 + 1)
+        Dim hyear As Integer = CInt((DateTime.Now.Month - 1) / 6 + 1)
         Dim Currentyear As String = DateTime.Now.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
         Dim CurrentMonth As String = DateTime.Now.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
         Dim CurrentMonthStr As String = DateTime.Now.ToString("MMMM", New Globalization.CultureInfo("es-ES"))
@@ -137,7 +137,7 @@ Class GrillitusArchive
         Else
 
             ArchivePageTitle = ArchivePageTitle.Replace("AAAA", CurrentDay)
-            ArchivePageTitle = ArchivePageTitle.Replace("SEM", quarter.ToString)
+            ArchivePageTitle = ArchivePageTitle.Replace("SEM", hyear.ToString)
         End If
 
         Dim LimitDate As DateTime = DateTime.Now.AddDays(-MaxDays)
@@ -228,7 +228,7 @@ Class GrillitusArchive
                             Dim newlink As String = String.Empty
 
                             If GrillitusCfg(0).Contains("SEM") Then
-                                newlink = "[[" & ArchivePageTitle & "|Archivo " & quarter.ToString & "]]"
+                                newlink = "[[" & ArchivePageTitle & "|Archivo " & hyear.ToString & "]]"
                             Else
 
                                 If GrillitusCfg(0).Contains("DD") Then
@@ -255,7 +255,7 @@ Class GrillitusArchive
 
                         Dim newlink As String = String.Empty
                         If GrillitusCfg(0).Contains("SEM") Then
-                            newlink = "<center>[[" & ArchivePageTitle & "|Archivo " & quarter.ToString & "]]"
+                            newlink = "<center>[[" & ArchivePageTitle & "|Archivo " & hyear.ToString & "]]"
 
                         Else
                             If GrillitusCfg(0).Contains("DD") Then
@@ -277,7 +277,7 @@ Class GrillitusArchive
 
 
                     If GrillitusCfg(0).Contains("SEM") Then
-                        IndexpageText = "[[" & ArchivePageTitle & "|Archivo " & quarter.ToString & "]]<br>"
+                        IndexpageText = "[[" & ArchivePageTitle & "|Archivo " & hyear.ToString & "]]<br>"
                     Else
                         If GrillitusCfg(0).Contains("DD") Then
                             IndexpageText = "[[" & ArchivePageTitle & "|Archivo del " & CurrentDay & "/" & CurrentMonth & "/" & Currentyear & "]]"
