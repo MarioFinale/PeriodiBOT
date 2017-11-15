@@ -296,3 +296,6 @@ __pycache__/
 *.pdb
 *.cache
 *.Cache
+*.ide
+.vs/*
+obj/*
