@@ -16,16 +16,7 @@ Module MainModule
         '  Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
         '  BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword) ', IRCPASS)
         '  BotIRC.Connect()
-        Dim teststring As String = "{{PR|Enfermedades/VIH/SIDA}}
-{{Discusión:VIH/sida/Archivo-00-índice}}
-{{Usuario:Grillitus/Archivar
-|Destino=Discusión:VIH/sida/Archivo AAAA
-|Días a mantener=150
-|Avisar al archivar=si
-|Estrategia=FirmaMásRecienteEnLaSección
-|MantenerCajaDeArchivos=sí
-}}
-"
+        Dim teststring As String = System.IO.File.ReadAllText(Exepath & "test.txt")
 
         Do
             Dim command As String = Console.ReadLine()
