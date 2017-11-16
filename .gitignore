@@ -192,8 +192,6 @@ _pkginfo.txt
 # Visual Studio cache files
 # files ending in .cache can be ignored
 *.[Cc]ache
-# but keep track of directories ending in .cache
-!*.[Cc]ache/
 
 # Others
 ClientBin/
@@ -297,5 +295,5 @@ __pycache__/
 *.cache
 *.Cache
 *.ide
-.vs/*
-obj/*
+**.vs\*
+**obj\*
