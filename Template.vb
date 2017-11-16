@@ -131,18 +131,6 @@ Public Class Template
             Exit Sub
         End If
 
-        Dim Ttext As String = text.Substring(2, text.Length - 4)
-        Dim tempname As String = String.Empty
-
-        For cha As Integer = 0 To Ttext.Count - 1
-            If Not (Ttext(cha) = "}" Or Ttext(cha) = "{" Or Ttext(cha) = "|") Then
-                tempname = tempname & Ttext(cha)
-            Else
-                Exit For
-            End If
-        Next
-
-        _name = tempname.Trim(CType(" ", Char())).Trim(CType(Environment.NewLine, Char()))
         _text = text
         _parameters = New List(Of Tuple(Of String, String))
 
@@ -159,11 +147,27 @@ Public Class Template
             replacedtemplates.Add(temparray(templ))
         Next
 
+        Dim tempname As String = String.Empty
+        Dim innertext As String = newtext.Substring(2, newtext.Length - 4)
+        For cha As Integer = 0 To innertext.Count - 1
+            If Not innertext(cha) = "|" Then
+                tempname = tempname & innertext(cha)
+            Else
+                Exit For
+            End If
+        Next
+
+        For reptempindex As Integer = 0 To replacedtemplates.Count - 1
+            Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & reptempindex.ToString, "01")
+            tempname = tempname.Replace(tempreplace, replacedtemplates(reptempindex)).Trim(CType(" ", Char())).Trim(CType(Environment.NewLine, Char()))
+        Next
+        _name = tempname
 
         Dim params As MatchCollection = Regex.Matches(newtext, "\|[^|]+")
         Dim NamedParams As New List(Of Tuple(Of String, String))
         Dim UnnamedParams As New List(Of String)
         Dim TotalParams As New List(Of Tuple(Of String, String))
+
         For Each m As Match In params
             Dim ntext As String = newtext.Substring(1, m.Value.Length - 1)
             Dim ParamNamematch As Match = Regex.Match(m.Value, "\|[^\|=]+=")

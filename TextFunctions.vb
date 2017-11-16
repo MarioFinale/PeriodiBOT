@@ -321,7 +321,6 @@ Module TextFunctions
                         hasinited = False
                         tmptext = String.Empty
                     End If
-
                 Else
                         If i = templatetext.Count - 1 Then
                         templates.AddRange(GetTemplateTextArray(tmptext.Substring(2, tmptext.Length - 2)))
