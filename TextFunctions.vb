@@ -315,12 +315,15 @@ Module TextFunctions
 
             If AbsolutelyInited Then
                 If CountCharacter(tmptext, CChar("{")) = CountCharacter(tmptext, CChar("}")) Then
-                    templates.Add(tmptext)
-                    AbsolutelyInited = False
-                    hasinited = False
-                    tmptext = String.Empty
+                    If tmptext.Substring(tmptext.Length - 2, 2) = "}}" Then
+                        templates.Add(tmptext)
+                        AbsolutelyInited = False
+                        hasinited = False
+                        tmptext = String.Empty
+                    End If
+
                 Else
-                    If i = templatetext.Count - 1 Then
+                        If i = templatetext.Count - 1 Then
                         templates.AddRange(GetTemplateTextArray(tmptext.Substring(2, tmptext.Length - 2)))
 
                     End If
