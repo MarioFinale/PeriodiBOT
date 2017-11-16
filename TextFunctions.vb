@@ -319,6 +319,11 @@ Module TextFunctions
                     AbsolutelyInited = False
                     hasinited = False
                     tmptext = String.Empty
+                Else
+                    If i = templatetext.Count - 1 Then
+                        templates.AddRange(GetTemplateTextArray(tmptext.Substring(2, tmptext.Length - 2)))
+
+                    End If
                 End If
             Else
                 If hasinited Then

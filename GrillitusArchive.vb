@@ -62,6 +62,10 @@ Class GrillitusArchive
         Return True
     End Function
 
+    Function GetGrillitusTemplate(ByVal PageToGet As Page) As Template
+
+    End Function
+
 
     ''' <summary>
     ''' Realiza un archivado siguiendo la lógica de Grillitus.
@@ -99,16 +103,14 @@ Class GrillitusArchive
             MaxDays = Integer.Parse(GrillitusCfg(1))
         End If
         If String.IsNullOrEmpty(GrillitusCfg(2)) Then
-            Notify = False
+            Notify = True
         Else
             If GrillitusCfg(2).ToLower.Contains("si") Then
-                Notify = True
-            Else
                 Notify = False
+            Else
+                Notify = True
             End If
         End If
-
-        Notify = Not (Notify)
 
         If String.IsNullOrEmpty(GrillitusCfg(3)) Then
             Strategy = "FirmaEnÚltimoPárrafo"
@@ -133,15 +135,11 @@ Class GrillitusArchive
         End If
 
 
-        If Not ArchivePageTitle.Contains("SEM") Then
-            ArchivePageTitle = ArchivePageTitle.Replace("AAAA", Currentyear)
-            ArchivePageTitle = ArchivePageTitle.Replace("MM", CurrentMonth)
-            ArchivePageTitle = ArchivePageTitle.Replace("DD", CurrentDay)
-        Else
 
-            ArchivePageTitle = ArchivePageTitle.Replace("AAAA", CurrentDay)
-            ArchivePageTitle = ArchivePageTitle.Replace("SEM", hyear.ToString)
-        End If
+
+        ArchivePageTitle = ArchivePageTitle.Replace("AAAA", Currentyear).Replace("MM", CurrentMonth) _
+        .Replace("DD", CurrentDay).Replace("SEM", hyear.ToString)
+        Dim ArchiveBoxLink As String = "[[" & ArchivePageTitle & "]]"
 
         Dim LimitDate As DateTime = DateTime.Now.AddDays(-MaxDays)
 
@@ -173,8 +171,6 @@ Class GrillitusArchive
                                 ArchivedThreads += 1
                             End If
                         End If
-
-
                     End If
 
 
@@ -216,89 +212,30 @@ Class GrillitusArchive
         Next
 
         If ArchivedThreads > 0 Then
-
             If UseBox Then
-
                 If IndexPage.Exists Then
 
                     Dim ArchiveBoxMatch As Match = Regex.Match(IndexpageText, "{{caja archivos\|[\s\S]+?}}")
                     Dim Newbox As String = String.Empty
                     If ArchiveBoxMatch.Success Then
-
                         Newbox = ArchiveBoxMatch.Value.Replace("{{caja archivos|", "").Replace("}}", "")
 
-                        If Not Newbox.ToLower.Contains(ArchivePageTitle) Then
-                            Dim newlink As String = String.Empty
+                        If Not Newbox.Contains(ArchivePageTitle) Then
 
-                            If GrillitusCfg(0).Contains("SEM") Then
-                                newlink = "[[" & ArchivePageTitle & "|Archivo " & hyear.ToString & "]]"
-                            Else
-
-                                If GrillitusCfg(0).Contains("DD") Then
-                                    newlink = "[[" & ArchivePageTitle & "|Archivo del " & CurrentDay & "/" & CurrentMonth & "/" & Currentyear & "]]"
-                                ElseIf GrillitusCfg(0).Contains("MM") Then
-                                    newlink = "[[" & ArchivePageTitle & "|Archivo de " & CurrentMonthStr & " de " & Currentyear & "]]"
-                                ElseIf GrillitusCfg(0).Contains("AAAA") Then
-                                    newlink = "[[" & ArchivePageTitle & "|Archivo del " & Currentyear & "]]"
-                                Else
-
-                                End If
-
-                            End If
-
-                            If Not Newbox.Contains(newlink) Then
-                                Newbox = Newbox & "<center>" & newlink & "</center>" & "<br />" & Environment.NewLine
+                            If Not Newbox.Contains(ArchiveBoxLink) Then
+                                Newbox = Newbox & "<center>" & ArchiveBoxLink & "</center>" & "<br />" & Environment.NewLine
                                 Newbox = "{{caja archivos|" & Newbox & "}}"
                                 IndexpageText = IndexpageText.Replace(ArchiveBoxMatch.Value, Newbox)
                             End If
-
                         End If
-
                     Else
-
-                        Dim newlink As String = String.Empty
-                        If GrillitusCfg(0).Contains("SEM") Then
-                            newlink = "<center>[[" & ArchivePageTitle & "|Archivo " & hyear.ToString & "]]"
-
-                        Else
-                            If GrillitusCfg(0).Contains("DD") Then
-                                newlink = "<center>[[" & ArchivePageTitle & "|Archivo del " & CurrentDay & "/" & CurrentMonth & "/" & Currentyear & "]]"
-                            ElseIf GrillitusCfg(0).Contains("MM") Then
-                                newlink = "<center>[[" & ArchivePageTitle & "|Archivo de " & CurrentMonthStr & " de " & Currentyear & "]]"
-                            ElseIf GrillitusCfg(0).Contains("AAAA") Then
-                                newlink = "<center>[[" & ArchivePageTitle & "|Archivo del " & Currentyear & "]]"
-                            Else
-
-                            End If
-
-                        End If
-                        IndexpageText = "{{caja archivos|" & Environment.NewLine & newlink & "<br />" & Environment.NewLine & "}}"
+                        IndexpageText = "{{caja archivos|" & Environment.NewLine & ArchiveBoxLink & "<br />" & Environment.NewLine & "}}"
                     End If
-
 
                 Else
-
-
-                    If GrillitusCfg(0).Contains("SEM") Then
-                        IndexpageText = "[[" & ArchivePageTitle & "|Archivo " & hyear.ToString & "]]<br>"
-                    Else
-                        If GrillitusCfg(0).Contains("DD") Then
-                            IndexpageText = "[[" & ArchivePageTitle & "|Archivo del " & CurrentDay & "/" & CurrentMonth & "/" & Currentyear & "]]"
-                        ElseIf GrillitusCfg(0).Contains("MM") Then
-                            IndexpageText = "[[" & ArchivePageTitle & "|Archivo de " & CurrentMonthStr & " de " & Currentyear & "]]"
-                        ElseIf GrillitusCfg(0).Contains("AAAA") Then
-                            IndexpageText = "[[" & ArchivePageTitle & "|Archivo del " & Currentyear & "]]"
-                        Else
-                            Return False
-                        End If
-
-                    End If
                     IndexpageText = "<center>" & IndexpageText & "</center>" & "<br />"
                     IndexpageText = "{{caja archivos|" & Environment.NewLine & IndexpageText & Environment.NewLine & "}}"
-
-
                 End If
-
 
                 If Not String.IsNullOrEmpty(ArchivePageText) Then
                     If Not Newpagetext.Contains("{{" & IndexPage.Title & "}}") Then
@@ -309,14 +246,8 @@ Class GrillitusArchive
                     If Not ArchivePageText.Contains("{{" & IndexPage.Title & "}}") Then
                         ArchivePageText = "{{" & IndexPage.Title & "}}" & Environment.NewLine & ArchivePageText
                     End If
-
                 End If
-
-
             End If
-
-
-
         End If
 
         If Not String.IsNullOrEmpty(ArchivePageText) Then
@@ -324,9 +255,9 @@ Class GrillitusArchive
             Dim Summary As String = String.Empty
 
             If ArchivedThreads > 1 Then
-                Summary = String.Format("Archivando {0} hilos con más de {1} días de antiguedad en [[{2}]].", ArchivedThreads, MaxDays.ToString, ArchivePageTitle)
+                Summary = String.Format("Archivando {0} hilos con más de {1} días de antiguedad en 2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
             Else
-                Summary = String.Format("Archivando {0} hilo con más de {1} días de antiguedad en [[{2}]].", ArchivedThreads, MaxDays.ToString, ArchivePageTitle)
+                Summary = String.Format("Archivando {0} hilo con más de {1} días de antiguedad en {2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
             End If
 
             Dim ArchiveSummary As String = String.Empty
