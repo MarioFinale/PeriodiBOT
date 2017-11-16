@@ -130,6 +130,9 @@ Public Class Template
         If Not CountCharacter(text, CChar("{")) = CountCharacter(text, CChar("}")) Then
             Exit Sub
         End If
+        If Not text.Substring(text.Length - 2, 2) = "}}" Then
+            Exit Sub
+        End If
 
         _text = text
         _parameters = New List(Of Tuple(Of String, String))
