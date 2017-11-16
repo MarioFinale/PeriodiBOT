@@ -331,6 +331,8 @@ Module TextFunctions
                         AbsolutelyInited = True
                         tmptext = "{{"
                         Continue For
+                    Else
+                        hasinited = False
                     End If
                 Else
                     If templatetext(i) = "{" Then
