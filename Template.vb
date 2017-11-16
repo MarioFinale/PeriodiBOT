@@ -160,13 +160,13 @@ Public Class Template
         Next
 
 
-        Dim params As MatchCollection = Regex.Matches(newtext, "\|[^|{}]+")
+        Dim params As MatchCollection = Regex.Matches(newtext, "\|[^|]+")
         Dim NamedParams As New List(Of Tuple(Of String, String))
         Dim UnnamedParams As New List(Of String)
         Dim TotalParams As New List(Of Tuple(Of String, String))
         For Each m As Match In params
             Dim ntext As String = newtext.Substring(1, m.Value.Length - 1)
-            Dim ParamNamematch As Match = Regex.Match(m.Value, "\|[^\|={}]+=")
+            Dim ParamNamematch As Match = Regex.Match(m.Value, "\|[^\|=]+=")
 
             If ParamNamematch.Success Then
 
