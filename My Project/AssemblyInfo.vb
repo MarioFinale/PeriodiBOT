@@ -8,13 +8,12 @@ Imports System.Runtime.InteropServices
 
 ' Revisar los valores de los atributos del ensamblado
 
-<Assembly: AssemblyTitle("PeriodiBOT-IRC")>
+<Assembly: AssemblyTitle("PeriodiBOT")>
 <Assembly: AssemblyDescription("Wikimedia BOT")>
 <Assembly: AssemblyCompany("MarioFinale")>
-<Assembly: AssemblyProduct("PeriodiBOT-IRC")>
-<Assembly: AssemblyCopyright("Creative commons BY-SA 3.0, MarioFinale 2017")>
-<Assembly: AssemblyTrademark("MarioFinale 2017")>
-
+<Assembly: AssemblyProduct("PeriodiBOT")>
+<Assembly: AssemblyCopyright("GNU General Public License v2.0, MarioFinale 2017")>
+<Assembly: AssemblyTrademark("MarioFinale")>
 <Assembly: ComVisible(False)>
 
 'El siguiente GUID sirve como id. de typelib si este proyecto se expone a COM.
@@ -31,4 +30,4 @@ Imports System.Runtime.InteropServices
 ' mediante el carácter '*', como se muestra a continuación:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("2.5.*")>
+<Assembly: AssemblyVersion("2.6.*")>
