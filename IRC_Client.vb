@@ -199,12 +199,12 @@ Public Class IRC_Client
                     _networkStream.Dispose()
                 Catch ex2 As Exception
                     'In case of something really bad happens
+                    Debug_Log("IRC: Error ex2: " + ex2.Message, "IRC", BOTName)
                 End Try
 
             End Try
             If HasExited Then
-                EndLog()
-                Environment.Exit(0)
+                ExitProgram()
             End If
 
             Log("Lost connection, retrying on 5 seconds...", "IRC", _sNickName)

@@ -14,22 +14,15 @@ Module MainModule
         LoadConfig()
         Log("Starting...", "Local", BOTName)
         Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
-        '  BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword) ', IRCPASS)
-        '  BotIRC.Connect()
+        BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword) ', IRCPASS)
+        BotIRC.Connect()
         Dim teststring As String = System.IO.File.ReadAllText(Exepath & "test.txt")
 
         Do
-            Dim command As String = Console.ReadLine()
-            ' Mainwikibot.ArchiveAllInclusions()
-            Dim p As Page = Mainwikibot.Getpage("User:PeriodiBOT")
-            ' Dim pagetext As String = p.Text
-            Mainwikibot.GrillitusArchive(p)
+            ' Dim command As String = Console.ReadLine()
 
-            Dim t As Template = GetGrillitusTemplate(teststring)
-
-            'Declaración sin utilidad. Solo para efectos de debug.
+            ' Declaración sin utilidad. Solo para efectos de debug.
             Dim a As Integer = 1
-
             Thread.Sleep(500)
         Loop
 

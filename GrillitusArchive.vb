@@ -31,7 +31,6 @@ Class GrillitusArchive
         Dim UseBox As String = String.Empty
 
         For Each tup As Tuple(Of String, String) In GrillitusTemplate.Parameters
-
             If tup.Item1 = "Destino" Then
                 Destination = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
             End If
@@ -76,7 +75,6 @@ Class GrillitusArchive
     End Function
 
     Function GetGrillitusTemplate(ByVal PageToGet As Page) As Template
-
         Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(PageToGet.Text))
         Dim Grittemp As New Template
         For Each t As Template In templist
@@ -86,7 +84,6 @@ Class GrillitusArchive
             End If
         Next
         Return Grittemp
-
     End Function
 
 
@@ -235,7 +232,7 @@ Class GrillitusArchive
                     End If
                 End If
             Catch ex As Exception
-                Log("GrillitusArchive: Error in one thread on " & PageToArchive.Title, "LOCAL", BOTName)
+                Log("GrillitusArchive: Thread error on " & PageToArchive.Title, "LOCAL", BOTName)
             End Try
         Next
 
@@ -283,7 +280,7 @@ Class GrillitusArchive
             Dim Summary As String = String.Empty
 
             If ArchivedThreads > 1 Then
-                Summary = String.Format("Archivando {0} hilos con más de {1} días de antiguedad en 2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
+                Summary = String.Format("Archivando {0} hilos con más de {1} días de antiguedad en {2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
             Else
                 Summary = String.Format("Archivando {0} hilo con más de {1} días de antiguedad en {2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
             End If

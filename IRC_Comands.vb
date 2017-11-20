@@ -17,9 +17,14 @@ Class IRC_Comands
 
                 If sCommandParts.Length >= 4 Then
                     Dim Command As String = sCommandParts(1)
+                    If Command = "NOTICE" Then
+                        Return Nothing
+                    End If
+
                     Dim Source As String = sCommandParts(2)
                     Dim param As String = GetParamString(imputline)
                     Dim Realname As String = GetUserFromChatresponse(Prefix)
+
 
                     If Source.ToLower = _IrcNickName.ToLower Then
                         Source = Realname
@@ -93,27 +98,27 @@ Class IRC_Comands
                                 Return response
                             End If
                         ElseIf MainParam = ("%grillitusarchive") Then 'Archivado de grillitus
-                            If sCommandParts(0).Contains("@wikimedia/MarioFinale") Or sCommandParts(0).Contains("@wikimedia/-jem-") Then
+                            If IsOp(imputline) Then
                                 Task.Run(Sub()
                                              Mainwikibot.ArchiveAllInclusions(True)
                                          End Sub)
                             End If
                         ElseIf MainParam = ("%join") Then
-                            If sCommandParts(0).Contains("@wikimedia/MarioFinale") Or sCommandParts(0).Contains("@wikimedia/-jem-") Then
+                            If IsOp(imputline) Then
                                 Return JoinRoom(Source, Totalparam, Realname)
                             End If
                         ElseIf MainParam = ("%leave") Or MainParam = ("%part") Then
-                            If sCommandParts(0).Contains("@wikimedia/MarioFinale") Or sCommandParts(0).Contains("@wikimedia/-jem-") Then
+                            If IsOp(imputline) Then
                                 Return LeaveRoom(Source, Totalparam, Realname)
                             End If
                         ElseIf MainParam = ("%q") Or MainParam = ("%quit") Then
-                            If sCommandParts(0).Contains("@wikimedia/MarioFinale") Or sCommandParts(0).Contains("@wikimedia/-jem-") Then
+                            If IsOp(imputline) Then
                                 Return Quit(Source, Realname, HasExited)
                             End If
 
                         ElseIf MainParam = ("%updateExtracts") Or MainParam = ("%update") Or
                         MainParam = ("%upex") Or MainParam = ("%updex") Then
-                            If sCommandParts(0).Contains("@wikimedia/MarioFinale") Or sCommandParts(0).Contains("@wikimedia/-jem-") Then
+                            If IsOp(imputline) Then
                                 Task.Run(Sub()
                                              Mainwikibot.UpdatePageExtracts(True)
                                          End Sub)
@@ -332,6 +337,10 @@ Class IRC_Comands
 
     Private Function IrcStringBuilder(ByVal Destiny As String, message As String) As String
         Return String.Format("PRIVMSG {0} :{1}", Destiny, message)
+    End Function
+
+    Private Function IrcNoticeStringBuilder(ByVal Destiny As String, message As String) As String
+        Return String.Format("NOTICE {0} :{1}", Destiny, message)
     End Function
 
     Private Function ProgramNewUser(ByVal source As String, user As String, UserAndTime As String) As String()

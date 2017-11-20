@@ -23,86 +23,10 @@ Public Module CommFunctions
         Return True
     End Function
 
-    Function LoadConfig() As Boolean
-        Dim MainBotName As String = String.Empty
-        Dim WPSite As String = String.Empty
-        Dim WPAPI As String = String.Empty
-        Dim WPBotUserName As String = String.Empty
-        Dim WPBotPassword As String = String.Empty
-        Dim IRCBotNickName As String = String.Empty
-        Dim IRCBotPassword As String = String.Empty
-        Dim MainIRCNetwork As String = String.Empty
-        Dim MainIRCChannel As String = String.Empty
-        Dim ConfigOK As Boolean = False
-        If System.IO.File.Exists(ConfigFilePath) Then
-            Log("Loading config", "LOCAL", "Undefined")
-            Dim Configstr As String = System.IO.File.ReadAllText(ConfigFilePath)
-            Try
-                MainBotName = TextInBetween(Configstr, "BOTName=""", """")(0)
-                WPBotUserName = TextInBetween(Configstr, "WPUserName=""", """")(0)
-                WPSite = TextInBetween(Configstr, "PageURL=""", """")(0)
-                WPBotPassword = TextInBetween(Configstr, "WPBotPassword=""", """")(0)
-                WPAPI = TextInBetween(Configstr, "ApiURL=""", """")(0)
-                MainIRCNetwork = TextInBetween(Configstr, "IRCNetwork=""", """")(0)
-                IRCBotNickName = TextInBetween(Configstr, "IRCBotNickName=""", """")(0)
-                IRCBotPassword = TextInBetween(Configstr, "IRCBotPassword=""", """")(0)
-                MainIRCChannel = TextInBetween(Configstr, "IRCChannel=""", """")(0)
-                ConfigOK = True
-            Catch ex As IndexOutOfRangeException
-                Log("Malformed config", "LOCAL", "Undefined")
-            End Try
-        Else
-            Log("No config file", "LOCAL", "Undefined")
-            System.IO.File.Create(ConfigFilePath).Close()
-        End If
-
-        If Not ConfigOK Then
-            Console.Clear()
-            Console.WriteLine("No config file, please fill the data or close the program and create a config file.")
-            Console.WriteLine("Bot Name: ")
-            MainBotName = Console.ReadLine
-            Console.WriteLine("Wikipedia Username: ")
-            WPBotUserName = Console.ReadLine
-            Console.WriteLine("Wikipedia bot password: ")
-            WPBotPassword = Console.ReadLine
-            Console.WriteLine("Wikipedia main URL: ")
-            WPSite = Console.ReadLine
-            Console.WriteLine("Wikipedia API URL: ")
-            WPAPI = Console.ReadLine
-            Console.WriteLine("IRC Network: ")
-            MainIRCNetwork = Console.ReadLine
-            Console.WriteLine("IRC NickName: ")
-            IRCBotNickName = Console.ReadLine
-            Console.WriteLine("IRC nickserv/server password (press enter if not password is set): ")
-            IRCBotPassword = Console.ReadLine
-            Console.WriteLine("IRC main Channel: ")
-            MainIRCChannel = Console.ReadLine
-
-            Dim configstr As String = String.Format("======================CONFIG======================
-BOTName=""{0}""
-WPUserName=""{1}""
-WPBotPassword=""{2}""
-PageURL=""{3}""
-ApiURL=""{4}""
-IRCNetwork=""{5}""
-IRCBotNickName=""{6}""
-IRCBotPassword=""{7}""
-IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, MainIRCChannel)
-
-            System.IO.File.WriteAllText(ConfigFilePath, configstr)
-        End If
-        BOTName = MainBotName
-        WPUserName = WPBotUserName
-        BOTPassword = WPBotPassword
-        site = WPSite
-        ApiURL = WPAPI
-        IRCNetwork = MainIRCNetwork
-        BOTIRCName = IRCBotNickName
-        IRCPassword = IRCBotPassword
-        IRCChannel = MainIRCChannel
-        Return True
-    End Function
-
+    Sub ExitProgram()
+        EndLog()
+        Environment.Exit(0)
+    End Sub
 
 
     Function GetMostRecentDateTime(ByVal comment As String) As DateTime

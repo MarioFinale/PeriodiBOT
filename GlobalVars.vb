@@ -27,6 +27,7 @@ Module GlobalVars
     Public User_Filepath As String = Exepath & "Users.psv"
     Public Log_Filepath As String = Exepath & "Log.psv"
     Public ConfigFilePath As String = Exepath & "Config.cfg"
+    Public OpFilePath As String = Exepath & "OPs.cfg"
 
 
     Public LogC As New LogCore(Log_Filepath, User_Filepath)
