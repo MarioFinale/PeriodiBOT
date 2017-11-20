@@ -384,6 +384,19 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         Return TemplateList
     End Function
 
+    Function GetGrillitusTemplate(ByVal test As String) As Template
+
+        Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(test))
+        Dim Grittemp As New Template
+        For Each t As Template In templist
+            If Regex.Match(t.Name, " *[Uu]suario *: *[Gg]rillitus\/Archivar").Success Then
+                Grittemp = t
+                Exit For
+            End If
+        Next
+        Return Grittemp
+
+    End Function
 
 
 End Module

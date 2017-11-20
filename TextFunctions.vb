@@ -300,7 +300,7 @@ Module TextFunctions
     ''' </summary>
     ''' <param name="text"></param>
     ''' <returns></returns>
-    Function GetTemplateTextArray(ByVal text As String) As List(Of String)
+    Public Function GetTemplateTextArray(ByVal text As String) As List(Of String)
         Dim templatetext As String = text
         Dim hasinited As Boolean = False
         Dim AbsolutelyInited As Boolean = False
@@ -322,7 +322,7 @@ Module TextFunctions
                         tmptext = String.Empty
                     End If
                 Else
-                        If i = templatetext.Count - 1 Then
+                    If i = templatetext.Count - 1 Then
                         templates.AddRange(GetTemplateTextArray(tmptext.Substring(2, tmptext.Length - 2)))
 
                     End If

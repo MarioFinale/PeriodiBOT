@@ -11,32 +11,45 @@ Class GrillitusArchive
     End Sub
 
     ''' <summary>
-    ''' Busca en el texto una plantilla de archivado usada por grillitus.
+    ''' Busca en la página una plantilla de archivado usada por grillitus.
     ''' De encontrar la plantilla entrega un array de tipo string con: {Destino del archivado, Días a mantener, Avisar archivado, Estrategia de archivado, mantener caja}.
     ''' Los parámetros que estén vacíos en la plantilla se entregan vacíos también.
     ''' De no encontrar los parámetros regresa un array con todos los parámetros vacíos.
     ''' </summary>
-    ''' <param name="Pagetext">Texto a evaluar</param>
+    ''' <param name="PageToArchive">Pagina a evaluar</param>
     ''' <returns></returns>
-    Function GetGrillitusTemplateData(PageText As String) As String()
-        Dim template As String = Regex.Match(PageText, "{{ *[Uu]suario *: *[Gg]rillitus\/Archivar[\s\S]+?}}").Value
+    Function GetGrillitusTemplateData(PageToArchive As Page) As String()
 
-        Dim Destiny As String = Regex.Match(template, "(\| *Destino *)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
-        Destiny = Regex.Replace(Destiny, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+        Dim GrillitusTemplate As Template = GetGrillitusTemplate(PageToArchive)
+        If String.IsNullOrEmpty(GrillitusTemplate.Name) Then
+            Return {"", "", "", "", ""}
+        End If
+        Dim Destination As String = String.Empty
+        Dim Days As String = String.Empty
+        Dim Notify As String = String.Empty
+        Dim Strategy As String = String.Empty
+        Dim UseBox As String = String.Empty
 
-        Dim Days As String = Regex.Match(template, "(\| *Días a mantener *)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
-        Days = Regex.Replace(Days, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+        For Each tup As Tuple(Of String, String) In GrillitusTemplate.Parameters
 
-        Dim Notice As String = Regex.Match(template, "(\| *Avisar al archivar *)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
-        Notice = Regex.Replace(Notice, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            If tup.Item1 = "Destino" Then
+                Destination = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            End If
+            If tup.Item1 = "Días a mantener" Then
+                Days = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            End If
+            If tup.Item1 = "Avisar al archivar" Then
+                Notify = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            End If
+            If tup.Item1 = "Estrategia" Then
+                Strategy = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            End If
+            If tup.Item1 = "MantenerCajaDeArchivos" Then
+                UseBox = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            End If
+        Next
 
-        Dim Estrategy As String = Regex.Match(template, "(\| *Estrategia *)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
-        Estrategy = Regex.Replace(Estrategy, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
-
-        Dim Box As String = Regex.Match(template, "(\| *MantenerCajaDeArchivos *)=[^}|]+(?=\||})", RegexOptions.IgnoreCase).Value
-        Box = Regex.Replace(Box, "\|[^=]+=", "", RegexOptions.IgnoreCase).Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
-
-        Return {Destiny, Days, Notice, Estrategy, Box}
+        Return {Destination, Days, Notify, Strategy, UseBox}
 
     End Function
 
@@ -64,6 +77,16 @@ Class GrillitusArchive
 
     Function GetGrillitusTemplate(ByVal PageToGet As Page) As Template
 
+        Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(PageToGet.Text))
+        Dim Grittemp As New Template
+        For Each t As Template In templist
+            If Regex.Match(t.Name, " *[Uu]suario *: *[Gg]rillitus\/Archivar").Success Then
+                Grittemp = t
+                Exit For
+            End If
+        Next
+        Return Grittemp
+
     End Function
 
 
@@ -74,25 +97,33 @@ Class GrillitusArchive
     ''' <returns></returns>
     Function GrillitusArchive(ByVal PageToArchive As Page) As Boolean
         Log("GrillitusArchive: Page " & PageToArchive.Title, "LOCAL", BOTName)
+
+        Dim hyear As Integer = CInt((DateTime.Now.Month - 1) / 6 + 1)
+        Dim Currentyear As String = DateTime.Now.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
+        Dim CurrentMonth As String = DateTime.Now.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
+        Dim CurrentMonthStr As String = DateTime.Now.ToString("MMMM", New Globalization.CultureInfo("es-ES"))
+        Dim CurrentDay As String = DateTime.Now.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
+
+        Dim GrillitusCfg As String() = GetGrillitusTemplateData(PageToArchive)
+
+
         Dim IndexPage As Page = Bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
         Dim IndexpageText As String = IndexPage.Text
+
         Dim PageTitle As String = PageToArchive.Title
         Dim pagetext As String = PageToArchive.Text
+
         Dim Newpagetext As String = pagetext
         Dim ArchivePageText As String = String.Empty
+
         Dim threads As String() = Bot.GetPageThreads(pagetext)
-        Dim GrillitusCfg As String() = GetGrillitusTemplateData(pagetext)
+
         Dim Notify As Boolean = False
         Dim Strategy As String = String.Empty
         Dim UseBox As Boolean = False
         Dim ArchivePageTitle As String = GrillitusCfg(0)
         Dim MaxDays As Integer = 0
         Dim ArchivedThreads As Integer = 0
-        Dim hyear As Integer = CInt((DateTime.Now.Month - 1) / 6 + 1)
-        Dim Currentyear As String = DateTime.Now.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
-        Dim CurrentMonth As String = DateTime.Now.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
-        Dim CurrentMonthStr As String = DateTime.Now.ToString("MMMM", New Globalization.CultureInfo("es-ES"))
-        Dim CurrentDay As String = DateTime.Now.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
 
         If String.IsNullOrEmpty(GrillitusCfg(0)) Then
             Return False
@@ -133,9 +164,6 @@ Class GrillitusArchive
                 UseBox = False
             End If
         End If
-
-
-
 
         ArchivePageTitle = ArchivePageTitle.Replace("AAAA", Currentyear).Replace("MM", CurrentMonth) _
         .Replace("DD", CurrentDay).Replace("SEM", hyear.ToString)
