@@ -16,7 +16,6 @@ Module MainModule
         Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
         BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword) ', IRCPASS)
         BotIRC.Connect()
-        Dim teststring As String = System.IO.File.ReadAllText(Exepath & "test.txt")
 
         Do
             ' Dim command As String = Console.ReadLine()
