@@ -203,13 +203,16 @@ Class IRC_Comands
         ElseIf MainParam = ("%info") Or MainParam = ("%pag") Or
                            MainParam = ("%pageinfo") Or MainParam = ("%infopagina") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-            ColoredText(MainParam, "04"), ColoredText("%info/%pag/%pageinfo/%infopagina", "03"), "Entrega la informaciones varias sobre un artículo en Wikipedia.", "%Info <Artículo>")
+            ColoredText(MainParam, "04"), ColoredText("%info/%pag/%pageinfo/%infopagina", "03"), "Entrega datos sobre un artículo en Wikipedia.", "%Info <Artículo>")
 
         ElseIf MainParam = ("%updateExtracts") Or MainParam = ("%update") Or
                         MainParam = ("%upex") Or MainParam = ("%updex") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-            ColoredText(MainParam, "04"), ColoredText("%updateExtracts/%update/%upex/%updex", "03"), "SOLO OP, Actualiza los extractos de articulos en Wikipedia.", "%Upex")
+            ColoredText(MainParam, "04"), ColoredText("%updateExtracts/%update/%upex/%updex", "03"), "SOLO OPS, Actualiza los extractos de articulos en Wikipedia.", "%Upex")
 
+        ElseIf MainParam = ("%q") Then
+            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
+            ColoredText(MainParam, "04"), ColoredText("%updateExtracts/%update/%upex/%updex", "03"), "SOLO OP, Solicita al bot cesar todas sus operaciones..", "%Upex")
         ElseIf String.IsNullOrEmpty(MainParam) Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText("%?", "04"), ColoredText("%?/%h/%help/%ayuda", "03"), "Entrega información sobre un comando.", "%? <orden>")
@@ -260,7 +263,7 @@ Class IRC_Comands
             Dim pretext As String = "Entradilla de " & ColoredText(PageName, "03") & " en Wikipedia: "
             responsestring = pretext & Mainwikibot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
             responsestring = IrcStringBuilder(source, responsestring) & Environment.NewLine &
-            IrcStringBuilder(source, "Enlace al artículo: " & ColoredText(site & "wiki/" & PageName.Replace(" ", "_"), "10"))
+            IrcStringBuilder(source, "Enlace al artículo: " & ColoredText(" " & site & "wiki/" & PageName.Replace(" ", "_") & " ", "10"))
             Return responsestring
         Else
             responsestring = "No se ha encontrado ninguna página llamada """ & ColoredText(Page, "03") & """ o similar."
@@ -522,12 +525,12 @@ Class IRC_Comands
             Else
                 CatString = pag.Categories.Count.ToString
             End If
-            responsestring = String.Format("Información sobre {0}: Última edición por {1}; Categorias: {2}; Visitas diarias (promedio últimos dos meses): {3}; Tamaño: {5}bytes; Puntaje ORES (Último diff): {4}",
+            responsestring = String.Format("Información sobre {0}: Última edición por {1}; Categorias: {2}; Visitas diarias (promedio últimos dos meses): {3}; Tamaño: {5} bytes; Puntaje ORES (Última edición): {4}",
                                            ColoredText(PageName, "03"), ColoredText(pag.Lastuser, "03"), ColoredText(CatString, "06"), ColoredText(pag.PageViews.ToString, "13"),
-                                           "Dañina: " & ColoredText(pag.ORESScores(0).ToString, "04") & " Buena fé: " & ColoredText(pag.ORESScores(1).ToString, "09"), ColoredText(pag.Size.ToString, "03"))
+                                           "Dañina: " & ColoredText(pag.ORESScores(0).ToString, "04") & " Buena fé: " & ColoredText(pag.ORESScores(1).ToString, "03"), ColoredText(pag.Size.ToString, "03"))
 
             responsestring = IrcStringBuilder(source, responsestring) & Environment.NewLine &
-            IrcStringBuilder(source, "Enlace al artículo: " & ColoredText(site & "wiki/" & PageName.Replace(" ", "_"), "10"))
+            IrcStringBuilder(source, "Enlace al artículo: " & ColoredText(" " & site & "wiki/" & PageName.Replace(" ", "_") & " ", "10"))
             Return responsestring
         Else
             responsestring = "No se ha encontrado ninguna página llamada """ & ColoredText(page, "03") & """ o similar."
