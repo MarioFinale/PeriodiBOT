@@ -4,6 +4,11 @@ Module Config
 
     Private OPlist As List(Of String)
 
+    ''' <summary>
+    ''' Inicializa las configuraciones genereales del programa desde el archivo de configuración.
+    ''' Si no existe el archivo, solicita datos al usuario y lo genera.
+    ''' </summary>
+    ''' <returns></returns>
     Function LoadConfig() As Boolean
         Dim MainBotName As String = String.Empty
         Dim WPSite As String = String.Empty
@@ -82,7 +87,6 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                 Log("Error saving config file", "LOCAL", "Undefined")
             End Try
 
-
         End If
         BOTName = MainBotName
         WPUserName = WPBotUserName
@@ -130,36 +134,73 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
     End Function
 
 
-    Sub AddOP(ByVal message As String)
+    Function AddOP(ByVal message As String, ByVal Source As String, ByVal user As String) As Boolean
         Dim CommandParts As String() = message.Split(CType(" ", Char()))
-        Dim Param As String = CommandParts(3).Substring(1)
-
-        If IsOp(message) Then
-            OPlist.Add(Param)
-            Try
-                System.IO.File.WriteAllLines(OpFilePath, OPlist.ToArray)
-            Catch ex As System.IO.IOException
-                Log("Error saving ops file", "LOCAL", BOTName)
-            End Try
+        Dim Param As String = CommandParts(4)
+        If Not OPlist.Contains(Param) Then
+            If IsOp(message, Source, user) Then
+                OPlist.Add(Param)
+                Try
+                    System.IO.File.WriteAllLines(OpFilePath, OPlist.ToArray)
+                    Return True
+                Catch ex As System.IO.IOException
+                    Log("Error saving ops file", "LOCAL", BOTName)
+                    Return False
+                End Try
+            Else
+                Return False
+            End If
+        Else
+            Return False
         End If
-    End Sub
+
+    End Function
 
 
-    Function IsOp(ByVal message As String) As Boolean
+    Function DelOP(ByVal message As String, ByVal Source As String, ByVal user As String) As Boolean
+        Dim CommandParts As String() = message.Split(CType(" ", Char()))
+        Dim Param As String = CommandParts(4)
+
+        If IsOp(message, Source, user) Then
+
+            If OPlist.Contains(Param) Then
+                OPlist.Remove(Param)
+                Try
+                    System.IO.File.WriteAllLines(OpFilePath, OPlist.ToArray)
+                    Return True
+                Catch ex As System.IO.IOException
+                    Log("Error saving ops file", "LOCAL", BOTName)
+                    Return False
+                End Try
+            Else
+                Return False
+            End If
+        Else
+            Return False
+        End If
+    End Function
+
+
+    Function IsOp(ByVal message As String, Source As String, user As String) As Boolean
+
 
         Try
             Dim Scommand0 As String = message.Split(CType(" ", Char()))(0)
             Dim Nickname As String = GetUserFromChatresponse(message)
             Dim Hostname As String = Scommand0.Split(CType("@", Char()))(1)
-            Dim OpString As String = Nickname & "!" & Hostname
 
+            Log(String.Format("Checking if user {0} on host {1} is OP", Nickname, Hostname), Source, user)
+
+            Dim OpString As String = Nickname & "!" & Hostname
             If OPlist.Contains(OpString) Then
+                Log(String.Format("User {0} on host {1} is OP", Nickname, Hostname), Source, user)
                 Return True
             Else
+                Log(String.Format("User {0} on host {1} is not OP", Nickname, Hostname), Source, user)
                 Return False
             End If
-
         Catch ex As IndexOutOfRangeException
+            Log("EX Checking if user is OP : " & ex.Message, Source, user)
             Return False
         End Try
     End Function

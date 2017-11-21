@@ -98,27 +98,36 @@ Class IRC_Comands
                                 Return response
                             End If
                         ElseIf MainParam = ("%grillitusarchive") Then 'Archivado de grillitus
-                            If IsOp(imputline) Then
+                            If IsOp(imputline, Source, Realname) Then
                                 Task.Run(Sub()
                                              Mainwikibot.ArchiveAllInclusions(True)
                                          End Sub)
                             End If
                         ElseIf MainParam = ("%join") Then
-                            If IsOp(imputline) Then
+                            If IsOp(imputline, Source, Realname) Then
                                 Return JoinRoom(Source, Totalparam, Realname)
                             End If
                         ElseIf MainParam = ("%leave") Or MainParam = ("%part") Then
-                            If IsOp(imputline) Then
+                            If IsOp(imputline, Source, Realname) Then
                                 Return LeaveRoom(Source, Totalparam, Realname)
                             End If
                         ElseIf MainParam = ("%q") Or MainParam = ("%quit") Then
-                            If IsOp(imputline) Then
+                            If IsOp(imputline, Source, Realname) Then
                                 Return Quit(Source, Realname, HasExited)
+                            End If
+
+                        ElseIf MainParam = ("%op") Then
+                            If IsOp(imputline, Source, Realname) Then
+                                CommandResponse = SetOp(imputline, Source, Realname)
+                            End If
+                        ElseIf MainParam = ("%deop") Then
+                            If IsOp(imputline, Source, Realname) Then
+                                CommandResponse = DeOp(imputline, Source, Realname)
                             End If
 
                         ElseIf MainParam = ("%updateExtracts") Or MainParam = ("%update") Or
                         MainParam = ("%upex") Or MainParam = ("%updex") Then
-                            If IsOp(imputline) Then
+                            If IsOp(imputline, Source, Realname) Then
                                 Task.Run(Sub()
                                              Mainwikibot.UpdatePageExtracts(True)
                                          End Sub)
@@ -152,6 +161,48 @@ Class IRC_Comands
             Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _IrcNickName)
             Return Nothing
         End Try
+    End Function
+
+    Private Function SetOp(ByVal message As String, source As String, realname As String) As String()
+        Dim responsestring As String = String.Empty
+        Dim param As String = message.Split(CType(" ", Char()))(4)
+
+        If CountCharacter(param, CChar("!")) = 1 Then
+            Dim requestedop As String = param.Split(CType("!", Char()))(0)
+
+            If AddOP(message, source, realname) Then
+                responsestring = "El usuario " & requestedop & " se añadió como operador"
+
+            Else
+                responsestring = "El usuario " & requestedop & " no se añadió como operador"
+            End If
+
+        Else
+            responsestring = "Parámetro mal ingresado."
+        End If
+
+
+        Return {source, responsestring}
+    End Function
+
+
+    Private Function DeOp(ByVal message As String, source As String, realname As String) As String()
+        Dim responsestring As String = String.Empty
+        Dim param As String = message.Split(CType(" ", Char()))(4)
+
+        If CountCharacter(param, CChar("!")) = 1 Then
+
+            Dim requestedop As String = param.Split(CType("!", Char()))(0)
+            If DelOP(message, source, realname) Then
+                responsestring = "El usuario " & requestedop & " se ha eliminado como operador"
+            Else
+                responsestring = "El usuario " & requestedop & " no se ha eliminado como operador"
+            End If
+        Else
+            responsestring = "Parámetro mal ingresado."
+        End If
+
+        Return {source, responsestring}
     End Function
 
     Private Function CommandInfo(source As String, MainParam As String, realname As String) As String()
@@ -212,7 +263,13 @@ Class IRC_Comands
 
         ElseIf MainParam = ("%q") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-            ColoredText(MainParam, "04"), ColoredText("%updateExtracts/%update/%upex/%updex", "03"), "SOLO OP, Solicita al bot cesar todas sus operaciones..", "%Upex")
+            ColoredText(MainParam, "04"), ColoredText("%q", "03"), "SOLO OP, Solicita al bot cesar todas sus operaciones.", "%Upex")
+        ElseIf MainParam = ("%op") Then
+            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
+            ColoredText(MainParam, "04"), ColoredText("%op", "03"), "SOLO OP, Añade un operador.", "%Upex")
+        ElseIf MainParam = ("%deop") Then
+            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
+            ColoredText(MainParam, "04"), ColoredText("%deop", "03"), "SOLO OP, Elimina un operador.", "%Upex")
         ElseIf String.IsNullOrEmpty(MainParam) Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText("%?", "04"), ColoredText("%?/%h/%help/%ayuda", "03"), "Entrega información sobre un comando.", "%? <orden>")
@@ -297,7 +354,7 @@ Class IRC_Comands
     End Function
 
     Private Function Orders(ByVal source As String, user As String) As String()
-        Dim responsestring As String = String.Format("Ordenes: %programa, %quita, %ultima, %usuarios, %info, %resumen, %??, Detalles del comando %? <orden>. Para matar el bot (solo OPs): %Q")
+        Dim responsestring As String = String.Format("Ordenes: %programa, %quita, %ultima, %usuarios, %info, %resumen, %??, Detalles del comando %? <orden>.")
         Log("IRC: Requested orders (%ord)", "IRC", user)
         Return {source, responsestring}
     End Function
@@ -369,10 +426,8 @@ Class IRC_Comands
                                 Log(String.Format("IRC: Added user {0} to list (%prog)", requesteduser), "IRC", user)
                             Else
                                 ResponseString = "Error"
-
                             End If
                         Else
-
                             ResponseString = String.Format("Error: El usuario {0} no existe o no tiene ninguna edición en el proyecto", requesteduser)
                         End If
                     End If
@@ -448,13 +503,9 @@ Class IRC_Comands
 
     End Function
 
-
     Private Function GetParams(ByVal Param As String) As String()
-
         Return Param.Split(CType(" ", Char()))
     End Function
-
-
 
     Private Function LastEdit(ByVal source As String, user As String, Username As String) As String()
         Dim responsestring As String = String.Empty
