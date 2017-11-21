@@ -125,14 +125,12 @@ Public Class IRC_Client
                                            Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand)
                                            Dim response As String = Command.ResolveCommand(sCommand, HasExited, _sNickName)
 
-
                                            If Not response Is Nothing Then
                                                _streamWriter.WriteLine(response)
                                                _streamWriter.Flush()
                                                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & response)
 
                                            End If
-
 
                                            If Not _tcpclientConnection.Connected Then
                                                Debug_Log("IRC: DISCONNECTED", "IRC", BOTName)

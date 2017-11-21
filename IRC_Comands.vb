@@ -132,6 +132,13 @@ Class IRC_Comands
                                              Mainwikibot.UpdatePageExtracts(True)
                                          End Sub)
                             End If
+
+                        ElseIf MainParam = ("%div0") Then
+                            If IsOp(imputline, Source, Realname) Then
+                                Return Div0(Source, Realname, HasExited)
+                            End If
+
+
                         Else
                             If param.ToLower.Contains(_IrcNickName.ToLower) And Not param.ToLower.Contains("*") And Not imputline.Contains(".freenode.net ") Then
                                 CommandResponse = Commands(Source, Realname)
@@ -259,17 +266,17 @@ Class IRC_Comands
         ElseIf MainParam = ("%updateExtracts") Or MainParam = ("%update") Or
                         MainParam = ("%upex") Or MainParam = ("%updex") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-            ColoredText(MainParam, "04"), ColoredText("%updateExtracts/%update/%upex/%updex", "03"), "SOLO OPS, Actualiza los extractos de articulos en Wikipedia.", "%Upex")
+            ColoredText(MainParam, "04"), ColoredText("%updateExtracts/%update/%upex/%updex", "03"), "SOLO OPS, Actualiza los extractos de articulos en Wikipedia.", "%upex")
 
         ElseIf MainParam = ("%q") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-            ColoredText(MainParam, "04"), ColoredText("%q", "03"), "SOLO OP, Solicita al bot cesar todas sus operaciones.", "%Upex")
+            ColoredText(MainParam, "04"), ColoredText("%q", "03"), "SOLO OP, Solicita al bot cesar todas sus operaciones.", "%q")
         ElseIf MainParam = ("%op") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-            ColoredText(MainParam, "04"), ColoredText("%op", "03"), "SOLO OP, Añade un operador.", "%Upex")
+            ColoredText(MainParam, "04"), ColoredText("%op", "03"), "SOLO OP, Añade un operador.", "%op nickname!hostname")
         ElseIf MainParam = ("%deop") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-            ColoredText(MainParam, "04"), ColoredText("%deop", "03"), "SOLO OP, Elimina un operador.", "%Upex")
+            ColoredText(MainParam, "04"), ColoredText("%deop", "03"), "SOLO OP, Elimina un operador.", "%deop nickname!hostname")
         ElseIf String.IsNullOrEmpty(MainParam) Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText("%?", "04"), ColoredText("%?/%h/%help/%ayuda", "03"), "Entrega información sobre un comando.", "%? <orden>")
@@ -301,6 +308,14 @@ Class IRC_Comands
         Log(String.Format("IRC: Closed via request by {0}", user), "IRC", user)
         Return responsetext
     End Function
+
+    Private Function Div0(ByVal source As String, user As String, ByRef HasExited As Boolean) As String
+        Dim responsetext As String = IrcStringBuilder(source, "OK, dividiendo por 0...")
+        Dim i As Double = (1 / 0)
+        responsetext = responsetext & Environment.NewLine & IrcStringBuilder(source, "Al parecer el resultado es """ & i.ToString & """")
+        Return responsetext
+    End Function
+
 
     Private Function GetUserTime(ByVal user As String) As String()
         Dim Usertime As String = String.Empty

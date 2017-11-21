@@ -18,7 +18,7 @@ Module GlobalVars
 
     Public Exepath As String = AppDomain.CurrentDomain.BaseDirectory
     ''' <summary>
-    ''' El separador de decimales varia segun OS y configuracion regional, eso puede afectar los calculos.
+    ''' El separador de decimales varia segun SO y configuracion regional, eso puede afectar los calculos.
     ''' </summary>
     Public DecimalSeparator As String = String.Format(CType(1.1, String)).Substring(1, 1)
 
