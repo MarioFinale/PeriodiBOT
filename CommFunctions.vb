@@ -3,21 +3,39 @@ Imports System.Text.RegularExpressions
 
 Public Module CommFunctions
 
+    ''' <summary>
+    ''' Registra un evento normal.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <param name="user">Usuario que origina el evento</param>
+    ''' <returns></returns>
     Public Function Log(ByVal text As String, source As String, user As String) As Boolean
         Return LogC.Log(text, source, user)
     End Function
+    ''' <summary>
+    ''' Registra un evento de tipo debug.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <param name="user">Usuario que origina el evento</param>
+    ''' <returns></returns>
     Public Function Debug_Log(ByVal text As String, source As String, user As String) As Boolean
         Return LogC.Debug_log(text, source, user)
     End Function
+
     Public Function SetUserTime(ByVal UserAndTime As String()) As Boolean
         Return LogC.SetUserTime(UserAndTime)
     End Function
+
     Public Function SaveUsersToFile() As Boolean
         Return LogC.SaveUsersToFile()
     End Function
+
     Public Function LastLog(ByRef Source As String, ByVal user As String) As String()
         Return LogC.Lastlog(Source, user)
     End Function
+
     Public Function EndLog() As Boolean
         LogC.EndLog = True
         Return True

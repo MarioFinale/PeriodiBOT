@@ -30,7 +30,7 @@ Module GlobalVars
     Public OpFilePath As String = Exepath & "OPs.cfg"
 
 
-    Public LogC As New LogCore(Log_Filepath, User_Filepath)
+    Public LogC As New LogEngine(Log_Filepath, User_Filepath)
     Public Userdata As List(Of String()) = LogC.LogUserData
     Public Uptime As DateTime
 

@@ -133,7 +133,13 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         Return True
     End Function
 
-
+    ''' <summary>
+    ''' Verifica un mensaje en IRC y si el que lo envió es un operador, añade un operador a la lista.
+    ''' </summary>
+    ''' <param name="message">Línea completa del mensaje</param>
+    ''' <param name="Source">Origen del mensaje</param>
+    ''' <param name="user">Usuario que crea el evento</param>
+    ''' <returns></returns>
     Function AddOP(ByVal message As String, ByVal Source As String, ByVal user As String) As Boolean
         Dim CommandParts As String() = message.Split(CType(" ", Char()))
         Dim Param As String = CommandParts(4)
@@ -156,7 +162,13 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
     End Function
 
-
+    ''' <summary>
+    ''' Verifica un mensaje en IRC y si el que lo envió es un operador elimina el operador indicado en el mensaje.
+    ''' </summary>
+    ''' <param name="message">Línea completa del mensaje</param>
+    ''' <param name="Source">Origen del mensaje</param>
+    ''' <param name="user">Usuario que crea el evento</param>
+    ''' <returns></returns>
     Function DelOP(ByVal message As String, ByVal Source As String, ByVal user As String) As Boolean
         Dim CommandParts As String() = message.Split(CType(" ", Char()))
         Dim Param As String = CommandParts(4)
@@ -180,10 +192,14 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         End If
     End Function
 
-
+    ''' <summary>
+    ''' Verifica un mensaje en IRC y retorna verdadero si el que lo envió es un operador.
+    ''' </summary>
+    ''' <param name="message">Línea completa del mensaje</param>
+    ''' <param name="Source">Origen del mensaje</param>
+    ''' <param name="user">Usuario que crea el evento</param>
+    ''' <returns></returns>
     Function IsOp(ByVal message As String, Source As String, user As String) As Boolean
-
-
         Try
             Dim Scommand0 As String = message.Split(CType(" ", Char()))(0)
             Dim Nickname As String = GetUserFromChatresponse(message)

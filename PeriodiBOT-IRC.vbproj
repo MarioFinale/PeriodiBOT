@@ -81,7 +81,7 @@
     <Compile Include="GrillitusArchive.vb" />
     <Compile Include="IRC_Client.vb" />
     <Compile Include="IRC_Comands.vb" />
-    <Compile Include="LogCore.vb" />
+    <Compile Include="LogEngine.vb" />
     <Compile Include="MainModule.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
