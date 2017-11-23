@@ -23,30 +23,51 @@ Public Module CommFunctions
     Public Function Debug_Log(ByVal text As String, source As String, user As String) As Boolean
         Return LogC.Debug_log(text, source, user)
     End Function
-
+    ''' <summary>
+    ''' Añade un usuario a la lista de aviso de inactividad.
+    ''' </summary>
+    ''' <param name="UserAndTime"></param>
+    ''' <returns></returns>
     Public Function SetUserTime(ByVal UserAndTime As String()) As Boolean
         Return LogC.SetUserTime(UserAndTime)
     End Function
-
+    ''' <summary>
+    ''' Guarda los usuarios en la lista de aviso de inactividad.
+    ''' </summary>
+    ''' <returns></returns>
     Public Function SaveUsersToFile() As Boolean
         Return LogC.SaveUsersToFile()
     End Function
-
+    ''' <summary>
+    ''' Entrega el último evento registrado
+    ''' </summary>
+    ''' <param name="Source"></param>
+    ''' <param name="user"></param>
+    ''' <returns></returns>
     Public Function LastLog(ByRef Source As String, ByVal user As String) As String()
         Return LogC.Lastlog(Source, user)
     End Function
-
+    ''' <summary>
+    ''' Finaliza la instancia del motor de log
+    ''' </summary>
+    ''' <returns></returns>
     Public Function EndLog() As Boolean
         LogC.EndLog = True
         Return True
     End Function
-
+    ''' <summary>
+    ''' Finaliza el programa correctamente.
+    ''' </summary>
     Sub ExitProgram()
         EndLog()
         Environment.Exit(0)
     End Sub
 
-
+    ''' <summary>
+    ''' Entrega la fecha más reciente en una fira de un comentario de wikipedia.
+    ''' </summary>
+    ''' <param name="comment"></param>
+    ''' <returns></returns>
     Function GetMostRecentDateTime(ByVal comment As String) As DateTime
         Dim dattimelist As New List(Of DateTime)
         Debug_Log("Begin GetLastDateTime", "LOCAL", BOTName)
@@ -77,20 +98,31 @@ Public Module CommFunctions
         End If
     End Function
 
-
-    Function SQLSAFEPARSE(ByVal text As String) As String
-        text = text.Replace("'", """").Replace("%27", "°27")
-        Return text
-    End Function
-
+    ''' <summary>
+    ''' Retorna true si un numero es par.
+    ''' </summary>
+    ''' <param name="Number"></param>
+    ''' <returns></returns>
     Function IsODD(ByVal Number As Integer) As Boolean
         Return (Number Mod 2 = 0)
     End Function
 
+    ''' <summary>
+    ''' Cuenta cuantas veces se repite una cadena de texto dada dentro de otra cadena de texto.
+    ''' </summary>
+    ''' <param name="inputString">Cadena de texto donde se busca</param>
+    ''' <param name="stringToSearch">CAdena de texto a buscar</param>
+    ''' <returns></returns>
     Function CountString(ByVal inputString As String, ByVal stringToSearch As String) As Integer
-        Return Regex.Split(inputString, stringToSearch).Length - 1
+        Return Regex.Split(inputString, RegexParser(stringToSearch)).Length - 1
     End Function
 
+    ''' <summary>
+    ''' Entrega un valor que simboliza el nivel de aparición de las palabras indicadas
+    ''' </summary>
+    ''' <param name="Phrase">Frase a evaluar</param>
+    ''' <param name="words">Palabras a buscar</param>
+    ''' <returns></returns>
     Function LvlOfAppereance(ByVal Phrase As String, words As String()) As Double
         Dim PhraseString As String() = Phrase.Split(Chr(32))
         Dim NOWords As Integer = PhraseString.Count
@@ -103,10 +135,13 @@ Public Module CommFunctions
             Next
         Next
         Return ((CType(NOAppeareances, Double) * 100) / CType(NOWords, Double))
-
     End Function
 
-
+    ''' <summary>
+    ''' Convierte una cadena de texto con una hora en formato unix a DateTime
+    ''' </summary>
+    ''' <param name="strUnixTime"></param>
+    ''' <returns></returns>
     Public Function UnixToTime(ByVal strUnixTime As String) As Date
         UnixToTime = DateAdd(DateInterval.Second, Val(strUnixTime), #1/1/1970#)
         If UnixToTime.IsDaylightSavingTime = True Then
@@ -114,6 +149,11 @@ Public Module CommFunctions
         End If
     End Function
 
+    ''' <summary>
+    ''' Convierte una cadena de texto con formatoe special a segundos
+    ''' </summary>
+    ''' <param name="time"></param>
+    ''' <returns></returns>
     Public Function TimeStringToSeconds(ByVal time As String) As Integer
         Try
 
@@ -138,11 +178,21 @@ Public Module CommFunctions
         End Try
     End Function
 
+    ''' <summary>
+    ''' Establece un tiempo de espera (en segundos)
+    ''' </summary>
+    ''' <param name="seconds"></param>
+    ''' <returns></returns>
     Public Function WaitSeconds(ByVal seconds As Integer) As Boolean
         System.Threading.Thread.Sleep(seconds * 1000)
         Return True
     End Function
 
+    ''' <summary>
+    ''' Convierte una fecha a un numero entero que representa la hora en formato unix
+    ''' </summary>
+    ''' <param name="dteDate"></param>
+    ''' <returns></returns>
     Public Function TimeToUnix(ByVal dteDate As Date) As Integer
         If dteDate.IsDaylightSavingTime = True Then
             dteDate = DateAdd(DateInterval.Hour, -1, dteDate)
@@ -178,7 +228,11 @@ Public Module CommFunctions
                 ToList()
     End Function
 
-
+    ''' <summary>
+    ''' Entrega 
+    ''' </summary>
+    ''' <param name="text">Entrega la primera fecha, que aparezca en un texto dado (si la fecha tiene formato de firma wikipedia).</param>
+    ''' <returns></returns>
     Function EsWikiDatetime(ByVal text As String) As DateTime
         Dim TheDate As DateTime = Nothing
         Dim matchc As MatchCollection = Regex.Matches(text, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
@@ -211,7 +265,11 @@ Public Module CommFunctions
 
     End Function
 
-
+    ''' <summary>
+    ''' Retorna la última fecha en un comentario (si la fecha tiene formato de firma wikipedia).
+    ''' </summary>
+    ''' <param name="comment"></param>
+    ''' <returns></returns>
     Function GetLastDateTime(ByVal comment As String) As DateTime
         Dim dattimelist As New List(Of DateTime)
         Debug_Log("Begin GetLastDateTime", "LOCAL", BOTName)
@@ -326,9 +384,14 @@ Public Module CommFunctions
         Return TemplateList
     End Function
 
-    Function GetGrillitusTemplate(ByVal test As String) As Template
+    ''' <summary>
+    ''' Entrega la primera aparición de la plantilla de grillitus en un texto dado, si no está la plantilla, retorna una plantilla vacía ("{{}}").
+    ''' </summary>
+    ''' <param name="text">Texto a evaluar.</param>
+    ''' <returns></returns>
+    Function GetGrillitusTemplate(ByVal text As String) As Template
 
-        Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(test))
+        Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(text))
         Dim Grittemp As New Template
         For Each t As Template In templist
             If Regex.Match(t.Name, " *[Uu]suario *: *[Gg]rillitus\/Archivar").Success Then

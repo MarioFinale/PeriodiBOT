@@ -559,6 +559,7 @@ Namespace WikiBot
         Overloads Function UpdatePageExtracts(ByVal irc As Boolean) As Boolean
             Return BotUpdatePageExtracts(irc)
         End Function
+
         ''' <summary>
         ''' Actualiza los resúmenes de página basado en varios parámetros,
         ''' por defecto estos son de un máximo de 660 carácteres.
