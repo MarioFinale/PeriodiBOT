@@ -4,7 +4,7 @@ Imports System.IO
 Imports System.Data
 Imports System.Data.SqlClient
 
-Class LogCore
+Class LogEngine
     Public _logData As New List(Of String())
     Private _userData As New List(Of String())
     Private LogQueue As New Queue(Of String())
@@ -74,7 +74,7 @@ Class LogCore
     ''' Guarda los datos en el archivo de log, es llamado por otros threads.
     ''' </summary>
     Sub SaveLogWorker()
-        SaveData(_LogPath, LogQueue)
+        SaveData(_logPath, LogQueue)
     End Sub
     ''' <summary>
     ''' Guarda los datos desde un queue a un archivo de log.
@@ -192,7 +192,7 @@ Class LogCore
     ''' <param name="user">Usuario que lo solicita.</param>
     ''' <returns></returns>
     Public Function Lastlog(ByRef source As String, user As String) As String()
-        Dim logresponse As String() = LogData.Last
+        Dim logresponse As String() = Logdata.Last
         Log("Request of lastlog", source, user)
         Return logresponse
     End Function
@@ -279,7 +279,7 @@ Class LogCore
     Public Function LoadUsers() As Boolean
         Try
             _userData = GetUsersFromFile()
-            UserData = _userData
+            Userdata = _userData
             Return True
         Catch ex As Exception
             Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", BOTName)

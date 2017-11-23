@@ -75,12 +75,13 @@
   <ItemGroup>
     <Compile Include="Bot.vb" />
     <Compile Include="CommFunctions.vb" />
+    <Compile Include="Config.vb" />
     <Compile Include="DirectApiCalls.vb" />
     <Compile Include="GlobalVars.vb" />
     <Compile Include="GrillitusArchive.vb" />
     <Compile Include="IRC_Client.vb" />
     <Compile Include="IRC_Comands.vb" />
-    <Compile Include="LogCore.vb" />
+    <Compile Include="LogEngine.vb" />
     <Compile Include="MainModule.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
@@ -98,6 +99,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Page.vb" />
+    <Compile Include="Template.vb" />
     <Compile Include="TextFunctions.vb" />
     <Compile Include="WebFunctions.vb" />
   </ItemGroup>

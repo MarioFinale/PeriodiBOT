@@ -242,15 +242,16 @@ Public Class Page
             Return "No Bots"
         End If
         Dim minorstr As String = String.Empty
+
         If IsMinor Then
-            minorstr = "&minor"
+            minorstr = "&minor="
         Else
-            minorstr = "&notminor"
+            minorstr = "&notminor="
         End If
 
         Dim botstr As String = String.Empty
         If IsBot Then
-            botstr = "&bot"
+            botstr = "&bot="
         End If
 
         Dim postdata As String = "format=json&action=edit&title=" & _title & botstr & minorstr & "&summary=" & UrlWebEncode(EditSummary) & "&text=" & UrlWebEncode(text) & "&token=" & UrlWebEncode(GetEditToken())

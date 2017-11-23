@@ -125,14 +125,12 @@ Public Class IRC_Client
                                            Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand)
                                            Dim response As String = Command.ResolveCommand(sCommand, HasExited, _sNickName)
 
-
                                            If Not response Is Nothing Then
                                                _streamWriter.WriteLine(response)
                                                _streamWriter.Flush()
                                                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & response)
 
                                            End If
-
 
                                            If Not _tcpclientConnection.Connected Then
                                                Debug_Log("IRC: DISCONNECTED", "IRC", BOTName)
@@ -154,6 +152,8 @@ Public Class IRC_Client
                                                SaveUsersToFile()
                                                Lastdate = DateTime.Now
                                            End If
+
+                                           DailyTask()
 
                                            If sCommandParts(0).Contains("PING") Then  'Ping response
                                                _streamWriter.WriteLine(sCommand.Replace("PING", "PONG"))
@@ -199,12 +199,12 @@ Public Class IRC_Client
                     _networkStream.Dispose()
                 Catch ex2 As Exception
                     'In case of something really bad happens
+                    Debug_Log("IRC: Error ex2: " + ex2.Message, "IRC", BOTName)
                 End Try
 
             End Try
             If HasExited Then
-                EndLog()
-                Environment.Exit(0)
+                ExitProgram()
             End If
 
             Log("Lost connection, retrying on 5 seconds...", "IRC", _sNickName)

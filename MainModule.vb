@@ -1,4 +1,7 @@
-﻿Imports System.Threading
+﻿Option Strict On
+Option Explicit On
+Imports System.Text.RegularExpressions
+Imports System.Threading
 Imports PeriodiBOT_IRC.WikiBot
 
 Module MainModule
@@ -16,15 +19,23 @@ Module MainModule
 
         Do
             ' Dim command As String = Console.ReadLine()
-            ' Mainwikibot.ArchiveAllInclusions()
-            ' Dim p As Page = Mainwikibot.Getpage("User:PeriodiBOT")
-            ' Dim pagetext As String = p.Text
-            ' Mainwikibot.GrillitusArchive(p)
-
+            ' Declaración sin utilidad. Solo para efectos de debug.
+            Dim a As Integer = 1
             Thread.Sleep(500)
         Loop
 
     End Sub
+
+
+
+
+
+
+
+
+
+
+
 
 
 

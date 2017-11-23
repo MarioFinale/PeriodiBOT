@@ -3,108 +3,71 @@ Imports System.Text.RegularExpressions
 
 Public Module CommFunctions
 
+    ''' <summary>
+    ''' Registra un evento normal.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <param name="user">Usuario que origina el evento</param>
+    ''' <returns></returns>
     Public Function Log(ByVal text As String, source As String, user As String) As Boolean
         Return LogC.Log(text, source, user)
     End Function
+    ''' <summary>
+    ''' Registra un evento de tipo debug.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <param name="user">Usuario que origina el evento</param>
+    ''' <returns></returns>
     Public Function Debug_Log(ByVal text As String, source As String, user As String) As Boolean
         Return LogC.Debug_log(text, source, user)
     End Function
+    ''' <summary>
+    ''' Añade un usuario a la lista de aviso de inactividad.
+    ''' </summary>
+    ''' <param name="UserAndTime"></param>
+    ''' <returns></returns>
     Public Function SetUserTime(ByVal UserAndTime As String()) As Boolean
         Return LogC.SetUserTime(UserAndTime)
     End Function
+    ''' <summary>
+    ''' Guarda los usuarios en la lista de aviso de inactividad.
+    ''' </summary>
+    ''' <returns></returns>
     Public Function SaveUsersToFile() As Boolean
         Return LogC.SaveUsersToFile()
     End Function
+    ''' <summary>
+    ''' Entrega el último evento registrado
+    ''' </summary>
+    ''' <param name="Source"></param>
+    ''' <param name="user"></param>
+    ''' <returns></returns>
     Public Function LastLog(ByRef Source As String, ByVal user As String) As String()
         Return LogC.Lastlog(Source, user)
     End Function
+    ''' <summary>
+    ''' Finaliza la instancia del motor de log
+    ''' </summary>
+    ''' <returns></returns>
     Public Function EndLog() As Boolean
         LogC.EndLog = True
         Return True
     End Function
+    ''' <summary>
+    ''' Finaliza el programa correctamente.
+    ''' </summary>
+    Sub ExitProgram()
+        EndLog()
+        Environment.Exit(0)
+    End Sub
 
-    Function LoadConfig() As Boolean
-        Dim MainBotName As String = String.Empty
-        Dim WPSite As String = String.Empty
-        Dim WPAPI As String = String.Empty
-        Dim WPBotUserName As String = String.Empty
-        Dim WPBotPassword As String = String.Empty
-        Dim IRCBotNickName As String = String.Empty
-        Dim IRCBotPassword As String = String.Empty
-        Dim MainIRCNetwork As String = String.Empty
-        Dim MainIRCChannel As String = String.Empty
-        Dim ConfigOK As Boolean = False
-        If System.IO.File.Exists(ConfigFilePath) Then
-            Log("Loading config", "LOCAL", "Undefined")
-            Dim Configstr As String = System.IO.File.ReadAllText(ConfigFilePath)
-            Try
-                MainBotName = TextInBetween(Configstr, "BOTName=""", """")(0)
-                WPBotUserName = TextInBetween(Configstr, "WPUserName=""", """")(0)
-                WPSite = TextInBetween(Configstr, "PageURL=""", """")(0)
-                WPBotPassword = TextInBetween(Configstr, "WPBotPassword=""", """")(0)
-                WPAPI = TextInBetween(Configstr, "ApiURL=""", """")(0)
-                MainIRCNetwork = TextInBetween(Configstr, "IRCNetwork=""", """")(0)
-                IRCBotNickName = TextInBetween(Configstr, "IRCBotNickName=""", """")(0)
-                IRCBotPassword = TextInBetween(Configstr, "IRCBotPassword=""", """")(0)
-                MainIRCChannel = TextInBetween(Configstr, "IRCChannel=""", """")(0)
-                ConfigOK = True
-            Catch ex As IndexOutOfRangeException
-                Log("Malformed config", "LOCAL", "Undefined")
-            End Try
-        Else
-            Log("No config file", "LOCAL", "Undefined")
-            System.IO.File.Create(ConfigFilePath).Close()
-        End If
-
-        If Not ConfigOK Then
-            Console.Clear()
-            Console.WriteLine("No config file, please fill the data or close the program and create a config file.")
-            Console.WriteLine("Bot Name: ")
-            MainBotName = Console.ReadLine
-            Console.WriteLine("Wikipedia Username: ")
-            WPBotUserName = Console.ReadLine
-            Console.WriteLine("Wikipedia bot password: ")
-            WPBotPassword = Console.ReadLine
-            Console.WriteLine("Wikipedia main URL: ")
-            WPSite = Console.ReadLine
-            Console.WriteLine("Wikipedia API URL: ")
-            WPAPI = Console.ReadLine
-            Console.WriteLine("IRC Network: ")
-            MainIRCNetwork = Console.ReadLine
-            Console.WriteLine("IRC NickName: ")
-            IRCBotNickName = Console.ReadLine
-            Console.WriteLine("IRC nickserv/server password (press enter if not password is set): ")
-            IRCBotPassword = Console.ReadLine
-            Console.WriteLine("IRC main Channel: ")
-            MainIRCChannel = Console.ReadLine
-
-            Dim configstr As String = String.Format("======================CONFIG======================
-BOTName=""{0}""
-WPUserName=""{1}""
-WPBotPassword=""{2}""
-PageURL=""{3}""
-ApiURL=""{4}""
-IRCNetwork=""{5}""
-IRCBotNickName=""{6}""
-IRCBotPassword=""{7}""
-IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, MainIRCChannel)
-
-            System.IO.File.WriteAllText(ConfigFilePath, configstr)
-        End If
-        BOTName = MainBotName
-        WPUserName = WPBotUserName
-        BOTPassword = WPBotPassword
-        site = WPSite
-        ApiURL = WPAPI
-        IRCNetwork = MainIRCNetwork
-        BOTIRCName = IRCBotNickName
-        IRCPassword = IRCBotPassword
-        IRCChannel = MainIRCChannel
-        Return True
-    End Function
-
-
-
+    ''' <summary>
+    ''' Entrega la fecha más reciente en una fira de un comentario de wikipedia.
+    ''' </summary>
+    ''' <param name="comment"></param>
+    ''' <returns></returns>
     Function GetMostRecentDateTime(ByVal comment As String) As DateTime
         Dim dattimelist As New List(Of DateTime)
         Debug_Log("Begin GetLastDateTime", "LOCAL", BOTName)
@@ -135,20 +98,31 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         End If
     End Function
 
-
-    Function SQLSAFEPARSE(ByVal text As String) As String
-        text = text.Replace("'", """").Replace("%27", "°27")
-        Return text
-    End Function
-
+    ''' <summary>
+    ''' Retorna true si un numero es par.
+    ''' </summary>
+    ''' <param name="Number"></param>
+    ''' <returns></returns>
     Function IsODD(ByVal Number As Integer) As Boolean
         Return (Number Mod 2 = 0)
     End Function
 
+    ''' <summary>
+    ''' Cuenta cuantas veces se repite una cadena de texto dada dentro de otra cadena de texto.
+    ''' </summary>
+    ''' <param name="inputString">Cadena de texto donde se busca</param>
+    ''' <param name="stringToSearch">CAdena de texto a buscar</param>
+    ''' <returns></returns>
     Function CountString(ByVal inputString As String, ByVal stringToSearch As String) As Integer
-        Return Regex.Split(inputString, stringToSearch).Length - 1
+        Return Regex.Split(inputString, RegexParser(stringToSearch)).Length - 1
     End Function
 
+    ''' <summary>
+    ''' Entrega un valor que simboliza el nivel de aparición de las palabras indicadas
+    ''' </summary>
+    ''' <param name="Phrase">Frase a evaluar</param>
+    ''' <param name="words">Palabras a buscar</param>
+    ''' <returns></returns>
     Function LvlOfAppereance(ByVal Phrase As String, words As String()) As Double
         Dim PhraseString As String() = Phrase.Split(Chr(32))
         Dim NOWords As Integer = PhraseString.Count
@@ -161,10 +135,13 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Next
         Next
         Return ((CType(NOAppeareances, Double) * 100) / CType(NOWords, Double))
-
     End Function
 
-
+    ''' <summary>
+    ''' Convierte una cadena de texto con una hora en formato unix a DateTime
+    ''' </summary>
+    ''' <param name="strUnixTime"></param>
+    ''' <returns></returns>
     Public Function UnixToTime(ByVal strUnixTime As String) As Date
         UnixToTime = DateAdd(DateInterval.Second, Val(strUnixTime), #1/1/1970#)
         If UnixToTime.IsDaylightSavingTime = True Then
@@ -172,6 +149,11 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         End If
     End Function
 
+    ''' <summary>
+    ''' Convierte una cadena de texto con formatoe special a segundos
+    ''' </summary>
+    ''' <param name="time"></param>
+    ''' <returns></returns>
     Public Function TimeStringToSeconds(ByVal time As String) As Integer
         Try
 
@@ -196,11 +178,21 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         End Try
     End Function
 
+    ''' <summary>
+    ''' Establece un tiempo de espera (en segundos)
+    ''' </summary>
+    ''' <param name="seconds"></param>
+    ''' <returns></returns>
     Public Function WaitSeconds(ByVal seconds As Integer) As Boolean
         System.Threading.Thread.Sleep(seconds * 1000)
         Return True
     End Function
 
+    ''' <summary>
+    ''' Convierte una fecha a un numero entero que representa la hora en formato unix
+    ''' </summary>
+    ''' <param name="dteDate"></param>
+    ''' <returns></returns>
     Public Function TimeToUnix(ByVal dteDate As Date) As Integer
         If dteDate.IsDaylightSavingTime = True Then
             dteDate = DateAdd(DateInterval.Hour, -1, dteDate)
@@ -236,7 +228,11 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                 ToList()
     End Function
 
-
+    ''' <summary>
+    ''' Entrega 
+    ''' </summary>
+    ''' <param name="text">Entrega la primera fecha, que aparezca en un texto dado (si la fecha tiene formato de firma wikipedia).</param>
+    ''' <returns></returns>
     Function EsWikiDatetime(ByVal text As String) As DateTime
         Dim TheDate As DateTime = Nothing
         Dim matchc As MatchCollection = Regex.Matches(text, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
@@ -269,7 +265,11 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
     End Function
 
-
+    ''' <summary>
+    ''' Retorna la última fecha en un comentario (si la fecha tiene formato de firma wikipedia).
+    ''' </summary>
+    ''' <param name="comment"></param>
+    ''' <returns></returns>
     Function GetLastDateTime(ByVal comment As String) As DateTime
         Dim dattimelist As New List(Of DateTime)
         Debug_Log("Begin GetLastDateTime", "LOCAL", BOTName)
@@ -301,7 +301,10 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
     End Function
 
 
-
+    ''' <summary>
+    ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
+    ''' </summary>
+    ''' <returns></returns>
     Function CheckUsers() As String()
         Dim returnstring As New List(Of String)
         Try
@@ -366,6 +369,45 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         Return returnstring.ToArray
 
     End Function
+
+    ''' <summary>
+    ''' Retorna una lista de plantillas si se le entrega como parámetro un array de tipo string con texto en formato válido de plantilla.
+    ''' Si uno de los items del array no tiene formato válido, entregará una plantilla vacia en su lugar ("{{}}").
+    ''' </summary>
+    ''' <param name="templatearray"></param>
+    ''' <returns></returns>
+    Function GetTemplates(ByVal templatearray As List(Of String)) As List(Of Template)
+        Dim TemplateList As New List(Of Template)
+        For Each t As String In templatearray
+            TemplateList.Add(New Template(t, False))
+        Next
+        Return TemplateList
+    End Function
+
+
+    Public LastDailyTask As DateTime
+
+    Sub DailyTask()
+
+        If LastDailyTask = Nothing Then
+            RunDailyTask()
+            LastDailyTask = DateTime.Now
+            Exit Sub
+        End If
+        Dim span As TimeSpan = LastDailyTask - DateTime.Now
+
+        If span.Hours >= 24 Then
+            RunDailyTask()
+            LastDailyTask = DateTime.Now
+            Exit Sub
+        End If
+
+    End Sub
+
+    Sub RunDailyTask()
+        Mainwikibot.ArchiveAllInclusions(True)
+    End Sub
+
 
 
 

@@ -11,7 +11,6 @@ Namespace WikiBot
         Private _botpass As String = String.Empty
         Private _siteurl As String = String.Empty
         Private ResumePageName As String = "Usuario:PeriodiBOT/Resumen página"
-
         ''' <summary>
         ''' Inicializa una nueva instancia del BOT.
         ''' </summary>
@@ -23,7 +22,7 @@ Namespace WikiBot
             _botpass = BotPassword
             _siteurl = PageURL
             BotCookies = New CookieContainer
-            Console.WriteLine(WikiLogOn())
+            WikiLogOn()
             Username = BotUsername.Split("@"c)(0).Trim()
         End Sub
         ''' <summary>
@@ -51,10 +50,12 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="SiteUrl">Url de la wiki.</param>
         Private Function GetWikiToken(ByVal SiteUrl As String) As String
+            Console.WriteLine("Obtaining token...")
             Dim url As String = SiteUrl
             Dim postdata As String = "action=query&meta=tokens&type=login&&format=json"
             Dim postresponse As String = PostDataAndGetResult(url, postdata, True, BotCookies)
             Dim token As String = TextInBetween(postresponse, """logintoken"":""", """}}}")(0).Replace("\\", "\")
+            Console.WriteLine("Token obtained!")
             Return token
         End Function
 
@@ -62,12 +63,31 @@ Namespace WikiBot
         ''' Luego de obtener un Token y cookies de ingreso, envía estos al servidor para loguear y guarda las cookies de sesión.
         ''' </summary>
         Function WikiLogOn() As String
+            Console.WriteLine("Logging in...")
             Dim token As String = GetWikiToken(_siteurl)
-            Console.WriteLine(token)
             Dim url As String = _siteurl
             Dim postdata As String = "action=login&format=json&lgname=" & _botusername & "&lgpassword=" & _botpass & "&lgdomain=" & "&lgtoken=" & UrlWebEncode(token)
             Dim postresponse As String = PostDataAndGetResult(url, postdata, True, BotCookies)
-            Return postresponse
+            Dim lresult As String = String.Empty
+            Try
+                lresult = TextInBetween(postresponse, "{""result"":""", """,")(0)
+                Console.WriteLine("Login result: " & lresult)
+                Dim lUserID As String = TextInBetween(postresponse, """lguserid"":", ",")(0)
+                Console.WriteLine("UserID: " & lUserID)
+                Dim lUsername As String = TextInBetween(postresponse, """lgusername"":""", """}")(0)
+                Console.WriteLine("Username: " & lUsername)
+                Return lresult
+            Catch ex As IndexOutOfRangeException
+                If lresult.ToLower = "failed" Then
+                    Dim reason As String = TextInBetween(postresponse, """reason"":""", """")(0)
+                    Console.WriteLine("Reason: " & reason)
+                    Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                    Console.WriteLine("Press any key to exit...")
+                    Console.ReadLine()
+                    ExitProgram()
+                End If
+                Return lresult
+            End Try
         End Function
 
         ''' <summary>
@@ -466,13 +486,10 @@ Namespace WikiBot
             Dim s As String = String.Empty
             s = Gethtmlsource((_siteurl & "?action=query&list=embeddedin&eilimit=500&format=json&eititle=" & PageName), False, BotCookies)
 
-
             Dim pages As String() = TextInBetween(s, """title"":""", """}")
-
             For Each _pag As String In pages
                 newlist.Add(NormalizeUnicodetext(_pag))
             Next
-
             Return newlist.ToArray
         End Function
 
@@ -539,6 +556,7 @@ Namespace WikiBot
         Overloads Function UpdatePageExtracts(ByVal irc As Boolean) As Boolean
             Return BotUpdatePageExtracts(irc)
         End Function
+
         ''' <summary>
         ''' Actualiza los resúmenes de página basado en varios parámetros,
         ''' por defecto estos son de un máximo de 660 carácteres.
@@ -842,7 +860,7 @@ Namespace WikiBot
         ''' <param name="text">Texto a evaluar</param>
         ''' <returns></returns>
         Function LastParagraphDateTime(ByVal text As String) As DateTime
-            Dim Datelist As New List(Of DateTime)
+            text = text.Trim(CType(vbCrLf, Char())) & " "
             Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
             Dim TheDate As DateTime = EsWikiDatetime(lastparagraph)
             Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL", BOTName)
@@ -909,6 +927,11 @@ Namespace WikiBot
         Function GrillitusArchive(ByVal PageToArchive As Page) As Boolean
             Dim Archive As New GrillitusArchive(Me)
             Return Archive.GrillitusArchive(PageToArchive)
+        End Function
+
+        Function Archive(ByVal PageToArchive As Page) As Boolean
+            Dim ArchiveFcn As New GrillitusArchive(Me)
+            Return ArchiveFcn.Archive(PageToArchive)
         End Function
 
         ''' <summary>
