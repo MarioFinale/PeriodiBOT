@@ -486,13 +486,10 @@ Namespace WikiBot
             Dim s As String = String.Empty
             s = Gethtmlsource((_siteurl & "?action=query&list=embeddedin&eilimit=500&format=json&eititle=" & PageName), False, BotCookies)
 
-
             Dim pages As String() = TextInBetween(s, """title"":""", """}")
-
             For Each _pag As String In pages
                 newlist.Add(NormalizeUnicodetext(_pag))
             Next
-
             Return newlist.ToArray
         End Function
 
@@ -863,7 +860,7 @@ Namespace WikiBot
         ''' <param name="text">Texto a evaluar</param>
         ''' <returns></returns>
         Function LastParagraphDateTime(ByVal text As String) As DateTime
-            Dim Datelist As New List(Of DateTime)
+            text = text.Trim(CType(vbCrLf, Char())) & " "
             Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
             Dim TheDate As DateTime = EsWikiDatetime(lastparagraph)
             Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL", BOTName)
@@ -930,6 +927,11 @@ Namespace WikiBot
         Function GrillitusArchive(ByVal PageToArchive As Page) As Boolean
             Dim Archive As New GrillitusArchive(Me)
             Return Archive.GrillitusArchive(PageToArchive)
+        End Function
+
+        Function Archive(ByVal PageToArchive As Page) As Boolean
+            Dim ArchiveFcn As New GrillitusArchive(Me)
+            Return ArchiveFcn.Archive(PageToArchive)
         End Function
 
         ''' <summary>

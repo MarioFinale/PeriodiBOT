@@ -384,24 +384,31 @@ Public Module CommFunctions
         Return TemplateList
     End Function
 
-    ''' <summary>
-    ''' Entrega la primera aparición de la plantilla de grillitus en un texto dado, si no está la plantilla, retorna una plantilla vacía ("{{}}").
-    ''' </summary>
-    ''' <param name="text">Texto a evaluar.</param>
-    ''' <returns></returns>
-    Function GetGrillitusTemplate(ByVal text As String) As Template
 
-        Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(text))
-        Dim Grittemp As New Template
-        For Each t As Template In templist
-            If Regex.Match(t.Name, " *[Uu]suario *: *[Gg]rillitus\/Archivar").Success Then
-                Grittemp = t
-                Exit For
-            End If
-        Next
-        Return Grittemp
+    Public LastDailyTask As DateTime
 
-    End Function
+    Sub DailyTask()
+
+        If LastDailyTask = Nothing Then
+            RunDailyTask()
+            LastDailyTask = DateTime.Now
+            Exit Sub
+        End If
+        Dim span As TimeSpan = LastDailyTask - DateTime.Now
+
+        If span.Hours >= 24 Then
+            RunDailyTask()
+            LastDailyTask = DateTime.Now
+            Exit Sub
+        End If
+
+    End Sub
+
+    Sub RunDailyTask()
+        Mainwikibot.ArchiveAllInclusions(True)
+    End Sub
+
+
 
 
 End Module

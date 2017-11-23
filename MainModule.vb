@@ -19,7 +19,6 @@ Module MainModule
 
         Do
             ' Dim command As String = Console.ReadLine()
-
             ' Declaración sin utilidad. Solo para efectos de debug.
             Dim a As Integer = 1
             Thread.Sleep(500)

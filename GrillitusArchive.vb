@@ -52,11 +52,13 @@ Class GrillitusArchive
 
     End Function
 
+
+
     ''' <summary>
     ''' Actualiza todas las paginas que incluyan la pseudoplantilla de archivado de grillitus.
     ''' </summary>
     ''' <returns></returns>
-    Function ArchiveAllInclusions(ByVal IRC As Boolean) As Boolean
+    Function ArchiveAllGrillitusInclusions(ByVal IRC As Boolean) As Boolean
         If IRC Then
             BotIRC.Sendmessage(ColoredText("Archivando todas las discusiones...", "04"))
         End If
@@ -74,6 +76,7 @@ Class GrillitusArchive
         Return True
     End Function
 
+
     Function GetGrillitusTemplate(ByVal PageToGet As Page) As Template
         Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(PageToGet.Text))
         Dim Grittemp As New Template
@@ -85,6 +88,7 @@ Class GrillitusArchive
         Next
         Return Grittemp
     End Function
+
 
 
     ''' <summary>
@@ -131,12 +135,12 @@ Class GrillitusArchive
             MaxDays = Integer.Parse(GrillitusCfg(1))
         End If
         If String.IsNullOrEmpty(GrillitusCfg(2)) Then
-            Notify = True
+            Notify = False
         Else
-            If GrillitusCfg(2).ToLower.Contains("si") Then
-                Notify = False
-            Else
+            If GrillitusCfg(2).ToLower.Contains("si") Or GrillitusCfg(2).ToLower.Contains("sí") Then
                 Notify = True
+            Else
+                Notify = False
             End If
         End If
 
@@ -164,7 +168,15 @@ Class GrillitusArchive
 
         ArchivePageTitle = ArchivePageTitle.Replace("AAAA", Currentyear).Replace("MM", CurrentMonth) _
         .Replace("DD", CurrentDay).Replace("SEM", hyear.ToString)
+
         Dim ArchiveBoxLink As String = "[[" & ArchivePageTitle & "]]"
+
+        Dim Archivename As Match = Regex.Match(ArchivePageTitle, "\/.+")
+
+        If Archivename.Success Then
+            ArchiveBoxLink = "[[" & ArchivePageTitle & "|" & Archivename.Value & "]]"
+        End If
+
 
         Dim LimitDate As DateTime = DateTime.Now.AddDays(-MaxDays)
 
@@ -242,23 +254,23 @@ Class GrillitusArchive
 
                     Dim ArchiveBoxMatch As Match = Regex.Match(IndexpageText, "{{caja archivos\|[\s\S]+?}}")
                     Dim Newbox As String = String.Empty
+
                     If ArchiveBoxMatch.Success Then
                         Newbox = ArchiveBoxMatch.Value.Replace("{{caja archivos|", "").Replace("}}", "")
 
                         If Not Newbox.Contains(ArchivePageTitle) Then
 
-                            If Not Newbox.Contains(ArchiveBoxLink) Then
-                                Newbox = Newbox & "<center>" & ArchiveBoxLink & "</center>" & "<br />" & Environment.NewLine
-                                Newbox = "{{caja archivos|" & Newbox & "}}"
-                                IndexpageText = IndexpageText.Replace(ArchiveBoxMatch.Value, Newbox)
-                            End If
+                            Newbox = Newbox & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
+                            Newbox = "{{caja archivos|" & Newbox & "}}"
+                            IndexpageText = IndexpageText.Replace(ArchiveBoxMatch.Value, Newbox)
+
                         End If
                     Else
-                        IndexpageText = "{{caja archivos|" & Environment.NewLine & ArchiveBoxLink & "<br />" & Environment.NewLine & "}}"
+                        IndexpageText = "{{caja archivos|" & Environment.NewLine & ArchiveBoxLink & Environment.NewLine & "}}"
                     End If
 
                 Else
-                    IndexpageText = "<center>" & IndexpageText & "</center>" & "<br />"
+                    IndexpageText = "<center>" & ArchiveBoxLink & "</center>"
                     IndexpageText = "{{caja archivos|" & Environment.NewLine & IndexpageText & Environment.NewLine & "}}"
                 End If
 
@@ -291,9 +303,14 @@ Class GrillitusArchive
             Else
                 ArchiveSummary = String.Format("Archivando {0} hilo con más de {1} días de antiguedad desde [[{2}]].", ArchivedThreads, MaxDays.ToString, PageTitle)
             End If
-            IndexPage.Save(IndexpageText, "Actualizando caja de archivos", True)
-            NewPage.Save(NewPage.Text & Environment.NewLine & ArchivePageText, ArchiveSummary, Notify)
-            PageToArchive.Save(Newpagetext, Summary, Notify)
+
+            Dim isminor As Boolean = Not Notify
+
+            If UseBox Then
+                IndexPage.Save(IndexpageText, "Actualizando caja de archivos", True, True)
+            End If
+            NewPage.Save(NewPage.Text & Environment.NewLine & ArchivePageText, ArchiveSummary, isminor, True)
+            PageToArchive.Save(Newpagetext, Summary, isminor, True)
 
         Else
             Log("GrillitusArchive: Nothing to archive ", "LOCAL", BOTName)
@@ -303,6 +320,334 @@ Class GrillitusArchive
         Log("GrillitusArchive: " & PageToArchive.Title & " done.", "LOCAL", BOTName)
         Return True
     End Function
+
+
+    ''' <summary>
+    ''' Entrega la primera aparición de la plantilla de grillitus en un texto dado, si no está la plantilla, retorna una plantilla vacía ("{{}}").
+    ''' </summary>
+    ''' <param name="text">Texto a evaluar.</param>
+    ''' <returns></returns>
+    Function GetGrillitusTemplate(ByVal text As String) As Template
+
+        Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(text))
+        Dim Grittemp As New Template
+        For Each t As Template In templist
+            If Regex.Match(t.Name, " *[Uu]suario *: *[Gg]rillitus\/Archivar").Success Then
+                Grittemp = t
+                Exit For
+            End If
+        Next
+        Return Grittemp
+    End Function
+
+
+    '==================================================================================================
+
+
+    ''' <summary>
+    ''' Realiza un archivado general siguiendo una lógica similar a la de Grillitus.
+    ''' </summary>
+    ''' <param name="PageToArchive">Página a archivar</param>
+    ''' <returns></returns>
+    Function Archive(ByVal PageToArchive As Page) As Boolean
+        Log("Archive: Page " & PageToArchive.Title, "LOCAL", BOTName)
+
+        Dim hyear As Integer = CInt((DateTime.Now.Month - 1) / 6 + 1)
+        Dim Currentyear As String = DateTime.Now.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
+        Dim CurrentMonth As String = DateTime.Now.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
+        Dim CurrentMonthStr As String = DateTime.Now.ToString("MMMM", New Globalization.CultureInfo("es-ES"))
+        Dim CurrentDay As String = DateTime.Now.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
+
+        Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
+
+        Dim IndexPage As Page = Bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
+        Dim IndexpageText As String = IndexPage.Text
+
+        Dim PageTitle As String = PageToArchive.Title
+        Dim pagetext As String = PageToArchive.Text
+
+        Dim Newpagetext As String = pagetext
+        Dim ArchivePageText As String = String.Empty
+
+        Dim threads As String() = Bot.GetPageThreads(pagetext)
+
+        Dim Notify As Boolean = False
+        Dim Strategy As String = String.Empty
+        Dim UseBox As Boolean = False
+        Dim ArchivePageTitle As String = ArchiveCfg(0)
+        Dim MaxDays As Integer = 0
+        Dim ArchivedThreads As Integer = 0
+
+        If threads.Count = 1 Then
+            Return False
+        End If
+
+        If String.IsNullOrEmpty(ArchiveCfg(0)) Then
+            Return False
+        End If
+        If String.IsNullOrEmpty(ArchiveCfg(1)) Then
+            Return False
+        Else
+            MaxDays = Integer.Parse(ArchiveCfg(1))
+        End If
+        If String.IsNullOrEmpty(ArchiveCfg(2)) Then
+            Notify = False
+        Else
+            If ArchiveCfg(2).ToLower.Contains("si") Or ArchiveCfg(2).ToLower.Contains("sí") Then
+                Notify = True
+            Else
+                Notify = False
+            End If
+        End If
+
+        If String.IsNullOrEmpty(ArchiveCfg(3)) Then
+            Strategy = "FirmaEnÚltimoPárrafo"
+        Else
+            If ArchiveCfg(3) = "FirmaEnÚltimoPárrafo" Then
+                Strategy = "FirmaEnÚltimoPárrafo"
+            ElseIf ArchiveCfg(3) = "FirmaMásRecienteEnLaSección" Then
+                Strategy = "FirmaMásRecienteEnLaSección"
+            Else
+                Strategy = "FirmaEnÚltimoPárrafo"
+            End If
+        End If
+
+        If String.IsNullOrEmpty(ArchiveCfg(4)) Then
+            UseBox = False
+        Else
+            If ArchiveCfg(4).ToLower.Contains("si") Or ArchiveCfg(4).ToLower.Contains("sí") Then
+                UseBox = True
+            Else
+                UseBox = False
+            End If
+        End If
+
+        ArchivePageTitle = ArchivePageTitle.Replace("AAAA", Currentyear).Replace("MM", CurrentMonth) _
+        .Replace("DD", CurrentDay).Replace("SEM", hyear.ToString)
+
+        If Not (ArchivePageTitle.ToLower.Contains("wikipedia:") Or ArchivePageTitle.ToLower.Contains("usuario:") _
+          Or ArchivePageTitle.ToLower.Contains("discusión:") Or ArchivePageTitle.ToLower.Contains("wikiproyecto:")) Then
+            Return False
+        End If
+
+        Dim ArchiveBoxLink As String = "[[" & ArchivePageTitle & "]]"
+        Dim Archivename As Match = Regex.Match(ArchivePageTitle, "\/.+")
+
+        If Archivename.Success Then
+            ArchiveBoxLink = "[[" & ArchivePageTitle & "|" & Archivename.Value & "]]"
+        End If
+
+        Dim LimitDate As DateTime = DateTime.Now.AddDays(-MaxDays)
+
+        For Each t As String In threads
+            Try
+                If Strategy = "FirmaMásRecienteEnLaSección" Then
+                    Dim threaddate As DateTime = Bot.MostRecentDate(t)
+
+                    Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
+                    Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *\| *fecha\=")
+
+                    If Not DoNotArchiveMatch.Success Then
+
+                        If ProgrammedMatch.Success Then
+                            Dim fechastr As String = TextInBetween(t, ProgrammedMatch.Value, "}}")(0)
+                            Dim fecha As DateTime = DateTime.ParseExact(fechastr, "dd'-'mm'-'yyyy", System.Globalization.CultureInfo.InvariantCulture)
+
+                            If DateTime.Now >= fecha Then
+                                Newpagetext = Newpagetext.Replace(t, "")
+                                ArchivePageText = ArchivePageText & t
+                                ArchivedThreads += 1
+                            End If
+                        Else
+                            If threaddate < LimitDate Then
+                                Newpagetext = Newpagetext.Replace(t, "")
+                                ArchivePageText = ArchivePageText & t
+                                ArchivedThreads += 1
+                            End If
+                        End If
+                    End If
+
+
+                ElseIf Strategy = "FirmaEnÚltimoPárrafo" Then
+                    Dim threaddate As DateTime = Bot.LastParagraphDateTime(t)
+                    Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
+                    Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *\| *fecha\=")
+
+                    If Not DoNotArchiveMatch.Success Then
+
+                        If ProgrammedMatch.Success Then
+                            Dim fechastr As String = TextInBetween(t, ProgrammedMatch.Value, "}}")(0)
+                            fechastr = " " & fechastr & " "
+                            fechastr = fechastr.Replace(" 1-", "01-").Replace(" 2-", "02-").Replace(" 3-", "03-").Replace(" 4-", "04-") _
+                                .Replace(" 5-", "05-").Replace(" 6-", "06-").Replace(" 7-", "07-").Replace(" 8-", "08-").Replace(" 9-", "09-") _
+                                .Replace("-1-", "-01-").Replace("-2-", "-02-").Replace("-3-", "-03-").Replace("-4-", "-04-").Replace("-5-", "-05-") _
+                                .Replace("-6-", "-06-").Replace("-7-", "-07-").Replace("-8-", "-08-").Replace("-9-", "-09-").Trim()
+
+                            Dim fecha As DateTime = DateTime.ParseExact(fechastr, "dd'-'MM'-'yyyy", System.Globalization.CultureInfo.InvariantCulture)
+                            If DateTime.Now >= fecha Then
+                                Newpagetext = Newpagetext.Replace(t, "")
+                                ArchivePageText = ArchivePageText & t
+                                ArchivedThreads += 1
+                            End If
+                        Else
+                            If threaddate < LimitDate Then
+                                Newpagetext = Newpagetext.Replace(t, "")
+                                ArchivePageText = ArchivePageText & t
+                                ArchivedThreads += 1
+                            End If
+                        End If
+
+
+                    End If
+                End If
+            Catch ex As Exception
+                Log("Archive: Thread error on " & PageToArchive.Title, "LOCAL", BOTName)
+            End Try
+        Next
+
+        If ArchivedThreads > 0 Then
+            If UseBox Then
+                If IndexPage.Exists Then
+
+                    Dim ArchiveBoxMatch As Match = Regex.Match(IndexpageText, "{{caja archivos\|[\s\S]+?}}")
+                    Dim Newbox As String = String.Empty
+
+                    If ArchiveBoxMatch.Success Then
+                        Newbox = ArchiveBoxMatch.Value.Replace("{{caja archivos|", "").Replace("}}", "")
+
+                        If Not Newbox.Contains(ArchivePageTitle) Then
+
+                            Newbox = Newbox & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
+                            Newbox = "{{caja archivos|" & Newbox & "}}"
+                            IndexpageText = IndexpageText.Replace(ArchiveBoxMatch.Value, Newbox)
+
+                        End If
+                    Else
+                        IndexpageText = "{{caja archivos|" & Environment.NewLine & ArchiveBoxLink & Environment.NewLine & "}}"
+                    End If
+
+                Else
+                    IndexpageText = "<center>" & ArchiveBoxLink & "</center>"
+                    IndexpageText = "{{caja archivos|" & Environment.NewLine & IndexpageText & Environment.NewLine & "}}"
+                End If
+
+                If Not String.IsNullOrEmpty(ArchivePageText) Then
+                    If Not Newpagetext.Contains("{{" & IndexPage.Title & "}}") Then
+                        Dim Archivetemplate As String = Regex.Match(pagetext, "{{ *[Aa]rchivado automático[\s\S]+?}}").Value
+                        Newpagetext = Newpagetext.Replace(Archivetemplate, Archivetemplate & Environment.NewLine & "{{" & IndexPage.Title & "}}" & Environment.NewLine)
+                    End If
+
+                    If Not ArchivePageText.Contains("{{" & IndexPage.Title & "}}") Then
+                        ArchivePageText = "{{" & IndexPage.Title & "}}" & Environment.NewLine & ArchivePageText
+                    End If
+                End If
+            End If
+        End If
+
+        If Not String.IsNullOrEmpty(ArchivePageText) Then
+            Dim NewPage As Page = Bot.Getpage(ArchivePageTitle)
+            Dim Summary As String = String.Empty
+
+            If ArchivedThreads > 1 Then
+                Summary = String.Format("Archivando {0} hilos con más de {1} días de antiguedad en {2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
+            Else
+                Summary = String.Format("Archivando {0} hilo con más de {1} días de antiguedad en {2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
+            End If
+
+            Dim ArchiveSummary As String = String.Empty
+            If ArchivedThreads > 1 Then
+                ArchiveSummary = String.Format("Archivando {0} hilos con más de {1} días de antiguedad desde [[{2}]].", ArchivedThreads, MaxDays.ToString, PageTitle)
+            Else
+                ArchiveSummary = String.Format("Archivando {0} hilo con más de {1} días de antiguedad desde [[{2}]].", ArchivedThreads, MaxDays.ToString, PageTitle)
+            End If
+
+            Dim isminor As Boolean = Not Notify
+
+            If UseBox Then
+                IndexPage.Save(IndexpageText, "Actualizando caja de archivos", True, True)
+            End If
+            NewPage.Save(NewPage.Text & Environment.NewLine & ArchivePageText, ArchiveSummary, isminor, True)
+            PageToArchive.Save(Newpagetext, Summary, isminor, True)
+
+        Else
+            Log("Archive: Nothing to archive ", "LOCAL", BOTName)
+        End If
+
+
+        Log("Archive: " & PageToArchive.Title & " done.", "LOCAL", BOTName)
+        Return True
+    End Function
+
+
+    Function GetArchiveTemplateData(PageToArchive As Page) As String()
+
+        Dim ArchiveTemplate As Template = GetArchiveTemplate(PageToArchive)
+        If String.IsNullOrEmpty(ArchiveTemplate.Name) Then
+            Return {"", "", "", "", ""}
+        End If
+        Dim Destination As String = String.Empty
+        Dim Days As String = String.Empty
+        Dim Notify As String = String.Empty
+        Dim Strategy As String = String.Empty
+        Dim UseBox As String = String.Empty
+
+        For Each tup As Tuple(Of String, String) In ArchiveTemplate.Parameters
+            If tup.Item1 = "Destino" Then
+                Destination = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            End If
+            If tup.Item1 = "Días a mantener" Then
+                Days = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            End If
+            If tup.Item1 = "Avisar al archivar" Then
+                Notify = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            End If
+            If tup.Item1 = "Estrategia" Then
+                Strategy = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            End If
+            If tup.Item1 = "MantenerCajaDeArchivos" Then
+                UseBox = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+            End If
+        Next
+
+        Return {Destination, Days, Notify, Strategy, UseBox}
+
+    End Function
+
+
+    Function GetArchiveTemplate(ByVal PageToGet As Page) As Template
+        Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(PageToGet.Text))
+        Dim Archtemp As New Template
+        For Each t As Template In templist
+            If Regex.Match(t.Name, " *[Aa]rchivado automático").Success Then
+                Archtemp = t
+                Exit For
+            End If
+        Next
+        Return Archtemp
+    End Function
+
+    ''' <summary>
+    ''' Actualiza todas las paginas que incluyan la plantilla de archivado automático.
+    ''' </summary>
+    ''' <returns></returns>
+    Function ArchiveAllInclusions(ByVal IRC As Boolean) As Boolean
+        If IRC Then
+            BotIRC.Sendmessage(ColoredText("Archivando todas las páginas...", "04"))
+        End If
+        Dim includedpages As String() = Bot.GetallInclusions("Plantilla:Archivado automático")
+        For Each pa As String In includedpages
+            Log("ArchiveAllInclusions: Page " & pa, "LOCAL", BOTName)
+            Dim _Page As Page = Bot.Getpage(pa)
+            If _Page.Exists Then
+                Archive(_Page)
+            End If
+        Next
+        If IRC Then
+            BotIRC.Sendmessage(ColoredText("Archivado completo...", "04"))
+        End If
+        Return True
+    End Function
+
 
 
 End Class

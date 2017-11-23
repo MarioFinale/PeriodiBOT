@@ -133,11 +133,13 @@ Class IRC_Comands
                                          End Sub)
                             End If
 
-                        ElseIf MainParam = ("%div0") Then
+                        ElseIf MainParam = ("%archive") Then
                             If IsOp(imputline, Source, Realname) Then
-                                Return Div0(Source, Realname, HasExited)
+                                CommandResponse = ArchivePage(Source, Totalparam, Realname)
                             End If
 
+                        ElseIf MainParam = ("%div0") Then
+                            Return Div0(Source, Realname, HasExited)
 
                         Else
                             If param.ToLower.Contains(_IrcNickName.ToLower) And Not param.ToLower.Contains("*") And Not imputline.Contains(".freenode.net ") Then
@@ -314,6 +316,16 @@ Class IRC_Comands
         Dim i As Double = (1 / 0)
         responsetext = responsetext & Environment.NewLine & IrcStringBuilder(source, "Al parecer el resultado es """ & i.ToString & """")
         Return responsetext
+    End Function
+
+    Private Function ArchivePage(ByVal source As String, page As String, user As String) As String()
+        Dim PageName As String = TitleFirstGuess(page)
+        Dim responsestring As String = ColoredText("Archivando " & PageName, "04")
+        Task.Run(Sub()
+                     Dim p As Page = Mainwikibot.Getpage(PageName)
+                     Mainwikibot.Archive(p)
+                 End Sub)
+        Return {source, responsestring}
     End Function
 
 

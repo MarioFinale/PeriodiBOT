@@ -15,8 +15,9 @@ Module GlobalVars
     Public BOTIRCName As String
     Public IRCPassword As String
     Public IRCChannel As String
-
     Public Exepath As String = AppDomain.CurrentDomain.BaseDirectory
+
+
     ''' <summary>
     ''' El separador de decimales varia segun SO y configuracion regional, eso puede afectar los calculos.
     ''' </summary>

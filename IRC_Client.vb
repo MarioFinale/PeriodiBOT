@@ -153,6 +153,8 @@ Public Class IRC_Client
                                                Lastdate = DateTime.Now
                                            End If
 
+                                           DailyTask()
+
                                            If sCommandParts(0).Contains("PING") Then  'Ping response
                                                _streamWriter.WriteLine(sCommand.Replace("PING", "PONG"))
                                                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand.Replace("PING", "PONG"))
