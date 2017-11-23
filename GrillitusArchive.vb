@@ -549,22 +549,22 @@ Class GrillitusArchive
             Dim Summary As String = String.Empty
 
             If ArchivedThreads > 1 Then
-                Summary = String.Format("Archivando {0} hilos con más de {1} días de antiguedad en {2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
+                Summary = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad en {2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
             Else
-                Summary = String.Format("Archivando {0} hilo con más de {1} días de antiguedad en {2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
+                Summary = String.Format("Bot: Archivando {0} hilo con más de {1} días de antigüedad en {2}.", ArchivedThreads, MaxDays.ToString, ArchiveBoxLink)
             End If
 
             Dim ArchiveSummary As String = String.Empty
             If ArchivedThreads > 1 Then
-                ArchiveSummary = String.Format("Archivando {0} hilos con más de {1} días de antiguedad desde [[{2}]].", ArchivedThreads, MaxDays.ToString, PageTitle)
+                ArchiveSummary = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].", ArchivedThreads, MaxDays.ToString, PageTitle)
             Else
-                ArchiveSummary = String.Format("Archivando {0} hilo con más de {1} días de antiguedad desde [[{2}]].", ArchivedThreads, MaxDays.ToString, PageTitle)
+                ArchiveSummary = String.Format("Bot: Archivando {0} hilo con más de {1} días de antigüedad desde [[{2}]].", ArchivedThreads, MaxDays.ToString, PageTitle)
             End If
 
             Dim isminor As Boolean = Not Notify
 
             If UseBox Then
-                IndexPage.Save(IndexpageText, "Actualizando caja de archivos", True, True)
+                IndexPage.Save(IndexpageText, "Bot: Actualizando caja de archivos.", True, True)
             End If
             NewPage.Save(NewPage.Text & Environment.NewLine & ArchivePageText, ArchiveSummary, isminor, True)
             PageToArchive.Save(Newpagetext, Summary, isminor, True)
