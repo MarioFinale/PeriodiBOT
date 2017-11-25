@@ -1,7 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
-Imports System.Text.RegularExpressions
-
+Imports PeriodiBOT_IRC.WikiBot
 
 Module GlobalVars
 
@@ -16,7 +15,6 @@ Module GlobalVars
     Public IRCPassword As String
     Public IRCChannel As String
     Public Exepath As String = AppDomain.CurrentDomain.BaseDirectory
-
 
     ''' <summary>
     ''' El separador de decimales varia segun SO y configuracion regional, eso puede afectar los calculos.
@@ -34,6 +32,10 @@ Module GlobalVars
     Public LogC As New LogEngine(Log_Filepath, User_Filepath)
     Public Userdata As List(Of String()) = LogC.LogUserData
     Public Uptime As DateTime
+
+
+    Public Mainwikibot As Bot
+    Public BotIRC As IRC_Client
 
 
 End Module
