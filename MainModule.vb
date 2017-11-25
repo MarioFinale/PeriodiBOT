@@ -1,13 +1,11 @@
 ﻿Option Strict On
 Option Explicit On
+Imports System.Net
 Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports PeriodiBOT_IRC.WikiBot
 
 Module MainModule
-
-    Public Mainwikibot As Bot
-    Public BotIRC As IRC_Client
 
     Sub Main()
         Uptime = DateTime.Now
@@ -16,7 +14,6 @@ Module MainModule
         Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
         BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword) ', IRCPASS)
         BotIRC.Connect()
-
         Do
             ' Dim command As String = Console.ReadLine()
             ' Declaración sin utilidad. Solo para efectos de debug.
@@ -25,12 +22,6 @@ Module MainModule
         Loop
 
     End Sub
-
-
-
-
-
-
 
 
 
