@@ -191,64 +191,6 @@ Module TextFunctions
     End Function
 
     ''' <summary>
-    ''' Reemplaza fallos de escritura comunes (en progreso).
-    ''' </summary>
-    ''' <param name="text">Texto a evaluar.</param>
-    ''' <returns></returns>
-    Function ReplaceCommonTypos(ByVal text As String) As String
-        Dim newtext As String = text
-        newtext = text.Replace("al rededor", "alrrededor")
-        newtext = newtext.Replace("aférrimo", "acérrimo")
-        newtext = newtext.Replace("aferrimo", "acérrimo")
-        newtext = newtext.Replace("acerrimo", "acérrimo")
-        newtext = newtext.Replace("beneficiencia", "beneficencia")
-        newtext = newtext.Replace("cojer", "coger")
-        newtext = newtext.Replace("consanguineidad", "consanguinidad")
-        newtext = newtext.Replace("contricción", "contrición")
-        newtext = newtext.Replace("convalescencia", "convalecencia")
-        newtext = newtext.Replace("costipado", "constipado")
-        newtext = newtext.Replace("desición", "decisión")
-        newtext = newtext.Replace("desicion", "decisión")
-        newtext = newtext.Replace("decision", "decisión")
-        newtext = newtext.Replace("disglosia", "diglosia")
-        newtext = newtext.Replace("disgresión", "digresión")
-        newtext = newtext.Replace("disgresion", "digresión")
-        newtext = newtext.Replace("digresion", "digresión")
-        newtext = newtext.Replace("dixlesia", "dislexia")
-        newtext = newtext.Replace("escéntrico", "excéntrico")
-        newtext = newtext.Replace("escentrico", "excéntrico")
-        newtext = newtext.Replace("excentrico", "excéntrico")
-        newtext = newtext.Replace("espectativa", "expectativa")
-        newtext = newtext.Replace("esplanada", "explanada")
-        newtext = newtext.Replace("exalar", "exhalar")
-        newtext = newtext.Replace("exausto", "exhausto")
-        newtext = newtext.Replace("excéptico", "escéptico")
-        newtext = newtext.Replace("exceptico", "escéptico")
-        newtext = newtext.Replace("exhorbitante", "exorbitante")
-        newtext = newtext.Replace("exhuberante", "exuberante")
-        newtext = newtext.Replace("exortar", "exhortar")
-        newtext = newtext.Replace("extrínsico", "extrínseco")
-        newtext = newtext.Replace("extrinsico", "extrínseco")
-        newtext = newtext.Replace("extrinseco", "extrínseco")
-        newtext = newtext.Replace("exumar", "exhumar")
-        newtext = newtext.Replace("fideligno", "fidedigno")
-        newtext = newtext.Replace("fregaplatos", "friegaplatos")
-        newtext = newtext.Replace("hemiplegía", "hemiplejía")
-        newtext = newtext.Replace("hemiplegia", "hemiplejía")
-        newtext = newtext.Replace("hemiplejia", "hemiplejía")
-        newtext = newtext.Replace("idiosincracia", "idiosincrasia")
-        newtext = newtext.Replace("inexcrutable", "inescrutable")
-        newtext = newtext.Replace("subrealista", "surrealista")
-        newtext = newtext.Replace("transplantar", "trasplantar")
-        newtext = newtext.Replace("transtornado", "trastornado")
-        newtext = newtext.Replace("prevadicación", "prevaricación")
-        newtext = newtext.Replace("prevadicacion", "prevaricación")
-        newtext = newtext.Replace("prevaricacion", "prevaricación")
-        newtext = newtext.Replace("jeringoza", "jerigonza")
-        newtext = newtext.Replace("higuiene", "higiene")
-        Return text
-    End Function
-    ''' <summary>
     ''' Evalua una línea de texto (formato IRC según la RFC) y entrega el usuario que emitió el mensaje.
     ''' </summary>
     ''' <param name="response">Mensaje a evaluar.</param>
