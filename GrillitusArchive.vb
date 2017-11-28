@@ -425,6 +425,9 @@ Class GrillitusArchive
         ArchivePageTitle = ArchivePageTitle.Replace("AAAA", Currentyear).Replace("MM", CurrentMonth) _
         .Replace("DD", CurrentDay).Replace("SEM", hyear.ToString)
 
+
+
+
         If Not (ArchivePageTitle.ToLower.Contains("wikipedia:") Or ArchivePageTitle.ToLower.Contains("usuario:") _
           Or ArchivePageTitle.ToLower.Contains("discusión:") Or ArchivePageTitle.ToLower.Contains("wikiproyecto:")) Then
             Return False
@@ -647,6 +650,7 @@ Class GrillitusArchive
         End If
         Return True
     End Function
+
 
 
 

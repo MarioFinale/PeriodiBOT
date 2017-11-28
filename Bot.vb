@@ -4,13 +4,14 @@ Imports System.Text.RegularExpressions
 
 Namespace WikiBot
     Public Class Bot
-
         Private BotCookies As CookieContainer
         Private Username As String = String.Empty
         Private _botusername As String = String.Empty
         Private _botpass As String = String.Empty
         Private _siteurl As String = String.Empty
         Private ResumePageName As String = "Usuario:PeriodiBOT/Resumen página"
+
+
         ''' <summary>
         ''' Inicializa una nueva instancia del BOT.
         ''' </summary>
@@ -149,7 +150,6 @@ Namespace WikiBot
                 Next
             Next
             Return PagenameAndImage
-
         End Function
 
         ''' <summary>
@@ -306,9 +306,7 @@ Namespace WikiBot
 
                 Next
             Next
-
             Return PagenameAndResume
-
         End Function
 
         ''' <summary>
@@ -426,9 +424,6 @@ Namespace WikiBot
             Next
             Return PagenameAndLastId
         End Function
-
-
-
 
         ''' <summary>
         ''' Retorna el ultimo REVID (como integer) de la pagina indicada como integer. 

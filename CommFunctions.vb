@@ -328,9 +328,9 @@ Public Module CommFunctions
                 Dim Timediff As Integer = ActualTimeUnix - LastEditUnix - 3600
                 Dim TriggerTimeDiff As Long = TimeStringToSeconds(UserDate)
 
-                Dim TimediffToHours As Integer = CInt(Timediff / 3600)
-                Dim TimediffToMinutes As Integer = CInt(Timediff / 60)
-                Dim TimediffToDays As Integer = CInt(Timediff / 86400)
+                Dim TimediffToHours As Integer = CInt(Math.Truncate(Timediff / 3600))
+                Dim TimediffToMinutes As Integer = CInt(Math.Truncate(Timediff / 60))
+                Dim TimediffToDays As Integer = CInt(Math.Truncate(Timediff / 86400))
                 Dim responsestring As String = String.Empty
 
                 Console.WriteLine("Timediff  " & User & ": " & Timediff)
