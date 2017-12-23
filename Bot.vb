@@ -857,6 +857,7 @@ Namespace WikiBot
         Function LastParagraphDateTime(ByVal text As String) As DateTime
             text = text.Trim(CType(vbCrLf, Char())) & " "
             Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
+
             Dim TheDate As DateTime = EsWikiDatetime(lastparagraph)
             Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL", BOTName)
             Return TheDate
