@@ -114,6 +114,10 @@ Public Class IRC_Client
                 _streamWriter.WriteLine(String.Format("JOIN {0}", _sChannel))
                 _streamWriter.Flush()
 
+                Dim CheckUsersFunc As New Func(Of String())(AddressOf CheckUsers)
+                Dim CheckUsersIRCTask As New IRCTask(Me, 300000, CheckUsersFunc)
+                CheckUsersIRCTask.Run()
+
                 Await Task.Run(Sub()
 
                                    Try
@@ -136,24 +140,6 @@ Public Class IRC_Client
                                                Debug_Log("IRC: DISCONNECTED", "IRC", BOTName)
                                                Exit While
                                            End If
-
-                                           Dim actualtime As DateTime = DateTime.Now
-                                           Dim DateDiff As TimeSpan = actualtime - Lastdate
-
-                                           If DateDiff.Minutes >= 5 Then
-                                               Dim checkarr As String() = CheckUsers()
-
-                                               If Not checkarr.Count = 0 Then
-                                                   For Each s As String In checkarr
-                                                       _streamWriter.WriteLine(s)
-                                                       _streamWriter.Flush()
-                                                   Next
-                                               End If
-                                               SaveUsersToFile()
-                                               Lastdate = DateTime.Now
-                                           End If
-
-                                           DailyTask()
 
                                            If sCommandParts(0).Contains("PING") Then  'Ping response
                                                _streamWriter.WriteLine(sCommand.Replace("PING", "PONG"))
@@ -228,6 +214,12 @@ Public Class IRC_Client
         Return True
     End Function
 
+    Function SendText(ByVal Text As String) As Boolean
+        _streamWriter.WriteLine(Text)
+        _streamWriter.Flush()
+        Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & Text)
+        Return True
+    End Function
 
 
 

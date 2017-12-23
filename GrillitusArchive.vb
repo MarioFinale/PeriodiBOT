@@ -352,6 +352,25 @@ Class GrillitusArchive
     Function Archive(ByVal PageToArchive As Page) As Boolean
         Log("Archive: Page " & PageToArchive.Title, "LOCAL", BOTName)
 
+        If Not (PageToArchive.PageNamespace = 1 Or PageToArchive.PageNamespace = 3 _
+            Or PageToArchive.PageNamespace = 4 Or PageToArchive.PageNamespace = 5 _
+            Or PageToArchive.PageNamespace = 11 Or PageToArchive.PageNamespace = 13 _
+            Or PageToArchive.PageNamespace = 15 Or PageToArchive.PageNamespace = 101 _
+            Or PageToArchive.PageNamespace = 102 Or PageToArchive.PageNamespace = 103 _
+            Or PageToArchive.PageNamespace = 105 Or PageToArchive.PageNamespace = 447 _
+            Or PageToArchive.PageNamespace = 829) Then
+            Log("Archive: The page " & PageToArchive.Title & " doesn't belong to any valid namespace. (NS:" & PageToArchive.PageNamespace & ")", "LOCAL", BOTName)
+            Return False
+        End If
+
+        If PageToArchive.PageNamespace = 3 Then
+            Dim Username As String = PageToArchive.Title.Split(CType(":", Char()))(1)
+            If UserIsBlocked(Username) Then
+                Return False
+            End If
+        End If
+
+
         Dim hyear As Integer = CInt((DateTime.Now.Month - 1) / 6 + 1)
         Dim Currentyear As String = DateTime.Now.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
         Dim CurrentMonth As String = DateTime.Now.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
@@ -375,6 +394,7 @@ Class GrillitusArchive
         Dim Strategy As String = String.Empty
         Dim UseBox As Boolean = False
         Dim ArchivePageTitle As String = ArchiveCfg(0)
+
         Dim MaxDays As Integer = 0
         Dim ArchivedThreads As Integer = 0
 
@@ -426,10 +446,12 @@ Class GrillitusArchive
         .Replace("DD", CurrentDay).Replace("SEM", hyear.ToString)
 
 
+        Dim ArchivePage As Page = Bot.Getpage(ArchivePageTitle)
 
-
-        If Not (ArchivePageTitle.ToLower.Contains("wikipedia:") Or ArchivePageTitle.ToLower.Contains("usuario:") _
-          Or ArchivePageTitle.ToLower.Contains("discusión:") Or ArchivePageTitle.ToLower.Contains("wikiproyecto:")) Then
+        If Not ArchivePage.PageNamespace = PageToArchive.PageNamespace Then
+            Return False
+        End If
+        If Not ArchivePage.Title.Contains(PageToArchive.Title) Then
             Return False
         End If
 
@@ -444,6 +466,9 @@ Class GrillitusArchive
 
         For Each t As String In threads
             Try
+                If ArchivedThreads = threads.Count - 1 Then
+                    Exit For
+                End If
                 If Strategy = "FirmaMásRecienteEnLaSección" Then
                     Dim threaddate As DateTime = Bot.MostRecentDate(t)
 

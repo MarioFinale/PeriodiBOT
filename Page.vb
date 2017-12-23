@@ -15,6 +15,7 @@ Public Class Page
     Private _categories As String()
     Private _pageViews As Integer
     Private _size As Integer
+    Private _Namespace As Integer
     Private _cookies As CookieContainer
 
     ''' <summary>
@@ -107,6 +108,20 @@ Public Class Page
             Return _size
         End Get
     End Property
+
+    ''' <summary>
+    ''' Número del espacio de nombres al cual pertenece la página.
+    ''' </summary>
+    ''' <returns></returns>
+    Public Property PageNamespace As Integer
+        Get
+            Return _Namespace
+        End Get
+        Set(value As Integer)
+            _Namespace = value
+        End Set
+    End Property
+
     ''' <summary>
     ''' ¿La página existe?
     ''' </summary>
@@ -118,6 +133,7 @@ Public Class Page
             Return True
         End If
     End Function
+
     ''' <summary>
     ''' Inicializa una nueva página, por lo general no se llama de forma directa. Se puede obtener una página creandola con Bot.Getpage.
     ''' </summary>
@@ -159,6 +175,7 @@ Public Class Page
         _timestamp = PageData(3)
         _text = PageData(4)
         _size = Integer.Parse(PageData(5))
+        _Namespace = Integer.Parse(PageData(6))
         _sections = GetPageThreads(_text)
         _categories = GetCategories(_title)
 
@@ -417,22 +434,30 @@ Public Class Page
     ''' <param name="Pagename">Título exacto de la página</param>
     ''' <returns></returns>
     Private Function PageInfoData(ByVal Pagename As String) As String()
+
+        Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions&rvprop=user" & UrlWebEncode("|") & "timestamp" & UrlWebEncode("|") & "size" & UrlWebEncode("|") & "content" & "&titles=" & UrlWebEncode(Pagename)
+        Dim QueryText As String = PostDataAndGetResult(_siteurl, querystring, False, _cookies)
+
+        Dim PageID As String = "-1"
+        Dim User As String = ""
+        Dim PTitle As String = NormalizeUnicodetext(TextInBetween(QueryText, """title"":""", """,")(0))
+        Dim Timestamp As String = ""
+        Dim Wikitext As String = ""
+        Dim Size As String = "0"
+        Dim WNamespace As String = TextInBetween(QueryText, """ns"":", ",")(0)
+
         Try
-            Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions&rvprop=user" & UrlWebEncode("|") & "timestamp" & UrlWebEncode("|") & "size" & UrlWebEncode("|") & "content" & "&titles=" & UrlWebEncode(Pagename)
-            Dim QueryText As String = PostDataAndGetResult(_siteurl, querystring, False, _cookies)
-            Dim PageID As String = TextInBetween(QueryText, "{""pageid"":", ",""ns")(0)
-            Dim User As String = TextInBetween(QueryText, "{""user"":""", """,")(0)
-            Dim PTitle As String = NormalizeUnicodetext(TextInBetween(QueryText, """title"":""", """,""revisions""")(0))
-            Dim Timestamp As String = TextInBetween(QueryText, """timestamp"":""", """,")(0)
-            Dim Wikitext As String = NormalizeUnicodetext(TextInBetween(QueryText, """wikitext"",""*"":""", """}]}}}}")(0))
-            Dim Size As String = NormalizeUnicodetext(TextInBetween(QueryText, ",""size"":", ",""")(0))
-            Return {PTitle, PageID, User, Timestamp, Wikitext, Size}
+            PageID = TextInBetween(QueryText, "{""pageid"":", ",""ns")(0)
+            User = TextInBetween(QueryText, "{""user"":""", """,")(0)
+            Timestamp = TextInBetween(QueryText, """timestamp"":""", """,")(0)
+            Wikitext = NormalizeUnicodetext(TextInBetween(QueryText, """wikitext"",""*"":""", """}]}}}}")(0))
+            Size = NormalizeUnicodetext(TextInBetween(QueryText, ",""size"":", ",""")(0))
         Catch ex As IndexOutOfRangeException
             Console.WriteLine("Warning: The page '" & Pagename & "' doesn't exist yet!")
-            Return {Pagename, "-1", "", "", "", "0"}
-        Catch exex As Exception
-            Throw New Exception("Unknown error")
         End Try
+
+        Return {PTitle, PageID, User, Timestamp, Wikitext, Size, WNamespace}
+
 
     End Function
 

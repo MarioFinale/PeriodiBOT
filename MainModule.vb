@@ -9,15 +9,18 @@ Module MainModule
 
     Sub Main()
         Uptime = DateTime.Now
-        'LoadConfig()
-        'Log("Starting...", "Local", BOTName)
-        'Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
-        'BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword) ', IRCPASS)
-        'BotIRC.Connect()
+        LoadConfig()
+        Log("Starting...", "Local", BOTName)
+        Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
+        '  BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword) ', IRCPASS)
+        '   BotIRC.Connect()
+
+        Mainwikibot.Archive(Mainwikibot.Getpage("User talk:PeriodiBOT"))
+
         Do
             Dim command As String = Console.ReadLine()
 
-            Console.WriteLine(UserIsBlocked(command))
+            BotIRC.Sendmessage(command)
 
             ' Declaración sin utilidad. Solo para efectos de debug.
             Dim a As Integer = 1
