@@ -208,7 +208,7 @@ Namespace WikiBot
         ''' <param name="Page_names">Array con nombres de página unicos.</param>
         ''' <remarks></remarks>
         Private Function BOTGetPagesExtract(ByVal Page_names As String(), CharLimit As Integer) As SortedList(Of String, String)
-            Log("Starting Wikipedia page extracts of chunks", "LOCAL", BOTName)
+            Log("Get Wikipedia page extracts on chunks", "LOCAL", BOTName)
             Dim PageNamesList As List(Of String) = Page_names.ToList
             PageNamesList.Sort()
 
@@ -332,7 +332,10 @@ Namespace WikiBot
                     For Each m As Match In Regex.Matches(s, "({|, )(""[0-9]+"":).+?(}}}})")
 
                         Dim EditID_str As String = Regex.Match(m.Value, """[0-9]+""").Value
+                        EditID_str = EditID_str.Trim(CType("""", Char()))
+                        EditID_str = RemoveAllAlphas(EditID_str)
                         Dim EditID As Integer = Integer.Parse(EditID_str)
+
                         If m.Value.Contains("error") Then
 
                             Debug_Log("GetORESScore: Server error in query of ORES score from revid " & EditID_str & " (invalid diff?)", "LOCAL", BOTName)
@@ -675,7 +678,7 @@ Namespace WikiBot
             Next
             '==========================================================================================
 
-            Debug_Log("UpdatePageExtracts: Concatenating recreated text", "LOCAL", BOTName)
+            Debug_Log("UpdatePageExtracts: Concatenating text", "LOCAL", BOTName)
             NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & "<!-- MARK -->" & Environment.NewLine & "|}}"
 
             Debug_Log("UpdatePageExtracts: Done, trying to save", "LOCAL", BOTName)
@@ -916,15 +919,10 @@ Namespace WikiBot
         End Function
 
         ''' <summary>
-        ''' Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo la lógica de Grillitus.
+        ''' Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo una lógica similar a la de Grillitus.
         ''' </summary>
         ''' <param name="PageToArchive">Página a archivar</param>
         ''' <returns></returns>
-        Function GrillitusArchive(ByVal PageToArchive As Page) As Boolean
-            Dim Archive As New GrillitusArchive(Me)
-            Return Archive.GrillitusArchive(PageToArchive)
-        End Function
-
         Function Archive(ByVal PageToArchive As Page) As Boolean
             Dim ArchiveFcn As New GrillitusArchive(Me)
             Return ArchiveFcn.Archive(PageToArchive)

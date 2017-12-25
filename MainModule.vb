@@ -12,12 +12,11 @@ Module MainModule
         LoadConfig()
         Log("Starting...", "Local", BOTName)
         Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
-        BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword) ', IRCPASS)
+        BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword)
         BotIRC.Connect()
 
         Do
             Dim command As String = Console.ReadLine()
-
             BotIRC.Sendmessage(command)
 
             ' Declaración sin utilidad. Solo para efectos de debug.
