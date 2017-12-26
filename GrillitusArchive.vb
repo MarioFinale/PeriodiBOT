@@ -18,6 +18,8 @@ Class GrillitusArchive
     Function Archive(ByVal PageToArchive As Page) As Boolean
         Log("Archive: Page " & PageToArchive.Title, "LOCAL", BOTName)
 
+
+        'Verificar el espacio de nombres de la página se archiva
         If Not (PageToArchive.PageNamespace = 1 Or PageToArchive.PageNamespace = 3 _
             Or PageToArchive.PageNamespace = 4 Or PageToArchive.PageNamespace = 5 _
             Or PageToArchive.PageNamespace = 11 Or PageToArchive.PageNamespace = 13 _
@@ -29,8 +31,10 @@ Class GrillitusArchive
             Return False
         End If
 
+        'Verificar si es una discusión de usuario
         If PageToArchive.PageNamespace = 3 Then
             Dim Username As String = PageToArchive.Title.Split(CType(":", Char()))(1)
+            'Verificar si el usuario está bloqueado
             If UserIsBlocked(Username) Then
                 Return False
             End If
@@ -108,15 +112,18 @@ Class GrillitusArchive
             End If
         End If
 
+        'Construir el nopmbre de la página de archivado
         ArchivePageTitle = ArchivePageTitle.Replace("AAAA", Currentyear).Replace("MM", CurrentMonth) _
         .Replace("DD", CurrentDay).Replace("SEM", hyear.ToString)
 
-
+        'Crear el elemento Page con el nombre de la página de archivado
         Dim ArchivePage As Page = Bot.Getpage(ArchivePageTitle)
 
+        'Verificar si la página de archivado está en el mismo espacio de nombres
         If Not ArchivePage.PageNamespace = PageToArchive.PageNamespace Then
             Return False
         End If
+        'Verificar si la página de archivado es una subpágina de la principal
         If Not ArchivePage.Title.Contains(PageToArchive.Title) Then
             Return False
         End If
@@ -307,7 +314,11 @@ Class GrillitusArchive
 
     End Function
 
-
+    ''' <summary>
+    ''' Obtiene la primera aparición de la plantilla de archivado en la página pasada como parámetro 
+    ''' </summary>
+    ''' <param name="PageToGet">Pagina de la cual se busca la plantilla de archivado</param>
+    ''' <returns></returns>
     Function GetArchiveTemplate(ByVal PageToGet As Page) As Template
         Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(PageToGet.Text))
         Dim Archtemp As New Template
