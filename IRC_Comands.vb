@@ -25,7 +25,6 @@ Class IRC_Comands
                     Dim param As String = GetParamString(imputline)
                     Dim Realname As String = GetUserFromChatresponse(Prefix)
 
-
                     If Source.ToLower = _IrcNickName.ToLower Then
                         Source = Realname
                     End If

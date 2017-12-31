@@ -51,12 +51,12 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="SiteUrl">Url de la wiki.</param>
         Private Function GetWikiToken(ByVal SiteUrl As String) As String
-            Console.WriteLine("Obtaining token...")
+            Log("Obtaining token...", "LOCAL", BOTName)
             Dim url As String = SiteUrl
             Dim postdata As String = "action=query&meta=tokens&type=login&&format=json"
             Dim postresponse As String = PostDataAndGetResult(url, postdata, True, BotCookies)
             Dim token As String = TextInBetween(postresponse, """logintoken"":""", """}}}")(0).Replace("\\", "\")
-            Console.WriteLine("Token obtained!")
+            Log("Token obtained!", "LOCAL", BOTName)
             Return token
         End Function
 
@@ -64,29 +64,59 @@ Namespace WikiBot
         ''' Luego de obtener un Token y cookies de ingreso, envía estos al servidor para loguear y guarda las cookies de sesión.
         ''' </summary>
         Function WikiLogOn() As String
-            Console.WriteLine("Logging in...")
-            Dim token As String = GetWikiToken(_siteurl)
+            Log("Signing in...", "LOCAL", BOTName)
+            Dim token As String = String.Empty
             Dim url As String = _siteurl
-            Dim postdata As String = "action=login&format=json&lgname=" & _botusername & "&lgpassword=" & _botpass & "&lgdomain=" & "&lgtoken=" & UrlWebEncode(token)
-            Dim postresponse As String = PostDataAndGetResult(url, postdata, True, BotCookies)
+            Dim postdata As String = String.Empty
+            Dim postresponse As String = String.Empty
             Dim lresult As String = String.Empty
             Try
+                token = GetWikiToken(_siteurl)
+                postdata = "action=login&format=json&lgname=" & _botusername & "&lgpassword=" & _botpass & "&lgdomain=" & "&lgtoken=" & UrlWebEncode(token)
+                postresponse = PostDataAndGetResult(url, postdata, True, BotCookies)
                 lresult = TextInBetween(postresponse, "{""result"":""", """,")(0)
-                Console.WriteLine("Login result: " & lresult)
+                Log("Login result: " & lresult, "LOCAL", BOTName)
                 Dim lUserID As String = TextInBetween(postresponse, """lguserid"":", ",")(0)
-                Console.WriteLine("UserID: " & lUserID)
+                Log("UserID: " & lUserID, "LOCAL", BOTName)
                 Dim lUsername As String = TextInBetween(postresponse, """lgusername"":""", """}")(0)
-                Console.WriteLine("Username: " & lUsername)
+                Log("Username: " & lUsername, "LOCAL", BOTName)
+
                 Return lresult
             Catch ex As IndexOutOfRangeException
+                Log("Logon error", "LOCAL", BOTName)
                 If lresult.ToLower = "failed" Then
                     Dim reason As String = TextInBetween(postresponse, """reason"":""", """")(0)
+                    Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                    Console.WriteLine("Login Failed")
                     Console.WriteLine("Reason: " & reason)
                     Console.WriteLine(Environment.NewLine & Environment.NewLine)
-                    Console.WriteLine("Press any key to exit...")
-                    Console.ReadLine()
+                    Console.Write("Press any key to exit...")
+                    Console.ReadKey()
                     ExitProgram()
                 End If
+                Return lresult
+            Catch ex2 As System.Net.WebException
+                Log("Network error", "LOCAL", BOTName)
+                Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                Dim reason As String = ex2.Message
+                Console.WriteLine("Login Failed (Network error)")
+                Console.WriteLine(reason)
+                Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                Console.Write("Press any key to exit...")
+                Console.ReadKey()
+                ExitProgram()
+                Return lresult
+            Catch ex3 As Exception
+                Log("Logon error", "LOCAL", BOTName)
+                Debug_Log("Logon error: " & ex3.Message, "LOCAL", BOTName)
+                Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                Dim reason As String = ex3.Message
+                Console.WriteLine("Login Failed")
+                Console.WriteLine("Reason: " & reason)
+                Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                Console.Write("Press any key to exit...")
+                Console.ReadKey()
+                ExitProgram()
                 Return lresult
             End Try
         End Function

@@ -114,8 +114,10 @@ Public Class IRC_Client
                 _streamWriter.WriteLine(String.Format("JOIN {0}", _sChannel))
                 _streamWriter.Flush()
 
+
+
                 Dim CheckUsersFunc As New Func(Of String())(AddressOf CheckUsers)
-                Dim CheckUsersIRCTask As New IRCTask(Me, 300000, CheckUsersFunc)
+                Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
                 CheckUsersIRCTask.Run()
 
                 Await Task.Run(Sub()
@@ -127,14 +129,13 @@ Public Class IRC_Client
                                            lastmessage = DateTime.Now
                                            Dim sCommandParts As String() = sCommand.Split(CType(" ", Char()))
                                            Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand)
-                                           Dim response As String = Command.ResolveCommand(sCommand, HasExited, _sNickName)
 
-                                           If Not response Is Nothing Then
-                                               _streamWriter.WriteLine(response)
-                                               _streamWriter.Flush()
-                                               Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & response)
+                                           Dim CommandFunc As New Func(Of String())(Function()
+                                                                                        Return {Command.ResolveCommand(sCommand, HasExited, _sNickName)}
+                                                                                    End Function)
+                                           Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc)
 
-                                           End If
+                                           IRCResponseTask.Run()
 
                                            If Not _tcpclientConnection.Connected Then
                                                Debug_Log("IRC: DISCONNECTED", "IRC", BOTName)
@@ -146,7 +147,6 @@ Public Class IRC_Client
                                                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand.Replace("PING", "PONG"))
                                                _streamWriter.Flush()
                                            End If
-
 
                                            If HasExited Then
                                                Exit While

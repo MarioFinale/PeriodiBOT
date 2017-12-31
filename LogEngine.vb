@@ -55,7 +55,7 @@ Class LogEngine
                      Do Until _endLog
                          SaveLogWorker()
                          _logging = True
-                         System.Threading.Thread.Sleep(10000)
+                         System.Threading.Thread.Sleep(1000)
                      Loop
                      _logging = False
                  End Sub)

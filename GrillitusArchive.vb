@@ -279,7 +279,11 @@ Class GrillitusArchive
         Return True
     End Function
 
-
+    ''' <summary>
+    ''' Obtiene los datos de una plantilla de archivado y retorna estos como array.
+    ''' </summary>
+    ''' <param name="PageToArchive">Página desde donde se busca la plantilla.</param>
+    ''' <returns></returns>
     Function GetArchiveTemplateData(PageToArchive As Page) As String()
 
         Dim ArchiveTemplate As Template = GetArchiveTemplate(PageToArchive)
@@ -311,7 +315,6 @@ Class GrillitusArchive
         Next
 
         Return {Destination, Days, Notify, Strategy, UseBox}
-
     End Function
 
     ''' <summary>

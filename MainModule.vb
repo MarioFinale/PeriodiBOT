@@ -10,7 +10,7 @@ Module MainModule
     Sub Main()
         Uptime = DateTime.Now
         LoadConfig()
-        Log("Starting...", "Local", BOTName)
+        Log("Starting...", "LOCAL", BOTName)
         Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
         BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword)
         BotIRC.Connect()
