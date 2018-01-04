@@ -16,7 +16,7 @@ Public Class IRCTask
     ''' </summary>
     ''' <param name="Client">Cliente de IRC</param>
     ''' <param name="Interval">Intervalo de repetición de la tarea en milisegundos (el tiempo de espera se ejecuta al final de cada iteración)</param>
-    ''' <param name="Infinite">¿Se repite infinitamente la tarea?.</param>
+    ''' <param name="Infinite">¿Se repite idefinidamente la tarea?.</param>
     ''' <param name="nFunc">Función (String()) a ejecutar, cada linea será escrita directamente en el streamwriter del cliente IRC.</param>
     Public Sub New(ByVal Client As IRC_Client, Interval As Integer, Infinite As Boolean, ByVal nFunc As Func(Of String()))
         _nFunc = nFunc

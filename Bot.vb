@@ -409,6 +409,7 @@ Namespace WikiBot
         ''' <param name="PageNames">Array con nombres de paginas unicos.</param>
         ''' <remarks></remarks>
         Function GetLastRevIds(ByVal PageNames As String()) As SortedList(Of String, Integer)
+            Debug_Log("GetLastRevIDs: Get Wikipedia last RevisionID of """ & PageNames.Count.ToString & """ pages.", "LOCAL", BOTName)
             Dim PageNamesList As List(Of String) = PageNames.ToList
             PageNamesList.Sort()
             Dim PageList As List(Of List(Of String)) = SplitStringArrayIntoChunks(PageNamesList.ToArray, 50)
@@ -455,6 +456,7 @@ Namespace WikiBot
                     End If
                 Next
             Next
+            Debug_Log("GetLastRevIDs: Done """ & PagenameAndLastId.Count.ToString & """ pages returned.", "LOCAL", BOTName)
             Return PagenameAndLastId
         End Function
 
@@ -465,15 +467,15 @@ Namespace WikiBot
         ''' <param name="PageName">Nombre exacto de la pagina.</param>
         ''' <remarks></remarks>
         Function GetLastRevID(ByVal PageName As String) As Integer
-            Log("GetLastRevID: Starting Wikipedia last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
+            Debug_Log("GetLastRevID: Get Wikipedia last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
             PageName = UrlWebEncode(PageName)
             Try
                 Dim QueryText As String = String.Empty
-                Log("GetLastRevID: Query of last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
+                Debug_Log("GetLastRevID: Query of last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
                 QueryText = Gethtmlsource((_siteurl & "?action=query&prop=revisions&format=json&titles=" & PageName), False, BotCookies)
 
                 Dim ID As Integer = Integer.Parse(TextInBetween(QueryText, """revid"":", ",""")(0))
-                Debug_Log("GetLastRevID: Query of last RevisionID of page """ & PageName & " successful, result: " & ID.ToString, "LOCAL", BOTName)
+                Debug_Log("GetLastRevID: Last RevisionID of page """ & PageName & " is: " & ID.ToString, "LOCAL", BOTName)
                 Return ID
             Catch ex As Exception
                 Debug_Log("GetLastRevID: Query of last RevisionID from page """ & PageName & " failed, returning Nothing", "LOCAL", BOTName)
@@ -892,7 +894,7 @@ Namespace WikiBot
             Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
 
             Dim TheDate As DateTime = EsWikiDatetime(lastparagraph)
-            Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL", BOTName)
+            Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL", BOTName)
             Return TheDate
         End Function
 
@@ -938,7 +940,7 @@ Namespace WikiBot
                 End Try
             Next
             If Not dattimelist.Count = 0 Then
-                Log("GetMostRecentDateTime: returning """ & dattimelist.Last.ToLongDateString & """", "LOCAL", BOTName)
+                Debug_Log("GetMostRecentDateTime: returning """ & dattimelist.Last.ToLongDateString & """", "LOCAL", BOTName)
                 Return dattimelist.Last
             Else
                 Debug_Log("GetMostRecentDateTime: Returning nothing ", "LOCAL", BOTName)
