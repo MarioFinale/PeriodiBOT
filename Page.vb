@@ -142,6 +142,7 @@ Public Class Page
     ''' <param name="Cookies">Cookiecontainer con los permisos de usuario</param>
     ''' <param name="username">Nombre de usuario que realiza las ediciones</param>
     Public Sub New(ByVal PageTitle As String, ByVal site As String, ByRef Cookies As CookieContainer, ByVal username As String)
+        Log("Loading page " & PageTitle, "", BOTName)
         _username = username
         Loadpage(PageTitle, site, Cookies)
     End Sub
@@ -149,6 +150,7 @@ Public Class Page
     ''' Inicializa de nuevo la página (al crear una página esta ya está inicializada).
     ''' </summary>
     Public Sub Load()
+        Log("Loading page " & _title, "", BOTName)
         Loadpage(_title, _siteurl, _cookies)
     End Sub
 
@@ -160,6 +162,7 @@ Public Class Page
     ''' <param name="Cookies">CookieContainer con loging del usuario</param>
     ''' <returns></returns>
     Private Function Loadpage(ByVal PageTitle As String, ByVal site As String, ByRef Cookies As CookieContainer) As Boolean
+        Log("Obtaining server data of " & PageTitle, "", BOTName)
         If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
             Throw New ArgumentNullException
         End If
@@ -182,6 +185,7 @@ Public Class Page
         _currentRevID = GetLastRevID(_title)
         _ORESScores = GetORESScores(_currentRevID)
         _pageViews = GetPageViewsAvg(_title)
+        Log("Page " & PageTitle, " loaded", BOTName)
         Return True
     End Function
 

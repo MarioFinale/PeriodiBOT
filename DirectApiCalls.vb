@@ -9,7 +9,11 @@ Module DirectApiCalls
 
 
     ''' <summary>
+<<<<<<< HEAD
     ''' Indica si un usuario está bloqueado.
+=======
+    ''' Verifica si el usuario de la wiki consultada se encuentra bloqueado.
+>>>>>>> 27be06547b1c52e14e8ef43dfd584fe90992eaae
     ''' </summary>
     ''' <param name="username"></param>
     ''' <returns></returns>
