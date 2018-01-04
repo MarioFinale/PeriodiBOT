@@ -250,13 +250,22 @@ Module TextFunctions
 
 
         Dim tmptext As String = String.Empty
-        For i As Integer = 0 To templatetext.Count - 1
 
+        Dim OpenBracketCount As Integer
+        Dim CloseBracketCount As Integer
+
+        For i As Integer = 0 To templatetext.Count - 1
             tmptext = tmptext & templatetext(i)
+
+            If templatetext(i) = CChar("{") Then
+                OpenBracketCount = OpenBracketCount + 1
+            ElseIf templatetext(i) = CChar("}") Then
+                CloseBracketCount = CloseBracketCount + 1
+            End If
 
 
             If AbsolutelyInited Then
-                If CountCharacter(tmptext, CChar("{")) = CountCharacter(tmptext, CChar("}")) Then
+                If OpenBracketCount = CloseBracketCount Then
                     If tmptext.Substring(tmptext.Length - 2, 2) = "}}" Then
                         templates.Add(tmptext)
                         AbsolutelyInited = False

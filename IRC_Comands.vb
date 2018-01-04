@@ -341,7 +341,9 @@ Class IRC_Comands
     Function GetResume(ByVal source As String, Page As String, user As String) As String
         Dim responsestring As String = String.Empty
         Dim PageName As String = TitleFirstGuess(Page)
+
         Log("IRC: GetResume of " & Page, "IRC", user)
+
         If Not PageName = String.Empty Then
             Dim pretext As String = "Entradilla de " & ColoredText(PageName, "03") & " en Wikipedia: "
             responsestring = pretext & Mainwikibot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")

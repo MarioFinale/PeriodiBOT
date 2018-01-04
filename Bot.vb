@@ -587,6 +587,29 @@ Namespace WikiBot
             Return BotUpdatePageExtracts(irc)
         End Function
 
+
+
+        Function NUpdatePageExtracts(ByVal irc As Boolean) As Boolean
+            If irc Then
+                BotIRC.Sendmessage(ColoredText("Actualizando extractos...", "04"))
+            End If
+            Log("UpdatePageExtracts: Beginning update of page extracts", "LOCAL", BOTName)
+            Debug_Log("UpdatePageExtracts: Declaring Variables", "LOCAL", BOTName)
+
+            Dim ResumePage As Page = Getpage(ResumePageName)
+
+            Dim ResumeTemplate As Template = GetTemplates(ResumePage)(0)
+
+            Dim a As String = "a"
+
+
+
+
+
+        End Function
+
+
+
         ''' <summary>
         ''' Actualiza los resúmenes de página basado en varios parámetros,
         ''' por defecto estos son de un máximo de 660 carácteres.
@@ -878,7 +901,7 @@ Namespace WikiBot
         Function GetPageThreads(ByVal pagetext As String) As String()
             Dim threads As New List(Of String)
             Dim newline As String = Environment.NewLine
-            For Each m As Match In Regex.Matches(pagetext, "(" & newline & "==(?!=))[\s\S]+?(?=" & newline & "==(?!=)|$)")
+            For Each m As Match In Regex.Matches(pagetext, "(==(?!=))[\s\S]+?(?===(?!=)|$)")
                 threads.Add(m.Value)
             Next
             Return threads.ToArray

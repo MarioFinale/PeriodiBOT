@@ -12,8 +12,9 @@ Module MainModule
         LoadConfig()
         Log("Starting...", "LOCAL", BOTName)
         Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
-        BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword)
-        BotIRC.Connect()
+        'BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword)
+        'BotIRC.Connect()
+        Mainwikibot.NUpdatePageExtracts(False)
 
         Do
             Dim command As String = Console.ReadLine()

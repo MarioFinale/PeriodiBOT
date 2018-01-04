@@ -384,6 +384,23 @@ Public Module CommFunctions
         Return TemplateList
     End Function
 
+    ''' <summary>
+    ''' Retorna todas las plantillas que encuentre en una pagina, de no haber entregará una list vacia.
+    ''' </summary>
+    ''' <param name="WikiPage"></param>
+    ''' <returns></returns>
+    Function GetTemplates(ByVal WikiPage As Page) As List(Of Template)
+
+        Dim TemplateList As New List(Of Template)
+        Dim temps As List(Of String) = GetTemplateTextArray(WikiPage.Text)
+
+        For Each t As String In temps
+            TemplateList.Add(New Template(t, False))
+        Next
+        Return TemplateList
+    End Function
+
+
 
     Public LastDailyTask As DateTime
 
