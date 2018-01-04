@@ -137,18 +137,34 @@ Public Class Template
         _text = text
         _parameters = New List(Of Tuple(Of String, String))
 
-        Dim containstemplates As Boolean = True
-        Dim newtext As String = _text
-        Dim replacedtemplates As New List(Of String)
+
+        Dim ContainsTemplates As Boolean = True
+        Dim NewText As String = _text
+        Dim ReplacedTemplates As New List(Of String)
         Dim TemplateInnerText = newtext.Substring(2, newtext.Length - 4)
 
         Dim temparray As List(Of String) = GetTemplateTextArray(TemplateInnerText)
+
 
         For templ As Integer = 0 To temparray.Count - 1
             Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & templ.ToString, "01")
             newtext = newtext.Replace(temparray(templ), tempreplace)
             replacedtemplates.Add(temparray(templ))
         Next
+
+        Dim ReplacedLinks As New List(Of String)
+        Dim LinkArray As New List(Of String)
+        For Each m As Match In Regex.Matches(newtext, "((\[\[)([^\]]+)(\]\]))")
+            LinkArray.Add(m.Value)
+        Next
+
+        For temp2 As Integer = 0 To LinkArray.Count - 1
+            Dim LinkReplace As String = ColoredText("PERIODIBOT:LINKREPLACE::::" & temp2.ToString, "01")
+            NewText = NewText.Replace(LinkArray(temp2), LinkReplace)
+            ReplacedLinks.Add(LinkArray(temp2))
+        Next
+
+
 
         Dim tempname As String = String.Empty
         Dim innertext As String = newtext.Substring(2, newtext.Length - 4)
@@ -203,6 +219,15 @@ Public Class Template
                 ParamName = ParamName.Replace(tempreplace, replacedtemplates(reptempindex))
                 ParamValue = ParamValue.Replace(tempreplace, replacedtemplates(reptempindex))
             Next
+
+            For RepLinkIndex As Integer = 0 To ReplacedLinks.Count - 1
+                Dim LinkReplace As String = ColoredText("PERIODIBOT:LINKREPLACE::::" & RepLinkIndex.ToString, "01")
+
+                ParamName = ParamName.Replace(LinkReplace, ReplacedLinks(RepLinkIndex))
+                ParamValue = ParamValue.Replace(LinkReplace, ReplacedLinks(RepLinkIndex))
+            Next
+
+
             TotalParams.Add(New Tuple(Of String, String)(ParamName, ParamValue))
 
 

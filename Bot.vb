@@ -600,6 +600,24 @@ Namespace WikiBot
 
             Dim ResumeTemplate As Template = GetTemplates(ResumePage)(0)
 
+            Dim OldResumes As List(Of Tuple(Of String, String)) = ResumeTemplate.Parameters
+
+            Dim Pagenames As New List(Of String)
+            For Each p As Tuple(Of String, String) In OldResumes
+                If Not String.IsNullOrWhiteSpace(p.Item2) Then
+                    Pagenames.Add(p.Item1)
+                End If
+            Next
+
+
+            Dim Page_Resume_pair As SortedList(Of String, String) = GetPagesExtract(Pagenames.ToArray)
+            Dim Page_Image_pair As SortedList(Of String, String) = GetImagesExtract(Pagenames.ToArray)
+
+
+
+
+
+
             Dim a As String = "a"
 
 
