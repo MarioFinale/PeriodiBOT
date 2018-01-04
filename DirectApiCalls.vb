@@ -8,7 +8,11 @@ Module DirectApiCalls
     Const DidYouKnowPageName As String = "PeriodiBOT/Sabias que"
 
 
-
+    ''' <summary>
+    ''' Indica si un usuario está bloqueado.
+    ''' </summary>
+    ''' <param name="username"></param>
+    ''' <returns></returns>
     Function UserIsBlocked(ByVal username As String) As Boolean
         Dim s As String = String.Empty
         username = UrlWebEncode(username)
