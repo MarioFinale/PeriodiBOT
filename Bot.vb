@@ -588,46 +588,6 @@ Namespace WikiBot
         End Function
 
 
-
-        Function NUpdatePageExtracts(ByVal irc As Boolean) As Boolean
-            If irc Then
-                BotIRC.Sendmessage(ColoredText("Actualizando extractos...", "04"))
-            End If
-            Log("UpdatePageExtracts: Beginning update of page extracts", "LOCAL", BOTName)
-            Debug_Log("UpdatePageExtracts: Declaring Variables", "LOCAL", BOTName)
-
-            Dim ResumePage As Page = Getpage(ResumePageName)
-
-            Dim ResumeTemplate As Template = GetTemplates(ResumePage)(0)
-
-            Dim OldResumes As List(Of Tuple(Of String, String)) = ResumeTemplate.Parameters
-
-            Dim Pagenames As New List(Of String)
-            For Each p As Tuple(Of String, String) In OldResumes
-                If Not String.IsNullOrWhiteSpace(p.Item2) Then
-                    Pagenames.Add(p.Item1)
-                End If
-            Next
-
-
-            Dim Page_Resume_pair As SortedList(Of String, String) = GetPagesExtract(Pagenames.ToArray)
-            Dim Page_Image_pair As SortedList(Of String, String) = GetImagesExtract(Pagenames.ToArray)
-
-
-
-
-
-
-            Dim a As String = "a"
-
-
-
-
-
-        End Function
-
-
-
         ''' <summary>
         ''' Actualiza los resúmenes de página basado en varios parámetros,
         ''' por defecto estos son de un máximo de 660 carácteres.
