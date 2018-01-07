@@ -123,20 +123,20 @@ Public Class IRC_Client
                     CheckUsersIRCTask.Run()
 
 
-                    Dim UpdateExtractFunc As New Func(Of String())(Function()
-                                                                       Mainwikibot.UpdatePageExtracts(True)
-                                                                       Return {""}
-                                                                   End Function)
-                    Dim UpdateExtractTask As New IRCTask(Me, 43200000, True, UpdateExtractFunc)
+                Dim UpdateExtractFunc As New Func(Of String())(Function()
+                                                                   Mainwikibot.UpdatePageExtracts(True)
+                                                                   Return {""}
+                                                               End Function)
+                Dim UpdateExtractTask As New IRCTask(Me, 43200000, True, UpdateExtractFunc)
                     UpdateExtractTask.Run()
 
 
-                    Dim ArchiveAllFunc As New Func(Of String())(Function()
-                                                                    Mainwikibot.ArchiveAllInclusions(True)
-                                                                    Return {""}
-                                                                End Function)
-                    Dim ArchiveAllTask As New IRCTask(Me, 43200000, True, ArchiveAllFunc)
-                    ArchiveAllTask.Run()
+                Dim ArchiveAllFunc As New Func(Of String())(Function()
+                                                                Mainwikibot.ArchiveAllInclusions(True)
+                                                                Return {""}
+                                                            End Function)
+                Dim ArchiveAllTask As New IRCTask(Me, 43200000, True, ArchiveAllFunc)
+                ArchiveAllTask.Run()
 
 
 
@@ -151,11 +151,11 @@ Public Class IRC_Client
                                            Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand)
 
                                            Dim CommandFunc As New Func(Of String())(Function()
-                                                                                            Return {Command.ResolveCommand(sCommand, HasExited, _sNickName)}
-                                                                                        End Function)
+                                                                                        Return {Command.ResolveCommand(sCommand, HasExited, _sNickName)}
+                                                                                    End Function)
                                            Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc)
+                                           Debug_Log("Run irc response", "LOCAL", BOTName)
                                            IRCResponseTask.Run()
-
 
 
                                            If Not _tcpclientConnection.Connected Then
@@ -180,7 +180,10 @@ Public Class IRC_Client
                                    Catch OtherEx As Exception
                                        Log("IRC: Error Connecting: " + OtherEx.Message, "IRC", _sNickName)
                                    End Try
+
+
                                End Sub)
+
 
             Catch ex As SocketException
 

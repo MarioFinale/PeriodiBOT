@@ -37,11 +37,16 @@ Public Class IRCTask
         Thread = New Threading.Thread(New Threading.ParameterizedThreadStart(Sub()
 
                                                                                  Do
-                                                                                     For Each s As String In _nFunc.Invoke
-                                                                                         If Not String.IsNullOrEmpty(s) Then
-                                                                                             _client.SendText(s)
-                                                                                         End If
-                                                                                     Next
+                                                                                     Try
+                                                                                         For Each s As String In _nFunc.Invoke
+                                                                                             If Not String.IsNullOrEmpty(s) Then
+                                                                                                 _client.SendText(s)
+                                                                                             End If
+                                                                                         Next
+                                                                                     Catch ex As Exception
+                                                                                         Debug_Log("TASK EX: " & ex.Message, "THREAD", BOTName)
+                                                                                     End Try
+
                                                                                      If Not _infinite Then
                                                                                          Exit Do
                                                                                      End If
