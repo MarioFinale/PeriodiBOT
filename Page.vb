@@ -198,7 +198,7 @@ Public Class Page
         _sections = GetPageThreads(_text)
         _ORESScores = GetORESScores(_currentRevID)
         _pageViews = GetPageViewsAvg(_title)
-        Log("Page " & PageTitle, " loaded", BOTName)
+        Log("Page " & PageTitle & " loaded", "LOCAL", BOTName)
         Return True
     End Function
 
@@ -247,12 +247,12 @@ Public Class Page
         Dim ntimestamp As String = GetLastTimeStamp(_title)
 
         If Not ntimestamp = _timestamp Then
-            Console.WriteLine("Edit conflict")
+            Log("Edit conflict on " & _title, "BOT", BOTName)
             Return "Edit conflict"
         End If
 
         If Not BotCanEdit(_text, _username) Then
-            Console.WriteLine("Bots can't edit this page!")
+            Log("Bots can't edit " & _title & "!", "BOT", BOTName)
             Return "No Bots"
         End If
         Dim minorstr As String = String.Empty
@@ -274,17 +274,17 @@ Public Class Page
         Load() 'Update page data
 
         If postresult.Contains("""result"":""Success""") Then
-            Console.WriteLine("Edit successful!")
+            Log("Edit on " & _title & " successful!", "BOT", BOTName)
             Return "Edit successful!"
         End If
 
         If postresult.Contains("abusefilter") Then
-            Console.WriteLine("AbuseFilter Triggered!")
+            Log("AbuseFilter Triggered! on " & _title, "LOCAL", BOTName)
             Debug_Log("ABUSEFILTER: " & postresult, "BOT", BOTName)
-            Return "AbuseFilter Triggered"
+            Return "AbuseFilter"
         End If
 
-        Return "True"
+        Return "Unexpected result"
     End Function
 
     ''' <summary>
@@ -460,7 +460,7 @@ Public Class Page
             PRevID = TextInBetween(QueryText, """revid"":", ",""")(0)
             PExtract = TextInBetween(QueryText, """extract"":""", """}")(0)
         Catch ex As IndexOutOfRangeException
-            Console.WriteLine("Warning: The page '" & Pagename & "' doesn't exist yet!")
+            Log("Warning: The page '" & Pagename & "' doesn't exist yet!", "LOCAL", BOTName)
         End Try
 
         Try
@@ -470,7 +470,7 @@ Public Class Page
                 PCategories.Add(NormalizeUnicodetext(m.Value.Replace("title"":""", "")))
             Next
         Catch ex As IndexOutOfRangeException
-            Console.WriteLine("Warning: The page '" & Pagename & "' doesn't have any thumbnail!")
+            Log("Warning: The page '" & Pagename & "' doesn't have any thumbnail!", "LOCAL", BOTName)
 
         End Try
 

@@ -104,6 +104,14 @@ Module WebFunctions
         Dim encoding As New UTF8Encoding
         Dim byteData As Byte() = encoding.GetBytes(postData)
         Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageURL), HttpWebRequest)
+
+        'Fix en MONO
+        If GetCurrentThreads() = 0 Then
+            postreq.ServerCertificateValidationCallback = New Security.RemoteCertificateValidationCallback(Function()
+                                                                                                               Return True
+                                                                                                           End Function)
+        End If
+
         postreq.Method = "POST"
         postreq.KeepAlive = True
         postreq.CookieContainer = tempcookies

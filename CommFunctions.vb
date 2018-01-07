@@ -333,8 +333,8 @@ Public Module CommFunctions
                 Dim TimediffToDays As Integer = CInt(Math.Truncate(Timediff / 86400))
                 Dim responsestring As String = String.Empty
 
-                Console.WriteLine("Timediff  " & User & ": " & Timediff)
-                Console.WriteLine("triggertimediff " & User & ": " & TriggerTimeDiff)
+                Log("Timediff  " & User & ": " & Timediff, "LOCAL", BOTName)
+                Log("Trigger Timediff " & User & ": " & TriggerTimeDiff, "LOCAL", BOTName)
 
                 If Timediff > TriggerTimeDiff Then
 
@@ -401,11 +401,23 @@ Public Module CommFunctions
     End Function
 
     Function GetCurrentThreads() As Integer
-        Return Process.GetCurrentProcess().Threads.Count
+        Try
+            Return Process.GetCurrentProcess().Threads.Count
+        Catch ex As Exception
+            Debug_Log(ex.Message, "LOCAL", BOTName)
+            Return 0
+        End Try
+
     End Function
 
     Function GetMemoryUsage() As Long
-        Return Process.GetCurrentProcess().PrivateMemorySize64
+        Try
+            Return Process.GetCurrentProcess().PrivateMemorySize64
+        Catch ex As Exception
+            Debug_Log(ex.Message, "LOCAL", BOTName)
+            Return 0
+        End Try
+
     End Function
 
 

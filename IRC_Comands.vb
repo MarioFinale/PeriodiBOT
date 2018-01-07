@@ -379,9 +379,20 @@ Class IRC_Comands
         Dim uptimestr As String = elapsedtime.ToString("d\.hh\:mm")
 
         If IsOp(Message, source, user) Then
-            Dim responsestring As String = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Hilos: {4}; Memoria (privada): {5} bytes). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, GetMemoryUsage.ToString)
-            Log("IRC: Requested info (%??)", "IRC", user)
-            Return {source, responsestring}
+            If GetCurrentThreads() = 0 Then
+                Dim responsestring As String = String.Format("{1} Versión: {0} (Uptime: {2}; Bajo {3} (MONO)). Ordenes: %ord", ColoredText(Version, "03"), BOTName, uptimestr, ColoredText(OS, "04"))
+                Log("IRC: Requested info (%??)", "IRC", user)
+                Return {source, responsestring}
+
+            Else
+                Dim responsestring As String = String.Format("{2} Versión: {0} (Bajo {1} (.NET Framework) ;Uptime: {3}; Hilos: {4}; Memoria (privada): {5} bytes). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, GetMemoryUsage.ToString)
+                Log("IRC: Requested info (%??)", "IRC", user)
+                Return {source, responsestring}
+
+
+            End If
+
+
         Else
             Dim responsestring As String = String.Format("{1} Versión: {0}. Ordenes: %ord", ColoredText(Version, "03"), BOTName)
             Log("IRC: Requested info (%??)", "IRC", user)
