@@ -298,7 +298,7 @@ Class GrillitusArchive
                 End If
 
                 'Texto de resumen de edicion
-                Dim SummaryText As String = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad desde {2}.", threadcount, MaxDays.ToString, PageTitle)
+                Dim SummaryText As String = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].", threadcount, MaxDays.ToString, PageTitle)
                 'Guardar
                 ArchPage.Save(ArchivePageText, SummaryText, isminor, True)
             Next
