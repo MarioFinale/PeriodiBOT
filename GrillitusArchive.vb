@@ -31,13 +31,18 @@ Class GrillitusArchive
             Return False
         End If
 
-        'Verificar si es una discusión de usuario
+        'Verificar si es una discusión de usuario.
         If PageToArchive.PageNamespace = 3 Then
             Dim Username As String = PageToArchive.Title.Split(CType(":", Char()))(1)
-            'Verificar si el usuario está bloqueado
+            'Verificar si el usuario está bloqueado.
             If UserIsBlocked(Username) Then
                 Return False
             End If
+            'Verificar si el usuario editó hace al menos 4 días.
+            If Date.Now.Subtract(Bot.GetLastEditTimestampUser(Username)).Days >= 4 Then
+                Return False
+            End If
+
         End If
 
 
