@@ -105,11 +105,16 @@ Module WebFunctions
         Dim byteData As Byte() = encoding.GetBytes(postData)
         Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageURL), HttpWebRequest)
 
-        'Fix en MONO
+        'Fix en MONO WINDOWS
         If GetCurrentThreads() = 0 Then
-            postreq.ServerCertificateValidationCallback = New Security.RemoteCertificateValidationCallback(Function()
-                                                                                                               Return True
-                                                                                                           End Function)
+            Try
+                postreq.ServerCertificateValidationCallback = New Security.RemoteCertificateValidationCallback(Function()
+                                                                                                                   Return True
+                                                                                                               End Function)
+            Catch ex As Exception
+                'Excepcion en Unix-Linux, ignorar
+            End Try
+
         End If
 
         postreq.Method = "POST"
