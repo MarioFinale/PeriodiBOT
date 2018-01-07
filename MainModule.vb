@@ -20,8 +20,6 @@ Module MainModule
             If Not String.IsNullOrWhiteSpace(command) Then
                 BotIRC.Sendmessage(command)
             End If
-            ' Declaración sin utilidad. Solo para efectos de debug.
-            Dim a As Integer = 1
             Thread.Sleep(500)
         Loop
 
