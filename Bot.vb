@@ -877,12 +877,40 @@ Namespace WikiBot
         ''' <param name="pagetext">Texto a evaluar</param>
         ''' <returns></returns>
         Function GetPageThreads(ByVal pagetext As String) As String()
-            Dim threads As New List(Of String)
             Dim newline As String = Environment.NewLine
-            For Each m As Match In Regex.Matches(pagetext, "(==(?!=))[\s\S]+?(?===(?!=)|$)")
-                threads.Add(m.Value)
+            Dim mc As MatchCollection = Regex.Matches(pagetext, "[\n \r]((==(?!=)).+?(==(?!=)))")
+
+            Dim threadlist As New List(Of String)
+
+            Dim temptext As String = pagetext
+            For i As Integer = 0 To mc.Count - 1
+
+                Dim nextmatch As Integer = (i + 1)
+
+                If Not nextmatch = mc.Count Then
+
+                    Dim threadtitle As String = mc(i).Value
+                    Dim nextthreadtitle As String = mc(nextmatch).Value
+
+                    Dim threadtext As String = TextInBetween(temptext, threadtitle, nextthreadtitle)(0)
+
+                    Dim Completethread As String = threadtitle & threadtext
+                    threadlist.Add(Completethread)
+                    temptext = temptext.Replace(Completethread, "")
+
+                Else
+                    Dim threadtitle As String = mc(i).Value
+
+                    Dim ThreadPos As Integer = temptext.IndexOf(threadtitle)
+                    Dim threadlenght As Integer = temptext.Length - temptext.Substring(0, ThreadPos).Length
+                    Dim threadtext As String = temptext.Substring(ThreadPos, threadlenght)
+
+                    threadlist.Add(threadtext)
+                End If
+
             Next
-            Return threads.ToArray
+
+            Return threadlist.ToArray
         End Function
 
         ''' <summary>

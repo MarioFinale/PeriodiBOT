@@ -242,71 +242,54 @@ Module TextFunctions
     ''' </summary>
     ''' <param name="text"></param>
     ''' <returns></returns>
-    Public Function GetTemplateTextArray(ByVal text As String) As List(Of String)
-        Dim templatetext As String = text
-        Dim hasinited As Boolean = False
-        Dim AbsolutelyInited As Boolean = False
-        Dim templates As New List(Of String)
+    Function GetTemplateTextArray(ByVal text As String) As List(Of String)
 
+        Dim temptext As String = String.Empty
+        Dim templist As New List(Of String)
+        For i As Integer = 0 To text.Length - 1
 
-        Dim tmptext As String = String.Empty
+            temptext = temptext & text(i)
 
-        Dim OpenBracketCount As Integer
-        Dim CloseBracketCount As Integer
+            Dim OpenTemplate As MatchCollection = Regex.Matches(temptext, "{{")
+            Dim CloseTemplate As MatchCollection = Regex.Matches(temptext, "}}")
 
-        For i As Integer = 0 To templatetext.Count - 1
-            tmptext = tmptext & templatetext(i)
+            If OpenTemplate.Count > 0 Then
 
-            If templatetext(i) = CChar("{") Then
-                OpenBracketCount = OpenBracketCount + 1
-            ElseIf templatetext(i) = CChar("}") Then
-                CloseBracketCount = CloseBracketCount + 1
-            End If
+                If OpenTemplate.Count = CloseTemplate.Count Then
 
+                    Dim BeginPos As Integer = OpenTemplate(0).Index
+                    Dim EndPos As Integer = CloseTemplate(CloseTemplate.Count - 1).Index
 
-            If AbsolutelyInited Then
-                If OpenBracketCount = CloseBracketCount Then
-                    If tmptext.Substring(tmptext.Length - 2, 2) = "}}" Then
-                        templates.Add(tmptext)
-                        AbsolutelyInited = False
-                        hasinited = False
-                        tmptext = String.Empty
-                    End If
-                Else
-                    If i = templatetext.Count - 1 Then
-                        templates.AddRange(GetTemplateTextArray(tmptext.Substring(2, tmptext.Length - 2)))
+                    Dim Textbefore As String = temptext.Substring(0, BeginPos)
 
-                    End If
-                End If
-            Else
-                If hasinited Then
-                    If templatetext(i) = "{" Then
-                        AbsolutelyInited = True
-                        tmptext = "{{"
-                        Continue For
-                    Else
-                        hasinited = False
-                    End If
-                Else
-                    If templatetext(i) = "{" Then
-                        hasinited = True
-                        Continue For
-                    End If
+                    Dim Lenght As Integer = temptext.Length - (Textbefore.Length)
+
+                    Dim TemplateText As String = temptext.Substring(BeginPos, Lenght)
+
+                    temptext = ""
+                    templist.Add(TemplateText)
+
+                    Dim a As Integer = 1
                 End If
             End If
 
         Next
-        Dim innertlist As New List(Of String)
 
-        For Each t As String In templates
-            Dim newt As String = t.Substring(2, t.Length - 4)
-            innertlist.AddRange(GetTemplateTextArray(newt))
+        Dim innertemplates As New List(Of String)
+        For Each t As String In templist
+            Dim innertext As String = t.Substring(2, t.Length - 4)
+            innertemplates.AddRange(GetTemplateTextArray(innertext))
         Next
 
-        templates.AddRange(innertlist)
-        Return templates
+        templist.AddRange(innertemplates)
+
+        Return templist
 
     End Function
+
+
+
+
 
 
 End Module

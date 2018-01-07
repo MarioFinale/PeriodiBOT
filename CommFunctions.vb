@@ -400,6 +400,13 @@ Public Module CommFunctions
         Return TemplateList
     End Function
 
+    Function GetCurrentThreads() As Integer
+        Return Process.GetCurrentProcess().Threads.Count
+    End Function
+
+    Function GetMemoryUsage() As Long
+        Return Process.GetCurrentProcess().PrivateMemorySize64
+    End Function
 
 
     Public LastDailyTask As DateTime

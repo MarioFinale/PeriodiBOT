@@ -146,7 +146,7 @@ Class GrillitusArchive
                     Dim threaddate As DateTime = Bot.MostRecentDate(t)
 
                     Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
-                    Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *\| *fecha\=")
+                    Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
 
                     If Not DoNotArchiveMatch.Success Then
 
@@ -172,7 +172,7 @@ Class GrillitusArchive
                 ElseIf Strategy = "FirmaEnÚltimoPárrafo" Then
                     Dim threaddate As DateTime = Bot.LastParagraphDateTime(t)
                     Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
-                    Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *\| *fecha\=")
+                    Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
 
                     If Not DoNotArchiveMatch.Success Then
 
@@ -271,7 +271,7 @@ Class GrillitusArchive
             PageToArchive.Save(Newpagetext, Summary, isminor, True)
 
         Else
-            Log("Archive: Nothing to archive ", "LOCAL", BOTName)
+            Log("Archive: Nothing to archive on " & PageToArchive.Title, "LOCAL", BOTName)
         End If
 
 

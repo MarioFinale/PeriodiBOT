@@ -120,6 +120,23 @@ Public Class IRC_Client
                 Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
                 CheckUsersIRCTask.Run()
 
+
+                Dim UpdateExtractFunc As New Func(Of String())(Function()
+                                                                   Mainwikibot.UpdatePageExtracts(True)
+                                                                   Return {""}
+                                                               End Function)
+                Dim UpdateExtractTask As New IRCTask(Me, 43200000, True, UpdateExtractFunc)
+                UpdateExtractTask.Run()
+
+
+                Dim ArchiveAllFunc As New Func(Of String())(Function()
+                                                                Mainwikibot.ArchiveAllInclusions(True)
+                                                                Return {""}
+                                                            End Function)
+                Dim ArchiveAllTask As New IRCTask(Me, 43200000, True, ArchiveAllFunc)
+                ArchiveAllTask.Run()
+
+
                 Await Task.Run(Sub()
 
                                    Try

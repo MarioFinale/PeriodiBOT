@@ -163,7 +163,7 @@ Public Class Page
     ''' <param name="Cookies">Cookiecontainer con los permisos de usuario</param>
     ''' <param name="username">Nombre de usuario que realiza las ediciones</param>
     Public Sub New(ByVal PageTitle As String, ByVal site As String, ByRef Cookies As CookieContainer, ByVal username As String)
-        Log("Loading page " & PageTitle, "", BOTName)
+        Log("Loading page " & PageTitle, "LOCAL", BOTName)
         _username = username
         Loadpage(PageTitle, site, Cookies)
     End Sub
@@ -171,7 +171,7 @@ Public Class Page
     ''' Inicializa de nuevo la página (al crear una página esta ya está inicializada).
     ''' </summary>
     Public Sub Load()
-        Log("Loading page " & _title, "", BOTName)
+        Log("Loading page " & _title, "LOCAL", BOTName)
         Loadpage(_title, _siteurl, _cookies)
     End Sub
 
@@ -183,7 +183,7 @@ Public Class Page
     ''' <param name="Cookies">CookieContainer con loging del usuario</param>
     ''' <returns></returns>
     Private Function Loadpage(ByVal PageTitle As String, ByVal site As String, ByRef Cookies As CookieContainer) As Boolean
-        Log("Obtaining server data of " & PageTitle, "", BOTName)
+        Log("Obtaining server data of " & PageTitle, "LOCAL", BOTName)
         If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
             Throw New ArgumentNullException
         End If
@@ -244,7 +244,9 @@ Public Class Page
             Throw New ArgumentNullException
         End If
 
-        If Not GetLastTimeStamp(_title) = _timestamp Then
+        Dim ntimestamp As String = GetLastTimeStamp(_title)
+
+        If Not ntimestamp = _timestamp Then
             Console.WriteLine("Edit conflict")
             Return "Edit conflict"
         End If
@@ -437,7 +439,7 @@ Public Class Page
         Dim QueryText As String = GetDataAndResult(_siteurl & "?" & querystring, False, _cookies)
 
         Dim PageID As String = "-1"
-        Dim PRevID As String = ""
+        Dim PRevID As String = "-1"
         Dim User As String = ""
         Dim PTitle As String = NormalizeUnicodetext(TextInBetween(QueryText, """title"":""", """,")(0))
         Dim Timestamp As String = ""
@@ -496,7 +498,7 @@ Public Class Page
         Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions&rvprop=timestamp&titles=" & pagename
         Dim QueryText As String = PostDataAndGetResult(_siteurl, querystring, False, _cookies)
         Try
-            Return TextInBetween(QueryText, """timestamp"":""", """,")(0)
+            Return TextInBetween(QueryText, """timestamp"":""", """")(0)
         Catch ex As IndexOutOfRangeException
             Return ""
         End Try
