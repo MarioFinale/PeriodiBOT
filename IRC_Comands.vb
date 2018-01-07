@@ -25,7 +25,6 @@ Class IRC_Comands
                     Dim param As String = GetParamString(imputline)
                     Dim Realname As String = GetUserFromChatresponse(Prefix)
 
-
                     If Source.ToLower = _IrcNickName.ToLower Then
                         Source = Realname
                     End If
@@ -75,7 +74,7 @@ Class IRC_Comands
                             CommandResponse = Orders(Source, Realname)
 
                         ElseIf MainParam = "%??" Then
-                            CommandResponse = About(Source, Realname)
+                            CommandResponse = About(imputline, Source, Realname)
 
                         ElseIf MainParam = "%?" Or MainParam = "%h" Or MainParam = "%help" Or MainParam = "%ayuda" Then
                             CommandResponse = CommandInfo(Source, Totalparam, Realname)
@@ -312,7 +311,7 @@ Class IRC_Comands
     End Function
 
     Private Function Div0(ByVal source As String, user As String, ByRef HasExited As Boolean) As String
-        Dim responsetext As String = IrcStringBuilder(source, "OK, dividiendo por 0...")
+        Dim responsetext As String = IrcStringBuilder(source, "OK, dividiendo 1 por 0...")
         Dim i As Double = (1 / 0)
         responsetext = responsetext & Environment.NewLine & IrcStringBuilder(source, "Al parecer el resultado es """ & i.ToString & """")
         Return responsetext
@@ -342,7 +341,9 @@ Class IRC_Comands
     Function GetResume(ByVal source As String, Page As String, user As String) As String
         Dim responsestring As String = String.Empty
         Dim PageName As String = TitleFirstGuess(Page)
+
         Log("IRC: GetResume of " & Page, "IRC", user)
+
         If Not PageName = String.Empty Then
             Dim pretext As String = "Entradilla de " & ColoredText(PageName, "03") & " en Wikipedia: "
             responsestring = pretext & Mainwikibot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
@@ -366,12 +367,27 @@ Class IRC_Comands
         Return {User, responsestring}
     End Function
 
-    Private Function About(ByVal source As String, user As String) As String()
+    ''' <summary>
+    ''' Retorna informacion sobre el bot dependiendo si el solicitante es OP.
+    ''' </summary>
+    ''' <param name="Message">Linea completa en IRC</param>
+    ''' <param name="source">Origen del mensaje</param>
+    ''' <param name="user">Usuario que envia el mensaje</param>
+    ''' <returns></returns>
+    Private Function About(ByVal Message As String, ByVal source As String, user As String) As String()
         Dim elapsedtime As TimeSpan = Uptime.Subtract(DateTime.Now)
         Dim uptimestr As String = elapsedtime.ToString("d\.hh\:mm")
-        Dim responsestring As String = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr)
-        Log("IRC: Requested info (%??)", "IRC", user)
-        Return {source, responsestring}
+
+        If IsOp(Message, source, user) Then
+            Dim responsestring As String = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Hilos: {4}; Memoria (privada): {5} bytes). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, GetMemoryUsage.ToString)
+            Log("IRC: Requested info (%??)", "IRC", user)
+            Return {source, responsestring}
+        Else
+            Dim responsestring As String = String.Format("{1} Versión: {0}. Ordenes: %ord", ColoredText(Version, "03"), BOTName)
+            Log("IRC: Requested info (%??)", "IRC", user)
+            Return {source, responsestring}
+        End If
+
     End Function
 
     Private Function Commands(ByVal source As String, user As String) As String()
@@ -618,6 +634,8 @@ Class IRC_Comands
         End If
 
     End Function
+
+
 
 
 

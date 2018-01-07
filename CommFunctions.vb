@@ -328,9 +328,9 @@ Public Module CommFunctions
                 Dim Timediff As Integer = ActualTimeUnix - LastEditUnix - 3600
                 Dim TriggerTimeDiff As Long = TimeStringToSeconds(UserDate)
 
-                Dim TimediffToHours As Integer = CInt(Timediff / 3600)
-                Dim TimediffToMinutes As Integer = CInt(Timediff / 60)
-                Dim TimediffToDays As Integer = CInt(Timediff / 86400)
+                Dim TimediffToHours As Integer = CInt(Math.Truncate(Timediff / 3600))
+                Dim TimediffToMinutes As Integer = CInt(Math.Truncate(Timediff / 60))
+                Dim TimediffToDays As Integer = CInt(Math.Truncate(Timediff / 86400))
                 Dim responsestring As String = String.Empty
 
                 Console.WriteLine("Timediff  " & User & ": " & Timediff)
@@ -382,6 +382,30 @@ Public Module CommFunctions
             TemplateList.Add(New Template(t, False))
         Next
         Return TemplateList
+    End Function
+
+    ''' <summary>
+    ''' Retorna todas las plantillas que encuentre en una pagina, de no haber entregará una list vacia.
+    ''' </summary>
+    ''' <param name="WikiPage"></param>
+    ''' <returns></returns>
+    Function GetTemplates(ByVal WikiPage As Page) As List(Of Template)
+
+        Dim TemplateList As New List(Of Template)
+        Dim temps As List(Of String) = GetTemplateTextArray(WikiPage.Text)
+
+        For Each t As String In temps
+            TemplateList.Add(New Template(t, False))
+        Next
+        Return TemplateList
+    End Function
+
+    Function GetCurrentThreads() As Integer
+        Return Process.GetCurrentProcess().Threads.Count
+    End Function
+
+    Function GetMemoryUsage() As Long
+        Return Process.GetCurrentProcess().PrivateMemorySize64
     End Function
 
 

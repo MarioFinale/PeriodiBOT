@@ -4,13 +4,14 @@ Imports System.Text.RegularExpressions
 
 Namespace WikiBot
     Public Class Bot
-
         Private BotCookies As CookieContainer
         Private Username As String = String.Empty
         Private _botusername As String = String.Empty
         Private _botpass As String = String.Empty
         Private _siteurl As String = String.Empty
         Private ResumePageName As String = "Usuario:PeriodiBOT/Resumen página"
+
+
         ''' <summary>
         ''' Inicializa una nueva instancia del BOT.
         ''' </summary>
@@ -50,12 +51,12 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="SiteUrl">Url de la wiki.</param>
         Private Function GetWikiToken(ByVal SiteUrl As String) As String
-            Console.WriteLine("Obtaining token...")
+            Log("Obtaining token...", "LOCAL", BOTName)
             Dim url As String = SiteUrl
             Dim postdata As String = "action=query&meta=tokens&type=login&&format=json"
             Dim postresponse As String = PostDataAndGetResult(url, postdata, True, BotCookies)
             Dim token As String = TextInBetween(postresponse, """logintoken"":""", """}}}")(0).Replace("\\", "\")
-            Console.WriteLine("Token obtained!")
+            Log("Token obtained!", "LOCAL", BOTName)
             Return token
         End Function
 
@@ -63,29 +64,59 @@ Namespace WikiBot
         ''' Luego de obtener un Token y cookies de ingreso, envía estos al servidor para loguear y guarda las cookies de sesión.
         ''' </summary>
         Function WikiLogOn() As String
-            Console.WriteLine("Logging in...")
-            Dim token As String = GetWikiToken(_siteurl)
+            Log("Signing in...", "LOCAL", BOTName)
+            Dim token As String = String.Empty
             Dim url As String = _siteurl
-            Dim postdata As String = "action=login&format=json&lgname=" & _botusername & "&lgpassword=" & _botpass & "&lgdomain=" & "&lgtoken=" & UrlWebEncode(token)
-            Dim postresponse As String = PostDataAndGetResult(url, postdata, True, BotCookies)
+            Dim postdata As String = String.Empty
+            Dim postresponse As String = String.Empty
             Dim lresult As String = String.Empty
             Try
+                token = GetWikiToken(_siteurl)
+                postdata = "action=login&format=json&lgname=" & _botusername & "&lgpassword=" & _botpass & "&lgdomain=" & "&lgtoken=" & UrlWebEncode(token)
+                postresponse = PostDataAndGetResult(url, postdata, True, BotCookies)
                 lresult = TextInBetween(postresponse, "{""result"":""", """,")(0)
-                Console.WriteLine("Login result: " & lresult)
+                Log("Login result: " & lresult, "LOCAL", BOTName)
                 Dim lUserID As String = TextInBetween(postresponse, """lguserid"":", ",")(0)
-                Console.WriteLine("UserID: " & lUserID)
+                Log("UserID: " & lUserID, "LOCAL", BOTName)
                 Dim lUsername As String = TextInBetween(postresponse, """lgusername"":""", """}")(0)
-                Console.WriteLine("Username: " & lUsername)
+                Log("Username: " & lUsername, "LOCAL", BOTName)
+
                 Return lresult
             Catch ex As IndexOutOfRangeException
+                Log("Logon error", "LOCAL", BOTName)
                 If lresult.ToLower = "failed" Then
                     Dim reason As String = TextInBetween(postresponse, """reason"":""", """")(0)
+                    Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                    Console.WriteLine("Login Failed")
                     Console.WriteLine("Reason: " & reason)
                     Console.WriteLine(Environment.NewLine & Environment.NewLine)
-                    Console.WriteLine("Press any key to exit...")
-                    Console.ReadLine()
+                    Console.Write("Press any key to exit...")
+                    Console.ReadKey()
                     ExitProgram()
                 End If
+                Return lresult
+            Catch ex2 As System.Net.WebException
+                Log("Network error", "LOCAL", BOTName)
+                Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                Dim reason As String = ex2.Message
+                Console.WriteLine("Login Failed (Network error)")
+                Console.WriteLine(reason)
+                Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                Console.Write("Press any key to exit...")
+                Console.ReadKey()
+                ExitProgram()
+                Return lresult
+            Catch ex3 As Exception
+                Log("Logon error", "LOCAL", BOTName)
+                Debug_Log("Logon error: " & ex3.Message, "LOCAL", BOTName)
+                Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                Dim reason As String = ex3.Message
+                Console.WriteLine("Login Failed")
+                Console.WriteLine("Reason: " & reason)
+                Console.WriteLine(Environment.NewLine & Environment.NewLine)
+                Console.Write("Press any key to exit...")
+                Console.ReadKey()
+                ExitProgram()
                 Return lresult
             End Try
         End Function
@@ -149,7 +180,6 @@ Namespace WikiBot
                 Next
             Next
             Return PagenameAndImage
-
         End Function
 
         ''' <summary>
@@ -208,7 +238,7 @@ Namespace WikiBot
         ''' <param name="Page_names">Array con nombres de página unicos.</param>
         ''' <remarks></remarks>
         Private Function BOTGetPagesExtract(ByVal Page_names As String(), CharLimit As Integer) As SortedList(Of String, String)
-            Log("Starting Wikipedia page extracts of chunks", "LOCAL", BOTName)
+            Log("Get Wikipedia page extracts on chunks", "LOCAL", BOTName)
             Dim PageNamesList As List(Of String) = Page_names.ToList
             PageNamesList.Sort()
 
@@ -306,9 +336,7 @@ Namespace WikiBot
 
                 Next
             Next
-
             Return PagenameAndResume
-
         End Function
 
         ''' <summary>
@@ -334,7 +362,10 @@ Namespace WikiBot
                     For Each m As Match In Regex.Matches(s, "({|, )(""[0-9]+"":).+?(}}}})")
 
                         Dim EditID_str As String = Regex.Match(m.Value, """[0-9]+""").Value
+                        EditID_str = EditID_str.Trim(CType("""", Char()))
+                        EditID_str = RemoveAllAlphas(EditID_str)
                         Dim EditID As Integer = Integer.Parse(EditID_str)
+
                         If m.Value.Contains("error") Then
 
                             Debug_Log("GetORESScore: Server error in query of ORES score from revid " & EditID_str & " (invalid diff?)", "LOCAL", BOTName)
@@ -378,6 +409,7 @@ Namespace WikiBot
         ''' <param name="PageNames">Array con nombres de paginas unicos.</param>
         ''' <remarks></remarks>
         Function GetLastRevIds(ByVal PageNames As String()) As SortedList(Of String, Integer)
+            Debug_Log("GetLastRevIDs: Get Wikipedia last RevisionID of """ & PageNames.Count.ToString & """ pages.", "LOCAL", BOTName)
             Dim PageNamesList As List(Of String) = PageNames.ToList
             PageNamesList.Sort()
             Dim PageList As List(Of List(Of String)) = SplitStringArrayIntoChunks(PageNamesList.ToArray, 50)
@@ -424,11 +456,9 @@ Namespace WikiBot
                     End If
                 Next
             Next
+            Debug_Log("GetLastRevIDs: Done """ & PagenameAndLastId.Count.ToString & """ pages returned.", "LOCAL", BOTName)
             Return PagenameAndLastId
         End Function
-
-
-
 
         ''' <summary>
         ''' Retorna el ultimo REVID (como integer) de la pagina indicada como integer. 
@@ -437,15 +467,15 @@ Namespace WikiBot
         ''' <param name="PageName">Nombre exacto de la pagina.</param>
         ''' <remarks></remarks>
         Function GetLastRevID(ByVal PageName As String) As Integer
-            Log("GetLastRevID: Starting Wikipedia last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
+            Debug_Log("GetLastRevID: Get Wikipedia last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
             PageName = UrlWebEncode(PageName)
             Try
                 Dim QueryText As String = String.Empty
-                Log("GetLastRevID: Query of last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
+                Debug_Log("GetLastRevID: Query of last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
                 QueryText = Gethtmlsource((_siteurl & "?action=query&prop=revisions&format=json&titles=" & PageName), False, BotCookies)
 
                 Dim ID As Integer = Integer.Parse(TextInBetween(QueryText, """revid"":", ",""")(0))
-                Debug_Log("GetLastRevID: Query of last RevisionID of page """ & PageName & " successful, result: " & ID.ToString, "LOCAL", BOTName)
+                Debug_Log("GetLastRevID: Last RevisionID of page """ & PageName & " is: " & ID.ToString, "LOCAL", BOTName)
                 Return ID
             Catch ex As Exception
                 Debug_Log("GetLastRevID: Query of last RevisionID from page """ & PageName & " failed, returning Nothing", "LOCAL", BOTName)
@@ -556,6 +586,7 @@ Namespace WikiBot
         Overloads Function UpdatePageExtracts(ByVal irc As Boolean) As Boolean
             Return BotUpdatePageExtracts(irc)
         End Function
+
 
         ''' <summary>
         ''' Actualiza los resúmenes de página basado en varios parámetros,
@@ -680,7 +711,7 @@ Namespace WikiBot
             Next
             '==========================================================================================
 
-            Debug_Log("UpdatePageExtracts: Concatenating recreated text", "LOCAL", BOTName)
+            Debug_Log("UpdatePageExtracts: Concatenating text", "LOCAL", BOTName)
             NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & "<!-- MARK -->" & Environment.NewLine & "|}}"
 
             Debug_Log("UpdatePageExtracts: Done, trying to save", "LOCAL", BOTName)
@@ -846,12 +877,40 @@ Namespace WikiBot
         ''' <param name="pagetext">Texto a evaluar</param>
         ''' <returns></returns>
         Function GetPageThreads(ByVal pagetext As String) As String()
-            Dim threads As New List(Of String)
             Dim newline As String = Environment.NewLine
-            For Each m As Match In Regex.Matches(pagetext, "(" & newline & "==(?!=))[\s\S]+?(?=" & newline & "==(?!=)|$)")
-                threads.Add(m.Value)
+            Dim mc As MatchCollection = Regex.Matches(pagetext, "[\n \r]((==(?!=)).+?(==(?!=)))")
+
+            Dim threadlist As New List(Of String)
+
+            Dim temptext As String = pagetext
+            For i As Integer = 0 To mc.Count - 1
+
+                Dim nextmatch As Integer = (i + 1)
+
+                If Not nextmatch = mc.Count Then
+
+                    Dim threadtitle As String = mc(i).Value
+                    Dim nextthreadtitle As String = mc(nextmatch).Value
+
+                    Dim threadtext As String = TextInBetween(temptext, threadtitle, nextthreadtitle)(0)
+
+                    Dim Completethread As String = threadtitle & threadtext
+                    threadlist.Add(Completethread)
+                    temptext = temptext.Replace(Completethread, "")
+
+                Else
+                    Dim threadtitle As String = mc(i).Value
+
+                    Dim ThreadPos As Integer = temptext.IndexOf(threadtitle)
+                    Dim threadlenght As Integer = temptext.Length - temptext.Substring(0, ThreadPos).Length
+                    Dim threadtext As String = temptext.Substring(ThreadPos, threadlenght)
+
+                    threadlist.Add(threadtext)
+                End If
+
             Next
-            Return threads.ToArray
+
+            Return threadlist.ToArray
         End Function
 
         ''' <summary>
@@ -862,8 +921,9 @@ Namespace WikiBot
         Function LastParagraphDateTime(ByVal text As String) As DateTime
             text = text.Trim(CType(vbCrLf, Char())) & " "
             Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
+
             Dim TheDate As DateTime = EsWikiDatetime(lastparagraph)
-            Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL", BOTName)
+            Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL", BOTName)
             Return TheDate
         End Function
 
@@ -909,7 +969,7 @@ Namespace WikiBot
                 End Try
             Next
             If Not dattimelist.Count = 0 Then
-                Log("GetMostRecentDateTime: returning """ & dattimelist.Last.ToLongDateString & """", "LOCAL", BOTName)
+                Debug_Log("GetMostRecentDateTime: returning """ & dattimelist.Last.ToLongDateString & """", "LOCAL", BOTName)
                 Return dattimelist.Last
             Else
                 Debug_Log("GetMostRecentDateTime: Returning nothing ", "LOCAL", BOTName)
@@ -920,15 +980,10 @@ Namespace WikiBot
         End Function
 
         ''' <summary>
-        ''' Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo la lógica de Grillitus.
+        ''' Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo una lógica similar a la de Grillitus.
         ''' </summary>
         ''' <param name="PageToArchive">Página a archivar</param>
         ''' <returns></returns>
-        Function GrillitusArchive(ByVal PageToArchive As Page) As Boolean
-            Dim Archive As New GrillitusArchive(Me)
-            Return Archive.GrillitusArchive(PageToArchive)
-        End Function
-
         Function Archive(ByVal PageToArchive As Page) As Boolean
             Dim ArchiveFcn As New GrillitusArchive(Me)
             Return ArchiveFcn.Archive(PageToArchive)

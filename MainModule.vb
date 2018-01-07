@@ -10,12 +10,16 @@ Module MainModule
     Sub Main()
         Uptime = DateTime.Now
         LoadConfig()
-        Log("Starting...", "Local", BOTName)
+        Log("Starting...", "LOCAL", BOTName)
         Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
-        BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword) ', IRCPASS)
+        BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword)
         BotIRC.Connect()
+
         Do
-            ' Dim command As String = Console.ReadLine()
+            Dim command As String = Console.ReadLine()
+            If Not String.IsNullOrWhiteSpace(command) Then
+                BotIRC.Sendmessage(command)
+            End If
             ' Declaración sin utilidad. Solo para efectos de debug.
             Dim a As Integer = 1
             Thread.Sleep(500)

@@ -20,7 +20,8 @@ Module Config
         Dim MainIRCNetwork As String = String.Empty
         Dim MainIRCChannel As String = String.Empty
         Dim ConfigOK As Boolean = False
-
+        Console.WriteLine("==================== PeriodiBOT " & Version & " ====================")
+        Debug_Log("PeriodiBOT " & Version, "LOCAL", "Undefined")
         If System.IO.File.Exists(ConfigFilePath) Then
             Log("Loading config", "LOCAL", "Undefined")
             Dim Configstr As String = System.IO.File.ReadAllText(ConfigFilePath)

@@ -114,6 +114,29 @@ Public Class IRC_Client
                 _streamWriter.WriteLine(String.Format("JOIN {0}", _sChannel))
                 _streamWriter.Flush()
 
+
+
+                Dim CheckUsersFunc As New Func(Of String())(AddressOf CheckUsers)
+                Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
+                CheckUsersIRCTask.Run()
+
+
+                Dim UpdateExtractFunc As New Func(Of String())(Function()
+                                                                   Mainwikibot.UpdatePageExtracts(True)
+                                                                   Return {""}
+                                                               End Function)
+                Dim UpdateExtractTask As New IRCTask(Me, 43200000, True, UpdateExtractFunc)
+                UpdateExtractTask.Run()
+
+
+                Dim ArchiveAllFunc As New Func(Of String())(Function()
+                                                                Mainwikibot.ArchiveAllInclusions(True)
+                                                                Return {""}
+                                                            End Function)
+                Dim ArchiveAllTask As New IRCTask(Me, 43200000, True, ArchiveAllFunc)
+                ArchiveAllTask.Run()
+
+
                 Await Task.Run(Sub()
 
                                    Try
@@ -123,44 +146,24 @@ Public Class IRC_Client
                                            lastmessage = DateTime.Now
                                            Dim sCommandParts As String() = sCommand.Split(CType(" ", Char()))
                                            Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand)
-                                           Dim response As String = Command.ResolveCommand(sCommand, HasExited, _sNickName)
 
-                                           If Not response Is Nothing Then
-                                               _streamWriter.WriteLine(response)
-                                               _streamWriter.Flush()
-                                               Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & response)
+                                           Dim CommandFunc As New Func(Of String())(Function()
+                                                                                        Return {Command.ResolveCommand(sCommand, HasExited, _sNickName)}
+                                                                                    End Function)
+                                           Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc)
 
-                                           End If
+                                           IRCResponseTask.Run()
 
                                            If Not _tcpclientConnection.Connected Then
                                                Debug_Log("IRC: DISCONNECTED", "IRC", BOTName)
                                                Exit While
                                            End If
 
-                                           Dim actualtime As DateTime = DateTime.Now
-                                           Dim DateDiff As TimeSpan = actualtime - Lastdate
-
-                                           If DateDiff.Minutes >= 5 Then
-                                               Dim checkarr As String() = CheckUsers()
-
-                                               If Not checkarr.Count = 0 Then
-                                                   For Each s As String In checkarr
-                                                       _streamWriter.WriteLine(s)
-                                                       _streamWriter.Flush()
-                                                   Next
-                                               End If
-                                               SaveUsersToFile()
-                                               Lastdate = DateTime.Now
-                                           End If
-
-                                           DailyTask()
-
                                            If sCommandParts(0).Contains("PING") Then  'Ping response
                                                _streamWriter.WriteLine(sCommand.Replace("PING", "PONG"))
                                                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand.Replace("PING", "PONG"))
                                                _streamWriter.Flush()
                                            End If
-
 
                                            If HasExited Then
                                                Exit While
@@ -228,6 +231,12 @@ Public Class IRC_Client
         Return True
     End Function
 
+    Function SendText(ByVal Text As String) As Boolean
+        _streamWriter.WriteLine(Text)
+        _streamWriter.Flush()
+        Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & Text)
+        Return True
+    End Function
 
 
 

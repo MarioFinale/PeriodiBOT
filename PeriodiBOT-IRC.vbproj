@@ -79,6 +79,7 @@
     <Compile Include="DirectApiCalls.vb" />
     <Compile Include="GlobalVars.vb" />
     <Compile Include="GrillitusArchive.vb" />
+    <Compile Include="IRCTask.vb" />
     <Compile Include="IRC_Client.vb" />
     <Compile Include="IRC_Comands.vb" />
     <Compile Include="LogEngine.vb" />
