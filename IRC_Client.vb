@@ -115,26 +115,29 @@ Public Class IRC_Client
                 _streamWriter.Flush()
 
 
+                'Medidas de compatibilidad
+
 
                 Dim CheckUsersFunc As New Func(Of String())(AddressOf CheckUsers)
-                Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
-                CheckUsersIRCTask.Run()
+                    Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
+                    CheckUsersIRCTask.Run()
 
 
-                Dim UpdateExtractFunc As New Func(Of String())(Function()
-                                                                   Mainwikibot.UpdatePageExtracts(True)
-                                                                   Return {""}
-                                                               End Function)
-                Dim UpdateExtractTask As New IRCTask(Me, 43200000, True, UpdateExtractFunc)
-                UpdateExtractTask.Run()
+                    Dim UpdateExtractFunc As New Func(Of String())(Function()
+                                                                       Mainwikibot.UpdatePageExtracts(True)
+                                                                       Return {""}
+                                                                   End Function)
+                    Dim UpdateExtractTask As New IRCTask(Me, 43200000, True, UpdateExtractFunc)
+                    UpdateExtractTask.Run()
 
 
-                Dim ArchiveAllFunc As New Func(Of String())(Function()
-                                                                Mainwikibot.ArchiveAllInclusions(True)
-                                                                Return {""}
-                                                            End Function)
-                Dim ArchiveAllTask As New IRCTask(Me, 43200000, True, ArchiveAllFunc)
-                ArchiveAllTask.Run()
+                    Dim ArchiveAllFunc As New Func(Of String())(Function()
+                                                                    Mainwikibot.ArchiveAllInclusions(True)
+                                                                    Return {""}
+                                                                End Function)
+                    Dim ArchiveAllTask As New IRCTask(Me, 43200000, True, ArchiveAllFunc)
+                    ArchiveAllTask.Run()
+
 
 
                 Await Task.Run(Sub()
@@ -148,11 +151,12 @@ Public Class IRC_Client
                                            Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand)
 
                                            Dim CommandFunc As New Func(Of String())(Function()
-                                                                                        Return {Command.ResolveCommand(sCommand, HasExited, _sNickName)}
-                                                                                    End Function)
+                                                                                            Return {Command.ResolveCommand(sCommand, HasExited, _sNickName)}
+                                                                                        End Function)
                                            Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc)
-
                                            IRCResponseTask.Run()
+
+
 
                                            If Not _tcpclientConnection.Connected Then
                                                Debug_Log("IRC: DISCONNECTED", "IRC", BOTName)

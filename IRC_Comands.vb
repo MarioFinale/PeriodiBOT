@@ -385,7 +385,7 @@ Class IRC_Comands
                 Return {source, responsestring}
 
             Else
-                Dim responsestring As String = String.Format("{2} Versión: {0} (Bajo {1} (.NET Framework) ;Uptime: {3}; Hilos: {4}; Memoria (privada): {5} bytes). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, GetMemoryUsage.ToString)
+                Dim responsestring As String = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Hilos: {4}; Memoria (privada): {5} bytes). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, GetMemoryUsage.ToString)
                 Log("IRC: Requested info (%??)", "IRC", user)
                 Return {source, responsestring}
 

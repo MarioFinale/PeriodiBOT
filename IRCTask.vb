@@ -1,5 +1,6 @@
 ﻿Imports System.Runtime.InteropServices
 Imports PeriodiBOT_IRC
+Imports System.Threading
 
 Public Class IRCTask
     Implements IDisposable
@@ -9,8 +10,10 @@ Public Class IRCTask
     Dim _infinite As Boolean
 
     Dim disposed As Boolean = False
-    Dim _task As Task
     Dim _nFunc As Func(Of String())
+    Dim _Ftask As Integer = 0
+    Dim Thread As Thread
+
     ''' <summary>
     ''' Crea una nueva tarea de IRC
     ''' </summary>
@@ -25,29 +28,31 @@ Public Class IRCTask
         _infinite = Infinite
     End Sub
 
+
     ''' <summary>
     ''' Ejecuta la tarea creada en otro thread (dispara y corre en métodos sincrónicos).
     ''' </summary>
     Public Sub Run()
+        Debug_Log("Run task func", "LOCAL", BOTName)
+        Thread = New Threading.Thread(New Threading.ParameterizedThreadStart(Sub()
 
-        _task = Task.Run(Sub()
+                                                                                 Do
+                                                                                     For Each s As String In _nFunc.Invoke
+                                                                                         If Not String.IsNullOrEmpty(s) Then
+                                                                                             _client.SendText(s)
+                                                                                         End If
+                                                                                     Next
+                                                                                     If Not _infinite Then
+                                                                                         Exit Do
+                                                                                     End If
+                                                                                     System.Threading.Thread.Sleep(_interval)
+                                                                                 Loop
 
-                             Do
-                                 For Each s As String In _nFunc.Invoke
-                                     If Not String.IsNullOrEmpty(s) Then
-                                         _client.SendText(s)
-                                     End If
-                                 Next
-                                 If Not _infinite Then
-                                     Exit Do
-                                 End If
-                                 System.Threading.Thread.Sleep(_interval)
-                             Loop
-
-                         End Sub)
-
+                                                                             End Sub))
+        Thread.Start()
 
     End Sub
+
     ''' <summary>
     ''' Detiene la tarea de forma segura (si es infinita).
     ''' </summary>
@@ -63,7 +68,7 @@ Public Class IRCTask
     Protected Overridable Sub Dispose(disposing As Boolean)
         If disposed Then Return
         If disposing Then
-            _task.Dispose()
+            Thread.Abort()
         End If
         disposed = True
     End Sub
