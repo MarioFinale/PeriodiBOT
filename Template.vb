@@ -124,6 +124,7 @@ Public Class Template
     ''' <param name="text"></param>
     Sub GetTemplateOfText(ByVal text As String)
 
+        'Verificar si se paso una plantilla
         If Not text.Substring(0, 2) = "{{" Then
             Exit Sub
         End If
@@ -141,20 +142,21 @@ Public Class Template
         Dim ContainsTemplates As Boolean = True
         Dim NewText As String = _text
         Dim ReplacedTemplates As New List(Of String)
-        Dim TemplateInnerText = newtext.Substring(2, newtext.Length - 4)
+        Dim TemplateInnerText = NewText.Substring(2, NewText.Length - 4)
 
+        'Reemplazar plantillas internas con texto para reconocer parametros de principal
         Dim temparray As List(Of String) = GetTemplateTextArray(TemplateInnerText)
-
 
         For templ As Integer = 0 To temparray.Count - 1
             Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & templ.ToString, "01")
-            newtext = newtext.Replace(temparray(templ), tempreplace)
-            replacedtemplates.Add(temparray(templ))
+            NewText = NewText.Replace(temparray(templ), tempreplace)
+            ReplacedTemplates.Add(temparray(templ))
         Next
 
+        'Reemplazar enlaces dentro de la plantilla para reconocer parametros de principal
         Dim ReplacedLinks As New List(Of String)
         Dim LinkArray As New List(Of String)
-        For Each m As Match In Regex.Matches(newtext, "((\[\[)([^\]]+)(\]\]))")
+        For Each m As Match In Regex.Matches(NewText, "((\[\[)([^\]]+)(\]\]))")
             LinkArray.Add(m.Value)
         Next
 
@@ -164,10 +166,9 @@ Public Class Template
             ReplacedLinks.Add(LinkArray(temp2))
         Next
 
-
-
+        'Obtener nombre de la plantilla
         Dim tempname As String = String.Empty
-        Dim innertext As String = newtext.Substring(2, newtext.Length - 4)
+        Dim innertext As String = NewText.Substring(2, NewText.Length - 4)
         For cha As Integer = 0 To innertext.Count - 1
             If Not innertext(cha) = "|" Then
                 tempname = tempname & innertext(cha)
@@ -176,12 +177,14 @@ Public Class Template
             End If
         Next
 
-        For reptempindex As Integer = 0 To replacedtemplates.Count - 1
+        'Reemplazar plantillas internas en el titulo con texto para reconocer nombre de la principal
+        For reptempindex As Integer = 0 To ReplacedTemplates.Count - 1
             Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & reptempindex.ToString, "01")
-            tempname = tempname.Replace(tempreplace, replacedtemplates(reptempindex)).Trim(CType(" ", Char())).Trim(CType(Environment.NewLine, Char()))
+            tempname = tempname.Replace(tempreplace, ReplacedTemplates(reptempindex)).Trim(CType(" ", Char())).Trim(CType(Environment.NewLine, Char()))
         Next
         _name = tempname
 
+        'Obtener parametros de texto tratado y agregarlos a lista
         Dim params As MatchCollection = Regex.Matches(innertext, "\|[^|]+")
         Dim NamedParams As New List(Of Tuple(Of String, String))
         Dim UnnamedParams As New List(Of String)
@@ -204,20 +207,21 @@ Public Class Template
             End If
 
         Next
-
+        'Los parametros sin nombre son procesados y nombrados segun su posicion
         For param As Integer = 0 To UnnamedParams.Count - 1
             NamedParams.Add(New Tuple(Of String, String)((param + 1).ToString, UnnamedParams(param)))
         Next
 
+        'Restaurar plantillas internas y enlaces en parametros, luego agregarlas a lista de parametros
         For Each tup As Tuple(Of String, String) In NamedParams
             Dim ParamName As String = tup.Item1
             Dim ParamValue As String = tup.Item2
 
-            For reptempindex As Integer = 0 To replacedtemplates.Count - 1
+            For reptempindex As Integer = 0 To ReplacedTemplates.Count - 1
                 Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & reptempindex.ToString, "01")
 
-                ParamName = ParamName.Replace(tempreplace, replacedtemplates(reptempindex))
-                ParamValue = ParamValue.Replace(tempreplace, replacedtemplates(reptempindex))
+                ParamName = ParamName.Replace(tempreplace, ReplacedTemplates(reptempindex))
+                ParamValue = ParamValue.Replace(tempreplace, ReplacedTemplates(reptempindex))
             Next
 
             For RepLinkIndex As Integer = 0 To ReplacedLinks.Count - 1
@@ -226,12 +230,10 @@ Public Class Template
                 ParamName = ParamName.Replace(LinkReplace, ReplacedLinks(RepLinkIndex))
                 ParamValue = ParamValue.Replace(LinkReplace, ReplacedLinks(RepLinkIndex))
             Next
-
-
             TotalParams.Add(New Tuple(Of String, String)(ParamName, ParamValue))
 
-
         Next
+        'Agregar parametros locales a parametros de clase
         _parameters.AddRange(TotalParams)
 
     End Sub
