@@ -69,6 +69,8 @@ Public Class IRC_Client
         Dim HasExited As Boolean = False
 
         Dim Lastdate As DateTime = DateTime.Now
+        Dim CheckUsersFunc As New Func(Of String())(AddressOf CheckUsers)
+        Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
 
         Do Until HasExited
 
@@ -116,29 +118,7 @@ Public Class IRC_Client
 
 
                 'Medidas de compatibilidad
-
-
-                Dim CheckUsersFunc As New Func(Of String())(AddressOf CheckUsers)
-                    Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
-                    CheckUsersIRCTask.Run()
-
-
-                Dim UpdateExtractFunc As New Func(Of String())(Function()
-                                                                   Mainwikibot.UpdatePageExtracts(True)
-                                                                   Return {""}
-                                                               End Function)
-                Dim UpdateExtractTask As New IRCTask(Me, 43200000, True, UpdateExtractFunc)
-                    UpdateExtractTask.Run()
-
-
-                Dim ArchiveAllFunc As New Func(Of String())(Function()
-                                                                Mainwikibot.ArchiveAllInclusions(True)
-                                                                Return {""}
-                                                            End Function)
-                Dim ArchiveAllTask As New IRCTask(Me, 43200000, True, ArchiveAllFunc)
-                ArchiveAllTask.Run()
-
-
+                CheckUsersIRCTask.Run()
 
                 Await Task.Run(Sub()
 
@@ -194,6 +174,7 @@ Public Class IRC_Client
                     _streamReader.Dispose()
                     _streamWriter.Dispose()
                     _networkStream.Dispose()
+                    CheckUsersIRCTask.Dispose()
                 Catch exex As Exception
                 End Try
             Catch ex As Exception
@@ -207,6 +188,7 @@ Public Class IRC_Client
                     _streamReader.Dispose()
                     _streamWriter.Dispose()
                     _networkStream.Dispose()
+                    CheckUsersIRCTask.Dispose()
                 Catch ex2 As Exception
                     'In case of something really bad happens
                     Debug_Log("IRC: Error ex2: " + ex2.Message, "IRC", BOTName)

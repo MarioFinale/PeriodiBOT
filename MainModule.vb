@@ -15,6 +15,23 @@ Module MainModule
         BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword)
         BotIRC.Connect()
 
+        Dim UpdateExtractFunc As New Func(Of String())(Function()
+                                                           Mainwikibot.UpdatePageExtracts(True)
+                                                           Return {""}
+                                                       End Function)
+        Dim UpdateExtractTask As New IRCTask(BotIRC, 43200000, True, UpdateExtractFunc)
+        UpdateExtractTask.Run()
+
+
+        Dim ArchiveAllFunc As New Func(Of String())(Function()
+                                                        Mainwikibot.ArchiveAllInclusions(True)
+                                                        Return {""}
+                                                    End Function)
+        Dim ArchiveAllTask As New IRCTask(BotIRC, 43200000, True, ArchiveAllFunc)
+        ArchiveAllTask.Run()
+
+
+
         Do
             Dim command As String = Console.ReadLine()
             If Not String.IsNullOrWhiteSpace(command) Then
