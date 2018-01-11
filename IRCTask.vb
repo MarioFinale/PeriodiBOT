@@ -63,6 +63,7 @@ Public Class IRCTask
     ''' </summary>
     Public Sub Dispose() Implements IDisposable.Dispose
         Debug_Log("End task func", "LOCAL", BOTName)
+        _infinite = False
         Dispose(True)
         GC.SuppressFinalize(Me)
     End Sub

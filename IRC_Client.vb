@@ -174,7 +174,6 @@ Public Class IRC_Client
                     _streamReader.Dispose()
                     _streamWriter.Dispose()
                     _networkStream.Dispose()
-                    CheckUsersIRCTask.Dispose()
                 Catch exex As Exception
                 End Try
             Catch ex As Exception
@@ -188,7 +187,6 @@ Public Class IRC_Client
                     _streamReader.Dispose()
                     _streamWriter.Dispose()
                     _networkStream.Dispose()
-                    CheckUsersIRCTask.Dispose()
                 Catch ex2 As Exception
                     'In case of something really bad happens
                     Debug_Log("IRC: Error ex2: " + ex2.Message, "IRC", BOTName)
@@ -200,6 +198,7 @@ Public Class IRC_Client
             End If
 
             Log("Lost connection, retrying on 5 seconds...", "IRC", _sNickName)
+            CheckUsersIRCTask.Dispose()
             System.Threading.Thread.Sleep(5000)
         Loop
 
