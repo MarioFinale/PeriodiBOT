@@ -106,7 +106,8 @@ Class LogEngine
         Task.Run(Sub()
                      AddEvent(text, source, user, "LOG")
                  End Sub)
-        Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & "LOG|" & source & "|" & user & "|" & text)
+
+        WriteLine("LOG", source, user & ": " & text)
 
         Return True
     End Function

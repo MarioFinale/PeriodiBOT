@@ -172,7 +172,6 @@ Public Module CommFunctions
             Return total
 
         Catch ex As Exception
-            Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "CommFuncs", BOTName)
             Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "CommFuncs", BOTName)
             Return 0
         End Try
@@ -305,8 +304,8 @@ Public Module CommFunctions
     ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
     ''' </summary>
     ''' <returns></returns>
-    Function CheckUsers() As String()
-        Dim returnstring As New List(Of String)
+    Function CheckUsers() As IRCMessage()
+        Dim Messages As New List(Of IRCMessage)
         Try
             For Each UserdataLine As String() In Userdata
                 Dim User As String = UserdataLine(1)
@@ -359,14 +358,16 @@ Public Module CommFunctions
                             End If
                         End If
                     End If
-                    returnstring.Add(String.Format("PRIVMSG {0} :{1}| El proximo aviso será en 5 minutos.", OP, responsestring))
+                    responsestring = responsestring & ". El proximo aviso será en 5 minutos."
+
+                    Messages.Add(New IRCMessage(OP, responsestring))
                 End If
             Next
         Catch ex As System.ObjectDisposedException
             Debug_Log("CheckUsers EX: " & ex.Message, "IRC", BOTName)
         End Try
 
-        Return returnstring.ToArray
+        Return Messages.ToArray
 
     End Function
 
@@ -444,7 +445,10 @@ Public Module CommFunctions
         Mainwikibot.ArchiveAllInclusions(True)
     End Sub
 
-
+    Sub WriteLine(ByVal type As String, ByVal source As String, message As String)
+        Dim msgstr As String = "[" & DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & "]" & " [" & source & " " & type & "] " & message
+        Console.WriteLine(msgstr)
+    End Sub
 
 
 End Module

@@ -22,6 +22,8 @@ Public Class IRC_Client
 
     Private lastmessage As DateTime
 
+    Private HasExited As Boolean = False
+
     Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickname As String, ByVal port As Int32,
                           ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal username As String)
         Initialize(server, channel, nickname, port, invisible, pass, realname, username)
@@ -66,17 +68,18 @@ Public Class IRC_Client
         Log("Starting IRCclient", "IRC", _sNickName)
         Dim sIsInvisible As String = String.Empty
         Dim sCommand As String = String.Empty 'commands to process from the room.
-        Dim HasExited As Boolean = False
+
 
         Dim Lastdate As DateTime = DateTime.Now
-        Dim CheckUsersFunc As New Func(Of String())(AddressOf CheckUsers)
-        Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
+        Dim CheckUsersFunc As New Func(Of IRCMessage())(AddressOf CheckUsers)
+
 
         Do Until HasExited
-
+            'Tarea para verificar actividad de usuario.
+            Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
             Try
                 'Start the main connection to the IRC server.
-                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & "**Creating Connection**")
+                WriteLine("INFO", "IRC", "**Creating Connection**")
                 _tcpclientConnection = New TcpClient(_sServer, _lPort)
                 With _tcpclientConnection
                     .ReceiveTimeout = 300000
@@ -96,28 +99,28 @@ Public Class IRC_Client
 
                 'Attempt nickserv auth (freenode server pass method)
                 If Not String.IsNullOrEmpty(_sPass) Then
-                    Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & "**Attempting nickserv auth**")
+                    WriteLine("INFO", "IRC", "**Attempting nickserv auth**")
                     _streamWriter.WriteLine(String.Format("PASS {0}:{1}", _sNickName, _sPass))
                     _streamWriter.Flush()
                 End If
 
                 'Create nickname.
-                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & "**Setting Nickname**")
+                WriteLine("INFO", "IRC", "**Setting Nickname**")
                 _streamWriter.WriteLine(String.Format(String.Format("NICK {0}", _sNickName)))
                 _streamWriter.Flush()
 
                 'Send in information
-                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & "**Setting up name**")
+                WriteLine("INFO", "IRC", "**Setting up name**")
                 _streamWriter.WriteLine(String.Format("USER {0} {1} * :{2}", _sUserName, sIsInvisible, _sRealName))
                 _streamWriter.Flush()
 
                 'Connect to a specific room.
-                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & "**Joining Room**")
+                WriteLine("INFO", "IRC", "**Joining Room**")
                 _streamWriter.WriteLine(String.Format("JOIN {0}", _sChannel))
                 _streamWriter.Flush()
 
 
-                'Medidas de compatibilidad
+
                 CheckUsersIRCTask.Run()
 
                 Await Task.Run(Sub()
@@ -128,12 +131,13 @@ Public Class IRC_Client
                                            sCommand = _streamReader.ReadLine
                                            lastmessage = DateTime.Now
                                            Dim sCommandParts As String() = sCommand.Split(CType(" ", Char()))
-                                           Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand)
 
-                                           Dim CommandFunc As New Func(Of String())(Function()
-                                                                                        Return {Command.ResolveCommand(sCommand, HasExited, _sNickName)}
-                                                                                    End Function)
+
+                                           Dim CommandFunc As New Func(Of IRCMessage())(Function()
+                                                                                            Return {Command.ResolveCommand(sCommand, HasExited, _sNickName, Me)}
+                                                                                        End Function)
                                            Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc)
+
                                            Debug_Log("Run irc response", "LOCAL", BOTName)
                                            IRCResponseTask.Run()
 
@@ -145,7 +149,7 @@ Public Class IRC_Client
 
                                            If sCommandParts(0).Contains("PING") Then  'Ping response
                                                _streamWriter.WriteLine(sCommand.Replace("PING", "PONG"))
-                                               Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & sCommand.Replace("PING", "PONG"))
+                                               WriteLine("INFO", "IRC", "PING")
                                                _streamWriter.Flush()
                                            End If
 
@@ -204,25 +208,45 @@ Public Class IRC_Client
 
     End Sub
 
-   
+
     Function Sendmessage(ByVal message As String, ByVal Channel As String) As Boolean
-        _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", _sChannel, message))
+        _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", Channel, message))
         _streamWriter.Flush()
-        Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & String.Format("PRIVMSG {0} : {1}", Channel, message))
+        WriteLine("MSG", "IRC", Channel & " " & _sNickName & ": " & message)
+        Return True
+    End Function
+
+    Sub Quit(ByVal message As String)
+        HasExited = True
+        SendText("QUIT: " & message)
+        _streamReader.Dispose()
+        _streamWriter.Dispose()
+        _networkStream.Dispose()
+    End Sub
+
+
+    Function Sendmessage(ByVal message As IRCMessage) As Boolean
+
+        For Each s As String In message.Text
+            _streamWriter.WriteLine(String.Format("{2} {0} : {1}", message.Source, s, message.Command))
+            _streamWriter.Flush()
+            WriteLine("MSG", "IRC", message.Source & " " & _sNickName & ": " & s)
+        Next
+
         Return True
     End Function
 
     Function Sendmessage(ByVal message As String) As Boolean
         _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", _sChannel, message))
         _streamWriter.Flush()
-        Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & String.Format("PRIVMSG {0} : {1}", _sChannel, message))
+        WriteLine("MSG", "IRC", _sChannel & " " & _sNickName & ": " & message)
         Return True
     End Function
 
     Function SendText(ByVal Text As String) As Boolean
         _streamWriter.WriteLine(Text)
         _streamWriter.Flush()
-        Console.WriteLine(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & " | " & Text)
+        WriteLine("RAW TEXT", "IRC", Text)
         Return True
     End Function
 
