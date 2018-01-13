@@ -1,4 +1,6 @@
-﻿Imports System.Runtime.InteropServices
+﻿Option Strict On
+Option Explicit On
+Imports System.Runtime.InteropServices
 Imports PeriodiBOT_IRC
 Imports System.Threading
 
@@ -10,7 +12,7 @@ Public Class IRCTask
     Dim _infinite As Boolean
 
     Dim disposed As Boolean = False
-    Dim _nFunc As Func(Of String())
+    Dim _nFunc As Func(Of IRCMessage())
     Dim _Ftask As Integer = 0
     Dim Thread As Thread
 
@@ -21,7 +23,7 @@ Public Class IRCTask
     ''' <param name="Interval">Intervalo de repetición de la tarea en milisegundos (el tiempo de espera se ejecuta al final de cada iteración)</param>
     ''' <param name="Infinite">¿Se repite idefinidamente la tarea?.</param>
     ''' <param name="nFunc">Función (String()) a ejecutar, cada linea será escrita directamente en el streamwriter del cliente IRC.</param>
-    Public Sub New(ByVal Client As IRC_Client, Interval As Integer, Infinite As Boolean, ByVal nFunc As Func(Of String()))
+    Public Sub New(ByVal Client As IRC_Client, Interval As Integer, Infinite As Boolean, ByVal nFunc As Func(Of IRCMessage()))
         _nFunc = nFunc
         _client = Client
         _interval = Interval
@@ -38,9 +40,10 @@ Public Class IRCTask
 
                                                                                  Do
                                                                                      Try
-                                                                                         For Each s As String In _nFunc.Invoke
-                                                                                             If Not String.IsNullOrEmpty(s) Then
-                                                                                                 _client.SendText(s)
+                                                                                         For Each s As IRCMessage In _nFunc.Invoke
+
+                                                                                             If Not String.IsNullOrEmpty(s.Text(0)) Then
+                                                                                                 _client.Sendmessage(s)
                                                                                              End If
                                                                                          Next
                                                                                      Catch ex As Exception
@@ -63,6 +66,7 @@ Public Class IRCTask
     ''' </summary>
     Public Sub Dispose() Implements IDisposable.Dispose
         Debug_Log("End task func", "LOCAL", BOTName)
+        _infinite = False
         Dispose(True)
         GC.SuppressFinalize(Me)
     End Sub

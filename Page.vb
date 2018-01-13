@@ -1,4 +1,5 @@
 ﻿Option Strict On
+Option Explicit On
 Imports System.Net
 Imports System.Text.RegularExpressions
 
@@ -342,12 +343,12 @@ Public Class Page
         End If
 
         If Not GetLastTimeStamp(_title) = _timestamp Then
-            Console.WriteLine("Edit conflict")
+            Log("Edit conflict", "LOCAL", BOTName)
             Return "Edit conflict"
         End If
 
         If Not BotCanEdit(_text, _username) Then
-            Console.WriteLine("Bots can't edit this page!")
+            Log("Bots can't edit this page!", "LOCAL", BOTName)
             Return "No Bots"
         End If
 
@@ -359,12 +360,12 @@ Public Class Page
         Load() 'Update page data
 
         If postresult.Contains("""result"":""Success""") Then
-            Console.WriteLine("Edit successful!")
+            Log("Edit successful!", "LOCAL", BOTName)
             Return "Edit successful!"
         End If
 
         If postresult.Contains("abusefilter") Then
-            Console.WriteLine("AbuseFilter Triggered!")
+            Log("AbuseFilter Triggered!", "LOCAL", BOTName)
             Return "AbuseFilter Triggered"
         End If
 
@@ -548,7 +549,7 @@ Public Class Page
             End If
 
             Dim Url As String = String.Format("https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{0}/all-access/all-agents/{1}/daily/{2}{4}{6}00/{3}{5}{7}00",
-                              Project, Page, Year, Currentyear, Month, CurrentMonth, FirstDay, LastDay)
+                              Project, Page, Year, Currentyear, Month.ToString("00"), CurrentMonth.ToString("00"), FirstDay, LastDay)
             Dim response As String = GetDataAndResult(Url, False)
 
             For Each view As String In TextInBetween(response, """views"":", "}")
