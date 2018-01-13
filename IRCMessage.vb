@@ -1,4 +1,6 @@
-﻿Public Class IRCMessage
+﻿Option Strict On
+Option Explicit On
+Public Class IRCMessage
 
     Public Property Source As String
     Public Property Text As String()

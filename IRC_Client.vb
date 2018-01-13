@@ -1,17 +1,18 @@
 ﻿Option Strict On
+Option Explicit On
 Imports System.IO
 Imports System.Net.Sockets
 Imports System.Threading
 Imports PeriodiBOT_IRC.IRC_Comands
 Public Class IRC_Client
     Private _sServer As String = String.Empty 'Server
-    Private _sChannel As String = String.Empty 'channel
+    Private _sChannel As String = String.Empty 'canal
     Private _sNickName As String = String.Empty 'nickname
-    Private _sPass As String = String.Empty 'irc password for nickserv auth
-    Private _lPort As Int32 = 6667 'port 6667 is default
+    Private _sPass As String = String.Empty 'contrasena de irc para nickserv auth
+    Private _lPort As Int32 = 6667 'puerto 6667 por defecto
     Private _bInvisible As Boolean = False 'invisible
     Private _sRealName As String = String.Empty 'realname
-    Private _sUserName As String = String.Empty 'Unique irc name
+    Private _sUserName As String = String.Empty 'nombre irc unico
 
     Private _tcpclientConnection As TcpClient = Nothing 'IRC network TCPclient.
     Private _networkStream As NetworkStream = Nothing 'break that connection down to a network stream.
@@ -67,16 +68,18 @@ Public Class IRC_Client
 
         Log("Starting IRCclient", "IRC", _sNickName)
         Dim sIsInvisible As String = String.Empty
-        Dim sCommand As String = String.Empty 'commands to process from the room.
+        Dim sCommand As String = String.Empty 'linea recibida
 
 
         Dim Lastdate As DateTime = DateTime.Now
-        Dim CheckUsersFunc As New Func(Of IRCMessage())(AddressOf CheckUsers)
 
+        'Tarea para verificar actividad de usuario.
+        Dim CheckUsersFunc As New Func(Of IRCMessage())(AddressOf CheckUsers)
+        Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
+        CheckUsersIRCTask.Run()
 
         Do Until HasExited
-            'Tarea para verificar actividad de usuario.
-            Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
+
             Try
                 'Start the main connection to the IRC server.
                 WriteLine("INFO", "IRC", "**Creating Connection**")
@@ -121,7 +124,7 @@ Public Class IRC_Client
 
 
 
-                CheckUsersIRCTask.Run()
+
 
                 Await Task.Run(Sub()
 
@@ -173,12 +176,15 @@ Public Class IRC_Client
 
                 'No connection, catch and retry
                 Debug_Log("IRC: Error Connecting: " + ex.Message, "IRC", _sNickName)
+
                 Try
                     'close connections
                     _streamReader.Dispose()
                     _streamWriter.Dispose()
                     _networkStream.Dispose()
+
                 Catch exex As Exception
+
                 End Try
             Catch ex As Exception
 
@@ -202,7 +208,6 @@ Public Class IRC_Client
             End If
 
             Log("Lost connection, retrying on 5 seconds...", "IRC", _sNickName)
-            CheckUsersIRCTask.Dispose()
             System.Threading.Thread.Sleep(5000)
         Loop
 

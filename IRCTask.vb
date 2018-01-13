@@ -1,4 +1,6 @@
-﻿Imports System.Runtime.InteropServices
+﻿Option Strict On
+Option Explicit On
+Imports System.Runtime.InteropServices
 Imports PeriodiBOT_IRC
 Imports System.Threading
 

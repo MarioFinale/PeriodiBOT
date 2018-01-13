@@ -1,4 +1,5 @@
 ﻿Option Strict On
+Option Explicit On
 Imports System.Text.RegularExpressions
 
 Public Module CommFunctions
