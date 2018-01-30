@@ -1,6 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Text.RegularExpressions
+Imports PeriodiBOT_IRC.WikiBot
 
 Public Module CommFunctions
 
@@ -450,6 +451,20 @@ Public Module CommFunctions
         Dim msgstr As String = "[" & DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & "]" & " [" & source & " " & type & "] " & message
         Console.WriteLine(msgstr)
     End Sub
+
+    Function PressKeyTimeout() As Boolean
+        Dim exitloop As Boolean = False
+        Console.WriteLine("Press any key to exit or wait 5 seconds")
+        For timeout As Integer = 0 To 5
+            Console.Write(".")
+            If Console.KeyAvailable Then
+                exitloop = True
+                Exit For
+            End If
+            System.Threading.Thread.Sleep(1000)
+        Next
+        Return exitloop
+    End Function
 
 
 End Module

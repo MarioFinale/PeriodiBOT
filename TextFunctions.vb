@@ -17,7 +17,7 @@ Module TextFunctions
     ''' <param name="Str">Texto a evaluar.</param>
     ''' <returns></returns>
     Function Removewhitelines(ByVal Str As String) As String
-        Return Regex.Replace(Str, “^\s+$[\r\n]*”, “”, RegexOptions.Multiline)
+        Return Regex.Replace(Str, "^\s+$[\r\n]*", "", RegexOptions.Multiline)
     End Function
     ''' <summary>
     ''' Elimina los excesos de espacios (consecutivos) en una cadena de texto.
@@ -196,7 +196,7 @@ Module TextFunctions
     ''' <param name="response">Mensaje a evaluar.</param>
     ''' <returns></returns>
     Function GetUserFromChatresponse(ByVal response As String) As String
-        Return response.Split(CType("!", Char))(0).Replace(":", "")
+        Return response.Split("!"c)(0).Replace(":", "")
     End Function
     ''' <summary>
     ''' Elimina todas las letras dejando únicamente números
@@ -212,7 +212,7 @@ Module TextFunctions
     ''' <param name="text">Texto a codificar</param>
     ''' <returns></returns>
     Function PsvSafeEncode(ByVal text As String) As String
-        Return text.Replace(CType("|", Char), "%CHAR:U+007C%")
+        Return text.Replace("|"c, "%CHAR:U+007C%")
     End Function
     ''' <summary>
     ''' Decodifica texto guardado en el LOG.

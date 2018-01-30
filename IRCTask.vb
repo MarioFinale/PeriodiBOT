@@ -65,8 +65,6 @@ Public Class IRCTask
     ''' Detiene la tarea de forma segura (si es infinita).
     ''' </summary>
     Public Sub Dispose() Implements IDisposable.Dispose
-        Debug_Log("End task func", "LOCAL", BOTName)
-        _infinite = False
         Dispose(True)
         GC.SuppressFinalize(Me)
     End Sub
@@ -76,6 +74,8 @@ Public Class IRCTask
     ''' </summary>
     ''' <param name="disposing"></param>
     Protected Overridable Sub Dispose(disposing As Boolean)
+        Debug_Log("End task func", "LOCAL", BOTName)
+        _infinite = False
         If disposed Then Return
         If disposing Then
             Thread.Abort()

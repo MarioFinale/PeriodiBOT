@@ -44,6 +44,7 @@ Public Class Template
         End Get
     End Property
 
+
     ''' <summary>
     ''' Crea una nueva plantilla. Si es una nueva se considera el texto como el título, de lo contrario se considera como el contenido de la plantilla y se extrae de este los parámetros.
     ''' El texto de ser inválido, genera una plantilla vacía ("{{}}").
@@ -88,7 +89,7 @@ Public Class Template
     End Function
 
     ''' <summary>
-    ''' Genera el texto de una plantilla a partir del nombre y parámetros indicados.
+    ''' Genera el texto de la plantilla a partir del nombre y parámetros indicados.
     ''' </summary>
     ''' <param name="tempname">Nombre de la plantilla.</param>
     ''' <param name="tempparams">Parámetros de la plantilla.</param>
@@ -239,7 +240,22 @@ Public Class Template
     End Sub
 
 
+    ''' <summary>
+    ''' Elimina los parámetros en blanco de la plantilla.
+    ''' </summary>
+    ''' <returns></returns>
+    Function OptimzeTemplate() As Boolean
+        Dim newParameters As New List(Of Tuple(Of String, String))
 
+        For Each parameter As Tuple(Of String, String) In _parameters
+            If Not String.IsNullOrWhiteSpace(parameter.Item2.ToString) Then
+                newParameters.Add(parameter)
+            End If
+        Next
+        _parameters = newParameters
+        _text = MakeTemplateText(_name, newParameters)
+        Return True
+    End Function
 
 
 End Class

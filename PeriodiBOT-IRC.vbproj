@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bot.vb" />
+    <Compile Include="BotAction.vb" />
     <Compile Include="CommFunctions.vb" />
     <Compile Include="Config.vb" />
     <Compile Include="DirectApiCalls.vb" />
