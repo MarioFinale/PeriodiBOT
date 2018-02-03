@@ -7,9 +7,14 @@ Class IRC_Comands
     Private LastMessage As IRCMessage
     Private _IrcNickName As String
     Private Client As IRC_Client
+    Private _bot As Bot
+    Private WikiAction As WikiTask
 
-    Public Function ResolveCommand(ByVal imputline As String, ByRef HasExited As Boolean, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client) As IRCMessage
+    Public Function ResolveCommand(ByVal imputline As String, ByRef HasExited As Boolean, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client, WorkerBot As Bot) As IRCMessage
         Client = IRCCLient
+        _bot = WorkerBot
+        WikiAction = New WikiTask(WorkerBot)
+
         _IrcNickName = BOTIRCNickName
 
         Try
@@ -127,7 +132,7 @@ Class IRC_Comands
                         ElseIf MainParam = ("%grillitusarchive") Then 'Archivado de grillitus
                             If IsOp(imputline, Source, Realname) Then
                                 Task.Run(Sub()
-                                             Mainwikibot.ArchiveAllInclusions(True)
+                                             ArchiveAllInclusions(True)
                                          End Sub)
                             End If
 
@@ -159,7 +164,7 @@ Class IRC_Comands
                         MainParam = ("%upex") Or MainParam = ("%updex") Then
                             If IsOp(imputline, Source, Realname) Then
                                 Task.Run(Sub()
-                                             Mainwikibot.UpdatePageExtracts(True)
+                                             UpdatePageExtracts(True)
                                          End Sub)
                             End If
 
@@ -190,7 +195,7 @@ Class IRC_Comands
                 End If
 
             Else
-                    Return Nothing
+                Return Nothing
             End If
         Catch ex As Exception
             Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _IrcNickName)
@@ -359,7 +364,7 @@ Class IRC_Comands
         Dim responsestring As String = ColoredText("Archivando " & PageName, "04")
         Task.Run(Sub()
                      Dim p As Page = Mainwikibot.Getpage(PageName)
-                     Mainwikibot.Archive(p)
+                     WikiAction.Archive(p)
                  End Sub)
         Dim mes As New IRCMessage(source, responsestring)
         Return mes
@@ -382,7 +387,7 @@ Class IRC_Comands
         Log("IRC: GetResume of " & Page, "IRC", user)
 
         If Not PageName = String.Empty Then
-            Dim pretext As String = "Entradilla de " & ColoredText(PageName, "03") & " en Wikipedia: " & Mainwikibot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
+            Dim pretext As String = "Entradilla de " & ColoredText(PageName, "03") & " en Wikipedia: " & WikiAction.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
             Dim endtext As String = "Enlace al artículo: " & ColoredText(" " & site & "wiki/" & PageName.Replace(" ", "_") & " ", "10")
             Dim mes As New IRCMessage(source, {pretext, endtext})
             Return mes
@@ -601,10 +606,10 @@ Class IRC_Comands
         Dim responsestring As String = String.Empty
         Log(String.Format("IRC: Requested lastedit of {0} to list (%ultima)", Username), "IRC", user)
 
-        If Mainwikibot.GetLastEditTimestampUser(Username).ToString.Contains("1111") Then
+        If _bot.GetLastEditTimestampUser(Username).ToString.Contains("1111") Then
             responsestring = String.Format("El usuario {0} no tiene ninguna edición en el proyecto eswiki", ColoredText(Username, "04"))
         Else
-            Dim edittime As DateTime = Mainwikibot.GetLastEditTimestampUser(Username)
+            Dim edittime As DateTime = _bot.GetLastEditTimestampUser(Username)
             Dim actualtime As DateTime = DateTime.UtcNow
             actualtime = actualtime.AddTicks(-(actualtime.Ticks Mod TimeSpan.TicksPerSecond))
 
@@ -645,7 +650,7 @@ Class IRC_Comands
 
 
     Private Function UserExist(ByVal username As String) As Boolean
-        Dim str As String = Mainwikibot.GetLastEditTimestampUser(username).ToString
+        Dim str As String = _bot.GetLastEditTimestampUser(username).ToString
         If str.Contains("1111") Then
             Return False
         Else

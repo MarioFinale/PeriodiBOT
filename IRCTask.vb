@@ -15,6 +15,7 @@ Public Class IRCTask
     Dim _nFunc As Func(Of IRCMessage())
     Dim _Ftask As Integer = 0
     Dim Thread As Thread
+    Dim _source As String
 
     ''' <summary>
     ''' Crea una nueva tarea de IRC
@@ -23,11 +24,12 @@ Public Class IRCTask
     ''' <param name="Interval">Intervalo de repetición de la tarea en milisegundos (el tiempo de espera se ejecuta al final de cada iteración)</param>
     ''' <param name="Infinite">¿Se repite idefinidamente la tarea?.</param>
     ''' <param name="nFunc">Función (String()) a ejecutar, cada linea será escrita directamente en el streamwriter del cliente IRC.</param>
-    Public Sub New(ByVal Client As IRC_Client, Interval As Integer, Infinite As Boolean, ByVal nFunc As Func(Of IRCMessage()))
+    Public Sub New(ByVal Client As IRC_Client, Interval As Integer, Infinite As Boolean, ByVal nFunc As Func(Of IRCMessage()), ByVal Source As String)
         _nFunc = nFunc
         _client = Client
         _interval = Interval
         _infinite = Infinite
+        _source = Source
     End Sub
 
 
@@ -40,19 +42,25 @@ Public Class IRCTask
 
                                                                                  Do
                                                                                      Try
-                                                                                         For Each s As IRCMessage In _nFunc.Invoke
+
+                                                                                         Dim msg As IRCMessage() = _nFunc.Invoke
+
+                                                                                         For Each s As IRCMessage In msg
 
                                                                                              If Not String.IsNullOrEmpty(s.Text(0)) Then
                                                                                                  _client.Sendmessage(s)
                                                                                              End If
                                                                                          Next
+
                                                                                      Catch ex As Exception
-                                                                                         Debug_Log("TASK EX: " & ex.Message, "THREAD", BOTName)
+                                                                                         Debug_Log("TASK " & _source & " EX: " & ex.Message, "THREAD", BOTName)
                                                                                      End Try
+
 
                                                                                      If Not _infinite Then
                                                                                          Exit Do
                                                                                      End If
+
                                                                                      System.Threading.Thread.Sleep(_interval)
                                                                                  Loop
 

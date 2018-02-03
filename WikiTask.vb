@@ -4,18 +4,14 @@ Imports System.Text.RegularExpressions
 
 Namespace WikiBot
 
-    Public Class BotAction
-
+    Public Class WikiTask
 
         Private _bot As Bot
         Private _siteurl As String
-        Private ResumePageName As String = "Usuario:PeriodiBOT/Resumen página"
-
-
 
         Sub New(ByVal Wbot As Bot)
             _bot = Wbot
-            _siteurl = 
+            _siteurl = Wbot.Siteurl
         End Sub
 
 
@@ -143,97 +139,111 @@ Namespace WikiBot
             Dim PageList As List(Of List(Of String)) = SplitStringArrayIntoChunks(PageNamesList.ToArray, 20)
             Dim PagenameAndResume As New SortedList(Of String, String)
 
-            For Each ListInList As List(Of String) In PageList
-                Dim Qstring As String = String.Empty
+            Try
 
-                For Each s As String In ListInList
-                    s = UrlWebEncode(s)
-                    Qstring = Qstring & s & "|"
-                Next
-                Qstring = Qstring.Trim(CType("|", Char))
-                Dim QueryResponse As String = GetDataAndResult(_siteurl & "?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=" & Qstring, False, BotCookies)
-                Dim ResponseArray As String() = TextInBetweenInclusive(QueryResponse, ",""title"":", """}")
-                For Each s As String In ResponseArray
-                    Dim pagetitle As String = TextInBetween(s, ",""title"":""", """,""")(0)
 
-                    If Not s.Contains(",""missing"":") Then
+                For Each ListInList As List(Of String) In PageList
+                    Dim Qstring As String = String.Empty
 
-                        If Not PagenameAndResume.ContainsKey(pagetitle) Then
-                            Dim TreatedExtract As String = TextInBetween(s, pagetitle & """,""extract"":""", """}")(0)
+                    For Each s As String In ListInList
+                        s = UrlWebEncode(s)
+                        Qstring = Qstring & s & "|"
+                    Next
+                    Qstring = Qstring.Trim(CType("|", Char))
+                    Dim QueryResponse As String = GetDataAndResult(_siteurl & "?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=" & Qstring, False, _bot.BotCookies)
+                    Dim ResponseArray As String() = TextInBetweenInclusive(QueryResponse, ",""title"":", """}")
+                    For Each s As String In ResponseArray
+                        Dim pagetitle As String = TextInBetween(s, ",""title"":""", """,""")(0)
 
-                            Dim PageKey As String = String.Empty
-                            Dim modlist As New List(Of String)
-                            For Each tx As String In PageNamesList.ToArray
-                                modlist.Add(tx.ToLower.Replace("_", " "))
-                            Next
-                            Dim normtext As String = NormalizeUnicodetext(pagetitle)
-                            normtext = normtext.ToLower.Replace("_", " ")
+                        If Not s.Contains(",""missing"":") Then
 
-                            Dim ItemIndex As Integer = modlist.IndexOf(normtext)
-                            PageKey = PageNamesList(ItemIndex)
-                            TreatedExtract = NormalizeUnicodetext(TreatedExtract)
-                            TreatedExtract = TreatedExtract.Replace("​", String.Empty) 'This isn't a empty string, it contains the invisible character u+200
-                            TreatedExtract = TreatedExtract.Replace("\n", Environment.NewLine)
-                            TreatedExtract = TreatedExtract.Replace("\""", """")
-                            TreatedExtract = Regex.Replace(TreatedExtract, "\{\\\\.*\}", " ")
-                            TreatedExtract = Regex.Replace(TreatedExtract, "\[[0-9]+\]", " ")
-                            TreatedExtract = Regex.Replace(TreatedExtract, "\[nota\ [0-9]+\]", " ")
-                            TreatedExtract = RemoveExcessOfSpaces(TreatedExtract)
-                            TreatedExtract = FixResumeNumericExp(TreatedExtract)
-                            If TreatedExtract.Contains(""",""missing"":""""}}}}") Then
-                                TreatedExtract = Nothing
-                            End If
-                            If TreatedExtract.Length > CharLimit Then
-                                TreatedExtract = TreatedExtract.Substring(0, CharLimit + 1)
-                                For a As Integer = -CharLimit To 0
-                                    If (TreatedExtract.Chars(0 - a) = ".") Or (TreatedExtract.Chars(0 - a) = ";") Then
+                            If Not PagenameAndResume.ContainsKey(pagetitle) Then
+                                Dim TreatedExtract As String = TextInBetween(s, pagetitle & """,""extract"":""", """}")(0)
 
-                                        If TreatedExtract.Contains("(") Then
-                                            If Not CountCharacter(TreatedExtract, CType("(", Char)) = CountCharacter(TreatedExtract, CType(")", Char)) Then
-                                                Continue For
-                                            End If
-                                        End If
-                                        If TreatedExtract.Contains("<") Then
-                                            If Not CountCharacter(TreatedExtract, CType("<", Char)) = CountCharacter(TreatedExtract, CType(">", Char)) Then
-                                                Continue For
-                                            End If
-                                        End If
-                                        If TreatedExtract.Contains("«") Then
-                                            If Not CountCharacter(TreatedExtract, CType("«", Char)) = CountCharacter(TreatedExtract, CType("»", Char)) Then
-                                                Continue For
-                                            End If
-                                        End If
-                                        If TreatedExtract.Contains("{") Then
-                                            If Not CountCharacter(TreatedExtract, CType("{", Char)) = CountCharacter(TreatedExtract, CType("}", Char)) Then
-                                                Continue For
-                                            End If
-                                        End If
-
-                                        If Regex.Match(TreatedExtract.Chars(0 - a + 1), "[0-9]+").Success Or
-                                        (TreatedExtract.Chars(0 - a - 2) & TreatedExtract.Chars(0 - a - 1)) = "(n" Or
-                                        (TreatedExtract.Chars(0 - a - 2) & TreatedExtract.Chars(0 - a - 1)) = "(f" Then
-                                            Continue For
-                                        Else
-                                            Exit For
-                                        End If
-
-                                    End If
-                                    TreatedExtract = TreatedExtract.Substring(0, 1 - a)
+                                Dim PageKey As String = String.Empty
+                                Dim modlist As New List(Of String)
+                                For Each tx As String In PageNamesList.ToArray
+                                    modlist.Add(tx.ToLower.Replace("_", " "))
                                 Next
-                                If Regex.Match(TreatedExtract, "{\\.+}").Success Then
-                                    For Each m As Match In Regex.Matches(TreatedExtract, "{\\.+}")
-                                        TreatedExtract = TreatedExtract.Replace(m.Value, "")
-                                    Next
-                                    TreatedExtract = RemoveExcessOfSpaces(TreatedExtract)
+                                Dim normtext As String = NormalizeUnicodetext(pagetitle)
+                                normtext = normtext.ToLower.Replace("_", " ")
+
+                                Dim ItemIndex As Integer = modlist.IndexOf(normtext)
+                                PageKey = PageNamesList(ItemIndex)
+                                TreatedExtract = NormalizeUnicodetext(TreatedExtract)
+                                TreatedExtract = TreatedExtract.Replace("​", String.Empty) 'This isn't a empty string, it contains the invisible character u+200
+                                TreatedExtract = TreatedExtract.Replace("\n", Environment.NewLine)
+                                TreatedExtract = TreatedExtract.Replace("\""", """")
+                                TreatedExtract = Regex.Replace(TreatedExtract, "\{\\\\.*\}", " ")
+                                TreatedExtract = Regex.Replace(TreatedExtract, "\[[0-9]+\]", " ")
+                                TreatedExtract = Regex.Replace(TreatedExtract, "\[nota\ [0-9]+\]", " ")
+                                TreatedExtract = RemoveExcessOfSpaces(TreatedExtract)
+                                TreatedExtract = FixResumeNumericExp(TreatedExtract)
+                                If TreatedExtract.Contains(""",""missing"":""""}}}}") Then
+                                    TreatedExtract = Nothing
                                 End If
+                                If TreatedExtract.Length > CharLimit Then
+                                    TreatedExtract = TreatedExtract.Substring(0, CharLimit + 1)
+                                    For a As Integer = -CharLimit To 0
+                                        If (TreatedExtract.Chars(0 - a) = ".") Or (TreatedExtract.Chars(0 - a) = ";") Then
+
+                                            If TreatedExtract.Contains("(") Then
+                                                If Not CountCharacter(TreatedExtract, CType("(", Char)) = CountCharacter(TreatedExtract, CType(")", Char)) Then
+                                                    Continue For
+                                                End If
+                                            End If
+                                            If TreatedExtract.Contains("<") Then
+                                                If Not CountCharacter(TreatedExtract, CType("<", Char)) = CountCharacter(TreatedExtract, CType(">", Char)) Then
+                                                    Continue For
+                                                End If
+                                            End If
+                                            If TreatedExtract.Contains("«") Then
+                                                If Not CountCharacter(TreatedExtract, CType("«", Char)) = CountCharacter(TreatedExtract, CType("»", Char)) Then
+                                                    Continue For
+                                                End If
+                                            End If
+                                            If TreatedExtract.Contains("{") Then
+                                                If Not CountCharacter(TreatedExtract, CType("{", Char)) = CountCharacter(TreatedExtract, CType("}", Char)) Then
+                                                    Continue For
+                                                End If
+                                            End If
+
+                                            'Verifica que no este cortando un numero
+                                            If TreatedExtract.Length - 1 >= (0 - a + 1) Then
+                                                If Regex.Match(TreatedExtract.Chars(0 - a + 1), "[0-9]+").Success Then
+                                                    Continue For
+                                                Else
+                                                    Exit For
+                                                End If
+                                            End If
+                                            'Verifica que no este cortando un n/f
+                                            If ((TreatedExtract.Chars(0 - a - 2) & TreatedExtract.Chars(0 - a - 1)).ToString.ToLower = "(n") Or
+                                            ((TreatedExtract.Chars(0 - a - 2) & TreatedExtract.Chars(0 - a - 1)).ToString.ToLower = "(f") Then
+                                                Continue For
+                                            Else
+                                                Exit For
+                                            End If
+
+                                        End If
+                                        TreatedExtract = TreatedExtract.Substring(0, 1 - a)
+                                    Next
+                                    If Regex.Match(TreatedExtract, "{\\.+}").Success Then
+                                        For Each m As Match In Regex.Matches(TreatedExtract, "{\\.+}")
+                                            TreatedExtract = TreatedExtract.Replace(m.Value, "")
+                                        Next
+                                        TreatedExtract = RemoveExcessOfSpaces(TreatedExtract)
+                                    End If
+                                End If
+
+                                PagenameAndResume.Add(PageKey, TreatedExtract)
                             End If
-
-                            PagenameAndResume.Add(PageKey, TreatedExtract)
                         End If
-                    End If
 
+                    Next
                 Next
-            Next
+            Catch ex As Exception
+                Dim a As Integer = 1
+            End Try
             Return PagenameAndResume
         End Function
 
@@ -255,7 +265,7 @@ Namespace WikiBot
                 Next
                 Qstring = Qstring.Trim(CType("|", Char))
                 Try
-                    Dim s As String = Gethtmlsource(("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & UrlWebEncode(Qstring)), False, BotCookies)
+                    Dim s As String = Gethtmlsource(("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & UrlWebEncode(Qstring)), False, _bot.BotCookies)
 
                     For Each m As Match In Regex.Matches(s, "({|, )(""[0-9]+"":).+?(}}}})")
 
@@ -320,7 +330,7 @@ Namespace WikiBot
                 Next
                 Qstring = Qstring.Trim(CType("|", Char))
 
-                Dim QueryResponse As String = Gethtmlsource((_siteurl & "?action=query&prop=revisions&format=json&titles=" & Qstring), False, BotCookies)
+                Dim QueryResponse As String = Gethtmlsource((_siteurl & "?action=query&prop=revisions&format=json&titles=" & Qstring), False, _bot.BotCookies)
                 Dim ResponseArray As String() = TextInBetweenInclusive(QueryResponse, ",""title"":", "}]")
 
                 For Each s As String In ResponseArray
@@ -370,7 +380,7 @@ Namespace WikiBot
             Try
                 Dim QueryText As String = String.Empty
                 Debug_Log("GetLastRevID: Query of last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
-                QueryText = Gethtmlsource((_siteurl & "?action=query&prop=revisions&format=json&titles=" & PageName), False, BotCookies)
+                QueryText = Gethtmlsource((_siteurl & "?action=query&prop=revisions&format=json&titles=" & PageName), False, _bot.BotCookies)
 
                 Dim ID As Integer = Integer.Parse(TextInBetween(QueryText, """revid"":", ",""")(0))
                 Debug_Log("GetLastRevID: Last RevisionID of page """ & PageName & " is: " & ID.ToString, "LOCAL", BOTName)
@@ -389,7 +399,7 @@ Namespace WikiBot
             Log("GetRandomPage: Starting query of random page.", "LOCAL", BOTName)
             Try
                 Dim QueryText As String = String.Empty
-                QueryText = Gethtmlsource((_siteurl & "?action=query&format=json&list=random&rnnamespace=0&rnlimit=10"), False, BotCookies)
+                QueryText = Gethtmlsource((_siteurl & "?action=query&format=json&list=random&rnnamespace=0&rnlimit=10"), False, _bot.BotCookies)
 
                 Dim plist As New List(Of String)
 
@@ -405,256 +415,6 @@ Namespace WikiBot
             End Try
         End Function
 
-        ''' <summary>
-        ''' Retorna un array de tipo string con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
-        ''' </summary>
-        ''' <param name="PageName">Nombre exacto de la pagina.</param>
-        Function GetallInclusions(ByVal PageName As String) As String()
-            Dim newlist As New List(Of String)
-            Dim s As String = String.Empty
-            s = Gethtmlsource((_siteurl & "?action=query&list=embeddedin&eilimit=500&format=json&eititle=" & PageName), False, BotCookies)
-
-            Dim pages As String() = TextInBetween(s, """title"":""", """}")
-            For Each _pag As String In pages
-                newlist.Add(NormalizeUnicodetext(_pag))
-            Next
-            Return newlist.ToArray
-        End Function
-
-        ''' <summary>
-        ''' Revisa todas las páginas que llamen a la página indicada y las retorna como sortedlist.
-        ''' La Key es el nombre de la página en la plantilla y el valor asociado es un array donde el primer elemento es
-        ''' el último usuario que la editó y el segundo el título real de la página.
-        ''' </summary>
-        Function GetAllRequestedpages() As SortedList(Of String, String())
-            Dim plist As New SortedList(Of String, String())
-            For Each s As String In GetallInclusions(ResumePageName)
-                Dim Pag As Page = Getpage(s)
-                Dim pagetext As String = Pag.Text
-                For Each s2 As String In TextInBetween(pagetext, "{{" & ResumePageName & "|", "}}")
-                    If Not plist.Keys.Contains(s2) Then
-                        plist.Add(s2, {Pag.Lastuser, Pag.Title})
-                    End If
-                Next
-            Next
-            Return plist
-        End Function
-
-        ''' <summary>
-        ''' Compara las páginas que llaman a la plantilla y retorna retorna un sortedlist
-        ''' La Key es el nombre de la página en la plantilla y el valor asociado es un array donde el primer elemento es
-        ''' el último usuario que la editó y el segundo el título real de la página.
-        ''' Solo contiene las páginas que no existen en la plantilla.
-        ''' </summary>
-        Function GetResumeRequests() As SortedList(Of String, String())
-
-            Dim slist As SortedList(Of String, String()) = GetAllRequestedpages()
-            Dim Reqlist As New SortedList(Of String, String())
-            Dim ResumePage As Page = Getpage(ResumePageName)
-            Dim rtext As String = ResumePage.Text
-
-            For Each pair As KeyValuePair(Of String, String()) In slist
-                Try
-                    If Not rtext.Contains("|" & pair.Key & "=") Then
-                        Dim pag As Page = Getpage(pair.Key)
-                        If pag.Exists Then
-                            Reqlist.Add(pair.Key, pair.Value)
-                        End If
-                    End If
-                Catch ex As Exception
-                End Try
-            Next
-            Return Reqlist
-
-        End Function
-        ''' <summary>
-        ''' Actualiza los resúmenes de página basado en varios parámetros,
-        ''' por defecto estos son de un máximo de 660 carácteres.
-        ''' </summary>
-        ''' <returns></returns>
-        Overloads Function UpdatePageExtracts() As Boolean
-            Return BotUpdatePageExtracts(False)
-        End Function
-        ''' <summary>
-        ''' Actualiza los resúmenes de página basado en varios parámetros,
-        ''' por defecto estos son de un máximo de 660 carácteres.
-        ''' </summary>
-        ''' <param name="IRC">Si se establece este valor envía un comando en IRC avisando de la actualización</param>
-        ''' <returns></returns>
-        Overloads Function UpdatePageExtracts(ByVal irc As Boolean) As Boolean
-            Return BotUpdatePageExtracts(irc)
-        End Function
-
-
-        ''' <summary>
-        ''' Actualiza los resúmenes de página basado en varios parámetros,
-        ''' por defecto estos son de un máximo de 660 carácteres.
-        ''' </summary>
-        ''' <param name="IRC">Si se establece este valor envía un comando en IRC avisando de la actualización</param>
-        ''' <returns></returns>
-        Private Function BotUpdatePageExtracts(ByVal irc As Boolean) As Boolean
-            If irc Then
-                BotIRC.Sendmessage(ColoredText("Actualizando extractos...", "04"))
-            End If
-
-            Log("UpdatePageExtracts: Beginning update of page extracts", "LOCAL", BOTName)
-            Debug_Log("UpdatePageExtracts: Declaring Variables", "LOCAL", BOTName)
-            Dim NewResumes As New SortedList(Of String, String)
-            Dim OldResumes As New SortedList(Of String, String)
-            Dim FinalList As New List(Of String)
-
-
-            Debug_Log("UpdatePageExtracts: Loading resume page", "LOCAL", BOTName)
-            Dim ResumePage As Page = Getpage(ResumePageName)
-
-            Dim ResumePageText As String = ResumePage.Text
-            Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL", BOTName)
-
-
-            Dim NewResumePageText As String = "{{#switch:{{{1}}}|" & Environment.NewLine
-            Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL", BOTName)
-
-            Dim Extracttext As String = String.Empty
-            Dim ExtractImage As String = String.Empty
-            Dim Safepages As Integer = 0
-            Dim NotSafepages As Integer = 0
-            Dim NewPages As Integer = 0
-            Dim NotSafePagesAdded As Integer = 0
-            Debug_Log("UpdatePageExtracts: Match list to ListOf", "LOCAL", BOTName)
-            Dim p As New List(Of String)
-
-            p.AddRange(GetTitlesOfTemplate(ResumePageText))
-
-            For Each item As KeyValuePair(Of String, String()) In GetResumeRequests()
-                If Not p.Contains(item.Key) Then
-                    p.Add(item.Key)
-                    NewPages += 1
-                End If
-            Next
-
-            Debug_Log("UpdatePageExtracts: Sort of ListOf", "LOCAL", BOTName)
-            p.Sort()
-            Debug_Log("UpdatePageExtracts: Creating new ResumePageText", "LOCAL", BOTName)
-
-
-            Debug_Log("UpdatePageExtracts: Adding IDS to IDLIST", "LOCAL", BOTName)
-            Dim IDLIST As SortedList(Of String, Integer) = GetLastRevIds(p.ToArray)
-
-            Debug_Log("UpdatePageExtracts: Adding Old resumes to list", "LOCAL", BOTName)
-            For Each s As String In p.ToArray
-                ' Adding Old resumes to list
-                Try
-                    Dim cont As String = TextInBetween(ResumePageText, "|" & s & "=", "Leer más...]]'''|")(0)
-                    OldResumes.Add(s, ("|" & s & "=" & cont & "Leer más...]]'''|" & Environment.NewLine))
-                Catch ex As IndexOutOfRangeException
-                    Debug_Log("UpdatePageExtracts: No old resume of " & s, "LOCAL", BOTName)
-                End Try
-
-            Next
-
-            Debug_Log("UpdatePageExtracts: Adding New resumes to list", "LOCAL", BOTName)
-
-            '============================================================================================
-            ' Adding New resumes to list
-            Dim Page_Resume_pair As SortedList(Of String, String) = GetPagesExtract(p.ToArray)
-            Dim Page_Image_pair As SortedList(Of String, String) = GetImagesExtract(p.ToArray)
-
-            For Each Page As String In Page_Resume_pair.Keys
-
-                If Not Page_Image_pair.Item(Page) = String.Empty Then
-                    'If the page contais a image
-                    NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
-                               & "[[File:" & Page_Image_pair(Page) & "|thumb|x120px]]" & Environment.NewLine _
-                               & Page_Resume_pair.Item(Page) & Environment.NewLine _
-                               & ":'''[[" & Page & "|Leer más...]]'''|" & Environment.NewLine)
-                Else
-                    'If the page doesn't contain a image
-                    NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
-                              & Page_Resume_pair.Item(Page) & Environment.NewLine _
-                              & ":'''[[" & Page & "|Leer más...]]'''|" & Environment.NewLine)
-                End If
-            Next
-
-            '===========================================================================================
-
-            Debug_Log("UpdatePageExtracts: getting ORES of IDS", "LOCAL", BOTName)
-            Dim EditScoreList As SortedList(Of Integer, Double()) = GetORESScores(IDLIST.Values.ToArray)
-
-            '==========================================================================================
-            'Choose between a old resume and a new resume depending if new resume is safe to use
-            Debug_Log("UpdatePageExtracts: Recreating text", "LOCAL", BOTName)
-            For Each s As String In p.ToArray
-                Try
-                    If (EditScoreList(IDLIST(s))(0) > 22) And
-          (CountCharacter(NewResumes(s), CType("[", Char)) =
-          CountCharacter(NewResumes(s), CType("]", Char))) Then
-                        'Is a safe edit
-                        FinalList.Add(NewResumes(s))
-                        Safepages += 1
-                    Else
-                        'Isn't a safe edit
-                        Try
-                            FinalList.Add(OldResumes(s))
-                            NotSafepages += 1
-                        Catch ex As KeyNotFoundException
-                            FinalList.Add(NewResumes(s))
-                            NotSafePagesAdded += 1
-                        End Try
-                    End If
-                Catch ex As KeyNotFoundException
-                    'If the resume doesn't exist, will try to use the old resume text
-                    FinalList.Add(OldResumes(s))
-                    NotSafepages += 1
-                End Try
-            Next
-            '==========================================================================================
-
-            Debug_Log("UpdatePageExtracts: Concatenating text", "LOCAL", BOTName)
-            NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & "<!-- MARK -->" & Environment.NewLine & "|}}"
-
-            Debug_Log("UpdatePageExtracts: Done, trying to save", "LOCAL", BOTName)
-
-            Try
-                If NotSafepages = 0 Then
-                    If NewPages = 0 Then
-                        ResumePage.Save(NewResumePageText, "(Bot) : Actualizando " & Safepages.ToString & " resúmenes.", False)
-                    Else
-                        ResumePage.Save(NewResumePageText, "(Bot) : Actualizando " & Safepages.ToString & " resúmenes. Se han añadido " & NewPages.ToString & " resúmenes nuevos", False)
-                    End If
-
-                Else
-                    If NewPages = 0 Then
-                        ResumePage.Save(NewResumePageText,
-                                                        "(Bot): Actualizando " & Safepages.ToString & " resúmenes, fueron omitidos " _
-                                                        & NotSafepages.ToString & " resumenes posiblemente inseguros.", False)
-                    Else
-                        ResumePage.Save(NewResumePageText,
-                                                        "(Bot): Actualizando " & Safepages.ToString & " resúmenes, fueron omitidos " _
-                                                        & NotSafepages.ToString & " resumenes posiblemente inseguros. Se han añadido " & NewPages.ToString & " resúmenes nuevos.", False)
-                    End If
-
-                End If
-
-                Log("UpdatePageExtracts: Update of page extracts completed successfully", "LOCAL", BOTName)
-                If irc Then
-                    BotIRC.Sendmessage(ColoredText("Extractos actualizados!", "04"))
-                End If
-
-                Return True
-
-            Catch ex As Exception
-                Log("UpdatePageExtracts: Error updating page extracts", "LOCAL", BOTName)
-                Debug_Log(ex.Message, "LOCAL", BOTName)
-                CleanCookies()
-                WikiLogOn()
-                If ex.Message.ToLower.Contains("token") Then
-                    Debug_Log("UpdatePageExtracts: Token exception", "LOCAL", BOTName)
-                End If
-                BotIRC.Sendmessage(ColoredText("Error al actualizar los extractos, ver LOG.", "04"))
-                Return False
-            End Try
-
-        End Function
 
         ''' <summary>
         ''' Entrega el título de la primera página que coincida remotamente con el texto entregado como parámetro.
@@ -665,7 +425,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function TitleFirstGuess(Text As String) As String
             Try
-                Return GetTitlesFromQueryText(Gethtmlsource((_siteurl & "?action=query&format=json&list=search&utf8=1&srsearch=" & Text), False, BotCookies))(0)
+                Return GetTitlesFromQueryText(Gethtmlsource((_siteurl & "?action=query&format=json&list=search&utf8=1&srsearch=" & Text), False, _bot.BotCookies))(0)
             Catch ex As Exception
                 Return String.Empty
             End Try
@@ -680,37 +440,13 @@ Namespace WikiBot
         ''' <returns></returns>
         Function UserFirstGuess(text As String) As String
             Try
-                Return GetTitlesFromQueryText(Gethtmlsource((_siteurl & "?action=query&format=json&list=search&utf8=1&srnamespace=2&srsearch=" & text), False, BotCookies))(0)
+                Return GetTitlesFromQueryText(Gethtmlsource((_siteurl & "?action=query&format=json&list=search&utf8=1&srnamespace=2&srsearch=" & text), False, _bot.BotCookies))(0)
             Catch ex As Exception
                 Return String.Empty
             End Try
         End Function
 
-        ''' <summary>
-        ''' Entrega como DateTime la fecha de la última edición del usuario entregado como parámetro.
-        ''' </summary>
-        ''' <param name="user">Nombre exacto del usuario</param>
-        ''' <returns></returns>
-        Function GetLastEditTimestampUser(ByVal user As String) As DateTime
-            user = UrlWebEncode(user)
-            Dim qtest As String = Gethtmlsource((_siteurl & "?action=query&list=usercontribs&uclimit=1&format=json&ucuser=" & user), False, BotCookies)
 
-            If qtest.Contains("""usercontribs"":[]") Then
-                Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
-                Return fec
-            Else
-                Try
-                    Dim timestring As String = TextInBetween(qtest, """timestamp"":""", """,")(0).Replace("T", "|").Replace("Z", String.Empty)
-                    Dim fec As DateTime = DateTime.ParseExact(timestring, "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
-                    Return fec
-                Catch ex As IndexOutOfRangeException
-                    Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
-                    Return fec
-                End Try
-
-            End If
-
-        End Function
         ''' <summary>
         ''' Busca un texto exacto en una página y lo reemplaza.
         ''' </summary>
@@ -876,6 +612,20 @@ Namespace WikiBot
             End If
 
         End Function
+
+
+
+        ''' <summary>
+        ''' Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo una lógica similar a la de Grillitus.
+        ''' </summary>
+        ''' <param name="PageToArchive">Página a archivar</param>
+        ''' <returns></returns>
+        Function Archive(ByVal PageToArchive As Page) As Boolean
+            Dim ArchiveFcn As New GrillitusArchive(_bot)
+            Return ArchiveFcn.Archive(PageToArchive)
+        End Function
+
+
 
     End Class
 

@@ -7,7 +7,8 @@ Namespace WikiBot
     Public Class Bot
 
         Public BotCookies As CookieContainer
-        Private Username As String = String.Empty
+        Public Username As String = String.Empty
+
         Private _botusername As String = String.Empty
         Private _botpass As String = String.Empty
         Private _siteurl As String = String.Empty
@@ -16,6 +17,12 @@ Namespace WikiBot
         Public ReadOnly Property BotFlag As Boolean
             Get
                 Return HasBotFlag()
+            End Get
+        End Property
+
+        Public ReadOnly Property Siteurl As String
+            Get
+                Return _siteurl
             End Get
         End Property
 
@@ -147,25 +154,51 @@ Namespace WikiBot
             Return lresult
         End Function
 
-
         ''' <summary>
-        ''' Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo una lógica similar a la de Grillitus.
+        ''' Retorna un array de tipo string con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
         ''' </summary>
-        ''' <param name="PageToArchive">Página a archivar</param>
-        ''' <returns></returns>
-        Function Archive(ByVal PageToArchive As Page) As Boolean
-            Dim ArchiveFcn As New GrillitusArchive(Me)
-            Return ArchiveFcn.Archive(PageToArchive)
+        ''' <param name="PageName">Nombre exacto de la pagina.</param>
+        Function GetallInclusions(ByVal PageName As String) As String()
+            Dim newlist As New List(Of String)
+            Dim s As String = String.Empty
+            s = Gethtmlsource((_siteurl & "?action=query&list=embeddedin&eilimit=500&format=json&eititle=" & PageName), False, BotCookies)
+
+            Dim pages As String() = TextInBetween(s, """title"":""", """}")
+            For Each _pag As String In pages
+                newlist.Add(NormalizeUnicodetext(_pag))
+            Next
+            Return newlist.ToArray
         End Function
 
+
         ''' <summary>
-        ''' Crea una nueva instancia de la clase de archivado y actualiza todas las paginas que incluyan la pseudoplantilla de archivado de grillitus.
+        ''' Entrega como DateTime la fecha de la última edición del usuario entregado como parámetro.
         ''' </summary>
+        ''' <param name="user">Nombre exacto del usuario</param>
         ''' <returns></returns>
-        Function ArchiveAllInclusions(ByVal IRC As Boolean) As Boolean
-            Dim Archive As New GrillitusArchive(Me)
-            Return Archive.ArchiveAllInclusions(IRC)
+        Function GetLastEditTimestampUser(ByVal user As String) As DateTime
+            user = UrlWebEncode(user)
+            Dim qtest As String = Gethtmlsource((_siteurl & "?action=query&list=usercontribs&uclimit=1&format=json&ucuser=" & user), False, BotCookies)
+
+            If qtest.Contains("""usercontribs"":[]") Then
+                Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+                Return fec
+            Else
+                Try
+                    Dim timestring As String = TextInBetween(qtest, """timestamp"":""", """,")(0).Replace("T", "|").Replace("Z", String.Empty)
+                    Dim fec As DateTime = DateTime.ParseExact(timestring, "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+                    Return fec
+                Catch ex As IndexOutOfRangeException
+                    Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+                    Return fec
+                End Try
+
+            End If
+
         End Function
+
+
+
 
     End Class
 

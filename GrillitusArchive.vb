@@ -1,13 +1,15 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Text.RegularExpressions
-
+Imports PeriodiBOT_IRC.WikiBot
 
 Class GrillitusArchive
-    Private Bot As WikiBot.Bot
+    Private _bot As Bot
+    Private WikiAction As WikiTask
 
     Sub New(ByVal WorkerBot As WikiBot.Bot)
-        Bot = WorkerBot
+        _bot = WorkerBot
+        WikiAction = New WikiTask(WorkerBot)
     End Sub
 
     ''' <summary>
@@ -41,7 +43,7 @@ Class GrillitusArchive
                 Return False
             End If
             'Verificar si el usuario editó hace al menos 4 días.
-            If Date.Now.Subtract(Bot.GetLastEditTimestampUser(Username)).Days >= 4 Then
+            If Date.Now.Subtract(_bot.GetLastEditTimestampUser(Username)).Days >= 4 Then
                 Log("Archive: User " & Username & " is inactive", "LOCAL", BOTName)
                 Return False
             End If
@@ -52,7 +54,7 @@ Class GrillitusArchive
         Debug_Log("Archive: Declare vars", "LOCAL", BOTName)
         Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
 
-        Dim IndexPage As Page = Bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
+        Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
 
         Dim PageTitle As String = PageToArchive.Title
         Dim pagetext As String = PageToArchive.Text
@@ -65,7 +67,7 @@ Class GrillitusArchive
         Dim Archives As New List(Of Tuple(Of String, String))
 
         Debug_Log("Archive: Get threads of page " & PageTitle, "LOCAL", BOTName)
-        Dim threads As String() = Bot.GetPageThreads(pagetext)
+        Dim threads As String() = WikiAction.GetPageThreads(pagetext)
 
         Dim Notify As Boolean = False
         Dim Strategy As String = String.Empty
@@ -137,7 +139,7 @@ Class GrillitusArchive
                 '-----------------------------------------------------------------------------------------------
                 'Firma mas reciente en la seccion
                 If Strategy = "FirmaMásRecienteEnLaSección" Then
-                    Dim threaddate As DateTime = Bot.MostRecentDate(t)
+                    Dim threaddate As DateTime = WikiAction.MostRecentDate(t)
 
                     Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
                     Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
@@ -197,7 +199,7 @@ Class GrillitusArchive
                     'Firma en el ultimo parrafo
                     '-----------------------------------------------------------------------------------------------------
                 ElseIf Strategy = "FirmaEnÚltimoPárrafo" Then
-                    Dim threaddate As DateTime = Bot.LastParagraphDateTime(t)
+                    Dim threaddate As Date = WikiAction.LastParagraphDateTime(t)
                     Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
                     Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
 
@@ -283,8 +285,8 @@ Class GrillitusArchive
                 Dim isminor As Boolean = Not Notify
                 Dim Archivepage As String = k.Key
                 Dim ThreadText As String = Environment.NewLine & k.Value
-                Dim threadcount As Integer = Bot.GetPageThreads(Environment.NewLine & ThreadText).Count
-                Dim ArchPage As Page = Bot.Getpage(Archivepage)
+                Dim threadcount As Integer = WikiAction.GetPageThreads(Environment.NewLine & ThreadText).Count
+                Dim ArchPage As Page = _bot.Getpage(Archivepage)
                 Dim ArchivePageText As String = ArchPage.Text
                 ArchivePages.Add(Archivepage)
                 'Verificar si la página de archivado está en el mismo espacio de nombres
@@ -443,12 +445,17 @@ Class GrillitusArchive
         If IRC Then
             BotIRC.Sendmessage(ColoredText("Archivando todas las páginas...", "04"))
         End If
-        Dim includedpages As String() = Bot.GetallInclusions("Plantilla:Archivado automático")
+        Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Archivado automático")
         For Each pa As String In includedpages
             Log("ArchiveAllInclusions: Page " & pa, "LOCAL", BOTName)
-            Dim _Page As Page = Bot.Getpage(pa)
+            Dim _Page As Page = _bot.Getpage(pa)
             If _Page.Exists Then
-                Archive(_Page)
+                Try
+                    Archive(_Page)
+                Catch ex As Exception
+                    Debug_Log("Archive error, page " & _Page.Title, "LOCAL", BOTName)
+                End Try
+
             End If
         Next
         If IRC Then

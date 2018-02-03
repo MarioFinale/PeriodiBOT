@@ -302,76 +302,7 @@ Public Module CommFunctions
     End Function
 
 
-    ''' <summary>
-    ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
-    ''' </summary>
-    ''' <returns></returns>
-    Function CheckUsers() As IRCMessage()
-        Dim Messages As New List(Of IRCMessage)
-        Try
-            For Each UserdataLine As String() In Userdata
-                Dim User As String = UserdataLine(1)
-                Dim OP As String = UserdataLine(0)
-                Dim UserDate As String = UserdataLine(2)
 
-                Log("CheckUsers: Checking user " & User, "IRC", BOTName)
-                Dim LastEdit As DateTime = Mainwikibot.GetLastEditTimestampUser(User)
-                If LastEdit.Year = 1111 Then
-                    Log("CheckUsers: The user " & User & " has not edited on this wiki", "IRC", BOTName)
-                    Continue For
-                End If
-                Dim actualtime As DateTime = DateTime.UtcNow
-
-                Dim LastEditUnix As Integer = CInt(TimeToUnix(LastEdit))
-                Dim ActualTimeUnix As Integer = CInt(TimeToUnix(actualtime))
-
-
-                Dim Timediff As Integer = ActualTimeUnix - LastEditUnix - 3600
-                Dim TriggerTimeDiff As Long = TimeStringToSeconds(UserDate)
-
-                Dim TimediffToHours As Integer = CInt(Math.Truncate(Timediff / 3600))
-                Dim TimediffToMinutes As Integer = CInt(Math.Truncate(Timediff / 60))
-                Dim TimediffToDays As Integer = CInt(Math.Truncate(Timediff / 86400))
-                Dim responsestring As String = String.Empty
-
-                Log("Timediff  " & User & ": " & Timediff, "LOCAL", BOTName)
-                Log("Trigger Timediff " & User & ": " & TriggerTimeDiff, "LOCAL", BOTName)
-
-                If Timediff > TriggerTimeDiff Then
-
-                    If TimediffToMinutes <= 1 Then
-                        responsestring = String.Format("¡{0} editó recién!", User)
-                    Else
-                        If TimediffToMinutes < 60 Then
-                            responsestring = String.Format("La última edición de {0} fue hace {1} minutos", User, TimediffToMinutes)
-                        Else
-                            If TimediffToMinutes < 120 Then
-                                responsestring = String.Format("La última edición de {0} fue hace más de {1} hora", User, TimediffToHours)
-                            Else
-                                If TimediffToMinutes < 1440 Then
-                                    responsestring = String.Format("La última edición de {0} fue hace más de {1} horas", User, TimediffToHours)
-                                Else
-                                    If TimediffToMinutes < 2880 Then
-                                        responsestring = String.Format("La última edición de {0} fue hace {1} día", User, TimediffToDays)
-                                    Else
-                                        responsestring = String.Format("La última edición de {0} fue hace más de {1} días", User, TimediffToDays)
-                                    End If
-                                End If
-                            End If
-                        End If
-                    End If
-                    responsestring = responsestring & ". El proximo aviso será en 5 minutos."
-
-                    Messages.Add(New IRCMessage(OP, responsestring))
-                End If
-            Next
-        Catch ex As System.ObjectDisposedException
-            Debug_Log("CheckUsers EX: " & ex.Message, "IRC", BOTName)
-        End Try
-
-        Return Messages.ToArray
-
-    End Function
 
     ''' <summary>
     ''' Retorna una lista de plantillas si se le entrega como parámetro un array de tipo string con texto en formato válido de plantilla.
@@ -444,7 +375,7 @@ Public Module CommFunctions
     End Sub
 
     Sub RunDailyTask()
-        Mainwikibot.ArchiveAllInclusions(True)
+        ArchiveAllInclusions(True)
     End Sub
 
     Sub WriteLine(ByVal type As String, ByVal source As String, message As String)

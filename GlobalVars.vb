@@ -28,6 +28,8 @@ Module GlobalVars
     Public ConfigFilePath As String = Exepath & "Config.cfg"
     Public OpFilePath As String = Exepath & "OPs.cfg"
 
+    Public ResumePageName As String = "Usuario:PeriodiBOT/Resumen página"
+
 
     Public LogC As New LogEngine(Log_Filepath, User_Filepath)
     Public Userdata As List(Of String()) = LogC.LogUserData

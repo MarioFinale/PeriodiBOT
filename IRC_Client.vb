@@ -15,9 +15,9 @@ Public Class IRC_Client
     Private _sUserName As String = String.Empty 'nombre irc unico
 
     Private _tcpclientConnection As TcpClient = Nothing 'IRC network TCPclient.
-    Private _networkStream As NetworkStream = Nothing 'break that connection down to a network stream.
-    Private _streamWriter As StreamWriter = Nothing 'to provide a convenient access to writing commands.
-    Private _streamReader As StreamReader = Nothing 'to provide a convenient access to reading commands.
+    Private _networkStream As NetworkStream = Nothing 'conexion a un network stream.
+    Private _streamWriter As StreamWriter = Nothing 'escribir en el stream.
+    Private _streamReader As StreamReader = Nothing 'leer desde el stream.
 
     Private Command As New IRC_Comands
 
@@ -69,14 +69,8 @@ Public Class IRC_Client
         Log("Starting IRCclient", "IRC", _sNickName)
         Dim sIsInvisible As String = String.Empty
         Dim sCommand As String = String.Empty 'linea recibida
-
-
         Dim Lastdate As DateTime = DateTime.Now
 
-        'Tarea para verificar actividad de usuario.
-        Dim CheckUsersFunc As New Func(Of IRCMessage())(AddressOf CheckUsers)
-        Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
-        CheckUsersIRCTask.Run()
 
         Do Until HasExited
 
@@ -123,9 +117,6 @@ Public Class IRC_Client
                 _streamWriter.Flush()
 
 
-
-
-
                 Await Task.Run(Sub()
 
                                    Try
@@ -137,9 +128,9 @@ Public Class IRC_Client
 
 
                                            Dim CommandFunc As New Func(Of IRCMessage())(Function()
-                                                                                            Return {Command.ResolveCommand(sCommand, HasExited, _sNickName, Me)}
+                                                                                            Return {Command.ResolveCommand(sCommand, HasExited, _sNickName, Me, Mainwikibot)}
                                                                                         End Function)
-                                           Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc)
+                                           Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc, "ResolveCommand")
 
                                            Debug_Log("Run irc response", "LOCAL", BOTName)
                                            IRCResponseTask.Run()
@@ -170,7 +161,6 @@ Public Class IRC_Client
 
 
                                End Sub)
-
 
             Catch ex As SocketException
 
