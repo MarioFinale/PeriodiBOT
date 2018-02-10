@@ -150,7 +150,7 @@ Namespace WikiBot
                         Qstring = Qstring & s & "|"
                     Next
                     Qstring = Qstring.Trim(CType("|", Char))
-                    Dim QueryResponse As String = GetDataAndResult(_siteurl & "?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=" & Qstring, False, _bot.BotCookies)
+                    Dim QueryResponse As String = _bot.GETQUERY("?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=")
                     Dim ResponseArray As String() = TextInBetweenInclusive(QueryResponse, ",""title"":", """}")
                     For Each s As String In ResponseArray
                         Dim pagetitle As String = TextInBetween(s, ",""title"":""", """,""")(0)
@@ -265,7 +265,7 @@ Namespace WikiBot
                 Next
                 Qstring = Qstring.Trim(CType("|", Char))
                 Try
-                    Dim s As String = Gethtmlsource(("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & UrlWebEncode(Qstring)), False, _bot.BotCookies)
+                    Dim s As String = _bot.GET(("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & UrlWebEncode(Qstring)))
 
                     For Each m As Match In Regex.Matches(s, "({|, )(""[0-9]+"":).+?(}}}})")
 
@@ -330,7 +330,7 @@ Namespace WikiBot
                 Next
                 Qstring = Qstring.Trim(CType("|", Char))
 
-                Dim QueryResponse As String = Gethtmlsource((_siteurl & "?action=query&prop=revisions&format=json&titles=" & Qstring), False, _bot.BotCookies)
+                Dim QueryResponse As String = _bot.GETQUERY(("?action=query&prop=revisions&format=json&titles=" & Qstring))
                 Dim ResponseArray As String() = TextInBetweenInclusive(QueryResponse, ",""title"":", "}]")
 
                 For Each s As String In ResponseArray
@@ -380,7 +380,7 @@ Namespace WikiBot
             Try
                 Dim QueryText As String = String.Empty
                 Debug_Log("GetLastRevID: Query of last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
-                QueryText = Gethtmlsource((_siteurl & "?action=query&prop=revisions&format=json&titles=" & PageName), False, _bot.BotCookies)
+                QueryText = _bot.GETQUERY(("?action=query&prop=revisions&format=json&titles=" & PageName))
 
                 Dim ID As Integer = Integer.Parse(TextInBetween(QueryText, """revid"":", ",""")(0))
                 Debug_Log("GetLastRevID: Last RevisionID of page """ & PageName & " is: " & ID.ToString, "LOCAL", BOTName)
@@ -399,7 +399,7 @@ Namespace WikiBot
             Log("GetRandomPage: Starting query of random page.", "LOCAL", BOTName)
             Try
                 Dim QueryText As String = String.Empty
-                QueryText = Gethtmlsource((_siteurl & "?action=query&format=json&list=random&rnnamespace=0&rnlimit=10"), False, _bot.BotCookies)
+                QueryText = _bot.GETQUERY("?action=query&format=json&list=random&rnnamespace=0&rnlimit=10")
 
                 Dim plist As New List(Of String)
 
@@ -425,7 +425,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function TitleFirstGuess(Text As String) As String
             Try
-                Return GetTitlesFromQueryText(Gethtmlsource((_siteurl & "?action=query&format=json&list=search&utf8=1&srsearch=" & Text), False, _bot.BotCookies))(0)
+                Return GetTitlesFromQueryText(_bot.GETQUERY("?action=query&format=json&list=search&utf8=1&srsearch=" & Text))(0)
             Catch ex As Exception
                 Return String.Empty
             End Try
@@ -440,7 +440,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function UserFirstGuess(text As String) As String
             Try
-                Return GetTitlesFromQueryText(Gethtmlsource((_siteurl & "?action=query&format=json&list=search&utf8=1&srnamespace=2&srsearch=" & text), False, _bot.BotCookies))(0)
+                Return GetTitlesFromQueryText(_bot.GETQUERY(_siteurl & "?action=query&format=json&list=search&utf8=1&srnamespace=2&srsearch=" & text))(0)
             Catch ex As Exception
                 Return String.Empty
             End Try

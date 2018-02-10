@@ -23,8 +23,6 @@ Namespace WikiBot
         Private _thumbnail As String
         Private _bot As Bot
 
-        Private _cookies As CookieContainer
-
         ''' <summary>
         ''' Entrega el puntaje ORES {reverted,goodfaith} de la página.
         ''' </summary>
@@ -190,12 +188,7 @@ Namespace WikiBot
             If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
                 Throw New ArgumentNullException
             End If
-
-            If wikibot.BotCookies Is Nothing Then
-                wikibot.BotCookies = New CookieContainer
-            End If
             _siteurl = site
-            _cookies = wikibot.BotCookies
             PageInfoData(PageTitle)
 
             _sections = GetPageThreads(_text)
@@ -215,7 +208,7 @@ Namespace WikiBot
         Private Function GetORESScores(ByVal revid As Integer) As Double()
             Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString, "LOCAL", BOTName)
             Try
-                Dim s As String = Gethtmlsource(("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & revid), False, _cookies)
+                Dim s As String = _bot.GET("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & revid)
 
                 Dim DMGScore_str As String = TextInBetween(TextInBetweenInclusive(s, "{""damaging"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
                 Dim GoodFaithScore_str As String = TextInBetween(TextInBetweenInclusive(s, """goodfaith"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
@@ -277,7 +270,7 @@ Namespace WikiBot
             Dim postresult As String = String.Empty
 
             Try
-                postresult = PostDataAndGetResult(_siteurl, postdata, True, _cookies)
+                postresult = _bot.POSTQUERY(postdata)
                 System.Threading.Thread.Sleep(1000) 'Some time to the server to process the data
                 Load() 'Update page data
             Catch ex As Exception
@@ -369,7 +362,7 @@ Namespace WikiBot
             Dim postdata As String = "format=json&action=edit&title=" & _title & "&summary=" & UrlWebEncode(EditSummary) & "&section=new" _
             & "&sectiontitle=" & SectionTitle & "&text=" & UrlWebEncode(text) & "&token=" & UrlWebEncode(GetEditToken())
 
-            Dim postresult As String = PostDataAndGetResult(_siteurl, postdata, True, _cookies)
+            Dim postresult As String = _bot.POSTQUERY(postdata)
             System.Threading.Thread.Sleep(1000) 'Some time to the server to process the data
             Load() 'Update page data
 
@@ -432,9 +425,8 @@ Namespace WikiBot
         ''' </summary>
         ''' <returns></returns>
         Private Function GetEditToken() As String
-
             Dim querytext As String = "format=json&action=query&meta=tokens"
-            Dim queryresult As String = PostDataAndGetResult(_siteurl, querytext, True, _cookies)
+            Dim queryresult As String = _bot.POSTQUERY(querytext)
             Dim token As String = TextInBetween(queryresult, """csrftoken"":""", """}}")(0).Replace("\\", "\")
             Return token
         End Function
@@ -446,12 +438,11 @@ Namespace WikiBot
         ''' <param name="Pagename">Título exacto de la página</param>
         Private Sub PageInfoData(ByVal Pagename As String)
 
-
-            Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions" & UrlWebEncode("|") & "pageimages" & UrlWebEncode("|") & "categories" & UrlWebEncode("|") & "extracts" & "&rvprop=user" &
+            Dim querystring As String = "?format=json&maxlag=5&action=query&prop=revisions" & UrlWebEncode("|") & "pageimages" & UrlWebEncode("|") & "categories" & UrlWebEncode("|") & "extracts" & "&rvprop=user" &
             UrlWebEncode("|") & "timestamp" & UrlWebEncode("|") & "size" & UrlWebEncode("|") & "content" & UrlWebEncode("|") & "ids" & "&exlimit=1&explaintext&exintro&titles=" & UrlWebEncode(Pagename)
 
             'Fix temporal, un BUG en la api de Mediawiki provoca que los extractos en solicitudes POST sean distintos a los de GET
-            Dim QueryText As String = GetDataAndResult(_siteurl & "?" & querystring, False, _cookies)
+            Dim QueryText As String = _bot.GETQUERY(querystring)
 
             Dim PageID As String = "-1"
             Dim PRevID As String = "-1"
@@ -511,7 +502,8 @@ Namespace WikiBot
         ''' <returns></returns>
         Function GetLastTimeStamp(ByVal pagename As String) As String
             Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions&rvprop=timestamp&titles=" & pagename
-            Dim QueryText As String = PostDataAndGetResult(_siteurl, querystring, False, _cookies)
+            Dim QueryText As String = _bot.POSTQUERY(querystring)
+
             Try
                 Return TextInBetween(QueryText, """timestamp"":""", """")(0)
             Catch ex As IndexOutOfRangeException

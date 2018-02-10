@@ -6,7 +6,7 @@ Imports System.Text.RegularExpressions
 Namespace WikiBot
     Public Class Bot
 
-        Public BotCookies As CookieContainer
+        Private BotCookies As CookieContainer
         Public Username As String = String.Empty
 
         Private _botusername As String = String.Empty
@@ -26,6 +26,26 @@ Namespace WikiBot
             End Get
         End Property
 
+
+        Public Function POSTQUERY(ByVal postdata As String) As String
+            Dim postresponse As String = PostDataAndGetResult(_siteurl, postdata, True, BotCookies)
+            Return postresponse
+        End Function
+
+        Public Function GETQUERY(ByVal getdata As String) As String
+            Dim getresponse As String = GetDataAndResult(_siteurl & getdata, True, BotCookies)
+            Return getresponse
+        End Function
+
+        Public Function [GET](ByVal URL As String) As String
+            Dim getresponse As String = GetDataAndResult(URL, True, BotCookies)
+            Return getresponse
+        End Function
+
+        Public Function POST(ByVal url As String, ByVal postdata As String) As String
+            Dim postresponse As String = PostDataAndGetResult(url, postdata, True, BotCookies)
+            Return postresponse
+        End Function
 
         ''' <summary>
         ''' Inicializa una nueva instancia del BOT.
