@@ -22,6 +22,7 @@ Namespace WikiBot
         Private _blockedbyID As Integer
         Private _blockreason As String
         Private _blockexpiry As String
+        Private _lastedit As Date
 
         Private _exists As Boolean
 
@@ -97,6 +98,12 @@ Namespace WikiBot
                 Return _blockedbyID
             End Get
         End Property
+
+        Public ReadOnly Property Lastedit As Date
+            Get
+                Return _lastedit
+            End Get
+        End Property
 #End Region
 
 
@@ -139,7 +146,31 @@ Namespace WikiBot
 
         End Sub
 
+        ''' <summary>
+        ''' Entrega como DateTime la fecha de la última edición del usuario entregado como parámetro.
+        ''' </summary>
+        ''' <param name="user">Nombre exacto del usuario</param>
+        ''' <returns></returns>
+        Function GetLastEditTimestampUser(ByVal user As String) As DateTime
+            user = UrlWebEncode(user)
+            Dim qtest As String = _bot.POSTQUERY("?action=query&list=usercontribs&uclimit=1&format=json&ucuser=" & user)
 
+            If qtest.Contains("""usercontribs"":[]") Then
+                Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+                Return fec
+            Else
+                Try
+                    Dim timestring As String = TextInBetween(qtest, """timestamp"":""", """,")(0).Replace("T", "|").Replace("Z", String.Empty)
+                    Dim fec As DateTime = DateTime.ParseExact(timestring, "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+                    Return fec
+                Catch ex As IndexOutOfRangeException
+                    Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+                    Return fec
+                End Try
+
+            End If
+
+        End Function
 
     End Class
 

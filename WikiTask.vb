@@ -613,8 +613,6 @@ Namespace WikiBot
 
         End Function
 
-
-
         ''' <summary>
         ''' Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo una lógica similar a la de Grillitus.
         ''' </summary>
@@ -625,7 +623,20 @@ Namespace WikiBot
             Return ArchiveFcn.Archive(PageToArchive)
         End Function
 
-
+        ''' <summary>
+        ''' Retorna un array de tipo string con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
+        ''' </summary>
+        ''' <param name="PageName">Nombre exacto de la pagina.</param>
+        Function GetallInclusions(ByVal PageName As String) As String()
+            Dim newlist As New List(Of String)
+            Dim s As String = String.Empty
+            s = _bot.POSTQUERY("?action=query&list=embeddedin&eilimit=500&format=json&eititle=" & PageName)
+            Dim pages As String() = TextInBetween(s, """title"":""", """}")
+            For Each _pag As String In pages
+                newlist.Add(NormalizeUnicodetext(_pag))
+            Next
+            Return newlist.ToArray
+        End Function
 
     End Class
 

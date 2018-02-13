@@ -54,8 +54,6 @@ Module MainModule
             Dim command As String = Console.ReadLine()
             If Not String.IsNullOrWhiteSpace(command) Then
                 'BotIRC.Sendmessage(command)
-                Dim us As New WikiUser(Mainwikibot, command)
-                Console.WriteLine(us.Blocked.ToString & us.Editcount.ToString & us.Registration.ToString)
             End If
             Thread.Sleep(500)
         Loop

@@ -2,8 +2,7 @@
 Option Explicit On
 Imports PeriodiBOT_IRC.WikiBot
 Public Module PeriodiBOT_Tasks
-
-
+    Dim WikiFuncs As New WikiTask(Mainwikibot)
     ''' <summary>
     ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
     ''' </summary>
@@ -12,16 +11,18 @@ Public Module PeriodiBOT_Tasks
         Dim Messages As New List(Of IRCMessage)
         Try
             For Each UserdataLine As String() In Userdata
-                Dim User As String = UserdataLine(1)
+                Dim username As String = UserdataLine(1)
                 Dim OP As String = UserdataLine(0)
                 Dim UserDate As String = UserdataLine(2)
+                Dim User As New WikiUser(Mainwikibot, username)
+                Log("CheckUsers: Checking user " & username, "IRC", BOTName)
 
-                Log("CheckUsers: Checking user " & User, "IRC", BOTName)
-                Dim LastEdit As DateTime = Mainwikibot.GetLastEditTimestampUser(User)
-                If LastEdit.Year = 1111 Then
-                    Log("CheckUsers: The user " & User & " has not edited on this wiki", "IRC", BOTName)
+                Dim LastEdit As DateTime = User.Lastedit
+                If Not User.Exists Then
+                    Log("CheckUsers: The user " & username & " has not edited on this wiki", "IRC", BOTName)
                     Continue For
                 End If
+
                 Dim actualtime As DateTime = DateTime.UtcNow
 
                 Dim LastEditUnix As Integer = CInt(TimeToUnix(LastEdit))
@@ -36,8 +37,8 @@ Public Module PeriodiBOT_Tasks
                 Dim TimediffToDays As Integer = CInt(Math.Truncate(Timediff / 86400))
                 Dim responsestring As String = String.Empty
 
-                Log("Timediff  " & User & ": " & Timediff, "LOCAL", BOTName)
-                Log("Trigger Timediff " & User & ": " & TriggerTimeDiff, "LOCAL", BOTName)
+                Debug_Log("Timediff  " & username & ": " & Timediff, "LOCAL", BOTName)
+                Debug_Log("Trigger Timediff " & username & ": " & TriggerTimeDiff, "LOCAL", BOTName)
 
                 If Timediff > TriggerTimeDiff Then
 
@@ -87,9 +88,6 @@ Public Module PeriodiBOT_Tasks
         Return Archive.ArchiveAllInclusions(IRC)
     End Function
 
-
-
-
     ''' <summary>
     ''' Revisa todas las páginas que llamen a la página indicada y las retorna como sortedlist.
     ''' La Key es el nombre de la página en la plantilla y el valor asociado es un array donde el primer elemento es
@@ -98,7 +96,7 @@ Public Module PeriodiBOT_Tasks
     Function GetAllRequestedpages() As SortedList(Of String, String())
         Dim _bot As Bot = Mainwikibot
         Dim plist As New SortedList(Of String, String())
-        For Each s As String In Mainwikibot.GetallInclusions(ResumePageName)
+        For Each s As String In WikiFuncs.GetallInclusions(ResumePageName)
             Dim Pag As Page = _bot.Getpage(s)
             Dim pagetext As String = Pag.Text
             For Each s2 As String In TextInBetween(pagetext, "{{" & ResumePageName & "|", "}}")

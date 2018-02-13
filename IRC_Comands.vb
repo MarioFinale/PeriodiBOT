@@ -507,6 +507,7 @@ Class IRC_Comands
             If Not UserAndTime.Contains(CType("|", Char)) Then
 
                 Dim requesteduser As String = UserAndTime.Split(CType("/", Char()))(0)
+                Dim wuser As New WikiUser(_bot, requesteduser)
                 Dim Dias As String = UserAndTime.Split(CType("/", Char()))(1)
                 Dim Horas As String = UserAndTime.Split(CType("/", Char()))(2)
                 Dim Minutos As String = UserAndTime.Split(CType("/", Char()))(3)
@@ -514,8 +515,7 @@ Class IRC_Comands
                     If (CInt(Dias) = 0) And (CInt(Horas) = 0) And (CInt(Minutos) < 10) Then
                         ResponseString = "Error: El intervalo debe ser igual o superior a 10 minutos"
                     Else
-                        If UserExist(requesteduser) Then
-
+                        If wuser.Exists Then
                             If SetUserTime({user, requesteduser, Dias & "." & Horas & ":" & Minutos, user}) Then
                                 ResponseString = String.Format("Hecho: Serás avisado si {0} no edita en el tiempo especificado", requesteduser)
 
@@ -606,13 +606,14 @@ Class IRC_Comands
     End Function
 
     Private Function LastEdit(ByVal source As String, user As String, Username As String) As IRCMessage
+        Dim wuser As New WikiUser(_bot, Username)
         Dim responsestring As String = String.Empty
         Log(String.Format("IRC: Requested lastedit of {0} to list (%ultima)", Username), "IRC", user)
 
-        If _bot.GetLastEditTimestampUser(Username).ToString.Contains("1111") Then
+        If Not wuser.Exists Then
             responsestring = String.Format("El usuario {0} no tiene ninguna edición en el proyecto eswiki", ColoredText(Username, "04"))
         Else
-            Dim edittime As DateTime = _bot.GetLastEditTimestampUser(Username)
+            Dim edittime As DateTime = wuser.Lastedit
             Dim actualtime As DateTime = DateTime.UtcNow
             actualtime = actualtime.AddTicks(-(actualtime.Ticks Mod TimeSpan.TicksPerSecond))
 
@@ -651,15 +652,6 @@ Class IRC_Comands
 
     End Function
 
-
-    Private Function UserExist(ByVal username As String) As Boolean
-        Dim str As String = _bot.GetLastEditTimestampUser(username).ToString
-        If str.Contains("1111") Then
-            Return False
-        Else
-            Return True
-        End If
-    End Function
 
     Private Function PageInfo(ByVal source As String, page As String, Username As String) As IRCMessage
         Dim PageName As String = TitleFirstGuess(page)

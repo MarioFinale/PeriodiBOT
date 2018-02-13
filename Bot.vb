@@ -174,52 +174,6 @@ Namespace WikiBot
             Return lresult
         End Function
 
-        ''' <summary>
-        ''' Retorna un array de tipo string con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
-        ''' </summary>
-        ''' <param name="PageName">Nombre exacto de la pagina.</param>
-        Function GetallInclusions(ByVal PageName As String) As String()
-            Dim newlist As New List(Of String)
-            Dim s As String = String.Empty
-            s = Gethtmlsource((_siteurl & "?action=query&list=embeddedin&eilimit=500&format=json&eititle=" & PageName), False, BotCookies)
-
-            Dim pages As String() = TextInBetween(s, """title"":""", """}")
-            For Each _pag As String In pages
-                newlist.Add(NormalizeUnicodetext(_pag))
-            Next
-            Return newlist.ToArray
-        End Function
-
-
-        ''' <summary>
-        ''' Entrega como DateTime la fecha de la última edición del usuario entregado como parámetro.
-        ''' </summary>
-        ''' <param name="user">Nombre exacto del usuario</param>
-        ''' <returns></returns>
-        Function GetLastEditTimestampUser(ByVal user As String) As DateTime
-            user = UrlWebEncode(user)
-            Dim qtest As String = Gethtmlsource((_siteurl & "?action=query&list=usercontribs&uclimit=1&format=json&ucuser=" & user), False, BotCookies)
-
-            If qtest.Contains("""usercontribs"":[]") Then
-                Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
-                Return fec
-            Else
-                Try
-                    Dim timestring As String = TextInBetween(qtest, """timestamp"":""", """,")(0).Replace("T", "|").Replace("Z", String.Empty)
-                    Dim fec As DateTime = DateTime.ParseExact(timestring, "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
-                    Return fec
-                Catch ex As IndexOutOfRangeException
-                    Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
-                    Return fec
-                End Try
-
-            End If
-
-        End Function
-
-
-
-
     End Class
 
 

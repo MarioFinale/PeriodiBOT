@@ -44,19 +44,25 @@ Class GrillitusArchive
             'Cargar usuario
             Dim User As New WikiUser(_bot, Username)
 
+            'Verificar si el usuario existe
+            If Not User.Exists Then
+                Log("Archive: User " & Username & " doesn't exist", "LOCAL", BOTName)
+                Return False
+            End If
+
             'Verificar si el usuario está bloqueado.
             If User.Blocked Then
                 Log("Archive: User " & Username & " is blocked", "LOCAL", BOTName)
                 Return False
             End If
+
             'Verificar si el usuario editó hace al menos 4 días.
-            If Date.Now.Subtract(_bot.GetLastEditTimestampUser(Username)).Days >= 4 Then
+            If Date.Now.Subtract(User.Lastedit).Days >= 4 Then
                 Log("Archive: User " & Username & " is inactive", "LOCAL", BOTName)
                 Return False
             End If
 
         End If
-
 
         Debug_Log("Archive: Declare vars", "LOCAL", BOTName)
         Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
@@ -452,7 +458,7 @@ Class GrillitusArchive
         If IRC Then
             BotIRC.Sendmessage(ColoredText("Archivando todas las páginas...", "04"))
         End If
-        Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Archivado automático")
+        Dim includedpages As String() = WikiAction.GetallInclusions("Plantilla:Archivado automático")
         For Each pa As String In includedpages
             Log("ArchiveAllInclusions: Page " & pa, "LOCAL", BOTName)
             Dim _Page As Page = _bot.Getpage(pa)
