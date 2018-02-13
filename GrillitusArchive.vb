@@ -41,8 +41,11 @@ Class GrillitusArchive
             If Username.Contains("/") Then
                 Username = Username.Split("/"c)(0)
             End If
+            'Cargar usuario
+            Dim User As New WikiUser(_bot, Username)
+
             'Verificar si el usuario está bloqueado.
-            If UserIsBlocked(Username) Then
+            If User.Blocked Then
                 Log("Archive: User " & Username & " is blocked", "LOCAL", BOTName)
                 Return False
             End If

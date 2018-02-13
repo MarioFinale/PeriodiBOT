@@ -336,7 +336,7 @@ Public Module CommFunctions
 
     Function GetCurrentThreads() As Integer
         Try
-            Return Process.GetCurrentProcess().Threads.Count
+            Return Process.GetCurrentProcess().Threads.Count 
         Catch ex As Exception
             Debug_Log(ex.Message, "LOCAL", BOTName)
             Return 0
@@ -346,7 +346,7 @@ Public Module CommFunctions
 
     Function PrivateMemory() As Long
         Try
-            Return Process.GetCurrentProcess().PrivateMemorySize64
+            Return CLng(Process.GetCurrentProcess().PrivateMemorySize64 / 1024)
         Catch ex As Exception
             Debug_Log(ex.Message, "LOCAL", BOTName)
             Return 0
@@ -356,7 +356,7 @@ Public Module CommFunctions
 
     Function UsedMemory() As Long
         Try
-            Return Process.GetCurrentProcess().WorkingSet64
+            Return CLng(Process.GetCurrentProcess().WorkingSet64 / 1024)
         Catch ex As Exception
             Debug_Log(ex.Message, "LOCAL", BOTName)
             Return 0

@@ -37,7 +37,6 @@ Public Class IRCTask
     ''' Ejecuta la tarea creada en otro thread (dispara y corre en métodos sincrónicos).
     ''' </summary>
     Public Sub Run()
-        Debug_Log("Run task func", "LOCAL", BOTName)
         Thread = New Threading.Thread(New Threading.ParameterizedThreadStart(Sub()
 
                                                                                  Do
@@ -55,7 +54,6 @@ Public Class IRCTask
                                                                                      Catch ex As Exception
                                                                                          Debug_Log("TASK " & _source & " EX: " & ex.Message, "THREAD", BOTName)
                                                                                      End Try
-
 
                                                                                      If Not _infinite Then
                                                                                          Exit Do

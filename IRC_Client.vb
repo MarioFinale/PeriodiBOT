@@ -21,7 +21,7 @@ Public Class IRC_Client
 
     Private Command As New IRC_Comands
 
-    Private lastmessage As DateTime
+    Private lastmessage As New IRCMessage("", {""})
 
     Private HasExited As Boolean = False
 
@@ -123,9 +123,7 @@ Public Class IRC_Client
                                        While True
 
                                            sCommand = _streamReader.ReadLine
-                                           lastmessage = DateTime.Now
                                            Dim sCommandParts As String() = sCommand.Split(CType(" ", Char()))
-
 
                                            Dim CommandFunc As New Func(Of IRCMessage())(Function()
                                                                                             Return {Command.ResolveCommand(sCommand, HasExited, _sNickName, Me, Mainwikibot)}
@@ -143,7 +141,6 @@ Public Class IRC_Client
 
                                            If sCommandParts(0).Contains("PING") Then  'Ping response
                                                _streamWriter.WriteLine(sCommand.Replace("PING", "PONG"))
-                                               WriteLine("INFO", "IRC", "PING")
                                                _streamWriter.Flush()
                                            End If
 
@@ -221,13 +218,18 @@ Public Class IRC_Client
 
 
     Function Sendmessage(ByVal message As IRCMessage) As Boolean
+        SyncLock (lastmessage)
+            If message.Text(0) = lastmessage.Text(0) Then
+                Return False
+            End If
+        End SyncLock
 
         For Each s As String In message.Text
             _streamWriter.WriteLine(String.Format("{2} {0} : {1}", message.Source, s, message.Command))
             _streamWriter.Flush()
             WriteLine("MSG", "IRC", message.Source & " " & _sNickName & ": " & s)
         Next
-
+        lastmessage = message
         Return True
     End Function
 

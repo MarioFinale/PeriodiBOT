@@ -1,5 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
+Imports System.Globalization
 
 Namespace WikiBot
 
@@ -12,12 +13,13 @@ Namespace WikiBot
         Private _editcount As Integer
         Private _registration As Date
         Private _groups As String()
-        Private _genders As String()
+        Private _gender As String
 
         Private _blocked As Boolean
         Private _blockid As Integer
         Private _blockedTimestamp As String
         Private _blockedby As String
+        Private _blockedbyID As Integer
         Private _blockreason As String
         Private _blockexpiry As String
 
@@ -89,14 +91,19 @@ Namespace WikiBot
                 Return _exists
             End Get
         End Property
+
+        Public ReadOnly Property BlockedbyID As Integer
+            Get
+                Return _blockedbyID
+            End Get
+        End Property
 #End Region
 
 
         Sub New(ByVal WikiBot As Bot, username As String)
             _username = username
             _bot = WikiBot
-
-
+            LoadInfo()
         End Sub
 
         Sub LoadInfo()
@@ -111,19 +118,24 @@ Namespace WikiBot
 
                 _userid = Integer.Parse(TextInBetween(queryresponse, """userid"":", ",")(0))
                 _editcount = Integer.Parse(TextInBetween(queryresponse, """editcount"":", ",")(0))
-                _registration = Date.ParseExact(TextInBetween(queryresponse, """userid"":", ",")(0), "yyyy-MM-ddThh:mm:ssZ", Nothing)
+                Dim registrationString As String = TextInBetween(queryresponse, """registration"":""", """")(0).Replace("-"c, "").Replace("T"c, "").Replace("Z"c, "").Replace(":"c, "")
+                _registration = Date.ParseExact(registrationString, "yyyyMMddHHmmss", CultureInfo.InvariantCulture)
                 _groups = TextInBetween(queryresponse, """userid"":", ",")(0).Split(","c)
+                _gender = TextInBetween(queryresponse, """gender"":""", """")(0)
 
-
+                If queryresponse.Contains("blockid") Then
+                    _blocked = True
+                    _blockid = Integer.Parse(TextInBetween(queryresponse, """blockid"":", ",")(0))
+                    _blockedTimestamp = TextInBetween(queryresponse, """blockedtimestamp"":""", """")(0)
+                    _blockedby = TextInBetween(queryresponse, """blockedby"":""", """")(0)
+                    _blockedbyID = Integer.Parse(TextInBetween(queryresponse, """blockedbyid"":", ",")(0))
+                    _blockreason = TextInBetween(queryresponse, """blockreason"":""", """")(0)
+                    _blockexpiry = TextInBetween(queryresponse, """blockexpiry"":""", """")(0)
+                End If
 
             Catch ex As Exception
                 Log("Wikiuser LoadInfo EX: " & ex.Message, "LOCAL", BOTName)
             End Try
-
-
-
-
-
 
         End Sub
 
