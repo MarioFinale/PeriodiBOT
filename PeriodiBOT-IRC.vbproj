@@ -74,7 +74,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bot.vb" />
-    <Compile Include="JSON_Tools.vb" />
     <Compile Include="PeriodiBOT_Tasks.vb" />
     <Compile Include="WikiTask.vb" />
     <Compile Include="CommFunctions.vb" />

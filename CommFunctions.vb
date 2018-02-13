@@ -344,9 +344,19 @@ Public Module CommFunctions
 
     End Function
 
-    Function GetMemoryUsage() As Long
+    Function PrivateMemory() As Long
         Try
             Return Process.GetCurrentProcess().PrivateMemorySize64
+        Catch ex As Exception
+            Debug_Log(ex.Message, "LOCAL", BOTName)
+            Return 0
+        End Try
+
+    End Function
+
+    Function UsedMemory() As Long
+        Try
+            Return Process.GetCurrentProcess().WorkingSet64
         Catch ex As Exception
             Debug_Log(ex.Message, "LOCAL", BOTName)
             Return 0

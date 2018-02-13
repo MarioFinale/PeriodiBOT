@@ -36,7 +36,11 @@ Class GrillitusArchive
         Debug_Log("Archive: Check user", "LOCAL", BOTName)
         'Verificar si es una discusión de usuario.
         If PageToArchive.PageNamespace = 3 Then
-            Dim Username As String = PageToArchive.Title.Split(CType(":", Char()))(1)
+            Dim Username As String = PageToArchive.Title.Split(":"c)(1)
+            'si es una subpágina
+            If Username.Contains("/") Then
+                Username = Username.Split("/"c)(0)
+            End If
             'Verificar si el usuario está bloqueado.
             If UserIsBlocked(Username) Then
                 Log("Archive: User " & Username & " is blocked", "LOCAL", BOTName)
