@@ -135,6 +135,7 @@ Public Module PeriodiBOT_Tasks
         Return Reqlist
 
     End Function
+
     ''' <summary>
     ''' Actualiza los resúmenes de página basado en varios parámetros,
     ''' por defecto estos son de un máximo de 660 carácteres.

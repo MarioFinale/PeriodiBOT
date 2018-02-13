@@ -81,7 +81,12 @@ Class IRC_Comands
 
                         If MainParam = ("%última") Or
                        MainParam = ("%ultima") Or MainParam = ("%ult") Or MainParam = ("%last") Then
-                            CommandResponse = LastEdit(Source, Realname, Username)
+                            Dim paramarr As String() = param.Split(CType(" ", Char))
+                            If paramarr.Count >= 2 Then
+                                CommandResponse = LastEdit(Source, Realname, Username)
+                            Else
+                                CommandResponse = CommandInfo(Source, MainParam, Realname)
+                            End If
 
                         ElseIf MainParam = ("%usuario") Or MainParam = ("%usuarios") Or MainParam = ("%users") Or MainParam = ("%usr") Or
                            MainParam = ("%usrs") Then
@@ -93,6 +98,8 @@ Class IRC_Comands
 
                             If paramarr.Count >= 2 Then
                                 CommandResponse = ProgramNewUser(Source, Realname, paramarr(1).Trim(CType(" ", Char())))
+                            Else
+                                CommandResponse = CommandInfo(Source, MainParam, Realname)
                             End If
 
                         ElseIf MainParam = ("%quitar") Or MainParam = ("%quita") Or
@@ -249,29 +256,33 @@ Class IRC_Comands
     Private Function CommandInfo(source As String, MainParam As String, realname As String) As IRCMessage
         Dim responsestring As String = String.Empty
         MainParam = MainParam.ToLower
+        If MainParam(0) = "%"c Then
+            MainParam = MainParam.Replace("%"c, "")
+        End If
+
         Log("Commandinfo: " & MainParam, "IRC", realname)
-        If MainParam = ("%última") Or MainParam = ("%ultima") Or MainParam = ("%ult") Or MainParam = ("%last") Then
+        If MainParam = ("última") Or MainParam = ("ultima") Or MainParam = ("ult") Or MainParam = ("last") Then
 
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%última/%ultima/%ult/%last", "03"), "Entrega el tiempo (Aproximado) que ha pasado desde la ultima edicion del usuario.", "%Ultima <usuario>")
 
-        ElseIf MainParam = ("%usuario") Or MainParam = ("%usuarios") Or MainParam = ("%users") Or MainParam = ("%usr") Or
-                           MainParam = ("%usrs") Then
+        ElseIf MainParam = ("usuario") Or MainParam = ("usuarios") Or MainParam = ("users") Or MainParam = ("usr") Or
+                           MainParam = ("usrs") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%usuario/%usuarios/%users/%usr/%usrs", "03"), "Entrega una lista de los usuarios programados en tu lista (Más info: %? %programar).", "%Usuarios")
 
-        ElseIf MainParam = ("%programar") Or MainParam = ("%programa") Or MainParam = ("%prog") Or MainParam = ("%progr") Or
-                           MainParam = ("%prg") Or MainParam = ("%avisa") Then
+        ElseIf MainParam = ("programar") Or MainParam = ("programa") Or MainParam = ("prog") Or MainParam = ("progr") Or
+                           MainParam = ("prg") Or MainParam = ("avisa") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%programar/%programa/%prog/%progr/%prg/%avisa", "03"), "Programa un aviso en caso de que el usuario no edite en un tiempo específico.", "%Programar Usuario/Dias/Horas/Minutos")
 
-        ElseIf MainParam = ("%quitar") Or MainParam = ("%quita") Or
-                           MainParam = ("%saca") Or MainParam = ("%sacar") Then
+        ElseIf MainParam = ("quitar") Or MainParam = ("quita") Or
+                           MainParam = ("saca") Or MainParam = ("sacar") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%quitar/%quita/%saca/%sacar", "03"), "Quita un usuario de tu lista programada (Más info: %? %programar).", "%Quita <usuario>")
 
-        ElseIf MainParam = ("%ord") Or MainParam = ("%ordenes") Or
-                           MainParam = ("%órdenes") Then
+        ElseIf MainParam = ("ord") Or MainParam = ("ordenes") Or
+                           MainParam = ("órdenes") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%ord/%ordenes", "03"), "Entrega una lista de las principales ordenes (Más info: %? <orden>).", "%Ordenes")
 
@@ -283,32 +294,32 @@ Class IRC_Comands
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%?/%h/%help/%ayuda", "03"), "Entrega información sobre un comando.", "%? <orden>")
 
-        ElseIf MainParam = ("%lastlog") Then
+        ElseIf MainParam = ("lastlog") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%lastlog", "03"), "SOLO OPS: Ultimo log del bot (TOTAL).", "%lastlog")
 
-        ElseIf MainParam = ("%resumen") Or MainParam = ("%res") Or
-                           MainParam = ("%entrada") Or MainParam = ("%entradilla") Then
+        ElseIf MainParam = ("resumen") Or MainParam = ("res") Or
+                           MainParam = ("entrada") Or MainParam = ("entradilla") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%resumen/%res/%entrada/%entradilla", "03"), "Entrega la entradilla de un artículo en Wikipedia.", "%entradilla <Artículo>")
 
-        ElseIf MainParam = ("%info") Or MainParam = ("%pag") Or
-                           MainParam = ("%pageinfo") Or MainParam = ("%infopagina") Then
+        ElseIf MainParam = ("info") Or MainParam = ("pag") Or
+                           MainParam = ("pageinfo") Or MainParam = ("infopagina") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%info/%pag/%pageinfo/%infopagina", "03"), "Entrega datos sobre un artículo en Wikipedia.", "%Info <Artículo>")
 
-        ElseIf MainParam = ("%updateExtracts") Or MainParam = ("%update") Or
-                        MainParam = ("%upex") Or MainParam = ("%updex") Then
+        ElseIf MainParam = ("updateExtracts") Or MainParam = ("update") Or
+                        MainParam = ("upex") Or MainParam = ("updex") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%updateExtracts/%update/%upex/%updex", "03"), "SOLO OPS, Actualiza los extractos de articulos en Wikipedia.", "%upex")
 
-        ElseIf MainParam = ("%q") Then
+        ElseIf MainParam = ("q") Or MainParam = ("quit") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%q", "03"), "SOLO OP, Solicita al bot cesar todas sus operaciones.", "%q")
-        ElseIf MainParam = ("%op") Then
+        ElseIf MainParam = ("op") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%op", "03"), "SOLO OP, Añade un operador.", "%op nickname!hostname")
-        ElseIf MainParam = ("%deop") Then
+        ElseIf MainParam = ("deop") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%deop", "03"), "SOLO OP, Elimina un operador.", "%deop nickname!hostname")
         ElseIf String.IsNullOrEmpty(MainParam) Then
@@ -513,7 +524,7 @@ Class IRC_Comands
                 Dim Minutos As String = UserAndTime.Split(CType("/", Char()))(3)
                 If IsNumeric(Dias) And IsNumeric(Horas) And IsNumeric(Minutos) And (CInt(Horas) <= 23) And (CInt(Minutos) <= 59) Then
                     If (CInt(Dias) = 0) And (CInt(Horas) = 0) And (CInt(Minutos) < 10) Then
-                        ResponseString = "Error: El intervalo debe ser igual o superior a 10 minutos"
+                        ResponseString = ColoredText("Error:", "04") & " El intervalo debe ser igual o superior a 10 minutos"
                     Else
                         If wuser.Exists Then
                             If SetUserTime({user, requesteduser, Dias & "." & Horas & ":" & Minutos, user}) Then
@@ -521,27 +532,27 @@ Class IRC_Comands
 
                                 Log(String.Format("IRC: Added user {0} to list (%prog)", requesteduser), "IRC", user)
                             Else
-                                ResponseString = "Error"
+                                ResponseString = ColoredText("Error", "04")
                             End If
                         Else
-                            ResponseString = String.Format("Error: El usuario {0} no existe o no tiene ninguna edición en el proyecto", requesteduser)
+                            ResponseString = String.Format(ColoredText("Error", "04") & " El usuario {0} no existe o no tiene ninguna edición en el proyecto", requesteduser)
                         End If
                     End If
                 Else
-                    ResponseString = String.Format("Error: El parámetro de tiempo debe ser numérico, las horas no deben ser superiores a 23 ni los minutos a 59")
+                    ResponseString = String.Format(ColoredText("Error:", "04") & " El parámetro de tiempo debe ser numérico, las horas no deben ser superiores a 23 ni los minutos a 59")
                 End If
 
             Else
-                ResponseString = String.Format("Error: Se ha ingresado un carácter ilegal ('|')")
+                ResponseString = String.Format(ColoredText("Error:", "04") & " Se ha ingresado un carácter ilegal ('|')")
             End If
         Catch ex As IndexOutOfRangeException
-            ResponseString = String.Format("Error: El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
+            ResponseString = String.Format(ColoredText("Error:", "04") & " El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
         Catch ex As InvalidCastException
-            ResponseString = String.Format("Error: El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
+            ResponseString = String.Format(ColoredText("Error:", "04") & " El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
         Catch ex As Exception
             Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", user)
             Dim exmes As String = ex.Message
-            ResponseString = String.Format("Error: {0}", exmes)
+            ResponseString = String.Format(ColoredText("Error:", "04") & " {0}", exmes)
         End Try
 
         Dim mes As New IRCMessage(source, ResponseString)
