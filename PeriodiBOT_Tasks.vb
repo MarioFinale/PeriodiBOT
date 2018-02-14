@@ -8,6 +8,7 @@ Public Module PeriodiBOT_Tasks
     ''' </summary>
     ''' <returns></returns>
     Function CheckUsers() As IRCMessage()
+        Log("CheckUsers: Checking users", "LOCAL", BOTName)
         Dim Messages As New List(Of IRCMessage)
         Try
             For Each UserdataLine As String() In Userdata
