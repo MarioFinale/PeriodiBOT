@@ -14,7 +14,7 @@ Module WebFunctions
     ''' <param name="Sourceurl">URL absoluta del recurso web.</param>
     ''' <param name="getCookies">(Opcional) establece los cookies en la variable local "cookies" (como cookiecontainer) </param>
     Function Gethtmlsource(ByVal Sourceurl As String, Optional getcookies As Boolean = False, Optional ByRef Cookies As CookieContainer = Nothing) As String
-        Return GetDataAndResult(Sourceurl, getcookies)
+        Return GetDataAndResult(Sourceurl, getcookies, Cookies)
     End Function
 
     ''' <summary>Realiza una solicitud de tipo GET a un recurso web y retorna el texto.</summary>
@@ -85,6 +85,13 @@ Module WebFunctions
 
     End Function
 
+    ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>
+    ''' <param name="pageURI">URI absoluta del recurso web.</param>
+    ''' <param name="postData">Cadena de texto que se envia en el POST.</param>
+    ''' <param name="getCookies">Si es "true" establece los cookies en la variable local "cookies" (como cookiecontainer) </param>
+    Public Function PostDataAndGetResult(pageURI As Uri, postData As String, getCookies As Boolean, Optional ByRef Cookies As CookieContainer = Nothing) As String
+        Return PostDataAndGetResult(pageURI.ToString, postData, getCookies, Cookies)
+    End Function
 
     ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>
     ''' <param name="pageURL">URL absoluta del recurso web.</param>

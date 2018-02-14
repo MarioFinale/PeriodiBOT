@@ -84,9 +84,9 @@ Public Module PeriodiBOT_Tasks
     ''' Crea una nueva instancia de la clase de archivado y actualiza todas las paginas que incluyan la pseudoplantilla de archivado de grillitus.
     ''' </summary>
     ''' <returns></returns>
-    Function ArchiveAllInclusions(ByVal IRC As Boolean) As Boolean
+    Function ArchiveAllInclusions(ByVal irc As Boolean) As Boolean
         Dim Archive As New GrillitusArchive(ESWikiBOT)
-        Return Archive.ArchiveAllInclusions(IRC)
+        Return Archive.ArchiveAllInclusions(irc)
     End Function
 
     ''' <summary>

@@ -13,7 +13,6 @@ Public Class IRCTask
 
     Dim disposed As Boolean = False
     Dim _nFunc As Func(Of IRCMessage())
-    Dim _Ftask As Integer = 0
     Dim Thread As Thread
     Dim _source As String
 
@@ -24,12 +23,12 @@ Public Class IRCTask
     ''' <param name="Interval">Intervalo de repetición de la tarea en milisegundos (el tiempo de espera se ejecuta al final de cada iteración)</param>
     ''' <param name="Infinite">¿Se repite idefinidamente la tarea?.</param>
     ''' <param name="nFunc">Función (String()) a ejecutar, cada linea será escrita directamente en el streamwriter del cliente IRC.</param>
-    Public Sub New(ByVal Client As IRC_Client, Interval As Integer, Infinite As Boolean, ByVal nFunc As Func(Of IRCMessage()), ByVal Source As String)
+    Public Sub New(ByVal Client As IRC_Client, interval As Integer, infinite As Boolean, ByVal nFunc As Func(Of IRCMessage()), ByVal source As String)
         _nFunc = nFunc
         _client = Client
-        _interval = Interval
-        _infinite = Infinite
-        _source = Source
+        _interval = interval
+        _infinite = infinite
+        _source = source
     End Sub
 
 

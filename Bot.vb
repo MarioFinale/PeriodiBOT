@@ -7,16 +7,16 @@ Namespace WikiBot
     Public Class Bot
 
         Private BotCookies As CookieContainer
-        Public Username As String = String.Empty
+        Private _userName As String = String.Empty
 
         Private _botusername As String = String.Empty
         Private _botpass As String = String.Empty
         Private _siteurl As String = String.Empty
 
-
-        Public ReadOnly Property BotFlag As Boolean
+#Region "Properties"
+        Public ReadOnly Property Bot As Boolean
             Get
-                Return HasBotFlag()
+                Return IsBot()
             End Get
         End Property
 
@@ -26,6 +26,12 @@ Namespace WikiBot
             End Get
         End Property
 
+        Public ReadOnly Property Username As String
+            Get
+                Return _userName
+            End Get
+        End Property
+#End Region
 
         Public Function POSTQUERY(ByVal postdata As String) As String
             Dim postresponse As String = PostDataAndGetResult(_siteurl, postdata, True, BotCookies)
@@ -37,15 +43,44 @@ Namespace WikiBot
             Return getresponse
         End Function
 
-        Public Function [GET](ByVal URL As String) As String
-            Dim getresponse As String = GetDataAndResult(URL, True, BotCookies)
+        Public Overloads Function [GET](ByVal urlstring As String) As String
+            If String.IsNullOrWhiteSpace(urlstring) Then
+                Return String.Empty
+            End If
+            Dim getresponse As String = GetDataAndResult(urlstring, True, BotCookies)
             Return getresponse
         End Function
 
-        Public Function POST(ByVal url As String, ByVal postdata As String) As String
+        Public Overloads Function [GET](ByVal url As Uri) As String
+            If String.IsNullOrWhiteSpace(url.ToString) Then
+                Return String.Empty
+            End If
+            Dim getresponse As String = GetDataAndResult(url.ToString, True, BotCookies)
+            Return getresponse
+        End Function
+
+        Public Overloads Function POST(ByVal urlstring As String, ByVal postdata As String) As String
+            If String.IsNullOrWhiteSpace(urlstring) Then
+                Return String.Empty
+            End If
+            If String.IsNullOrWhiteSpace(postdata) Then
+                Return String.Empty
+            End If
+            Dim postresponse As String = PostDataAndGetResult(urlstring, postdata, True, BotCookies)
+            Return postresponse
+        End Function
+
+        Public Overloads Function POST(ByVal url As Uri, ByVal postdata As String) As String
+            If String.IsNullOrWhiteSpace(url.ToString) Then
+                Return String.Empty
+            End If
+            If String.IsNullOrWhiteSpace(postdata) Then
+                Return String.Empty
+            End If
             Dim postresponse As String = PostDataAndGetResult(url, postdata, True, BotCookies)
             Return postresponse
         End Function
+
 
         ''' <summary>
         ''' Inicializa una nueva instancia del BOT.
@@ -53,16 +88,50 @@ Namespace WikiBot
         ''' <param name="BotUsername">Nombre de usuario del bot</param>
         ''' <param name="BotPassword">Contraseña del bot (solo botpassword), más información ver https://www.mediawiki.org/wiki/Manual:Bot_passwords </param>
         ''' <param name="PageURL">Nombre exacto de la página</param>
-        Sub New(ByVal BotUsername As String, BotPassword As String, PageURL As String)
-            _botusername = BotUsername
-            _botpass = BotPassword
-            _siteurl = PageURL
+        Sub New(ByVal botUserName As String, botPassword As String, pageURL As Uri)
+            If String.IsNullOrWhiteSpace(botUserName) Then
+                Throw New ArgumentException("No username")
+            End If
+            If String.IsNullOrWhiteSpace(botPassword) Then
+                Throw New ArgumentException("No BotPassword")
+            End If
+            If String.IsNullOrWhiteSpace(pageURL.ToString) Then
+                Throw New ArgumentException("No PageURL")
+            End If
+
+            _botusername = botUserName
+            _botpass = botPassword
+            _siteurl = pageURL.ToString
             BotCookies = New CookieContainer
             WikiLogOn()
-            Username = BotUsername.Split("@"c)(0).Trim()
+            _userName = botUserName.Split("@"c)(0).Trim()
         End Sub
 
-        Function HasBotFlag() As Boolean
+        ''' <summary>
+        ''' Inicializa una nueva instancia del BOT.
+        ''' </summary>
+        ''' <param name="BotUsername">Nombre de usuario del bot</param>
+        ''' <param name="BotPassword">Contraseña del bot (solo botpassword), más información ver https://www.mediawiki.org/wiki/Manual:Bot_passwords </param>
+        ''' <param name="PageURL">Nombre exacto de la página</param>
+        Sub New(ByVal botUserName As String, botPassword As String, pageURL As String)
+            If String.IsNullOrWhiteSpace(botUserName) Then
+                Throw New ArgumentException("No username")
+            End If
+            If String.IsNullOrWhiteSpace(botPassword) Then
+                Throw New ArgumentException("No BotPassword")
+            End If
+            If String.IsNullOrWhiteSpace(pageURL) Then
+                Throw New ArgumentException("No PageURL")
+            End If
+            _botusername = botUserName
+            _botpass = botPassword
+            _siteurl = pageURL
+            BotCookies = New CookieContainer
+            WikiLogOn()
+            _userName = botUserName.Split("@"c)(0).Trim()
+        End Sub
+
+        Function IsBot() As Boolean
             Dim postdata As String = "action=query&assert=bot&format=json"
             Dim postresponse As String = PostDataAndGetResult(_siteurl, postdata, True, BotCookies)
             If postresponse.Contains("assertbotfailed") Then

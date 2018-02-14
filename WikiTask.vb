@@ -9,9 +9,12 @@ Namespace WikiBot
         Private _bot As Bot
         Private _siteurl As String
 
-        Sub New(ByVal Wbot As Bot)
-            _bot = Wbot
-            _siteurl = Wbot.Siteurl
+        Sub New(ByVal wBot As Bot)
+            If wBot Is Nothing Then
+                Throw New ArgumentException("Wbot")
+            End If
+            _bot = wBot
+            _siteurl = wBot.Siteurl
         End Sub
 
 
@@ -19,9 +22,9 @@ Namespace WikiBot
         ''' Retorna las imagenes de preview de las páginas indicadas en el array de entrada como SortedList (con el formato {Página,Nombre de imagen}), los nombres de página deben ser distintos. 
         ''' En caso de no existir la imagen, retorna string.empty.
         ''' </summary>
-        ''' <param name="PageNames">Array con nombres de página unicos.</param>
-        Function GetImagesExtract(ByVal PageNames As String()) As SortedList(Of String, String)
-            Dim PageNamesList As List(Of String) = PageNames.ToList
+        ''' <param name="pageNames">Array con nombres de página unicos.</param>
+        Function GetImagesExtract(ByVal pageNames As String()) As SortedList(Of String, String)
+            Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
 
             Dim PageList As List(Of List(Of String)) = SplitStringArrayIntoChunks(PageNamesList.ToArray, 20)
@@ -82,17 +85,17 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="PageName">Nombre exacto de la página.</param>
         ''' <param name="CharLimit">Cantidad máxima de carácteres.</param>
-        Overloads Function GetPageExtract(ByVal PageName As String, CharLimit As Integer) As String
-            Return GetPagesExtract({PageName}, CharLimit).Values(0)
+        Overloads Function GetPageExtract(ByVal pageName As String, charLimit As Integer) As String
+            Return GetPagesExtract({pageName}, charLimit).Values(0)
         End Function
 
         ''' <summary>
         ''' Retorna la entradilla de la página indicada de entrada como string con el límite indicado. 
         ''' En caso de no existir el la página o el resumen, no lo retorna.
         ''' </summary>
-        ''' <param name="Page_name">Nombre exacto de la página.</param>
-        Overloads Function GetPageExtract(ByVal Page_name As String) As String
-            Return GetPagesExtract({Page_name}, 660).Values(0)
+        ''' <param name="pageName">Nombre exacto de la página.</param>
+        Overloads Function GetPageExtract(ByVal pageName As String) As String
+            Return GetPagesExtract({pageName}, 660).Values(0)
         End Function
 
         ''' <summary>
@@ -100,48 +103,46 @@ Namespace WikiBot
         ''' En caso de no existir el la página o la imagen, no lo retorna.
         ''' </summary>
         ''' <param name="PageName">Nombre exacto de la página.</param>
-        Function GetImageExtract(ByVal PageName As String) As String
-            Return GetImagesExtract({PageName}).Values(0)
+        Function GetImageExtract(ByVal pageName As String) As String
+            Return GetImagesExtract({pageName}).Values(0)
         End Function
 
         ''' <summary>
         ''' Retorna los resúmenes de las páginas indicadas en el array de entrada como SortedList (con el formato {Página,Resumen}), los nombres de página deben ser distintos. 
         ''' En caso de no existir el la página o el resumen, no lo retorna.
         ''' </summary>
-        ''' <param name="Page_names">Array con nombres de página unicos.</param>
+        ''' <param name="pageNames">Array con nombres de página unicos.</param>
         ''' <remarks></remarks>
-        Overloads Function GetPagesExtract(ByVal page_names As String()) As SortedList(Of String, String)
-            Return BOTGetPagesExtract(page_names, 660)
+        Overloads Function GetPagesExtract(ByVal pageNames As String()) As SortedList(Of String, String)
+            Return BOTGetPagesExtract(pageNames, 660)
         End Function
 
         ''' <summary>
         ''' Retorna los resúmenes de las páginas indicadas en el array de entrada como SortedList (con el formato {Página,Resumen}), los nombres de página deben ser distintos. 
         ''' En caso de no existir el la página o el resumen, no lo retorna.
         ''' </summary>
-        ''' <param name="Page_names">Array con nombres de página unicos.</param>
-        ''' <param name="CharacterLimit">Límite de carácteres en el resumen.</param>
+        ''' <param name="pageNames">Array con nombres de página unicos.</param>
+        ''' <param name="characterLimit">Límite de carácteres en el resumen.</param>
         ''' <remarks></remarks>
-        Overloads Function GetPagesExtract(ByVal page_names As String(), ByVal CharacterLimit As Integer) As SortedList(Of String, String)
-            Return BOTGetPagesExtract(page_names, CharacterLimit)
+        Overloads Function GetPagesExtract(ByVal pageNames As String(), ByVal characterLimit As Integer) As SortedList(Of String, String)
+            Return BOTGetPagesExtract(pageNames, characterLimit)
         End Function
 
         ''' <summary>
         ''' Retorna los resúmenes de las páginas indicadas en el array de entrada como SortedList (con el formato {Página,Resumen}), los nombres de página deben ser distintos. 
         ''' En caso de no existir el la página o el resumen, no lo retorna.
         ''' </summary>
-        ''' <param name="Page_names">Array con nombres de página unicos.</param>
+        ''' <param name="pageNames">Array con nombres de página unicos.</param>
         ''' <remarks></remarks>
-        Private Function BOTGetPagesExtract(ByVal Page_names As String(), CharLimit As Integer) As SortedList(Of String, String)
+        Private Function BOTGetPagesExtract(ByVal pageNames As String(), charLimit As Integer) As SortedList(Of String, String)
             Log("Get Wikipedia page extracts on chunks", "LOCAL", BOTName)
-            Dim PageNamesList As List(Of String) = Page_names.ToList
+            Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
 
             Dim PageList As List(Of List(Of String)) = SplitStringArrayIntoChunks(PageNamesList.ToArray, 20)
             Dim PagenameAndResume As New SortedList(Of String, String)
 
             Try
-
-
                 For Each ListInList As List(Of String) In PageList
                     Dim Qstring As String = String.Empty
 
@@ -182,9 +183,9 @@ Namespace WikiBot
                                 If TreatedExtract.Contains(""",""missing"":""""}}}}") Then
                                     TreatedExtract = Nothing
                                 End If
-                                If TreatedExtract.Length > CharLimit Then
-                                    TreatedExtract = TreatedExtract.Substring(0, CharLimit + 1)
-                                    For a As Integer = -CharLimit To 0
+                                If TreatedExtract.Length > charLimit Then
+                                    TreatedExtract = TreatedExtract.Substring(0, charLimit + 1)
+                                    For a As Integer = -charLimit To 0
                                         If (TreatedExtract.Chars(0 - a) = ".") Or (TreatedExtract.Chars(0 - a) = ";") Then
 
                                             If TreatedExtract.Contains("(") Then
@@ -314,11 +315,11 @@ Namespace WikiBot
         ''' Retorna el ultimo REVID (como integer) de las paginas indicadas como SortedList (con el formato {Pagename,Revid}), las paginas deben ser distintas. 
         ''' En caso de no existir la pagina, retorna -1 como REVID.
         ''' </summary>
-        ''' <param name="PageNames">Array con nombres de paginas unicos.</param>
+        ''' <param name="pageNames">Array con nombres de paginas unicos.</param>
         ''' <remarks></remarks>
-        Function GetLastRevIds(ByVal PageNames As String()) As SortedList(Of String, Integer)
-            Debug_Log("GetLastRevIDs: Get Wikipedia last RevisionID of """ & PageNames.Count.ToString & """ pages.", "LOCAL", BOTName)
-            Dim PageNamesList As List(Of String) = PageNames.ToList
+        Function GetLastRevIds(ByVal pageNames As String()) As SortedList(Of String, Integer)
+            Debug_Log("GetLastRevIDs: Get Wikipedia last RevisionID of """ & pageNames.Count.ToString & """ pages.", "LOCAL", BOTName)
+            Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
             Dim PageList As List(Of List(Of String)) = SplitStringArrayIntoChunks(PageNamesList.ToArray, 50)
             Dim PagenameAndLastId As New SortedList(Of String, Integer)
@@ -372,21 +373,21 @@ Namespace WikiBot
         ''' Retorna el ultimo REVID (como integer) de la pagina indicada como integer. 
         ''' En caso de no existir la pagina, retorna -1 como REVID.
         ''' </summary>
-        ''' <param name="PageName">Nombre exacto de la pagina.</param>
+        ''' <param name="pageName">Nombre exacto de la pagina.</param>
         ''' <remarks></remarks>
-        Function GetLastRevID(ByVal PageName As String) As Integer
-            Debug_Log("GetLastRevID: Get Wikipedia last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
-            PageName = UrlWebEncode(PageName)
+        Function GetLastRevId(ByVal pageName As String) As Integer
+            Debug_Log("GetLastRevID: Get Wikipedia last RevisionID of page """ & pageName & """.", "LOCAL", BOTName)
+            pageName = UrlWebEncode(pageName)
             Try
                 Dim QueryText As String = String.Empty
-                Debug_Log("GetLastRevID: Query of last RevisionID of page """ & PageName & """.", "LOCAL", BOTName)
-                QueryText = _bot.GETQUERY(("?action=query&prop=revisions&format=json&titles=" & PageName))
+                Debug_Log("GetLastRevID: Query of last RevisionID of page """ & pageName & """.", "LOCAL", BOTName)
+                QueryText = _bot.GETQUERY(("?action=query&prop=revisions&format=json&titles=" & pageName))
 
                 Dim ID As Integer = Integer.Parse(TextInBetween(QueryText, """revid"":", ",""")(0))
-                Debug_Log("GetLastRevID: Last RevisionID of page """ & PageName & " is: " & ID.ToString, "LOCAL", BOTName)
+                Debug_Log("GetLastRevID: Last RevisionID of page """ & pageName & " is: " & ID.ToString, "LOCAL", BOTName)
                 Return ID
             Catch ex As Exception
-                Debug_Log("GetLastRevID: Query of last RevisionID from page """ & PageName & " failed, returning Nothing", "LOCAL", BOTName)
+                Debug_Log("GetLastRevID: Query of last RevisionID from page """ & pageName & " failed, returning Nothing", "LOCAL", BOTName)
                 Debug_Log("GetLastRevID: ex message: " & ex.Message, "LOCAL", BOTName)
                 Return Nothing
             End Try
@@ -423,9 +424,9 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="Text">Título aproximado o similar al de una página</param>
         ''' <returns></returns>
-        Function TitleFirstGuess(Text As String) As String
+        Function TitleFirstGuess(text As String) As String
             Try
-                Return GetTitlesFromQueryText(_bot.GETQUERY("?action=query&format=json&list=search&utf8=1&srsearch=" & Text))(0)
+                Return GetTitlesFromQueryText(_bot.GETQUERY("?action=query&format=json&list=search&utf8=1&srsearch=" & text))(0)
             Catch ex As Exception
                 Return String.Empty
             End Try
@@ -455,15 +456,15 @@ Namespace WikiBot
         ''' <param name="newtext">Texto que reemplaza</param>
         ''' <param name="reason">Motivo del reemplazo</param>
         ''' <returns></returns>
-        Function Replacetext(ByVal Requestedpage As Page, requestedtext As String, newtext As String, reason As String) As Boolean
-
-            Dim PageText As String = Requestedpage.Text
-            If PageText.Contains(requestedtext) Then
-
-                PageText = PageText.Replace(requestedtext, newtext)
-
+        Function Replacetext(ByVal requestedpage As Page, requestedtext As String, newtext As String, reason As String) As Boolean
+            If requestedpage Is Nothing Then
+                Return False
             End If
-            Requestedpage.Save(PageText, String.Format("(Bot): Reemplazando '{0}' por '{1}' {2}.", requestedtext, newtext, reason))
+            Dim PageText As String = requestedpage.Text
+            If PageText.Contains(requestedtext) Then
+                PageText = PageText.Replace(requestedtext, newtext)
+            End If
+            requestedpage.Save(PageText, String.Format("(Bot): Reemplazando '{0}' por '{1}' {2}.", requestedtext, newtext, reason))
             Return True
 
         End Function
@@ -475,17 +476,23 @@ Namespace WikiBot
         ''' <param name="RequestedPage">Página a revisar</param>
         ''' <param name="RequestedRef">Texto que determina que referencia se elimina</param>
         ''' <returns></returns>
-        Function RemoveRef(ByVal RequestedPage As Page, RequestedRef As String) As Boolean
+        Function RemoveRef(ByVal requestedPage As Page, requestedRef As String) As Boolean
+            If String.IsNullOrWhiteSpace(requestedRef) Then
+                Return False
+            End If
+            If requestedPage Is Nothing Then
+                Return False
+            End If
             Dim pageregex As String = String.Empty
-            Dim PageText As String = RequestedPage.Text
-            For Each c As Char In RequestedRef
+            Dim PageText As String = requestedPage.Text
+            For Each c As Char In requestedRef
                 pageregex = pageregex & "[" & c.ToString.ToUpper & c.ToString.ToLower & "]"
             Next
 
-            If Not (RequestedPage.Title.ToLower.Contains("usuario:") Or RequestedPage.Title.ToLower.Contains("wikipedia:") Or
-            RequestedPage.Title.ToLower.Contains("usuaria:") Or RequestedPage.Title.ToLower.Contains("especial:") Or
-             RequestedPage.Title.ToLower.Contains("wikiproyecto:") Or RequestedPage.Title.ToLower.Contains("discusión:") Or
-              RequestedPage.Title.ToLower.Contains("discusion:")) Then
+            If Not (requestedPage.Title.ToLower.Contains("usuario:") Or requestedPage.Title.ToLower.Contains("wikipedia:") Or
+            requestedPage.Title.ToLower.Contains("usuaria:") Or requestedPage.Title.ToLower.Contains("especial:") Or
+             requestedPage.Title.ToLower.Contains("wikiproyecto:") Or requestedPage.Title.ToLower.Contains("discusión:") Or
+              requestedPage.Title.ToLower.Contains("discusion:")) Then
 
 
                 For Each m As Match In Regex.Matches(PageText, "(<[REFref]+>)([^<]+?)" & pageregex & ".+?(<[/REFref]+>)")
@@ -493,7 +500,7 @@ Namespace WikiBot
                 Next
 
                 Try
-                    RequestedPage.Save(PageText, "(Bot): Removiendo referencias que contengan '" & RequestedRef & "' según solicitud", False)
+                    requestedPage.Save(PageText, "(Bot): Removiendo referencias que contengan '" & requestedRef & "' según solicitud", False)
                     Return True
                 Catch ex As Exception
                     Return False
@@ -553,6 +560,9 @@ Namespace WikiBot
         ''' <param name="text">Texto a evaluar</param>
         ''' <returns></returns>
         Function LastParagraphDateTime(ByVal text As String) As DateTime
+            If String.IsNullOrEmpty(text) Then
+                Throw New ArgumentException("text")
+            End If
             text = text.Trim(CType(vbCrLf, Char())) & " "
             Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
 
@@ -616,21 +626,21 @@ Namespace WikiBot
         ''' <summary>
         ''' Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo una lógica similar a la de Grillitus.
         ''' </summary>
-        ''' <param name="PageToArchive">Página a archivar</param>
+        ''' <param name="pageToArchive">Página a archivar</param>
         ''' <returns></returns>
-        Function Archive(ByVal PageToArchive As Page) As Boolean
+        Function Archive(ByVal pageToArchive As Page) As Boolean
             Dim ArchiveFcn As New GrillitusArchive(_bot)
-            Return ArchiveFcn.Archive(PageToArchive)
+            Return ArchiveFcn.Archive(pageToArchive)
         End Function
 
         ''' <summary>
         ''' Retorna un array de tipo string con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
         ''' </summary>
-        ''' <param name="PageName">Nombre exacto de la pagina.</param>
-        Function GetallInclusions(ByVal PageName As String) As String()
+        ''' <param name="pageName">Nombre exacto de la pagina.</param>
+        Function GetallInclusions(ByVal pageName As String) As String()
             Dim newlist As New List(Of String)
             Dim s As String = String.Empty
-            s = _bot.POSTQUERY("?action=query&list=embeddedin&eilimit=500&format=json&eititle=" & PageName)
+            s = _bot.POSTQUERY("?action=query&list=embeddedin&eilimit=500&format=json&eititle=" & pageName)
             Dim pages As String() = TextInBetween(s, """title"":""", """}")
             For Each _pag As String In pages
                 newlist.Add(NormalizeUnicodetext(_pag))
@@ -642,9 +652,9 @@ Namespace WikiBot
         ''' <summary>
         ''' Retorna un elemento Page coincidente al nombre entregado como parámetro.
         ''' </summary>
-        ''' <param name="PageName">Nombre exacto de la página</param>
-        Function Getpage(ByVal PageName As String) As Page
-            Return New Page(PageName, _siteurl, _bot, _bot.Username)
+        ''' <param name="pageName">Nombre exacto de la página</param>
+        Function Getpage(ByVal pageName As String) As Page
+            Return New Page(pageName, _siteurl, _bot, _bot.Username)
         End Function
 
     End Class

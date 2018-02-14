@@ -25,46 +25,46 @@ Public Class IRC_Client
 
     Private HasExited As Boolean = False
 
-    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickname As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal username As String)
-        Initialize(server, channel, nickname, port, invisible, pass, realname, username)
+    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
+                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal userName As String)
+        Initialize(server, channel, nickName, port, invisible, pass, realname, userName)
     End Sub
 
-    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickname As String, ByVal port As Int32,
+    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean, ByVal pass As String)
-        Initialize(server, channel, nickname, port, invisible, pass, nickname, nickname)
+        Initialize(server, channel, nickName, port, invisible, pass, nickName, nickName)
     End Sub
 
-    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickname As String, ByVal port As Int32,
+    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean)
-        Initialize(server, channel, nickname, port, invisible, String.Empty, nickname, nickname)
+        Initialize(server, channel, nickName, port, invisible, String.Empty, nickName, nickName)
     End Sub
 
-    Public Sub Initialize(ByVal server As String, ByVal channel As String, ByVal nickname As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal username As String)
+    Public Sub Initialize(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
+                          ByVal invisible As Boolean, ByVal pass As String, ByVal realName As String, ByVal userName As String)
 
         _sServer = server
         _sChannel = channel
 
-        If Not String.IsNullOrEmpty(username) Then
-            _sUserName = username
+        If Not String.IsNullOrEmpty(userName) Then
+            _sUserName = userName
         Else
-            _sUserName = nickname
+            _sUserName = nickName
         End If
-        If Not String.IsNullOrEmpty(realname) Then
-            _sRealName = realname
+        If Not String.IsNullOrEmpty(realName) Then
+            _sRealName = realName
         Else
-            _sRealName = nickname
+            _sRealName = nickName
         End If
 
-        _sNickName = nickname
+        _sNickName = nickName
         _sPass = pass
         _lPort = port
         _bInvisible = invisible
     End Sub
 
 
-    Public Async Sub Connect()
+    Public Async Sub Start()
 
         Log("Starting IRCclient", "IRC", _sNickName)
         Dim sIsInvisible As String = String.Empty
@@ -201,10 +201,10 @@ Public Class IRC_Client
     End Sub
 
 
-    Function Sendmessage(ByVal message As String, ByVal Channel As String) As Boolean
-        _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", Channel, message))
+    Function Sendmessage(ByVal message As String, ByVal channel As String) As Boolean
+        _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", channel, message))
         _streamWriter.Flush()
-        WriteLine("MSG", "IRC", Channel & " " & _sNickName & ": " & message)
+        WriteLine("MSG", "IRC", channel & " " & _sNickName & ": " & message)
         Return True
     End Function
 
@@ -218,6 +218,9 @@ Public Class IRC_Client
 
 
     Function Sendmessage(ByVal message As IRCMessage) As Boolean
+        If message Is Nothing Then
+            Throw New ArgumentException("message")
+        End If
         SyncLock (lastmessage)
             If message.Text(0) = lastmessage.Text(0) Then
                 Return False
@@ -240,10 +243,10 @@ Public Class IRC_Client
         Return True
     End Function
 
-    Function SendText(ByVal Text As String) As Boolean
-        _streamWriter.WriteLine(Text)
+    Function SendText(ByVal text As String) As Boolean
+        _streamWriter.WriteLine(text)
         _streamWriter.Flush()
-        WriteLine("RAW TEXT", "IRC", Text)
+        WriteLine("RAW TEXT", "IRC", text)
         Return True
     End Function
 

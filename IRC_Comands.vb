@@ -114,10 +114,19 @@ Class IRC_Comands
                             CommandResponse = About(imputline, Source, Realname)
 
                         ElseIf MainParam = "%?" Or MainParam = "%h" Or MainParam = "%help" Or MainParam = "%ayuda" Then
-                            CommandResponse = CommandInfo(Source, Totalparam, Realname)
+
+                            Dim paramarr As String() = param.Split(CType(" ", Char))
+
+                            If paramarr.Count >= 2 Then
+                                CommandResponse = CommandInfo(Source, paramarr(1).Trim(CType(" ", Char())), Realname)
+                            Else
+                                CommandResponse = CommandInfo(Source, MainParam, Realname)
+                            End If
+
+
 
                         ElseIf MainParam = ("%lastlog") Then
-                            CommandResponse = LastLogComm(Totalparam, Source, Prefix, Realname)
+                            CommandResponse = LastLogComm(Totalparam, Source, Realname)
 
                         ElseIf MainParam = ("%resumen") Or MainParam = ("%res") Or
                            MainParam = ("%entrada") Or MainParam = ("%entradilla") Then
@@ -181,7 +190,7 @@ Class IRC_Comands
                             End If
 
                         ElseIf MainParam = ("%div0") Then
-                            Return Div0(Source, Realname, HasExited)
+                            Return Div0(Source, Realname)
 
                         Else
                             If param.ToLower.Contains(_IrcNickName.ToLower) And Not param.ToLower.Contains("*") And Not imputline.Contains(".freenode.net ") Then
@@ -274,7 +283,7 @@ Class IRC_Comands
         ElseIf MainParam = ("programar") Or MainParam = ("programa") Or MainParam = ("prog") Or MainParam = ("progr") Or
                            MainParam = ("prg") Or MainParam = ("avisa") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-            ColoredText(MainParam, "04"), ColoredText("%programar/%programa/%prog/%progr/%prg/%avisa", "03"), "Programa un aviso en caso de que el usuario no edite en un tiempo específico.", "%Programar Usuario/Dias/Horas/Minutos")
+            ColoredText(MainParam, "04"), ColoredText("%programar/%programa/%prog/%progr/%prg/%avisa", "03"), "Programa un aviso en caso de que un usuario no edite en un tiempo específico.", "%Programar Usuario/Dias/Horas/Minutos")
 
         ElseIf MainParam = ("quitar") Or MainParam = ("quita") Or
                            MainParam = ("saca") Or MainParam = ("sacar") Then
@@ -286,11 +295,11 @@ Class IRC_Comands
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%ord/%ordenes", "03"), "Entrega una lista de las principales ordenes (Más info: %? <orden>).", "%Ordenes")
 
-        ElseIf MainParam = "%??" Then
+        ElseIf MainParam = "??" Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%??", "03"), "Entrega información técnica sobre el bot (limitado según el usuario).", "%??")
 
-        ElseIf MainParam = "%?" Or MainParam = "%h" Or MainParam = "%help" Or MainParam = "%ayuda" Then
+        ElseIf MainParam = "?" Or MainParam = "h" Or MainParam = "help" Or MainParam = "ayuda" Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%?/%h/%help/%ayuda", "03"), "Entrega información sobre un comando.", "%? <orden>")
 
@@ -354,28 +363,32 @@ Class IRC_Comands
     Private Function Quit(ByVal source As String, user As String, ByRef HasExited As Boolean) As IRCMessage
         Dim responsestring As String = ColoredText("OK, voy saliendo...", "04")
         Dim command As String = "Solicitado por un operador."
+        HasExited = True
         Client.Quit(command)
         Dim mes As New IRCMessage(source, responsestring)
         Log("QUIT", "IRC", user)
-
         Return mes
     End Function
 
-    Private Function Div0(ByVal source As String, user As String, ByRef HasExited As Boolean) As IRCMessage
+    Private Function Div0(ByVal source As String, user As String) As IRCMessage
+        Debug_Log("Div0 requested", source, user)
         Dim responsetext As String = IrcStringBuilder(source, "OK, dividiendo 1 por 0...")
         Client.SendText(responsetext)
         Dim i As Double = (1 / 0)
         Dim res As String = "Al parecer el resultado es """ & i.ToString & """"
         Dim mes As New IRCMessage(source, res)
+        Debug_Log("Div0 completed", source, user)
         Return mes
     End Function
 
     Private Function ArchivePage(ByVal source As String, page As String, user As String) As IRCMessage
+        Debug_Log("ArchivePage requested", source, user)
         Dim PageName As String = TitleFirstGuess(page)
         Dim responsestring As String = ColoredText("Archivando " & PageName, "04")
         Task.Run(Sub()
                      Dim p As Page = WikiAction.Getpage(PageName)
                      WikiAction.Archive(p)
+                     Debug_Log("ArchivePage completed", source, user)
                  End Sub)
         Dim mes As New IRCMessage(source, responsestring)
         Return mes
@@ -409,7 +422,7 @@ Class IRC_Comands
         End If
     End Function
 
-    Private Function LastLogComm(ByVal messageline As String, ByVal source As String, Prefix As String, User As String) As IRCMessage
+    Private Function LastLogComm(ByVal messageline As String, ByVal source As String, User As String) As IRCMessage
         Dim responsestring As String = String.Empty
         If IsOp(messageline, source, User) Then
             Dim lastlogdata As String() = LastLog("IRC", User)

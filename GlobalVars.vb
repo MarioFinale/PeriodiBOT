@@ -37,7 +37,7 @@ Module GlobalVars
 
 
     Public ESWikiBOT As Bot
-    Public WikidataBOT As Bot
+    'Public WikidataBOT As Bot
     Public BotIRC As IRC_Client
 
 

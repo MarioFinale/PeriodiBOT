@@ -30,8 +30,8 @@ Public Module CommFunctions
     ''' </summary>
     ''' <param name="UserAndTime"></param>
     ''' <returns></returns>
-    Public Function SetUserTime(ByVal UserAndTime As String()) As Boolean
-        Return LogC.SetUserTime(UserAndTime)
+    Public Function SetUserTime(ByVal userAndTime As String()) As Boolean
+        Return LogC.SetUserTime(userAndTime)
     End Function
     ''' <summary>
     ''' Guarda los usuarios en la lista de aviso de inactividad.
@@ -46,8 +46,8 @@ Public Module CommFunctions
     ''' <param name="Source"></param>
     ''' <param name="user"></param>
     ''' <returns></returns>
-    Public Function LastLog(ByRef Source As String, ByVal user As String) As String()
-        Return LogC.Lastlog(Source, user)
+    Public Function LastLog(ByRef source As String, ByVal user As String) As String()
+        Return LogC.Lastlog(source, user)
     End Function
     ''' <summary>
     ''' Finaliza la instancia del motor de log
@@ -105,18 +105,18 @@ Public Module CommFunctions
     ''' </summary>
     ''' <param name="Number"></param>
     ''' <returns></returns>
-    Function IsODD(ByVal Number As Integer) As Boolean
-        Return (Number Mod 2 = 0)
+    Function IsODD(ByVal number As Integer) As Boolean
+        Return (number Mod 2 = 0)
     End Function
 
     ''' <summary>
     ''' Cuenta cuantas veces se repite una cadena de texto dada dentro de otra cadena de texto.
     ''' </summary>
-    ''' <param name="inputString">Cadena de texto donde se busca</param>
-    ''' <param name="stringToSearch">CAdena de texto a buscar</param>
+    ''' <param name="input">Cadena de texto donde se busca</param>
+    ''' <param name="value">CAdena de texto a buscar</param>
     ''' <returns></returns>
-    Function CountString(ByVal inputString As String, ByVal stringToSearch As String) As Integer
-        Return Regex.Split(inputString, RegexParser(stringToSearch)).Length - 1
+    Function CountString(ByVal input As String, ByVal value As String) As Integer
+        Return Regex.Split(input, RegexParser(value)).Length - 1
     End Function
 
     ''' <summary>
@@ -125,8 +125,11 @@ Public Module CommFunctions
     ''' <param name="Phrase">Frase a evaluar</param>
     ''' <param name="words">Palabras a buscar</param>
     ''' <returns></returns>
-    Function LvlOfAppereance(ByVal Phrase As String, words As String()) As Double
-        Dim PhraseString As String() = Phrase.Split(Chr(32))
+    Function LvlOfAppereance(ByVal phrase As String, words As String()) As Double
+        If (phrase Is Nothing) Or (words Is Nothing) Then
+            Return 0
+        End If
+        Dim PhraseString As String() = phrase.Split(Chr(32))
         Dim NOWords As Integer = PhraseString.Count
         Dim NOAppeareances As Integer = 0
         For a As Integer = 0 To NOWords - 1
@@ -207,8 +210,8 @@ Public Module CommFunctions
     ''' <param name="StrArray">Lista a partir</param>
     ''' <param name="chunkSize">En cuantos items se parte</param>
     ''' <returns></returns>
-    Function SplitStringArrayIntoChunks(StrArray As String(), chunkSize As Integer) As List(Of List(Of String))
-        Return StrArray.
+    Function SplitStringArrayIntoChunks(strArray As String(), chunkSize As Integer) As List(Of List(Of String))
+        Return strArray.
                 Select(Function(x, i) New With {Key .Index = i, Key .Value = x}).
                 GroupBy(Function(x) (x.Index \ chunkSize)).
                 Select(Function(x) x.Select(Function(v) v.Value).ToList()).
@@ -221,8 +224,8 @@ Public Module CommFunctions
     ''' <param name="IntArray">Lista a partir</param>
     ''' <param name="chunkSize">En cuantos items se parte</param>
     ''' <returns></returns>
-    Function SplitIntegerArrayIntoChunks(IntArray As Integer(), chunkSize As Integer) As List(Of List(Of Integer))
-        Return IntArray.
+    Function SplitIntegerArrayIntoChunks(intArray As Integer(), chunkSize As Integer) As List(Of List(Of Integer))
+        Return intArray.
                 Select(Function(x, i) New With {Key .Index = i, Key .Value = x}).
                 GroupBy(Function(x) (x.Index \ chunkSize)).
                 Select(Function(x) x.Select(Function(v) v.Value).ToList()).
@@ -234,7 +237,7 @@ Public Module CommFunctions
     ''' </summary>
     ''' <param name="text">Entrega la primera fecha, que aparezca en un texto dado (si la fecha tiene formato de firma wikipedia).</param>
     ''' <returns></returns>
-    Function EsWikiDatetime(ByVal text As String) As DateTime
+    Function ESWikiDatetime(ByVal text As String) As DateTime
         Dim TheDate As DateTime = Nothing
         Dim matchc As MatchCollection = Regex.Matches(text, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
 
@@ -311,6 +314,9 @@ Public Module CommFunctions
     ''' <param name="templatearray"></param>
     ''' <returns></returns>
     Function GetTemplates(ByVal templatearray As List(Of String)) As List(Of Template)
+        If templatearray Is Nothing Then
+            Return New List(Of Template)
+        End If
         Dim TemplateList As New List(Of Template)
         For Each t As String In templatearray
             TemplateList.Add(New Template(t, False))
@@ -323,10 +329,12 @@ Public Module CommFunctions
     ''' </summary>
     ''' <param name="WikiPage"></param>
     ''' <returns></returns>
-    Function GetTemplates(ByVal WikiPage As Page) As List(Of Template)
-
+    Function GetTemplates(ByVal wikiPage As Page) As List(Of Template)
+        If wikiPage Is Nothing Then
+            Return New List(Of Template)
+        End If
         Dim TemplateList As New List(Of Template)
-        Dim temps As List(Of String) = GetTemplateTextArray(WikiPage.Text)
+        Dim temps As List(Of String) = GetTemplateTextArray(wikiPage.Text)
 
         For Each t As String In temps
             TemplateList.Add(New Template(t, False))
@@ -364,25 +372,6 @@ Public Module CommFunctions
 
     End Function
 
-
-    Public LastDailyTask As DateTime
-
-    Sub DailyTask()
-
-        If LastDailyTask = Nothing Then
-            RunDailyTask()
-            LastDailyTask = DateTime.Now
-            Exit Sub
-        End If
-        Dim span As TimeSpan = LastDailyTask - DateTime.Now
-
-        If span.Hours >= 24 Then
-            RunDailyTask()
-            LastDailyTask = DateTime.Now
-            Exit Sub
-        End If
-
-    End Sub
 
     Sub RunDailyTask()
         ArchiveAllInclusions(True)

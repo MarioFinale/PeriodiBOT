@@ -27,11 +27,9 @@ Namespace WikiBot
         ''' Entrega el puntaje ORES {reverted,goodfaith} de la página.
         ''' </summary>
         ''' <returns></returns>
-        Public ReadOnly Property ORESScores As Double()
-            Get
-                Return _ORESScores
-            End Get
-        End Property
+        Public Function ORESScores() As Double()
+            Return _ORESScores
+        End Function
         ''' <summary>
         ''' Entrega el wikitexto de la página.
         ''' </summary>
@@ -45,7 +43,7 @@ Namespace WikiBot
         ''' Entrega el revid actual de la página.
         ''' </summary>
         ''' <returns></returns>
-        Public ReadOnly Property CurrentRevID As Integer
+        Public ReadOnly Property CurrentRevId As Integer
             Get
                 Return _currentRevID
             End Get
@@ -81,20 +79,18 @@ Namespace WikiBot
         ''' Entrega las secciones de la página
         ''' </summary>
         ''' <returns></returns>
-        Public ReadOnly Property Sections As String()
-            Get
-                Return _sections
-            End Get
-        End Property
+        Function Sections() As String()
+
+            Return _sections
+
+        End Function
         ''' <summary>
         ''' Entrega las primeras 10 categorías de la página.
         ''' </summary>
         ''' <returns></returns>
-        Public ReadOnly Property Categories As String()
-            Get
-                Return _categories
-            End Get
-        End Property
+        Public Function Categories() As String()
+            Return _categories
+        End Function
         ''' <summary>
         ''' Entrega el promedio de visitas diarias de la página en los últimos 2 meses.
         ''' </summary>
@@ -167,14 +163,14 @@ Namespace WikiBot
             _bot = wbot
             Log("Loading page " & PageTitle, "LOCAL", BOTName)
             _username = username
-            Loadpage(PageTitle, site, wbot)
+            Loadpage(PageTitle, site)
         End Sub
         ''' <summary>
         ''' Inicializa de nuevo la página (al crear una página esta ya está inicializada).
         ''' </summary>
         Public Sub Load()
             Log("Loading page " & _title, "LOCAL", BOTName)
-            Loadpage(_title, _siteurl, _bot)
+            Loadpage(_title, _siteurl)
         End Sub
 
         ''' <summary>
@@ -182,16 +178,14 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="PageTitle">Título exacto de la página</param>
         ''' <param name="site">Sitio de la página</param>
-        ''' <param name="wikibot">bot logueado en la wiki</param>
         ''' <returns></returns>
-        Private Function Loadpage(ByVal PageTitle As String, ByVal site As String, ByRef wikibot As Bot) As Boolean
+        Private Function Loadpage(ByVal PageTitle As String, ByVal site As String) As Boolean
             Log("Obtaining server data of " & PageTitle, "LOCAL", BOTName)
             If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
-                Throw New ArgumentNullException
+                Throw New ArgumentNullException("PateTitle")
             End If
             _siteurl = site
             PageInfoData(PageTitle)
-
             _sections = GetPageThreads(_text)
             _ORESScores = GetORESScores(_currentRevID)
             _pageViews = GetPageViewsAvg(_title)
@@ -238,7 +232,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Private Function SavePage(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean) As String
             If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Then
-                Throw New ArgumentNullException
+                Throw New ArgumentNullException("Text")
             End If
 
 
@@ -303,8 +297,8 @@ Namespace WikiBot
         ''' <param name="Summary">Resumen de la edición</param>
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal text As String, ByVal Summary As String, ByVal IsMinor As Boolean, ByVal IsBOT As Boolean) As String
-            Return SavePage(text, Summary, IsMinor, IsBOT)
+        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBOT As Boolean) As String
+            Return SavePage(text, summary, isMinor, isBOT)
         End Function
 
         ''' <summary>
@@ -314,8 +308,8 @@ Namespace WikiBot
         ''' <param name="Summary">Resumen de la edición</param>
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal text As String, ByVal Summary As String, ByVal IsMinor As Boolean) As String
-            Return SavePage(text, Summary, IsMinor, False)
+        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean) As String
+            Return SavePage(text, summary, isMinor, False)
         End Function
 
         ''' <summary>
@@ -324,8 +318,8 @@ Namespace WikiBot
         ''' <param name="text">Texto (wikicódigo) de la página</param>
         ''' <param name="Summary">Resumen de la edición</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal Text As String, ByVal Summary As String) As String
-            Return SavePage(Text, Summary, False, False)
+        Overloads Function Save(ByVal text As String, ByVal summary As String) As String
+            Return SavePage(text, summary, False, False)
         End Function
 
         ''' <summary>
@@ -333,8 +327,8 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="text">Texto (wikicódigo) de la página</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal Text As String) As String
-            Return SavePage(Text, "Bot edit", False, False)
+        Overloads Function Save(ByVal text As String) As String
+            Return SavePage(text, "Bot edit", False, False)
         End Function
 
         ''' <summary>
@@ -345,9 +339,10 @@ Namespace WikiBot
         ''' <param name="EditSummary">Resumen de edición</param>
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Private Function AddSectionPage(ByVal SectionTitle As String, ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean) As String
-            If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Or String.IsNullOrWhiteSpace(SectionTitle) Then
-                Throw New ArgumentNullException
+        Private Function AddSectionPage(ByVal sectionTitle As String, ByVal text As String, ByVal editSummary As String, ByVal isMinor As Boolean) As String
+            Dim additionalParameters As String = String.Empty
+            If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Or String.IsNullOrWhiteSpace(sectionTitle) Then
+                Throw New ArgumentNullException("Text")
             End If
 
             If Not GetLastTimeStamp(_title) = _timestamp Then
@@ -360,8 +355,12 @@ Namespace WikiBot
                 Return "No Bots"
             End If
 
-            Dim postdata As String = "format=json&action=edit&title=" & _title & "&summary=" & UrlWebEncode(EditSummary) & "&section=new" _
-            & "&sectiontitle=" & SectionTitle & "&text=" & UrlWebEncode(text) & "&token=" & UrlWebEncode(GetEditToken())
+            If isMinor Then
+                additionalParameters = additionalParameters & "&minor=true"
+            End If
+
+            Dim postdata As String = "format=json&action=edit&title=" & _title & additionalParameters & "&summary=" & UrlWebEncode(editSummary) & "&section=new" _
+            & "&sectiontitle=" & sectionTitle & "&text=" & UrlWebEncode(text) & "&token=" & UrlWebEncode(GetEditToken())
 
             Dim postresult As String = _bot.POSTQUERY(postdata)
             System.Threading.Thread.Sleep(1000) 'Some time to the server to process the data
@@ -387,8 +386,8 @@ Namespace WikiBot
         ''' <param name="EditSummary">Resumen de edición</param>
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Overloads Function AddSection(ByVal SectionTitle As String, ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean) As String
-            Return AddSectionPage(SectionTitle, text, EditSummary, IsMinor)
+        Overloads Function AddSection(ByVal sectionTitle As String, ByVal text As String, ByVal editSummary As String, ByVal isMinor As Boolean) As String
+            Return AddSectionPage(sectionTitle, text, editSummary, isMinor)
         End Function
         ''' <summary>
         ''' Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
@@ -397,8 +396,8 @@ Namespace WikiBot
         ''' <param name="text">Texto de la sección</param>
         ''' <param name="EditSummary">Resumen de edición</param>
         ''' <returns></returns>
-        Overloads Function AddSection(ByVal SectionTitle As String, ByVal text As String, ByVal EditSummary As String) As String
-            Return AddSectionPage(SectionTitle, text, EditSummary, False)
+        Overloads Function AddSection(ByVal sectionTitle As String, ByVal text As String, ByVal editSummary As String) As String
+            Return AddSectionPage(sectionTitle, text, editSummary, False)
         End Function
         ''' <summary>
         ''' Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
@@ -406,8 +405,8 @@ Namespace WikiBot
         ''' <param name="SectionTitle">Título de la sección nueva</param>
         ''' <param name="text">Texto de la sección</param>
         ''' <returns></returns>
-        Overloads Function AddSection(ByVal SectionTitle As String, ByVal text As String) As String
-            Return AddSectionPage(SectionTitle, text, "Bot edit", False)
+        Overloads Function AddSection(ByVal sectionTitle As String, ByVal text As String) As String
+            Return AddSectionPage(sectionTitle, text, "Bot edit", False)
         End Function
 
         ''' <summary>
@@ -417,6 +416,12 @@ Namespace WikiBot
         ''' <param name="user">Usuario que edita</param>
         ''' <returns></returns>
         Public Function BotCanEdit(ByVal text As String, ByVal user As String) As Boolean
+            If String.IsNullOrWhiteSpace(text) Then
+                Throw New ArgumentException("text")
+            End If
+            If String.IsNullOrWhiteSpace(user) Then
+                Throw New ArgumentException("user")
+            End If
             user = user.Normalize
             Return Not Regex.IsMatch(text, "\{\{(nobots|bots\|(allow=none|deny=(?!none).*(" & user & "|all)|optout=all))\}\}", RegexOptions.IgnoreCase)
         End Function
@@ -437,10 +442,10 @@ Namespace WikiBot
         ''' {Título de la página, ID de la página, Ultimo usuario que la editó,Fecha de última edición,Wikitexto de la página,tamaño de la página (en bytes)}
         ''' </summary>
         ''' <param name="Pagename">Título exacto de la página</param>
-        Private Sub PageInfoData(ByVal Pagename As String)
+        Private Sub PageInfoData(ByVal pageName As String)
 
             Dim querystring As String = "?format=json&maxlag=5&action=query&prop=revisions" & UrlWebEncode("|") & "pageimages" & UrlWebEncode("|") & "categories" & UrlWebEncode("|") & "extracts" & "&rvprop=user" &
-            UrlWebEncode("|") & "timestamp" & UrlWebEncode("|") & "size" & UrlWebEncode("|") & "content" & UrlWebEncode("|") & "ids" & "&exlimit=1&explaintext&exintro&titles=" & UrlWebEncode(Pagename)
+            UrlWebEncode("|") & "timestamp" & UrlWebEncode("|") & "size" & UrlWebEncode("|") & "content" & UrlWebEncode("|") & "ids" & "&exlimit=1&explaintext&exintro&titles=" & UrlWebEncode(pageName)
 
             'Fix temporal, un BUG en la api de Mediawiki provoca que los extractos en solicitudes POST sean distintos a los de GET
             Dim QueryText As String = _bot.GETQUERY(querystring)
@@ -467,7 +472,7 @@ Namespace WikiBot
                 PRevID = TextInBetween(QueryText, """revid"":", ",""")(0)
                 PExtract = TextInBetween(QueryText, """extract"":""", """}")(0)
             Catch ex As IndexOutOfRangeException
-                Log("Warning: The page '" & Pagename & "' doesn't exist yet!", "LOCAL", BOTName)
+                Log("Warning: The page '" & pageName & "' doesn't exist yet!", "LOCAL", BOTName)
             End Try
 
             Try
@@ -477,7 +482,7 @@ Namespace WikiBot
                     PCategories.Add(NormalizeUnicodetext(m.Value.Replace("title"":""", "")))
                 Next
             Catch ex As IndexOutOfRangeException
-                Log("Warning: The page '" & Pagename & "' doesn't have any thumbnail!", "LOCAL", BOTName)
+                Log("Warning: The page '" & pageName & "' doesn't have any thumbnail!", "LOCAL", BOTName)
 
             End Try
 
@@ -501,8 +506,8 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="pagename">Nombre exacto de la pagina.</param>
         ''' <returns></returns>
-        Function GetLastTimeStamp(ByVal pagename As String) As String
-            Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions&rvprop=timestamp&titles=" & pagename
+        Function GetLastTimeStamp(ByVal pageName As String) As String
+            Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions&rvprop=timestamp&titles=" & pageName
             Dim QueryText As String = _bot.POSTQUERY(querystring)
 
             Try
@@ -519,10 +524,10 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="pagetext">Texto a evaluar</param>
         ''' <returns></returns>
-        Function GetPageThreads(ByVal pagetext As String) As String()
+        Function GetPageThreads(ByVal pageText As String) As String()
             Dim threads As New List(Of String)
             Dim newline As String = Environment.NewLine
-            For Each m As Match In Regex.Matches(pagetext, "(" & newline & "==(?!=))[\s\S]+?(?=" & newline & "==(?!=)|$)")
+            For Each m As Match In Regex.Matches(pageText, "(" & newline & "==(?!=))[\s\S]+?(?=" & newline & "==(?!=)|$)")
                 threads.Add(m.Value)
             Next
             Return threads.ToArray
@@ -535,7 +540,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="Page">Nombre exacto de la página a evaluar</param>
         ''' <returns></returns>
-        Private Function GetPageViewsAvg(ByVal Page As String) As Integer
+        Private Function GetPageViewsAvg(ByVal page As String) As Integer
             Try
                 Dim Project As String = TextInBetween(_siteurl, "https://", ".org")(0)
                 Dim currentDate As DateTime = DateTime.Now
@@ -555,7 +560,7 @@ Namespace WikiBot
                 End If
 
                 Dim Url As String = String.Format("https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{0}/all-access/all-agents/{1}/daily/{2}{4}{6}00/{3}{5}{7}00",
-                              Project, Page, Year, Currentyear, Month.ToString("00"), CurrentMonth.ToString("00"), FirstDay, LastDay)
+                              Project, page, Year, Currentyear, Month.ToString("00"), CurrentMonth.ToString("00"), FirstDay, LastDay)
                 Dim response As String = GetDataAndResult(Url, False)
 
                 For Each view As String In TextInBetween(response, """views"":", "}")

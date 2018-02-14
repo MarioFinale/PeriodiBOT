@@ -8,34 +8,34 @@ Namespace WikiBot
     Public Class WikiUser
         Private _bot As Bot
 
-        Private _username As String
-        Private _userid As Integer
-        Private _editcount As Integer
+        Private _userName As String
+        Private _userId As Integer
+        Private _editCount As Integer
         Private _registration As Date
-        Private _groups As String()
+        Private _groups As List(Of String)
         Private _gender As String
 
         Private _blocked As Boolean
-        Private _blockid As Integer
+        Private _blockID As Integer
         Private _blockedTimestamp As String
-        Private _blockedby As String
-        Private _blockedbyID As Integer
-        Private _blockreason As String
-        Private _blockexpiry As String
-        Private _lastedit As Date
+        Private _blockedBy As String
+        Private _blockedbyId As Integer
+        Private _blockReason As String
+        Private _blockExpiry As String
+        Private _lastEdit As Date
 
         Private _exists As Boolean
 
 #Region "Properties"
-        Public ReadOnly Property Username As String
+        Public ReadOnly Property UserName As String
             Get
-                Return _username
+                Return _userName
             End Get
         End Property
 
-        Public ReadOnly Property Editcount As Integer
+        Public ReadOnly Property EditCount As Integer
             Get
-                Return _editcount
+                Return _editCount
             End Get
         End Property
 
@@ -45,7 +45,7 @@ Namespace WikiBot
             End Get
         End Property
 
-        Public ReadOnly Property Groups As String()
+        Public ReadOnly Property Groups As List(Of String)
             Get
                 Return _groups
             End Get
@@ -57,15 +57,15 @@ Namespace WikiBot
             End Get
         End Property
 
-        Public ReadOnly Property Blockedby As String
+        Public ReadOnly Property BlockedBy As String
             Get
-                Return _blockedby
+                Return _blockedBy
             End Get
         End Property
 
-        Public ReadOnly Property Blockreason As String
+        Public ReadOnly Property BlockReason As String
             Get
-                Return _blockreason
+                Return _blockReason
             End Get
         End Property
 
@@ -75,15 +75,15 @@ Namespace WikiBot
             End Get
         End Property
 
-        Public ReadOnly Property Blockexpiry As String
+        Public ReadOnly Property BlockExpiry As String
             Get
-                Return _blockexpiry
+                Return _blockExpiry
             End Get
         End Property
 
-        Public ReadOnly Property Blockid As Integer
+        Public ReadOnly Property BlockId As Integer
             Get
-                Return _blockid
+                Return _blockID
             End Get
         End Property
 
@@ -93,55 +93,70 @@ Namespace WikiBot
             End Get
         End Property
 
-        Public ReadOnly Property BlockedbyID As Integer
+        Public ReadOnly Property BlockedById As Integer
             Get
-                Return _blockedbyID
+                Return _blockedbyId
             End Get
         End Property
 
-        Public ReadOnly Property Lastedit As Date
+        Public ReadOnly Property LastEdit As Date
             Get
-                Return _lastedit
+                Return _lastEdit
+            End Get
+        End Property
+
+        Public ReadOnly Property UserId As Integer
+            Get
+                Return _userID
+            End Get
+        End Property
+
+        Public ReadOnly Property Gender As String
+            Get
+                Return _gender
             End Get
         End Property
 #End Region
 
 
-        Sub New(ByVal WikiBot As Bot, username As String)
-            _username = username
-            _bot = WikiBot
+        Sub New(ByVal wikiBot As Bot, userName As String)
+            _userName = userName
+            _bot = wikiBot
             LoadInfo()
         End Sub
 
         Sub LoadInfo()
-            Dim queryresponse As String = _bot.POSTQUERY("action=query&format=json&list=users&usprop=blockinfo|groups|editcount|registration|gender&ususers=" & _username)
+            Dim queryresponse As String = _bot.POSTQUERY("action=query&format=json&list=users&usprop=blockinfo|groups|editcount|registration|gender&ususers=" & _userName)
             Try
-                _username = TextInBetween(queryresponse, """name"":""", """")(0)
+                _userName = TextInBetween(queryresponse, """name"":""", """")(0)
 
                 If queryresponse.Contains("""missing"":""""") Then
                     _exists = False
                     Exit Sub
                 End If
 
-                _userid = Integer.Parse(TextInBetween(queryresponse, """userid"":", ",")(0))
-                _editcount = Integer.Parse(TextInBetween(queryresponse, """editcount"":", ",")(0))
+                _userID = Integer.Parse(TextInBetween(queryresponse, """userid"":", ",")(0))
+                _editCount = Integer.Parse(TextInBetween(queryresponse, """editcount"":", ",")(0))
                 Dim registrationString As String = TextInBetween(queryresponse, """registration"":""", """")(0).Replace("-"c, "").Replace("T"c, "").Replace("Z"c, "").Replace(":"c, "")
                 _registration = Date.ParseExact(registrationString, "yyyyMMddHHmmss", CultureInfo.InvariantCulture)
-                _groups = TextInBetween(queryresponse, """userid"":", ",")(0).Split(","c)
+                _groups.AddRange(TextInBetween(queryresponse, """userid"":", ",")(0).Split(","c))
                 _gender = TextInBetween(queryresponse, """gender"":""", """")(0)
 
                 If queryresponse.Contains("blockid") Then
                     _blocked = True
-                    _blockid = Integer.Parse(TextInBetween(queryresponse, """blockid"":", ",")(0))
+                    _blockID = Integer.Parse(TextInBetween(queryresponse, """blockid"":", ",")(0))
                     _blockedTimestamp = TextInBetween(queryresponse, """blockedtimestamp"":""", """")(0)
-                    _blockedby = TextInBetween(queryresponse, """blockedby"":""", """")(0)
+                    _blockedBy = TextInBetween(queryresponse, """blockedby"":""", """")(0)
                     _blockedbyID = Integer.Parse(TextInBetween(queryresponse, """blockedbyid"":", ",")(0))
-                    _blockreason = TextInBetween(queryresponse, """blockreason"":""", """")(0)
-                    _blockexpiry = TextInBetween(queryresponse, """blockexpiry"":""", """")(0)
+                    _blockReason = TextInBetween(queryresponse, """blockreason"":""", """")(0)
+                    _blockExpiry = TextInBetween(queryresponse, """blockexpiry"":""", """")(0)
                 End If
 
-            Catch ex As Exception
-                Log("Wikiuser LoadInfo EX: " & ex.Message, "LOCAL", BOTName)
+            Catch ex As IndexOutOfRangeException
+                Log("Wikiuser LoadInfo Index EX: " & ex.Message, "LOCAL", BOTName)
+
+            Catch ex2 As Exception
+                Log("Wikiuser LoadInfo EX: " & ex2.Message, "LOCAL", BOTName)
             End Try
 
         End Sub
