@@ -150,7 +150,7 @@ Namespace WikiBot
                         Qstring = Qstring & s & "|"
                     Next
                     Qstring = Qstring.Trim(CType("|", Char))
-                    Dim QueryResponse As String = _bot.GETQUERY("?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=")
+                    Dim QueryResponse As String = _bot.GETQUERY("?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=" & Qstring)
                     Dim ResponseArray As String() = TextInBetweenInclusive(QueryResponse, ",""title"":", """}")
                     For Each s As String In ResponseArray
                         Dim pagetitle As String = TextInBetween(s, ",""title"":""", """,""")(0)
@@ -242,7 +242,7 @@ Namespace WikiBot
                     Next
                 Next
             Catch ex As Exception
-                Dim a As Integer = 1
+                Debug_Log("BOTGetPagesExtract EX: " & ex.Message, "LOCAL", BOTName)
             End Try
             Return PagenameAndResume
         End Function

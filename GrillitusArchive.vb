@@ -67,7 +67,7 @@ Class GrillitusArchive
         Debug_Log("Archive: Declare vars", "LOCAL", BOTName)
         Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
 
-        Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
+        Dim IndexPage As Page = WikiAction.Getpage(PageToArchive.Title & "/Archivo-00-índice")
 
         Dim PageTitle As String = PageToArchive.Title
         Dim pagetext As String = PageToArchive.Text
@@ -299,7 +299,7 @@ Class GrillitusArchive
                 Dim Archivepage As String = k.Key
                 Dim ThreadText As String = Environment.NewLine & k.Value
                 Dim threadcount As Integer = WikiAction.GetPageThreads(Environment.NewLine & ThreadText).Count
-                Dim ArchPage As Page = _bot.Getpage(Archivepage)
+                Dim ArchPage As Page = WikiAction.Getpage(Archivepage)
                 Dim ArchivePageText As String = ArchPage.Text
                 ArchivePages.Add(Archivepage)
                 'Verificar si la página de archivado está en el mismo espacio de nombres
@@ -461,7 +461,7 @@ Class GrillitusArchive
         Dim includedpages As String() = WikiAction.GetallInclusions("Plantilla:Archivado automático")
         For Each pa As String In includedpages
             Log("ArchiveAllInclusions: Page " & pa, "LOCAL", BOTName)
-            Dim _Page As Page = _bot.Getpage(pa)
+            Dim _Page As Page = WikiAction.Getpage(pa)
             If _Page.Exists Then
                 Try
                     Archive(_Page)

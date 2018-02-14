@@ -164,6 +164,7 @@ Namespace WikiBot
         ''' <param name="wbot">Bot logueado a la wiki</param>
         ''' <param name="username">Nombre de usuario que realiza las ediciones</param>
         Public Sub New(ByVal PageTitle As String, ByVal site As String, ByRef wbot As Bot, ByVal username As String)
+            _bot = wbot
             Log("Loading page " & PageTitle, "LOCAL", BOTName)
             _username = username
             Loadpage(PageTitle, site, wbot)

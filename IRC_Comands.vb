@@ -436,7 +436,7 @@ Class IRC_Comands
                 responsestring = String.Format("{1} Versión: {0} (Uptime: {2}; Bajo {3} (MONO)). Ordenes: %ord", ColoredText(Version, "03"), BOTName, uptimestr, ColoredText(OS, "04"))
                 Log("IRC: Requested info (%??)", "IRC", user)
             Else
-                responsestring = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Hilos: {4}; Memoria (en uso): {6}Mb, (Privada): {5}Mb). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, PrivateMemory.ToString, UsedMemory.ToString)
+                responsestring = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Hilos: {4}; Memoria (en uso): {6}Kb, (Privada): {5}Kb). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, PrivateMemory.ToString, UsedMemory.ToString)
                 Log("IRC: Requested info (%??)", "IRC", user)
             End If
 
@@ -452,7 +452,7 @@ Class IRC_Comands
         If user.ToLower.Contains("bot") Then
             Return Nothing
         End If
-        Dim responsestring As String = String.Format("Hola {0}, Soy {1}, bot multipropósito de apoyo en IRC (en pruebas). Ordenes: '%Ord' /Ayuda con un comando %? <orden> /Más sobre mí: '%??'", user, _IrcNickName)
+        Dim responsestring As String = String.Format("Hola {0}, Soy {1}, bot multipropósito de apoyo en IRC. Ordenes: '%Ord' | Ayuda con un comando %? <orden> | Más sobre mí: '%??'", ColoredText(user, "04"), ColoredText(_IrcNickName, "03"))
         Log(String.Format("IRC: {0} was mentioned, returning info", _IrcNickName), "IRC", user)
         Dim mes As New IRCMessage(source, responsestring)
         Return mes

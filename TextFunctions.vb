@@ -230,9 +230,9 @@ Module TextFunctions
     ''' <param name="BackgroundColor">Color del fondo, i se omite se usa el color por defecto del cliente irc</param>
     Function ColoredText(ByVal text As String, ForegroundColor As String, Optional BackgroundColor As String = "99") As String
         If BackgroundColor = "99" Then
-            Return Chr(3) & ForegroundColor & text & Chr(3)
+            Return Chr(3) & ForegroundColor & text & Chr(3) & Chr(27)
         Else
-            Return Chr(3) & ForegroundColor & "," & BackgroundColor & text & Chr(3)
+            Return Chr(3) & ForegroundColor & "," & BackgroundColor & text & Chr(3) & Chr(27)
         End If
     End Function
 
