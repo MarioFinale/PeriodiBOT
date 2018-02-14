@@ -638,6 +638,15 @@ Namespace WikiBot
             Return newlist.ToArray
         End Function
 
+
+        ''' <summary>
+        ''' Retorna un elemento Page coincidente al nombre entregado como parámetro.
+        ''' </summary>
+        ''' <param name="PageName">Nombre exacto de la página</param>
+        Function Getpage(ByVal PageName As String) As Page
+            Return New Page(PageName, _siteurl, _bot, _bot.Username)
+        End Function
+
     End Class
 
 End Namespace

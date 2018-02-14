@@ -36,7 +36,8 @@ Module GlobalVars
     Public Uptime As DateTime
 
 
-    Public Mainwikibot As Bot
+    Public ESWikiBOT As Bot
+    Public WikidataBOT As Bot
     Public BotIRC As IRC_Client
 
 

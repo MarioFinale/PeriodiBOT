@@ -21,7 +21,7 @@ Module MainModule
         Uptime = DateTime.Now
         LoadConfig()
         Log("Starting...", "LOCAL", BOTName)
-        Mainwikibot = New Bot(WPUserName, BOTPassword, ApiURL)
+        ESWikiBOT = New Bot(WPUserName, BOTPassword, ApiURL)
 
 
 

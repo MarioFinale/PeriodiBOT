@@ -2,7 +2,7 @@
 Option Explicit On
 Imports PeriodiBOT_IRC.WikiBot
 Public Module PeriodiBOT_Tasks
-    Dim WikiFuncs As New WikiTask(Mainwikibot)
+    Dim WikiFuncs As New WikiTask(ESWikiBOT)
     ''' <summary>
     ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
     ''' </summary>
@@ -15,7 +15,7 @@ Public Module PeriodiBOT_Tasks
                 Dim username As String = UserdataLine(1)
                 Dim OP As String = UserdataLine(0)
                 Dim UserDate As String = UserdataLine(2)
-                Dim User As New WikiUser(Mainwikibot, username)
+                Dim User As New WikiUser(ESWikiBOT, username)
                 Log("CheckUsers: Checking user " & username, "IRC", BOTName)
 
                 Dim LastEdit As DateTime = User.Lastedit
@@ -85,7 +85,7 @@ Public Module PeriodiBOT_Tasks
     ''' </summary>
     ''' <returns></returns>
     Function ArchiveAllInclusions(ByVal IRC As Boolean) As Boolean
-        Dim Archive As New GrillitusArchive(Mainwikibot)
+        Dim Archive As New GrillitusArchive(ESWikiBOT)
         Return Archive.ArchiveAllInclusions(IRC)
     End Function
 
@@ -95,10 +95,9 @@ Public Module PeriodiBOT_Tasks
     ''' el último usuario que la editó y el segundo el título real de la página.
     ''' </summary>
     Function GetAllRequestedpages() As SortedList(Of String, String())
-        Dim _bot As Bot = Mainwikibot
         Dim plist As New SortedList(Of String, String())
         For Each s As String In WikiFuncs.GetallInclusions(ResumePageName)
-            Dim Pag As Page = _bot.Getpage(s)
+            Dim Pag As Page = WikiFuncs.Getpage(s)
             Dim pagetext As String = Pag.Text
             For Each s2 As String In TextInBetween(pagetext, "{{" & ResumePageName & "|", "}}")
                 If Not plist.Keys.Contains(s2) Then
@@ -116,16 +115,16 @@ Public Module PeriodiBOT_Tasks
     ''' Solo contiene las páginas que no existen en la plantilla.
     ''' </summary>
     Function GetResumeRequests() As SortedList(Of String, String())
-        Dim _bot As Bot = Mainwikibot
+        Dim _bot As Bot = ESWikiBOT
         Dim slist As SortedList(Of String, String()) = GetAllRequestedpages()
         Dim Reqlist As New SortedList(Of String, String())
-        Dim ResumePage As Page = _bot.Getpage(ResumePageName)
+        Dim ResumePage As Page = WikiFuncs.Getpage(ResumePageName)
         Dim rtext As String = ResumePage.Text
 
         For Each pair As KeyValuePair(Of String, String()) In slist
             Try
                 If Not rtext.Contains("|" & pair.Key & "=") Then
-                    Dim pag As Page = _bot.Getpage(pair.Key)
+                    Dim pag As Page = WikiFuncs.Getpage(pair.Key)
                     If pag.Exists Then
                         Reqlist.Add(pair.Key, pair.Value)
                     End If
@@ -153,8 +152,8 @@ Public Module PeriodiBOT_Tasks
     ''' <param name="IRC">Si se establece este valor envía un comando en IRC avisando de la actualización</param>
     ''' <returns></returns>
     Function UpdatePageExtracts(ByVal irc As Boolean) As Boolean
-        Dim WikiAction As New WikiTask(Mainwikibot)
-        Dim _bot As Bot = Mainwikibot
+        Dim WikiAction As New WikiTask(ESWikiBOT)
+        Dim _bot As Bot = ESWikiBOT
         If irc Then
             BotIRC.Sendmessage(ColoredText("Actualizando extractos...", "04"))
         End If
@@ -167,7 +166,7 @@ Public Module PeriodiBOT_Tasks
 
 
         Debug_Log("UpdatePageExtracts: Loading resume page", "LOCAL", BOTName)
-        Dim ResumePage As Page = _bot.Getpage(ResumePageName)
+        Dim ResumePage As Page = WikiFuncs.Getpage(ResumePageName)
 
         Dim ResumePageText As String = ResumePage.Text
         Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL", BOTName)

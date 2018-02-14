@@ -374,7 +374,7 @@ Class IRC_Comands
         Dim PageName As String = TitleFirstGuess(page)
         Dim responsestring As String = ColoredText("Archivando " & PageName, "04")
         Task.Run(Sub()
-                     Dim p As Page = Mainwikibot.Getpage(PageName)
+                     Dim p As Page = WikiAction.Getpage(PageName)
                      WikiAction.Archive(p)
                  End Sub)
         Dim mes As New IRCMessage(source, responsestring)
@@ -669,7 +669,7 @@ Class IRC_Comands
         Log("IRC: Get PageInfo of " & page, "IRC", Username)
 
         If Not PageName = String.Empty Then
-            Dim pag As Page = Mainwikibot.Getpage(PageName)
+            Dim pag As Page = WikiAction.Getpage(PageName)
             Dim CatString As String = String.Empty
             If pag.Categories.Count = 10 Then
                 CatString = "10+"

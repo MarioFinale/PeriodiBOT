@@ -94,13 +94,6 @@ Namespace WikiBot
             End Try
         End Function
 
-        ''' <summary>
-        ''' Retorna un elemento Page coincidente al nombre entregado como parámetro.
-        ''' </summary>
-        ''' <param name="PageName">Nombre exacto de la página</param>
-        Function Getpage(ByVal PageName As String) As Page
-            Return New Page(PageName, _siteurl, Me, Username)
-        End Function
 
         ''' <summary>
         ''' Obtiene un Token y cookies de ingreso, establece las cookies de la clase y retorna el token como string.

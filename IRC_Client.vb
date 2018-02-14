@@ -126,7 +126,7 @@ Public Class IRC_Client
                                            Dim sCommandParts As String() = sCommand.Split(CType(" ", Char()))
 
                                            Dim CommandFunc As New Func(Of IRCMessage())(Function()
-                                                                                            Return {Command.ResolveCommand(sCommand, HasExited, _sNickName, Me, Mainwikibot)}
+                                                                                            Return {Command.ResolveCommand(sCommand, HasExited, _sNickName, Me, ESWikiBOT)}
                                                                                         End Function)
                                            Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc, "ResolveCommand")
 
