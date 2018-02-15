@@ -125,7 +125,7 @@ Public Class Template
             Throw New ArgumentException("templatetext")
         End If
         'Verificar si se paso una plantilla
-        If Not Text.Substring(0, 2) = "{{" Then
+        If Not templatetext.Substring(0, 2) = "{{" Then
             Exit Sub
         End If
         If Not CountCharacter(templatetext, CChar("{")) = CountCharacter(templatetext, CChar("}")) Then

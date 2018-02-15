@@ -45,7 +45,7 @@ Class GrillitusArchive
     ''' <param name="pageToCheck"></param>
     ''' <returns></returns>
     Private Function ValidNamespace(pageToCheck As Page) As Boolean
-        Dim validNamespaces As Integer() = {1, 2, 4, 5, 11, 15, 101, 102, 103, 105, 447, 829}
+        Dim validNamespaces As Integer() = {1, 3, 4, 5, 11, 15, 101, 102, 103, 105, 447, 829}
         If Not validNamespaces.Contains(pageToCheck.PageNamespace) Then
             Log("Archive: The page " & pageToCheck.Title & " doesn't belong to any valid namespace. (NS:" & pageToCheck.PageNamespace & ")", "LOCAL", BOTName)
             Return False
@@ -55,9 +55,9 @@ Class GrillitusArchive
 
 
 
-    Private Function PageConfig(ByVal Params As String(), ByRef destination As String, ByRef maxDays As Integer, ByRef strategy As String, useBox As Boolean, notify As Boolean) As Boolean
+    Private Function PageConfig(ByVal Params As String(), ByRef destination As String, ByRef maxDays As Integer, ByRef strategy As String, ByRef useBox As Boolean, ByRef notify As Boolean) As Boolean
 
-        If Not Params.Count = 4 Then Return False
+        If Not Params.Count >= 4 Then Return False
         Try
             'Destino
             If String.IsNullOrEmpty(Params(0)) Then
@@ -75,7 +75,7 @@ Class GrillitusArchive
             End If
             'Avisar al archivar
             If String.IsNullOrEmpty(Params(2)) Then
-                notify = False
+                notify = True
             Else
                 If Params(2).ToLower.Contains("si") Or Params(2).ToLower.Contains("sí") Then
                     notify = True
@@ -155,9 +155,9 @@ Class GrillitusArchive
         Debug_Log("Archive: Get threads of page " & PageToArchive.Title, "LOCAL", BOTName)
         Dim threads As String() = WikiAction.GetPageThreads(PageToArchive.Text)
 
-        Dim notify As Boolean = False
+        Dim notify As Boolean
         Dim strategy As String = String.Empty
-        Dim useBox As Boolean = False
+        Dim useBox As Boolean
         Dim pageDest As String = String.Empty
         Dim maxDays As Integer = 0
         If Not PageConfig(ArchiveCfg, pageDest, maxDays, strategy, useBox, notify) Then Return False

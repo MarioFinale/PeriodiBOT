@@ -12,7 +12,7 @@ Namespace WikiBot
         Private _userId As Integer
         Private _editCount As Integer
         Private _registration As Date
-        Private _groups As List(Of String)
+        Private _groups As New List(Of String)
         Private _gender As String
 
         Private _blocked As Boolean
@@ -123,6 +123,7 @@ Namespace WikiBot
             _userName = userName
             _bot = wikiBot
             LoadInfo()
+            _lastEdit = GetLastEditTimestampUser(_userName)
         End Sub
 
         Sub LoadInfo()
@@ -133,12 +134,19 @@ Namespace WikiBot
                 If queryresponse.Contains("""missing"":""""") Then
                     _exists = False
                     Exit Sub
+                Else
+                    _exists = True
                 End If
 
                 _userID = Integer.Parse(TextInBetween(queryresponse, """userid"":", ",")(0))
                 _editCount = Integer.Parse(TextInBetween(queryresponse, """editcount"":", ",")(0))
-                Dim registrationString As String = TextInBetween(queryresponse, """registration"":""", """")(0).Replace("-"c, "").Replace("T"c, "").Replace("Z"c, "").Replace(":"c, "")
-                _registration = Date.ParseExact(registrationString, "yyyyMMddHHmmss", CultureInfo.InvariantCulture)
+                Try
+                    Dim registrationString As String = TextInBetween(queryresponse, """registration"":""", """")(0).Replace("-"c, "").Replace("T"c, "").Replace("Z"c, "").Replace(":"c, "")
+                    _registration = Date.ParseExact(registrationString, "yyyyMMddHHmmss", CultureInfo.InvariantCulture)
+                Catch ex As IndexOutOfRangeException
+                    _registration = New Date(2004, 1, 1, 0, 0, 0)
+                End Try
+
                 _groups.AddRange(TextInBetween(queryresponse, """userid"":", ",")(0).Split(","c))
                 _gender = TextInBetween(queryresponse, """gender"":""", """")(0)
 
@@ -153,10 +161,10 @@ Namespace WikiBot
                 End If
 
             Catch ex As IndexOutOfRangeException
-                Log("Wikiuser LoadInfo Index EX: " & ex.Message, "LOCAL", BOTName)
+                EX_Log("Wikiuser LoadInfo" & ex.Message, "LOCAL", BOTName)
 
             Catch ex2 As Exception
-                Log("Wikiuser LoadInfo EX: " & ex2.Message, "LOCAL", BOTName)
+                EX_Log("Wikiuser LoadInfo: " & ex2.Message, "LOCAL", BOTName)
             End Try
 
         End Sub
@@ -168,7 +176,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function GetLastEditTimestampUser(ByVal user As String) As DateTime
             user = UrlWebEncode(user)
-            Dim qtest As String = _bot.POSTQUERY("?action=query&list=usercontribs&uclimit=1&format=json&ucuser=" & user)
+            Dim qtest As String = _bot.POSTQUERY("action=query&list=usercontribs&uclimit=1&format=json&ucuser=" & user)
 
             If qtest.Contains("""usercontribs"":[]") Then
                 Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)

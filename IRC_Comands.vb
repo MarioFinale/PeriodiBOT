@@ -74,9 +74,6 @@ Class IRC_Comands
                     End If
 
 
-
-
-
                     If Params.Count >= 1 Then
 
                         If MainParam = ("%última") Or
@@ -123,8 +120,6 @@ Class IRC_Comands
                                 CommandResponse = CommandInfo(Source, MainParam, Realname)
                             End If
 
-
-
                         ElseIf MainParam = ("%lastlog") Then
                             CommandResponse = LastLogComm(Totalparam, Source, Realname)
 
@@ -145,11 +140,16 @@ Class IRC_Comands
                                 Return response
                             End If
 
-                        ElseIf MainParam = ("%grillitusarchive") Then 'Archivado de grillitus
+                        ElseIf MainParam = ("%archiveall") Then 'Archivado de grillitus
                             If IsOp(imputline, Source, Realname) Then
-                                Task.Run(Sub()
-                                             ArchiveAllInclusions(True)
-                                         End Sub)
+                                Dim paramarr As String() = param.Split(CType(" ", Char))
+                                If paramarr.Count >= 2 Then
+                                    CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                Else
+                                    Task.Run(Sub()
+                                                 ArchiveAllInclusions(True)
+                                             End Sub)
+                                End If
                             End If
 
                         ElseIf MainParam = ("%join") Then
@@ -186,7 +186,12 @@ Class IRC_Comands
 
                         ElseIf MainParam = ("%archive") Then
                             If IsOp(imputline, Source, Realname) Then
-                                CommandResponse = ArchivePage(Source, Totalparam, Realname)
+                                Dim paramarr As String() = param.Split(CType(" ", Char))
+                                If paramarr.Count >= 2 Then
+                                    CommandResponse = ArchivePage(Source, Totalparam, Realname, Client)
+                                Else
+                                    CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                End If
                             End If
 
                         ElseIf MainParam = ("%div0") Then
@@ -331,6 +336,12 @@ Class IRC_Comands
         ElseIf MainParam = ("deop") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%deop", "03"), "SOLO OP, Elimina un operador.", "%deop nickname!hostname")
+        ElseIf MainParam = ("archive") Then
+            responsestring = String.Format("Comando: {0}; Función:{1}; Uso:{2}",
+           ColoredText(MainParam, "04"), "SOLO OP, Archiva una página inmediatamente.", "%archive [página]")
+        ElseIf MainParam = ("archiveall") Then
+            responsestring = String.Format("Comando: {0}; Función:{1}; Uso:{2}",
+           ColoredText(MainParam, "04"), "SOLO OP, Archiva todas las páginas inmediatamente.", "%archiveall")
         ElseIf String.IsNullOrEmpty(MainParam) Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText("%?", "04"), ColoredText("%?/%h/%help/%ayuda", "03"), "Entrega información sobre un comando.", "%? <orden>")
@@ -381,14 +392,21 @@ Class IRC_Comands
         Return mes
     End Function
 
-    Private Function ArchivePage(ByVal source As String, page As String, user As String) As IRCMessage
+    Private Function ArchivePage(ByVal source As String, page As String, user As String, ircClient As IRC_Client) As IRCMessage
         Debug_Log("ArchivePage requested", source, user)
         Dim PageName As String = TitleFirstGuess(page)
-        Dim responsestring As String = ColoredText("Archivando " & PageName, "04")
+        Dim responsestring As String = ColoredText("Archivando ", "04") & """" & PageName & """"
         Task.Run(Sub()
                      Dim p As Page = WikiAction.Getpage(PageName)
-                     WikiAction.Archive(p)
-                     Debug_Log("ArchivePage completed", source, user)
+                     If WikiAction.Archive(p) Then
+                         Debug_Log("ArchivePage completed", source, user)
+                         Dim completedResponse As String = ColoredText("Archivado de  ", "04") & """" & PageName & """ " & ColoredText("completo", "04")
+                         ircClient.Sendmessage(New IRCMessage(source, completedResponse))
+                     Else
+                         Dim completedResponse As String = ColoredText("No se ha archivado ", "04") & """" & PageName & """. " & ColoredText("Verifica si hay hilos que cumplan los requisitos de archivado, o contacta a un Operador.", "04")
+                         ircClient.Sendmessage(New IRCMessage(source, completedResponse))
+                     End If
+
                  End Sub)
         Dim mes As New IRCMessage(source, responsestring)
         Return mes

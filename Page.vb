@@ -417,7 +417,8 @@ Namespace WikiBot
         ''' <returns></returns>
         Public Function BotCanEdit(ByVal text As String, ByVal user As String) As Boolean
             If String.IsNullOrWhiteSpace(text) Then
-                Throw New ArgumentException("text")
+                'Página nueva, por lo tanto pueden editarla bots
+                Return True
             End If
             If String.IsNullOrWhiteSpace(user) Then
                 Throw New ArgumentException("user")
