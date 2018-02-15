@@ -26,6 +26,17 @@ Public Module CommFunctions
         Return LogC.Debug_log(text, source, user)
     End Function
     ''' <summary>
+    ''' Registra una excepción.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <param name="user">Usuario que origina el evento</param>
+    ''' <returns></returns>
+    Public Function EX_Log(ByVal text As String, source As String, user As String) As Boolean
+        Return LogC.EX_Log(text, source, user)
+    End Function
+
+    ''' <summary>
     ''' Añade un usuario a la lista de aviso de inactividad.
     ''' </summary>
     ''' <param name="UserAndTime"></param>

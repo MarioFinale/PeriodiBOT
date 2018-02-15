@@ -126,6 +126,24 @@ Class LogEngine
         Return True
     End Function
     ''' <summary>
+    ''' Inicia otro thread para guardar un evento de log
+    ''' </summary>
+    ''' <param name="text">Texto a registrar</param>
+    ''' <param name="source">Fuente del evento</param>
+    ''' <param name="user">Usuario origen del evento</param>
+    ''' <returns></returns>
+    Public Function EX_Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
+
+        Task.Run(Sub()
+                     AddEvent(text, source, user, "EX")
+                 End Sub)
+
+        WriteLine("EX", source, user & ": " & text)
+
+        Return True
+    End Function
+
+    ''' <summary>
     ''' Añade un evento al queue
     ''' </summary>
     ''' <param name="text">Texto a registrar</param>
