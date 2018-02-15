@@ -12,6 +12,49 @@ Class GrillitusArchive
         WikiAction = New WikiTask(WorkerBot)
     End Sub
 
+
+    ''' <summary>
+    ''' Verifica si el usuario que se le pase cumple con los requisitos para archivar su discusión
+    ''' </summary>
+    ''' <param name="user">Usuario de Wiki</param>
+    ''' <returns></returns>
+    Function ValidUser(ByVal user As WikiUser) As Boolean
+        Debug_Log("ValidUser: Check user", "LOCAL", BOTName)
+        'Verificar si el usuario existe
+        If Not user.Exists Then
+            Log("ValidUser: User " & user.UserName & " doesn't exist", "LOCAL", BOTName)
+            Return False
+        End If
+
+        'Verificar si el usuario está bloqueado.
+        If user.Blocked Then
+            Log("ValidUser: User " & user.UserName & " is blocked", "LOCAL", BOTName)
+            Return False
+        End If
+
+        'Verificar si el usuario editó hace al menos 4 días.
+        If Date.Now.Subtract(user.LastEdit).Days >= 4 Then
+            Log("ValidUser: User " & user.UserName & " is inactive", "LOCAL", BOTName)
+            Return False
+        End If
+        Return True
+    End Function
+    ''' <summary>
+    ''' Verifica si la página forma parte de un espacio de nombres válido
+    ''' </summary>
+    ''' <param name="pageToCheck"></param>
+    ''' <returns></returns>
+    Function ValidNamespace(pageToCheck As Page) As Boolean
+        Dim validNamespaces As Integer() = {1, 2, 4, 5, 11, 15, 101, 102, 103, 105, 447, 829}
+        If Not validNamespaces.Contains(pageToCheck.PageNamespace) Then
+            Log("Archive: The page " & pageToCheck.Title & " doesn't belong to any valid namespace. (NS:" & pageToCheck.PageNamespace & ")", "LOCAL", BOTName)
+            Return False
+        End If
+        Return True
+    End Function
+
+
+
     ''' <summary>
     ''' Realiza un archivado general siguiendo una lógica similar a la de Grillitus.
     ''' </summary>
@@ -20,20 +63,9 @@ Class GrillitusArchive
     Function Archive(ByVal PageToArchive As Page) As Boolean
         Log("Archive: Page " & PageToArchive.Title, "LOCAL", BOTName)
 
-
         'Verificar el espacio de nombres de la página se archiva
-        If Not (PageToArchive.PageNamespace = 1 Or PageToArchive.PageNamespace = 3 _
-            Or PageToArchive.PageNamespace = 4 Or PageToArchive.PageNamespace = 5 _
-            Or PageToArchive.PageNamespace = 11 Or PageToArchive.PageNamespace = 13 _
-            Or PageToArchive.PageNamespace = 15 Or PageToArchive.PageNamespace = 101 _
-            Or PageToArchive.PageNamespace = 102 Or PageToArchive.PageNamespace = 103 _
-            Or PageToArchive.PageNamespace = 105 Or PageToArchive.PageNamespace = 447 _
-            Or PageToArchive.PageNamespace = 829) Then
-            Log("Archive: The page " & PageToArchive.Title & " doesn't belong to any valid namespace. (NS:" & PageToArchive.PageNamespace & ")", "LOCAL", BOTName)
-            Return False
-        End If
+        If Not ValidNamespace(PageToArchive) Then Return False
 
-        Debug_Log("Archive: Check user", "LOCAL", BOTName)
         'Verificar si es una discusión de usuario.
         If PageToArchive.PageNamespace = 3 Then
             Dim Username As String = PageToArchive.Title.Split(":"c)(1)
@@ -43,25 +75,8 @@ Class GrillitusArchive
             End If
             'Cargar usuario
             Dim User As New WikiUser(_bot, Username)
-
-            'Verificar si el usuario existe
-            If Not User.Exists Then
-                Log("Archive: User " & Username & " doesn't exist", "LOCAL", BOTName)
-                Return False
-            End If
-
-            'Verificar si el usuario está bloqueado.
-            If User.Blocked Then
-                Log("Archive: User " & Username & " is blocked", "LOCAL", BOTName)
-                Return False
-            End If
-
-            'Verificar si el usuario editó hace al menos 4 días.
-            If Date.Now.Subtract(User.Lastedit).Days >= 4 Then
-                Log("Archive: User " & Username & " is inactive", "LOCAL", BOTName)
-                Return False
-            End If
-
+            'Validar usuario
+            If Not ValidUser(User) Then Return False
         End If
 
         Debug_Log("Archive: Declare vars", "LOCAL", BOTName)
