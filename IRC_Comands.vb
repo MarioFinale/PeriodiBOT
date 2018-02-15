@@ -7,9 +7,14 @@ Class IRC_Comands
     Private LastMessage As IRCMessage
     Private _IrcNickName As String
     Private Client As IRC_Client
+    Private _bot As Bot
+    Private WikiAction As WikiTask
 
-    Public Function ResolveCommand(ByVal imputline As String, ByRef HasExited As Boolean, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client) As IRCMessage
+    Public Function ResolveCommand(ByVal imputline As String, ByRef HasExited As Boolean, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client, WorkerBot As Bot) As IRCMessage
         Client = IRCCLient
+        _bot = WorkerBot
+        WikiAction = New WikiTask(WorkerBot)
+
         _IrcNickName = BOTIRCNickName
 
         Try
@@ -69,14 +74,16 @@ Class IRC_Comands
                     End If
 
 
-
-
-
                     If Params.Count >= 1 Then
 
                         If MainParam = ("%última") Or
                        MainParam = ("%ultima") Or MainParam = ("%ult") Or MainParam = ("%last") Then
-                            CommandResponse = LastEdit(Source, Realname, Username)
+                            Dim paramarr As String() = param.Split(CType(" ", Char))
+                            If paramarr.Count >= 2 Then
+                                CommandResponse = LastEdit(Source, Realname, Username)
+                            Else
+                                CommandResponse = CommandInfo(Source, MainParam, Realname)
+                            End If
 
                         ElseIf MainParam = ("%usuario") Or MainParam = ("%usuarios") Or MainParam = ("%users") Or MainParam = ("%usr") Or
                            MainParam = ("%usrs") Then
@@ -88,6 +95,8 @@ Class IRC_Comands
 
                             If paramarr.Count >= 2 Then
                                 CommandResponse = ProgramNewUser(Source, Realname, paramarr(1).Trim(CType(" ", Char())))
+                            Else
+                                CommandResponse = CommandInfo(Source, MainParam, Realname)
                             End If
 
                         ElseIf MainParam = ("%quitar") Or MainParam = ("%quita") Or
@@ -102,10 +111,17 @@ Class IRC_Comands
                             CommandResponse = About(imputline, Source, Realname)
 
                         ElseIf MainParam = "%?" Or MainParam = "%h" Or MainParam = "%help" Or MainParam = "%ayuda" Then
-                            CommandResponse = CommandInfo(Source, Totalparam, Realname)
+
+                            Dim paramarr As String() = param.Split(CType(" ", Char))
+
+                            If paramarr.Count >= 2 Then
+                                CommandResponse = CommandInfo(Source, paramarr(1).Trim(CType(" ", Char())), Realname)
+                            Else
+                                CommandResponse = CommandInfo(Source, MainParam, Realname)
+                            End If
 
                         ElseIf MainParam = ("%lastlog") Then
-                            CommandResponse = LastLogComm(Totalparam, Source, Prefix, Realname)
+                            CommandResponse = LastLogComm(Totalparam, Source, Realname)
 
                         ElseIf MainParam = ("%resumen") Or MainParam = ("%res") Or
                            MainParam = ("%entrada") Or MainParam = ("%entradilla") Then
@@ -124,11 +140,16 @@ Class IRC_Comands
                                 Return response
                             End If
 
-                        ElseIf MainParam = ("%grillitusarchive") Then 'Archivado de grillitus
+                        ElseIf MainParam = ("%archiveall") Then 'Archivado de grillitus
                             If IsOp(imputline, Source, Realname) Then
-                                Task.Run(Sub()
-                                             Mainwikibot.ArchiveAllInclusions(True)
-                                         End Sub)
+                                Dim paramarr As String() = param.Split(CType(" ", Char))
+                                If paramarr.Count >= 2 Then
+                                    CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                Else
+                                    Task.Run(Sub()
+                                                 ArchiveAllInclusions(True)
+                                             End Sub)
+                                End If
                             End If
 
                         ElseIf MainParam = ("%join") Then
@@ -159,17 +180,22 @@ Class IRC_Comands
                         MainParam = ("%upex") Or MainParam = ("%updex") Then
                             If IsOp(imputline, Source, Realname) Then
                                 Task.Run(Sub()
-                                             Mainwikibot.UpdatePageExtracts(True)
+                                             UpdatePageExtracts(True)
                                          End Sub)
                             End If
 
                         ElseIf MainParam = ("%archive") Then
                             If IsOp(imputline, Source, Realname) Then
-                                CommandResponse = ArchivePage(Source, Totalparam, Realname)
+                                Dim paramarr As String() = param.Split(CType(" ", Char))
+                                If paramarr.Count >= 2 Then
+                                    CommandResponse = ArchivePage(Source, Totalparam, Realname, Client)
+                                Else
+                                    CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                End If
                             End If
 
                         ElseIf MainParam = ("%div0") Then
-                            Return Div0(Source, Realname, HasExited)
+                            Return Div0(Source, Realname)
 
                         Else
                             If param.ToLower.Contains(_IrcNickName.ToLower) And Not param.ToLower.Contains("*") And Not imputline.Contains(".freenode.net ") Then
@@ -190,7 +216,7 @@ Class IRC_Comands
                 End If
 
             Else
-                    Return Nothing
+                Return Nothing
             End If
         Catch ex As Exception
             Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _IrcNickName)
@@ -244,68 +270,78 @@ Class IRC_Comands
     Private Function CommandInfo(source As String, MainParam As String, realname As String) As IRCMessage
         Dim responsestring As String = String.Empty
         MainParam = MainParam.ToLower
+        If MainParam(0) = "%"c Then
+            MainParam = MainParam.Replace("%"c, "")
+        End If
+
         Log("Commandinfo: " & MainParam, "IRC", realname)
-        If MainParam = ("%última") Or MainParam = ("%ultima") Or MainParam = ("%ult") Or MainParam = ("%last") Then
+        If MainParam = ("última") Or MainParam = ("ultima") Or MainParam = ("ult") Or MainParam = ("last") Then
 
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%última/%ultima/%ult/%last", "03"), "Entrega el tiempo (Aproximado) que ha pasado desde la ultima edicion del usuario.", "%Ultima <usuario>")
 
-        ElseIf MainParam = ("%usuario") Or MainParam = ("%usuarios") Or MainParam = ("%users") Or MainParam = ("%usr") Or
-                           MainParam = ("%usrs") Then
+        ElseIf MainParam = ("usuario") Or MainParam = ("usuarios") Or MainParam = ("users") Or MainParam = ("usr") Or
+                           MainParam = ("usrs") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%usuario/%usuarios/%users/%usr/%usrs", "03"), "Entrega una lista de los usuarios programados en tu lista (Más info: %? %programar).", "%Usuarios")
 
-        ElseIf MainParam = ("%programar") Or MainParam = ("%programa") Or MainParam = ("%prog") Or MainParam = ("%progr") Or
-                           MainParam = ("%prg") Or MainParam = ("%avisa") Then
+        ElseIf MainParam = ("programar") Or MainParam = ("programa") Or MainParam = ("prog") Or MainParam = ("progr") Or
+                           MainParam = ("prg") Or MainParam = ("avisa") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-            ColoredText(MainParam, "04"), ColoredText("%programar/%programa/%prog/%progr/%prg/%avisa", "03"), "Programa un aviso en caso de que el usuario no edite en un tiempo específico.", "%Programar Usuario/Dias/Horas/Minutos")
+            ColoredText(MainParam, "04"), ColoredText("%programar/%programa/%prog/%progr/%prg/%avisa", "03"), "Programa un aviso en caso de que un usuario no edite en un tiempo específico.", "%Programar Usuario/Dias/Horas/Minutos")
 
-        ElseIf MainParam = ("%quitar") Or MainParam = ("%quita") Or
-                           MainParam = ("%saca") Or MainParam = ("%sacar") Then
+        ElseIf MainParam = ("quitar") Or MainParam = ("quita") Or
+                           MainParam = ("saca") Or MainParam = ("sacar") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%quitar/%quita/%saca/%sacar", "03"), "Quita un usuario de tu lista programada (Más info: %? %programar).", "%Quita <usuario>")
 
-        ElseIf MainParam = ("%ord") Or MainParam = ("%ordenes") Or
-                           MainParam = ("%órdenes") Then
+        ElseIf MainParam = ("ord") Or MainParam = ("ordenes") Or
+                           MainParam = ("órdenes") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%ord/%ordenes", "03"), "Entrega una lista de las principales ordenes (Más info: %? <orden>).", "%Ordenes")
 
-        ElseIf MainParam = "%??" Then
+        ElseIf MainParam = "??" Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%??", "03"), "Entrega información técnica sobre el bot (limitado según el usuario).", "%??")
 
-        ElseIf MainParam = "%?" Or MainParam = "%h" Or MainParam = "%help" Or MainParam = "%ayuda" Then
+        ElseIf MainParam = "?" Or MainParam = "h" Or MainParam = "help" Or MainParam = "ayuda" Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%?/%h/%help/%ayuda", "03"), "Entrega información sobre un comando.", "%? <orden>")
 
-        ElseIf MainParam = ("%lastlog") Then
+        ElseIf MainParam = ("lastlog") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%lastlog", "03"), "SOLO OPS: Ultimo log del bot (TOTAL).", "%lastlog")
 
-        ElseIf MainParam = ("%resumen") Or MainParam = ("%res") Or
-                           MainParam = ("%entrada") Or MainParam = ("%entradilla") Then
+        ElseIf MainParam = ("resumen") Or MainParam = ("res") Or
+                           MainParam = ("entrada") Or MainParam = ("entradilla") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%resumen/%res/%entrada/%entradilla", "03"), "Entrega la entradilla de un artículo en Wikipedia.", "%entradilla <Artículo>")
 
-        ElseIf MainParam = ("%info") Or MainParam = ("%pag") Or
-                           MainParam = ("%pageinfo") Or MainParam = ("%infopagina") Then
+        ElseIf MainParam = ("info") Or MainParam = ("pag") Or
+                           MainParam = ("pageinfo") Or MainParam = ("infopagina") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%info/%pag/%pageinfo/%infopagina", "03"), "Entrega datos sobre un artículo en Wikipedia.", "%Info <Artículo>")
 
-        ElseIf MainParam = ("%updateExtracts") Or MainParam = ("%update") Or
-                        MainParam = ("%upex") Or MainParam = ("%updex") Then
+        ElseIf MainParam = ("updateExtracts") Or MainParam = ("update") Or
+                        MainParam = ("upex") Or MainParam = ("updex") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%updateExtracts/%update/%upex/%updex", "03"), "SOLO OPS, Actualiza los extractos de articulos en Wikipedia.", "%upex")
 
-        ElseIf MainParam = ("%q") Then
+        ElseIf MainParam = ("q") Or MainParam = ("quit") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%q", "03"), "SOLO OP, Solicita al bot cesar todas sus operaciones.", "%q")
-        ElseIf MainParam = ("%op") Then
+        ElseIf MainParam = ("op") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%op", "03"), "SOLO OP, Añade un operador.", "%op nickname!hostname")
-        ElseIf MainParam = ("%deop") Then
+        ElseIf MainParam = ("deop") Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText(MainParam, "04"), ColoredText("%deop", "03"), "SOLO OP, Elimina un operador.", "%deop nickname!hostname")
+        ElseIf MainParam = ("archive") Then
+            responsestring = String.Format("Comando: {0}; Función:{1}; Uso:{2}",
+           ColoredText(MainParam, "04"), "SOLO OP, Archiva una página inmediatamente.", "%archive [página]")
+        ElseIf MainParam = ("archiveall") Then
+            responsestring = String.Format("Comando: {0}; Función:{1}; Uso:{2}",
+           ColoredText(MainParam, "04"), "SOLO OP, Archiva todas las páginas inmediatamente.", "%archiveall")
         ElseIf String.IsNullOrEmpty(MainParam) Then
             responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
             ColoredText("%?", "04"), ColoredText("%?/%h/%help/%ayuda", "03"), "Entrega información sobre un comando.", "%? <orden>")
@@ -338,28 +374,39 @@ Class IRC_Comands
     Private Function Quit(ByVal source As String, user As String, ByRef HasExited As Boolean) As IRCMessage
         Dim responsestring As String = ColoredText("OK, voy saliendo...", "04")
         Dim command As String = "Solicitado por un operador."
+        HasExited = True
         Client.Quit(command)
         Dim mes As New IRCMessage(source, responsestring)
         Log("QUIT", "IRC", user)
-
         Return mes
     End Function
 
-    Private Function Div0(ByVal source As String, user As String, ByRef HasExited As Boolean) As IRCMessage
+    Private Function Div0(ByVal source As String, user As String) As IRCMessage
+        Debug_Log("Div0 requested", source, user)
         Dim responsetext As String = IrcStringBuilder(source, "OK, dividiendo 1 por 0...")
         Client.SendText(responsetext)
         Dim i As Double = (1 / 0)
         Dim res As String = "Al parecer el resultado es """ & i.ToString & """"
         Dim mes As New IRCMessage(source, res)
+        Debug_Log("Div0 completed", source, user)
         Return mes
     End Function
 
-    Private Function ArchivePage(ByVal source As String, page As String, user As String) As IRCMessage
+    Private Function ArchivePage(ByVal source As String, page As String, user As String, ircClient As IRC_Client) As IRCMessage
+        Debug_Log("ArchivePage requested", source, user)
         Dim PageName As String = TitleFirstGuess(page)
-        Dim responsestring As String = ColoredText("Archivando " & PageName, "04")
+        Dim responsestring As String = ColoredText("Archivando ", "04") & """" & PageName & """"
         Task.Run(Sub()
-                     Dim p As Page = Mainwikibot.Getpage(PageName)
-                     Mainwikibot.Archive(p)
+                     Dim p As Page = WikiAction.Getpage(PageName)
+                     If WikiAction.Archive(p) Then
+                         Debug_Log("ArchivePage completed", source, user)
+                         Dim completedResponse As String = ColoredText("Archivado de  ", "04") & """" & PageName & """ " & ColoredText("completo", "04")
+                         ircClient.Sendmessage(New IRCMessage(source, completedResponse))
+                     Else
+                         Dim completedResponse As String = ColoredText("No se ha archivado ", "04") & """" & PageName & """. " & ColoredText("Verifica si hay hilos que cumplan los requisitos de archivado, o contacta a un Operador.", "04")
+                         ircClient.Sendmessage(New IRCMessage(source, completedResponse))
+                     End If
+
                  End Sub)
         Dim mes As New IRCMessage(source, responsestring)
         Return mes
@@ -382,7 +429,7 @@ Class IRC_Comands
         Log("IRC: GetResume of " & Page, "IRC", user)
 
         If Not PageName = String.Empty Then
-            Dim pretext As String = "Entradilla de " & ColoredText(PageName, "03") & " en Wikipedia: " & Mainwikibot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
+            Dim pretext As String = "Entradilla de " & ColoredText(PageName, "03") & " en Wikipedia: " & WikiAction.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
             Dim endtext As String = "Enlace al artículo: " & ColoredText(" " & site & "wiki/" & PageName.Replace(" ", "_") & " ", "10")
             Dim mes As New IRCMessage(source, {pretext, endtext})
             Return mes
@@ -393,7 +440,7 @@ Class IRC_Comands
         End If
     End Function
 
-    Private Function LastLogComm(ByVal messageline As String, ByVal source As String, Prefix As String, User As String) As IRCMessage
+    Private Function LastLogComm(ByVal messageline As String, ByVal source As String, User As String) As IRCMessage
         Dim responsestring As String = String.Empty
         If IsOp(messageline, source, User) Then
             Dim lastlogdata As String() = LastLog("IRC", User)
@@ -420,7 +467,7 @@ Class IRC_Comands
                 responsestring = String.Format("{1} Versión: {0} (Uptime: {2}; Bajo {3} (MONO)). Ordenes: %ord", ColoredText(Version, "03"), BOTName, uptimestr, ColoredText(OS, "04"))
                 Log("IRC: Requested info (%??)", "IRC", user)
             Else
-                responsestring = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Hilos: {4}; Memoria (privada): {5} bytes). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, GetMemoryUsage.ToString)
+                responsestring = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Hilos: {4}; Memoria (en uso): {6}Kb, (Privada): {5}Kb). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, PrivateMemory.ToString, UsedMemory.ToString)
                 Log("IRC: Requested info (%??)", "IRC", user)
             End If
 
@@ -433,7 +480,10 @@ Class IRC_Comands
     End Function
 
     Private Function Commands(ByVal source As String, user As String) As IRCMessage
-        Dim responsestring As String = String.Format("Hola {0}, Soy {1}, bot multipropósito de apoyo en IRC (en pruebas). Ordenes: '%Ord' /Ayuda con un comando %? <orden> /Más sobre mí: '%??'", user, _IrcNickName)
+        If user.ToLower.Contains("bot") Then
+            Return Nothing
+        End If
+        Dim responsestring As String = String.Format("Hola {0}, Soy {1}, bot multipropósito de apoyo en IRC. Ordenes: '%Ord' | Ayuda con un comando %? <orden> | Más sobre mí: '%??'", ColoredText(user, "04"), ColoredText(_IrcNickName, "03"))
         Log(String.Format("IRC: {0} was mentioned, returning info", _IrcNickName), "IRC", user)
         Dim mes As New IRCMessage(source, responsestring)
         Return mes
@@ -499,41 +549,41 @@ Class IRC_Comands
             If Not UserAndTime.Contains(CType("|", Char)) Then
 
                 Dim requesteduser As String = UserAndTime.Split(CType("/", Char()))(0)
+                Dim wuser As New WikiUser(_bot, requesteduser)
                 Dim Dias As String = UserAndTime.Split(CType("/", Char()))(1)
                 Dim Horas As String = UserAndTime.Split(CType("/", Char()))(2)
                 Dim Minutos As String = UserAndTime.Split(CType("/", Char()))(3)
                 If IsNumeric(Dias) And IsNumeric(Horas) And IsNumeric(Minutos) And (CInt(Horas) <= 23) And (CInt(Minutos) <= 59) Then
                     If (CInt(Dias) = 0) And (CInt(Horas) = 0) And (CInt(Minutos) < 10) Then
-                        ResponseString = "Error: El intervalo debe ser igual o superior a 10 minutos"
+                        ResponseString = ColoredText("Error:", "04") & " El intervalo debe ser igual o superior a 10 minutos"
                     Else
-                        If UserExist(requesteduser) Then
-
+                        If wuser.Exists Then
                             If SetUserTime({user, requesteduser, Dias & "." & Horas & ":" & Minutos, user}) Then
                                 ResponseString = String.Format("Hecho: Serás avisado si {0} no edita en el tiempo especificado", requesteduser)
 
                                 Log(String.Format("IRC: Added user {0} to list (%prog)", requesteduser), "IRC", user)
                             Else
-                                ResponseString = "Error"
+                                ResponseString = ColoredText("Error", "04")
                             End If
                         Else
-                            ResponseString = String.Format("Error: El usuario {0} no existe o no tiene ninguna edición en el proyecto", requesteduser)
+                            ResponseString = String.Format(ColoredText("Error", "04") & " El usuario {0} no existe o no tiene ninguna edición en el proyecto", requesteduser)
                         End If
                     End If
                 Else
-                    ResponseString = String.Format("Error: El parámetro de tiempo debe ser numérico, las horas no deben ser superiores a 23 ni los minutos a 59")
+                    ResponseString = String.Format(ColoredText("Error:", "04") & " El parámetro de tiempo debe ser numérico, las horas no deben ser superiores a 23 ni los minutos a 59")
                 End If
 
             Else
-                ResponseString = String.Format("Error: Se ha ingresado un carácter ilegal ('|')")
+                ResponseString = String.Format(ColoredText("Error:", "04") & " Se ha ingresado un carácter ilegal ('|')")
             End If
         Catch ex As IndexOutOfRangeException
-            ResponseString = String.Format("Error: El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
+            ResponseString = String.Format(ColoredText("Error:", "04") & " El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
         Catch ex As InvalidCastException
-            ResponseString = String.Format("Error: El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
+            ResponseString = String.Format(ColoredText("Error:", "04") & " El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
         Catch ex As Exception
             Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", user)
             Dim exmes As String = ex.Message
-            ResponseString = String.Format("Error: {0}", exmes)
+            ResponseString = String.Format(ColoredText("Error:", "04") & " {0}", exmes)
         End Try
 
         Dim mes As New IRCMessage(source, ResponseString)
@@ -598,13 +648,14 @@ Class IRC_Comands
     End Function
 
     Private Function LastEdit(ByVal source As String, user As String, Username As String) As IRCMessage
+        Dim wuser As New WikiUser(_bot, Username)
         Dim responsestring As String = String.Empty
         Log(String.Format("IRC: Requested lastedit of {0} to list (%ultima)", Username), "IRC", user)
 
-        If Mainwikibot.GetLastEditTimestampUser(Username).ToString.Contains("1111") Then
+        If Not wuser.Exists Then
             responsestring = String.Format("El usuario {0} no tiene ninguna edición en el proyecto eswiki", ColoredText(Username, "04"))
         Else
-            Dim edittime As DateTime = Mainwikibot.GetLastEditTimestampUser(Username)
+            Dim edittime As DateTime = wuser.Lastedit
             Dim actualtime As DateTime = DateTime.UtcNow
             actualtime = actualtime.AddTicks(-(actualtime.Ticks Mod TimeSpan.TicksPerSecond))
 
@@ -644,21 +695,12 @@ Class IRC_Comands
     End Function
 
 
-    Private Function UserExist(ByVal username As String) As Boolean
-        Dim str As String = Mainwikibot.GetLastEditTimestampUser(username).ToString
-        If str.Contains("1111") Then
-            Return False
-        Else
-            Return True
-        End If
-    End Function
-
     Private Function PageInfo(ByVal source As String, page As String, Username As String) As IRCMessage
         Dim PageName As String = TitleFirstGuess(page)
         Log("IRC: Get PageInfo of " & page, "IRC", Username)
 
         If Not PageName = String.Empty Then
-            Dim pag As Page = Mainwikibot.Getpage(PageName)
+            Dim pag As Page = WikiAction.Getpage(PageName)
             Dim CatString As String = String.Empty
             If pag.Categories.Count = 10 Then
                 CatString = "10+"

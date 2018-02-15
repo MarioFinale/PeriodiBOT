@@ -17,7 +17,7 @@ Module TextFunctions
     ''' <param name="Str">Texto a evaluar.</param>
     ''' <returns></returns>
     Function Removewhitelines(ByVal Str As String) As String
-        Return Regex.Replace(Str, “^\s+$[\r\n]*”, “”, RegexOptions.Multiline)
+        Return Regex.Replace(Str, "^\s+$[\r\n]*", "", RegexOptions.Multiline)
     End Function
     ''' <summary>
     ''' Elimina los excesos de espacios (consecutivos) en una cadena de texto.
@@ -196,7 +196,7 @@ Module TextFunctions
     ''' <param name="response">Mensaje a evaluar.</param>
     ''' <returns></returns>
     Function GetUserFromChatresponse(ByVal response As String) As String
-        Return response.Split(CType("!", Char))(0).Replace(":", "")
+        Return response.Split("!"c)(0).Replace(":", "")
     End Function
     ''' <summary>
     ''' Elimina todas las letras dejando únicamente números
@@ -212,7 +212,7 @@ Module TextFunctions
     ''' <param name="text">Texto a codificar</param>
     ''' <returns></returns>
     Function PsvSafeEncode(ByVal text As String) As String
-        Return text.Replace(CType("|", Char), "%CHAR:U+007C%")
+        Return text.Replace("|"c, "%CHAR:U+007C%")
     End Function
     ''' <summary>
     ''' Decodifica texto guardado en el LOG.
@@ -230,9 +230,9 @@ Module TextFunctions
     ''' <param name="BackgroundColor">Color del fondo, i se omite se usa el color por defecto del cliente irc</param>
     Function ColoredText(ByVal text As String, ForegroundColor As String, Optional BackgroundColor As String = "99") As String
         If BackgroundColor = "99" Then
-            Return Chr(3) & ForegroundColor & text & Chr(3)
+            Return Chr(3) & ForegroundColor & text & Chr(3) & Chr(27)
         Else
-            Return Chr(3) & ForegroundColor & "," & BackgroundColor & text & Chr(3)
+            Return Chr(3) & ForegroundColor & "," & BackgroundColor & text & Chr(3) & Chr(27)
         End If
     End Function
 

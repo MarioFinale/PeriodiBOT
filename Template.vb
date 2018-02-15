@@ -25,13 +25,10 @@ Public Class Template
     ''' Lista con pares de (Nombre de parámetro, Valor).
     ''' </summary>
     ''' <returns></returns>
-    Public Property Parameters As List(Of Tuple(Of String, String))
+    Public ReadOnly Property Parameters As List(Of Tuple(Of String, String))
         Get
             Return _parameters
         End Get
-        Set(value As List(Of Tuple(Of String, String)))
-            _parameters = value
-        End Set
     End Property
 
     ''' <summary>
@@ -44,19 +41,20 @@ Public Class Template
         End Get
     End Property
 
+
     ''' <summary>
     ''' Crea una nueva plantilla. Si es una nueva se considera el texto como el título, de lo contrario se considera como el contenido de la plantilla y se extrae de este los parámetros.
     ''' El texto de ser inválido, genera una plantilla vacía ("{{}}").
     ''' </summary>
-    ''' <param name="Texto">Texto a evaluar.</param>
-    ''' <param name="newtemplate">¿Es una plantilla nueva?</param>
-    Sub New(ByVal Texto As String, ByVal newtemplate As Boolean)
-        If newtemplate Then
-            _name = Texto
-            _text = MakeSimpleTemplateText(Texto)
+    ''' <param name="Text">Texto a evaluar.</param>
+    ''' <param name="newTemplate">¿Es una plantilla nueva?</param>
+    Sub New(ByVal text As String, ByVal newTemplate As Boolean)
+        If newTemplate Then
+            _name = text
+            _text = MakeSimpleTemplateText(text)
             _parameters = New List(Of Tuple(Of String, String))
         Else
-            GetTemplateOfText(Texto)
+            GetTemplateOfText(text)
         End If
     End Sub
     ''' <summary>
@@ -64,10 +62,10 @@ Public Class Template
     ''' </summary>
     ''' <param name="Templatename">Nombre de la plantilla.</param>
     ''' <param name="templateparams">Parámetros de la plantilla.</param>
-    Sub New(ByVal Templatename As String, ByVal templateparams As List(Of Tuple(Of String, String)))
-        _name = Templatename
-        _parameters = templateparams
-        _text = MakeTemplateText(Templatename, templateparams)
+    Sub New(ByVal templateName As String, ByVal templateParams As List(Of Tuple(Of String, String)))
+        _name = templateName
+        _parameters = templateParams
+        _text = MakeTemplateText(templateName, templateParams)
     End Sub
     ''' <summary>
     ''' Crea una nueva plantilla vacía ("{{}}")
@@ -88,7 +86,7 @@ Public Class Template
     End Function
 
     ''' <summary>
-    ''' Genera el texto de una plantilla a partir del nombre y parámetros indicados.
+    ''' Genera el texto de la plantilla a partir del nombre y parámetros indicados.
     ''' </summary>
     ''' <param name="tempname">Nombre de la plantilla.</param>
     ''' <param name="tempparams">Parámetros de la plantilla.</param>
@@ -121,21 +119,23 @@ Public Class Template
     ''' <summary>
     ''' Inicializa la plantilla extrayendo los datos de un texto que debería ser en formato de plantilla.
     ''' </summary>
-    ''' <param name="text"></param>
-    Sub GetTemplateOfText(ByVal text As String)
-
+    ''' <param name="templatetext"></param>
+    Sub GetTemplateOfText(ByVal templatetext As String)
+        If String.IsNullOrWhiteSpace(templatetext) Then
+            Throw New ArgumentException("templatetext")
+        End If
         'Verificar si se paso una plantilla
-        If Not text.Substring(0, 2) = "{{" Then
+        If Not templatetext.Substring(0, 2) = "{{" Then
             Exit Sub
         End If
-        If Not CountCharacter(text, CChar("{")) = CountCharacter(text, CChar("}")) Then
+        If Not CountCharacter(templatetext, CChar("{")) = CountCharacter(templatetext, CChar("}")) Then
             Exit Sub
         End If
-        If Not text.Substring(text.Length - 2, 2) = "}}" Then
+        If Not templatetext.Substring(templatetext.Length - 2, 2) = "}}" Then
             Exit Sub
         End If
 
-        _text = text
+        _text = templatetext
         _parameters = New List(Of Tuple(Of String, String))
 
 
@@ -239,7 +239,22 @@ Public Class Template
     End Sub
 
 
+    ''' <summary>
+    ''' Elimina los parámetros en blanco de la plantilla.
+    ''' </summary>
+    ''' <returns></returns>
+    Function OptimzeTemplate() As Boolean
+        Dim newParameters As New List(Of Tuple(Of String, String))
 
+        For Each parameter As Tuple(Of String, String) In _parameters
+            If Not String.IsNullOrWhiteSpace(parameter.Item2.ToString) Then
+                newParameters.Add(parameter)
+            End If
+        Next
+        _parameters = newParameters
+        _text = MakeTemplateText(_name, newParameters)
+        Return True
+    End Function
 
 
 End Class

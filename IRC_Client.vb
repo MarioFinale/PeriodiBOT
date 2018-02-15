@@ -15,68 +15,62 @@ Public Class IRC_Client
     Private _sUserName As String = String.Empty 'nombre irc unico
 
     Private _tcpclientConnection As TcpClient = Nothing 'IRC network TCPclient.
-    Private _networkStream As NetworkStream = Nothing 'break that connection down to a network stream.
-    Private _streamWriter As StreamWriter = Nothing 'to provide a convenient access to writing commands.
-    Private _streamReader As StreamReader = Nothing 'to provide a convenient access to reading commands.
+    Private _networkStream As NetworkStream = Nothing 'conexion a un network stream.
+    Private _streamWriter As StreamWriter = Nothing 'escribir en el stream.
+    Private _streamReader As StreamReader = Nothing 'leer desde el stream.
 
     Private Command As New IRC_Comands
 
-    Private lastmessage As DateTime
+    Private lastmessage As New IRCMessage("", {""})
 
     Private HasExited As Boolean = False
 
-    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickname As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal username As String)
-        Initialize(server, channel, nickname, port, invisible, pass, realname, username)
+    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
+                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal userName As String)
+        Initialize(server, channel, nickName, port, invisible, pass, realname, userName)
     End Sub
 
-    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickname As String, ByVal port As Int32,
+    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean, ByVal pass As String)
-        Initialize(server, channel, nickname, port, invisible, pass, nickname, nickname)
+        Initialize(server, channel, nickName, port, invisible, pass, nickName, nickName)
     End Sub
 
-    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickname As String, ByVal port As Int32,
+    Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean)
-        Initialize(server, channel, nickname, port, invisible, String.Empty, nickname, nickname)
+        Initialize(server, channel, nickName, port, invisible, String.Empty, nickName, nickName)
     End Sub
 
-    Public Sub Initialize(ByVal server As String, ByVal channel As String, ByVal nickname As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal username As String)
+    Public Sub Initialize(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
+                          ByVal invisible As Boolean, ByVal pass As String, ByVal realName As String, ByVal userName As String)
 
         _sServer = server
         _sChannel = channel
 
-        If Not String.IsNullOrEmpty(username) Then
-            _sUserName = username
+        If Not String.IsNullOrEmpty(userName) Then
+            _sUserName = userName
         Else
-            _sUserName = nickname
+            _sUserName = nickName
         End If
-        If Not String.IsNullOrEmpty(realname) Then
-            _sRealName = realname
+        If Not String.IsNullOrEmpty(realName) Then
+            _sRealName = realName
         Else
-            _sRealName = nickname
+            _sRealName = nickName
         End If
 
-        _sNickName = nickname
+        _sNickName = nickName
         _sPass = pass
         _lPort = port
         _bInvisible = invisible
     End Sub
 
 
-    Public Async Sub Connect()
+    Public Async Sub Start()
 
         Log("Starting IRCclient", "IRC", _sNickName)
         Dim sIsInvisible As String = String.Empty
         Dim sCommand As String = String.Empty 'linea recibida
-
-
         Dim Lastdate As DateTime = DateTime.Now
 
-        'Tarea para verificar actividad de usuario.
-        Dim CheckUsersFunc As New Func(Of IRCMessage())(AddressOf CheckUsers)
-        Dim CheckUsersIRCTask As New IRCTask(Me, 300000, True, CheckUsersFunc)
-        CheckUsersIRCTask.Run()
 
         Do Until HasExited
 
@@ -123,23 +117,18 @@ Public Class IRC_Client
                 _streamWriter.Flush()
 
 
-
-
-
                 Await Task.Run(Sub()
 
                                    Try
                                        While True
 
                                            sCommand = _streamReader.ReadLine
-                                           lastmessage = DateTime.Now
                                            Dim sCommandParts As String() = sCommand.Split(CType(" ", Char()))
 
-
                                            Dim CommandFunc As New Func(Of IRCMessage())(Function()
-                                                                                            Return {Command.ResolveCommand(sCommand, HasExited, _sNickName, Me)}
+                                                                                            Return {Command.ResolveCommand(sCommand, HasExited, _sNickName, Me, ESWikiBOT)}
                                                                                         End Function)
-                                           Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc)
+                                           Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc, "ResolveCommand")
 
                                            Debug_Log("Run irc response", "LOCAL", BOTName)
                                            IRCResponseTask.Run()
@@ -152,7 +141,6 @@ Public Class IRC_Client
 
                                            If sCommandParts(0).Contains("PING") Then  'Ping response
                                                _streamWriter.WriteLine(sCommand.Replace("PING", "PONG"))
-                                               WriteLine("INFO", "IRC", "PING")
                                                _streamWriter.Flush()
                                            End If
 
@@ -170,7 +158,6 @@ Public Class IRC_Client
 
 
                                End Sub)
-
 
             Catch ex As SocketException
 
@@ -214,10 +201,10 @@ Public Class IRC_Client
     End Sub
 
 
-    Function Sendmessage(ByVal message As String, ByVal Channel As String) As Boolean
-        _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", Channel, message))
+    Function Sendmessage(ByVal message As String, ByVal channel As String) As Boolean
+        _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", channel, message))
         _streamWriter.Flush()
-        WriteLine("MSG", "IRC", Channel & " " & _sNickName & ": " & message)
+        WriteLine("MSG", "IRC", channel & " " & _sNickName & ": " & message)
         Return True
     End Function
 
@@ -231,13 +218,21 @@ Public Class IRC_Client
 
 
     Function Sendmessage(ByVal message As IRCMessage) As Boolean
+        If message Is Nothing Then
+            Throw New ArgumentException("message")
+        End If
+        SyncLock (lastmessage)
+            If message.Text(0) = lastmessage.Text(0) Then
+                Return False
+            End If
+        End SyncLock
 
         For Each s As String In message.Text
             _streamWriter.WriteLine(String.Format("{2} {0} : {1}", message.Source, s, message.Command))
             _streamWriter.Flush()
             WriteLine("MSG", "IRC", message.Source & " " & _sNickName & ": " & s)
         Next
-
+        lastmessage = message
         Return True
     End Function
 
@@ -248,10 +243,10 @@ Public Class IRC_Client
         Return True
     End Function
 
-    Function SendText(ByVal Text As String) As Boolean
-        _streamWriter.WriteLine(Text)
+    Function SendText(ByVal text As String) As Boolean
+        _streamWriter.WriteLine(text)
         _streamWriter.Flush()
-        WriteLine("RAW TEXT", "IRC", Text)
+        WriteLine("RAW TEXT", "IRC", text)
         Return True
     End Function
 

@@ -1,14 +1,120 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Text.RegularExpressions
-
+Imports PeriodiBOT_IRC.WikiBot
 
 Class GrillitusArchive
-    Private Bot As WikiBot.Bot
+    Private _bot As Bot
+    Private WikiAction As WikiTask
 
     Sub New(ByVal WorkerBot As WikiBot.Bot)
-        Bot = WorkerBot
+        _bot = WorkerBot
+        WikiAction = New WikiTask(WorkerBot)
     End Sub
+
+
+    ''' <summary>
+    ''' Verifica si el usuario que se le pase cumple con los requisitos para archivar su discusión
+    ''' </summary>
+    ''' <param name="user">Usuario de Wiki</param>
+    ''' <returns></returns>
+    Private Function ValidUser(ByVal user As WikiUser) As Boolean
+        Debug_Log("ValidUser: Check user", "LOCAL", BOTName)
+        'Verificar si el usuario existe
+        If Not user.Exists Then
+            Log("ValidUser: User " & user.UserName & " doesn't exist", "LOCAL", BOTName)
+            Return False
+        End If
+
+        'Verificar si el usuario está bloqueado.
+        If user.Blocked Then
+            Log("ValidUser: User " & user.UserName & " is blocked", "LOCAL", BOTName)
+            Return False
+        End If
+
+        'Verificar si el usuario editó hace al menos 4 días.
+        If Date.Now.Subtract(user.LastEdit).Days >= 4 Then
+            Log("ValidUser: User " & user.UserName & " is inactive", "LOCAL", BOTName)
+            Return False
+        End If
+        Return True
+    End Function
+    ''' <summary>
+    ''' Verifica si la página forma parte de un espacio de nombres válido
+    ''' </summary>
+    ''' <param name="pageToCheck"></param>
+    ''' <returns></returns>
+    Private Function ValidNamespace(pageToCheck As Page) As Boolean
+        Dim validNamespaces As Integer() = {1, 3, 4, 5, 11, 15, 101, 102, 103, 105, 447, 829}
+        If Not validNamespaces.Contains(pageToCheck.PageNamespace) Then
+            Log("Archive: The page " & pageToCheck.Title & " doesn't belong to any valid namespace. (NS:" & pageToCheck.PageNamespace & ")", "LOCAL", BOTName)
+            Return False
+        End If
+        Return True
+    End Function
+
+
+
+    Private Function PageConfig(ByVal Params As String(), ByRef destination As String, ByRef maxDays As Integer, ByRef strategy As String, ByRef useBox As Boolean, ByRef notify As Boolean) As Boolean
+
+        If Not Params.Count >= 4 Then Return False
+        Try
+            'Destino
+            If String.IsNullOrEmpty(Params(0)) Then
+                Log("Archive: Malformed config, aborting.", "LOCAL", BOTName)
+                Return False
+            Else
+                destination = Params(0)
+            End If
+            'Dias a mantener
+            If String.IsNullOrEmpty(Params(1)) Then
+                Log("Archive: Malformed config, aborting.", "LOCAL", BOTName)
+                Return False
+            Else
+                maxDays = Integer.Parse(Params(1))
+            End If
+            'Avisar al archivar
+            If String.IsNullOrEmpty(Params(2)) Then
+                notify = True
+            Else
+                If Params(2).ToLower.Contains("si") Or Params(2).ToLower.Contains("sí") Then
+                    notify = True
+                Else
+                    notify = False
+                End If
+            End If
+            'Estrategia
+            If String.IsNullOrEmpty(Params(3)) Then
+                strategy = "FirmaEnÚltimoPárrafo"
+            Else
+                If Params(3) = "FirmaEnÚltimoPárrafo" Then
+                    strategy = "FirmaEnÚltimoPárrafo"
+                ElseIf Params(3) = "FirmaMásRecienteEnLaSección" Then
+                    strategy = "FirmaMásRecienteEnLaSección"
+                Else
+                    strategy = "FirmaEnÚltimoPárrafo"
+                End If
+            End If
+
+            'Usar caja de archivos
+            If String.IsNullOrEmpty(Params(4)) Then
+                useBox = False
+            Else
+                If Params(4).ToLower.Contains("si") Or Params(4).ToLower.Contains("sí") Then
+                    useBox = True
+                Else
+                    useBox = False
+                End If
+            End If
+
+            Return True
+        Catch ex As Exception
+            Return False
+        End Try
+
+    End Function
+
+
 
     ''' <summary>
     ''' Realiza un archivado general siguiendo una lógica similar a la de Grillitus.
@@ -18,117 +124,55 @@ Class GrillitusArchive
     Function Archive(ByVal PageToArchive As Page) As Boolean
         Log("Archive: Page " & PageToArchive.Title, "LOCAL", BOTName)
 
-
         'Verificar el espacio de nombres de la página se archiva
-        If Not (PageToArchive.PageNamespace = 1 Or PageToArchive.PageNamespace = 3 _
-            Or PageToArchive.PageNamespace = 4 Or PageToArchive.PageNamespace = 5 _
-            Or PageToArchive.PageNamespace = 11 Or PageToArchive.PageNamespace = 13 _
-            Or PageToArchive.PageNamespace = 15 Or PageToArchive.PageNamespace = 101 _
-            Or PageToArchive.PageNamespace = 102 Or PageToArchive.PageNamespace = 103 _
-            Or PageToArchive.PageNamespace = 105 Or PageToArchive.PageNamespace = 447 _
-            Or PageToArchive.PageNamespace = 829) Then
-            Log("Archive: The page " & PageToArchive.Title & " doesn't belong to any valid namespace. (NS:" & PageToArchive.PageNamespace & ")", "LOCAL", BOTName)
-            Return False
-        End If
+        If Not ValidNamespace(PageToArchive) Then Return False
 
-        Debug_Log("Archive: Check user", "LOCAL", BOTName)
         'Verificar si es una discusión de usuario.
         If PageToArchive.PageNamespace = 3 Then
-            Dim Username As String = PageToArchive.Title.Split(CType(":", Char()))(1)
-            'Verificar si el usuario está bloqueado.
-            If UserIsBlocked(Username) Then
-                Log("Archive: User " & Username & " is blocked", "LOCAL", BOTName)
-                Return False
+            Dim Username As String = PageToArchive.Title.Split(":"c)(1)
+            'si es una subpágina
+            If Username.Contains("/") Then
+                Username = Username.Split("/"c)(0)
             End If
-            'Verificar si el usuario editó hace al menos 4 días.
-            If Date.Now.Subtract(Bot.GetLastEditTimestampUser(Username)).Days >= 4 Then
-                Log("Archive: User " & Username & " is inactive", "LOCAL", BOTName)
-                Return False
-            End If
-
+            'Cargar usuario
+            Dim User As New WikiUser(_bot, Username)
+            'Validar usuario
+            If Not ValidUser(User) Then Return False
         End If
 
-
         Debug_Log("Archive: Declare vars", "LOCAL", BOTName)
+
+        Dim IndexPage As Page = WikiAction.Getpage(PageToArchive.Title & "/Archivo-00-índice")
         Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
 
-        Dim IndexPage As Page = Bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
-
-        Dim PageTitle As String = PageToArchive.Title
-        Dim pagetext As String = PageToArchive.Text
-
-        Dim Newpagetext As String = pagetext
+        Dim Newpagetext As String = PageToArchive.Text
 
         Dim ArchivePages As New List(Of String)
 
         Debug_Log("Archive: Declare tuples", "LOCAL", BOTName)
         Dim Archives As New List(Of Tuple(Of String, String))
 
-        Debug_Log("Archive: Get threads of page " & PageTitle, "LOCAL", BOTName)
-        Dim threads As String() = Bot.GetPageThreads(pagetext)
+        Debug_Log("Archive: Get threads of page " & PageToArchive.Title, "LOCAL", BOTName)
+        Dim threads As String() = WikiAction.GetPageThreads(PageToArchive.Text)
 
-        Dim Notify As Boolean = False
-        Dim Strategy As String = String.Empty
-        Dim UseBox As Boolean = False
+        Dim notify As Boolean
+        Dim strategy As String = String.Empty
+        Dim useBox As Boolean
+        Dim pageDest As String = String.Empty
+        Dim maxDays As Integer = 0
+        If Not PageConfig(ArchiveCfg, pageDest, maxDays, strategy, useBox, notify) Then Return False
 
-        Dim ArchivePageName As String = ArchiveCfg(0)
 
-        Dim MaxDays As Integer = 0
         Dim ArchivedThreads As Integer = 0
         If threads.Count = 1 Then
-            Log("Archive: The page " & PageTitle & " only have one thread, aborting.", "LOCAL", BOTName)
+            Log("Archive: The page " & PageToArchive.Title & " only have one thread, aborting.", "LOCAL", BOTName)
             Return False
-        End If
-        'Destino
-        If String.IsNullOrEmpty(ArchiveCfg(0)) Then
-            Log("Archive: Malformed config, aborting.", "LOCAL", BOTName)
-            Return False
-        End If
-        'Dias a mantener
-        If String.IsNullOrEmpty(ArchiveCfg(1)) Then
-            Log("Archive: Malformed config, aborting.", "LOCAL", BOTName)
-            Return False
-        Else
-            MaxDays = Integer.Parse(ArchiveCfg(1))
-        End If
-        'Avisar al archivar
-        If String.IsNullOrEmpty(ArchiveCfg(2)) Then
-            Notify = False
-        Else
-            If ArchiveCfg(2).ToLower.Contains("si") Or ArchiveCfg(2).ToLower.Contains("sí") Then
-                Notify = True
-            Else
-                Notify = False
-            End If
-        End If
-        'Estrategia
-        If String.IsNullOrEmpty(ArchiveCfg(3)) Then
-            Strategy = "FirmaEnÚltimoPárrafo"
-        Else
-            If ArchiveCfg(3) = "FirmaEnÚltimoPárrafo" Then
-                Strategy = "FirmaEnÚltimoPárrafo"
-            ElseIf ArchiveCfg(3) = "FirmaMásRecienteEnLaSección" Then
-                Strategy = "FirmaMásRecienteEnLaSección"
-            Else
-                Strategy = "FirmaEnÚltimoPárrafo"
-            End If
-        End If
-
-        'Usar caja de archivos
-        If String.IsNullOrEmpty(ArchiveCfg(4)) Then
-            UseBox = False
-        Else
-            If ArchiveCfg(4).ToLower.Contains("si") Or ArchiveCfg(4).ToLower.Contains("sí") Then
-                UseBox = True
-            Else
-                UseBox = False
-            End If
         End If
 
         Debug_Log("Archive: Declare limit date", "LOCAL", BOTName)
         Dim LimitDate As DateTime = DateTime.Now.AddDays(-MaxDays)
-
         Debug_Log("Archive: Read Threads", "LOCAL", BOTName)
+
         For Each t As String In threads
             Try
                 If ArchivedThreads = threads.Count - 1 Then
@@ -137,7 +181,7 @@ Class GrillitusArchive
                 '-----------------------------------------------------------------------------------------------
                 'Firma mas reciente en la seccion
                 If Strategy = "FirmaMásRecienteEnLaSección" Then
-                    Dim threaddate As DateTime = Bot.MostRecentDate(t)
+                    Dim threaddate As DateTime = WikiAction.MostRecentDate(t)
 
                     Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
                     Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
@@ -164,11 +208,11 @@ Class GrillitusArchive
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
 
-                                Dim destiny As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
+                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
                                                        .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
 
 
-                                Archives.Add(New Tuple(Of String, String)(destiny, t))
+                                Archives.Add(New Tuple(Of String, String)(destination, t))
 
                                 ArchivedThreads += 1
                             End If
@@ -183,11 +227,11 @@ Class GrillitusArchive
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
 
-                                Dim destiny As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
+                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
                                                        .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
 
 
-                                Archives.Add(New Tuple(Of String, String)(destiny, t))
+                                Archives.Add(New Tuple(Of String, String)(destination, t))
 
                                 ArchivedThreads += 1
                             End If
@@ -197,7 +241,7 @@ Class GrillitusArchive
                     'Firma en el ultimo parrafo
                     '-----------------------------------------------------------------------------------------------------
                 ElseIf Strategy = "FirmaEnÚltimoPárrafo" Then
-                    Dim threaddate As DateTime = Bot.LastParagraphDateTime(t)
+                    Dim threaddate As Date = WikiAction.LastParagraphDateTime(t)
                     Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
                     Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
 
@@ -222,11 +266,11 @@ Class GrillitusArchive
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
 
-                                Dim destiny As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
+                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
                                                        .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
 
 
-                                Archives.Add(New Tuple(Of String, String)(destiny, t))
+                                Archives.Add(New Tuple(Of String, String)(destination, t))
 
                                 ArchivedThreads += 1
 
@@ -241,10 +285,10 @@ Class GrillitusArchive
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
 
-                                Dim destiny As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
+                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
                                                        .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
 
-                                Archives.Add(New Tuple(Of String, String)(destiny, t))
+                                Archives.Add(New Tuple(Of String, String)(destination, t))
 
                                 ArchivedThreads += 1
                             End If
@@ -275,16 +319,14 @@ Class GrillitusArchive
                 End If
             Next
 
-
-
             'Guardar los hilos en los archivos correspondientes por fecha
             For Each k As KeyValuePair(Of String, String) In Sl
                 Debug_Log("Archive: Save threads", "LOCAL", BOTName)
                 Dim isminor As Boolean = Not Notify
                 Dim Archivepage As String = k.Key
                 Dim ThreadText As String = Environment.NewLine & k.Value
-                Dim threadcount As Integer = Bot.GetPageThreads(Environment.NewLine & ThreadText).Count
-                Dim ArchPage As Page = Bot.Getpage(Archivepage)
+                Dim threadcount As Integer = WikiAction.GetPageThreads(Environment.NewLine & ThreadText).Count
+                Dim ArchPage As Page = WikiAction.Getpage(Archivepage)
                 Dim ArchivePageText As String = ArchPage.Text
                 ArchivePages.Add(Archivepage)
                 'Verificar si la página de archivado está en el mismo espacio de nombres
@@ -301,8 +343,7 @@ Class GrillitusArchive
                 ArchivePageText = ArchivePageText & ThreadText
 
                 'Si se usa la caja de archivos
-                If UseBox Then
-
+                If useBox Then
                     'Verificar si contiene la plantilla de indice
                     If Not ArchivePageText.Contains("{{" & IndexPage.Title & "}}") Then
                         ArchivePageText = "{{" & IndexPage.Title & "}}" & Environment.NewLine & ArchivePageText
@@ -310,45 +351,16 @@ Class GrillitusArchive
                 End If
 
                 'Texto de resumen de edicion
-                Dim SummaryText As String = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].", threadcount, MaxDays.ToString, PageTitle)
+                Dim SummaryText As String = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].", threadcount, MaxDays.ToString, PageToArchive.Title)
                 'Guardar
                 ArchPage.Save(ArchivePageText, SummaryText, isminor, True)
             Next
 
 
-
-
             'Actualizar caja si corresponde
-            If UseBox Then
-                Debug_Log("Archive: Update Box", "LOCAL", BOTName)
-                Dim ArchiveBoxMatch As Match = Regex.Match(IndexPage.Text, "{{caja archivos\|[\s\S]+?}}")
-                Dim Newbox As String = String.Empty
-                Dim IndexPageText As String = IndexPage.Text
-                If ArchiveBoxMatch.Success Then
-                    Newbox = ArchiveBoxMatch.Value.Replace("{{caja archivos|", "").Replace("}}", "")
-
-                    'Generar links en caja de archivos:
-                    For Each p As String In ArchivePages
-                        If Not Newbox.Contains(p) Then
-                            Dim ArchiveBoxLink As String = "[[" & p & "]]"
-                            Dim Archivename As Match = Regex.Match(p, "\/.+")
-
-                            If Archivename.Success Then
-                                ArchiveBoxLink = "[[" & p & "|" & Archivename.Value & "]]"
-                            End If
-
-                            Newbox = Newbox & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
-
-                        End If
-                    Next
-                    Newbox = "{{caja archivos|" & Newbox & "}}"
-                    IndexPageText = IndexPageText.Replace(ArchiveBoxMatch.Value, Newbox)
-                    IndexPage.Save(IndexPageText, "Bot: Actualizando caja de archivos.", True, True)
-                End If
+            If useBox Then
+                UpdateBox(IndexPage, ArchivePages)
             End If
-
-
-
 
             'Guardar pagina principal
             If Not String.IsNullOrEmpty(Newpagetext) Then
@@ -356,7 +368,7 @@ Class GrillitusArchive
                 'Si debe tener caja de archivos...
                 If UseBox Then
                     If Not Newpagetext.Contains("{{" & IndexPage.Title & "}}") Then
-                        Dim Archivetemplate As String = Regex.Match(pagetext, "{{ *[Aa]rchivado automático[\s\S]+?}}").Value
+                        Dim Archivetemplate As String = Regex.Match(PageToArchive.Text, "{{ *[Aa]rchivado automático[\s\S]+?}}").Value
                         Newpagetext = Newpagetext.Replace(Archivetemplate, Archivetemplate & Environment.NewLine & "{{" & IndexPage.Title & "}}" & Environment.NewLine)
                     End If
                 End If
@@ -379,6 +391,79 @@ Class GrillitusArchive
         Log("Archive: " & PageToArchive.Title & " done.", "LOCAL", BOTName)
         Return True
     End Function
+
+
+    Private Function UpdateBox(Indexpage As Page, ArchivePages As IEnumerable(Of String)) As Boolean
+        Try
+            'Verificar si está creada la página de archivo, si no, la crea.
+            If Not Indexpage.Exists Then
+                Dim newtext As String = "{{caja archivos|" & Environment.NewLine
+
+                For Each p As String In ArchivePages
+                    If Not newtext.Contains(p) Then
+                        Dim ArchiveBoxLink As String = "[[" & p & "]]"
+                        Dim Archivename As Match = Regex.Match(p, "\/.+")
+
+                        If Archivename.Success Then
+                            ArchiveBoxLink = "[[" & p & "|" & Archivename.Value & "]]"
+                        End If
+                        newtext = newtext & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
+                    End If
+                Next
+                newtext = newtext & "}}"
+                Indexpage.Save(newtext, "Bot: Creando nueva caja de archivos.")
+
+            Else
+                Debug_Log("UpdateBox: Updating Box", "LOCAL", BOTName)
+                Dim ArchiveBoxMatch As Match = Regex.Match(Indexpage.Text, "{{caja archivos\|[\s\S]+?}}")
+                Dim Newbox As String = String.Empty
+                If ArchiveBoxMatch.Success Then
+                    Newbox = ArchiveBoxMatch.Value.Replace("{{caja archivos|", "").Replace("}}", "")
+
+                    'Generar links en caja de archivos:
+                    For Each p As String In ArchivePages
+                        If Not Newbox.Contains(p) Then
+                            Dim ArchiveBoxLink As String = "[[" & p & "]]"
+                            Dim Archivename As Match = Regex.Match(p, "\/.+")
+                            If Archivename.Success Then
+                                ArchiveBoxLink = "[[" & p & "|" & Archivename.Value & "]]"
+                            End If
+                            Newbox = Newbox & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
+
+                        End If
+                    Next
+                    Newbox = "{{caja archivos|" & Newbox & "}}"
+                    Dim newtext As String = Indexpage.Text.Replace(ArchiveBoxMatch.Value, Newbox)
+                    Indexpage.Save(newtext, "Bot: Actualizando caja de archivos.", True, True)
+
+                Else 'No contiene una plantilla de caja de archivo, en ese caso se crea una nueva por sobre el contenido de la pagina
+
+                    Dim newtext As String = "{{caja archivos|" & Environment.NewLine
+
+                    For Each p As String In ArchivePages
+                        If Not newtext.Contains(p) Then
+                            Dim ArchiveBoxLink As String = "[[" & p & "]]"
+                            Dim Archivename As Match = Regex.Match(p, "\/.+")
+
+                            If Archivename.Success Then
+                                ArchiveBoxLink = "[[" & p & "|" & Archivename.Value & "]]"
+                            End If
+                            newtext = newtext & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
+                        End If
+                    Next
+                    newtext = newtext & "}}" & Environment.NewLine
+                    Indexpage.Save(newtext & Indexpage.Text, "Bot: Actualizando caja de archivos por sobre contenido ya existente.")
+
+                End If
+            End If
+
+        Catch ex As Exception
+            EX_Log("UpdateBox: " & ex.Message, "LOCAL", BOTName)
+            Return False
+        End Try
+        Return True
+    End Function
+
 
     ''' <summary>
     ''' Obtiene los datos de una plantilla de archivado y retorna estos como array.
@@ -443,12 +528,17 @@ Class GrillitusArchive
         If IRC Then
             BotIRC.Sendmessage(ColoredText("Archivando todas las páginas...", "04"))
         End If
-        Dim includedpages As String() = Bot.GetallInclusions("Plantilla:Archivado automático")
+        Dim includedpages As String() = WikiAction.GetallInclusions("Plantilla:Archivado automático")
         For Each pa As String In includedpages
             Log("ArchiveAllInclusions: Page " & pa, "LOCAL", BOTName)
-            Dim _Page As Page = Bot.Getpage(pa)
+            Dim _Page As Page = WikiAction.Getpage(pa)
             If _Page.Exists Then
-                Archive(_Page)
+                Try
+                    Archive(_Page)
+                Catch ex As Exception
+                    Debug_Log("Archive error, page " & _Page.Title, "LOCAL", BOTName)
+                End Try
+
             End If
         Next
         If IRC Then

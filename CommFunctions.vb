@@ -1,6 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Text.RegularExpressions
+Imports PeriodiBOT_IRC.WikiBot
 
 Public Module CommFunctions
 
@@ -25,12 +26,23 @@ Public Module CommFunctions
         Return LogC.Debug_log(text, source, user)
     End Function
     ''' <summary>
+    ''' Registra una excepción.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <param name="user">Usuario que origina el evento</param>
+    ''' <returns></returns>
+    Public Function EX_Log(ByVal text As String, source As String, user As String) As Boolean
+        Return LogC.EX_Log(text, source, user)
+    End Function
+
+    ''' <summary>
     ''' Añade un usuario a la lista de aviso de inactividad.
     ''' </summary>
     ''' <param name="UserAndTime"></param>
     ''' <returns></returns>
-    Public Function SetUserTime(ByVal UserAndTime As String()) As Boolean
-        Return LogC.SetUserTime(UserAndTime)
+    Public Function SetUserTime(ByVal userAndTime As String()) As Boolean
+        Return LogC.SetUserTime(userAndTime)
     End Function
     ''' <summary>
     ''' Guarda los usuarios en la lista de aviso de inactividad.
@@ -45,8 +57,8 @@ Public Module CommFunctions
     ''' <param name="Source"></param>
     ''' <param name="user"></param>
     ''' <returns></returns>
-    Public Function LastLog(ByRef Source As String, ByVal user As String) As String()
-        Return LogC.Lastlog(Source, user)
+    Public Function LastLog(ByRef source As String, ByVal user As String) As String()
+        Return LogC.Lastlog(source, user)
     End Function
     ''' <summary>
     ''' Finaliza la instancia del motor de log
@@ -104,18 +116,18 @@ Public Module CommFunctions
     ''' </summary>
     ''' <param name="Number"></param>
     ''' <returns></returns>
-    Function IsODD(ByVal Number As Integer) As Boolean
-        Return (Number Mod 2 = 0)
+    Function IsODD(ByVal number As Integer) As Boolean
+        Return (number Mod 2 = 0)
     End Function
 
     ''' <summary>
     ''' Cuenta cuantas veces se repite una cadena de texto dada dentro de otra cadena de texto.
     ''' </summary>
-    ''' <param name="inputString">Cadena de texto donde se busca</param>
-    ''' <param name="stringToSearch">CAdena de texto a buscar</param>
+    ''' <param name="input">Cadena de texto donde se busca</param>
+    ''' <param name="value">CAdena de texto a buscar</param>
     ''' <returns></returns>
-    Function CountString(ByVal inputString As String, ByVal stringToSearch As String) As Integer
-        Return Regex.Split(inputString, RegexParser(stringToSearch)).Length - 1
+    Function CountString(ByVal input As String, ByVal value As String) As Integer
+        Return Regex.Split(input, RegexParser(value)).Length - 1
     End Function
 
     ''' <summary>
@@ -124,8 +136,11 @@ Public Module CommFunctions
     ''' <param name="Phrase">Frase a evaluar</param>
     ''' <param name="words">Palabras a buscar</param>
     ''' <returns></returns>
-    Function LvlOfAppereance(ByVal Phrase As String, words As String()) As Double
-        Dim PhraseString As String() = Phrase.Split(Chr(32))
+    Function LvlOfAppereance(ByVal phrase As String, words As String()) As Double
+        If (phrase Is Nothing) Or (words Is Nothing) Then
+            Return 0
+        End If
+        Dim PhraseString As String() = phrase.Split(Chr(32))
         Dim NOWords As Integer = PhraseString.Count
         Dim NOAppeareances As Integer = 0
         For a As Integer = 0 To NOWords - 1
@@ -206,8 +221,8 @@ Public Module CommFunctions
     ''' <param name="StrArray">Lista a partir</param>
     ''' <param name="chunkSize">En cuantos items se parte</param>
     ''' <returns></returns>
-    Function SplitStringArrayIntoChunks(StrArray As String(), chunkSize As Integer) As List(Of List(Of String))
-        Return StrArray.
+    Function SplitStringArrayIntoChunks(strArray As String(), chunkSize As Integer) As List(Of List(Of String))
+        Return strArray.
                 Select(Function(x, i) New With {Key .Index = i, Key .Value = x}).
                 GroupBy(Function(x) (x.Index \ chunkSize)).
                 Select(Function(x) x.Select(Function(v) v.Value).ToList()).
@@ -220,8 +235,8 @@ Public Module CommFunctions
     ''' <param name="IntArray">Lista a partir</param>
     ''' <param name="chunkSize">En cuantos items se parte</param>
     ''' <returns></returns>
-    Function SplitIntegerArrayIntoChunks(IntArray As Integer(), chunkSize As Integer) As List(Of List(Of Integer))
-        Return IntArray.
+    Function SplitIntegerArrayIntoChunks(intArray As Integer(), chunkSize As Integer) As List(Of List(Of Integer))
+        Return intArray.
                 Select(Function(x, i) New With {Key .Index = i, Key .Value = x}).
                 GroupBy(Function(x) (x.Index \ chunkSize)).
                 Select(Function(x) x.Select(Function(v) v.Value).ToList()).
@@ -233,7 +248,7 @@ Public Module CommFunctions
     ''' </summary>
     ''' <param name="text">Entrega la primera fecha, que aparezca en un texto dado (si la fecha tiene formato de firma wikipedia).</param>
     ''' <returns></returns>
-    Function EsWikiDatetime(ByVal text As String) As DateTime
+    Function ESWikiDatetime(ByVal text As String) As DateTime
         Dim TheDate As DateTime = Nothing
         Dim matchc As MatchCollection = Regex.Matches(text, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
 
@@ -301,76 +316,7 @@ Public Module CommFunctions
     End Function
 
 
-    ''' <summary>
-    ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
-    ''' </summary>
-    ''' <returns></returns>
-    Function CheckUsers() As IRCMessage()
-        Dim Messages As New List(Of IRCMessage)
-        Try
-            For Each UserdataLine As String() In Userdata
-                Dim User As String = UserdataLine(1)
-                Dim OP As String = UserdataLine(0)
-                Dim UserDate As String = UserdataLine(2)
 
-                Log("CheckUsers: Checking user " & User, "IRC", BOTName)
-                Dim LastEdit As DateTime = Mainwikibot.GetLastEditTimestampUser(User)
-                If LastEdit.Year = 1111 Then
-                    Log("CheckUsers: The user " & User & " has not edited on this wiki", "IRC", BOTName)
-                    Continue For
-                End If
-                Dim actualtime As DateTime = DateTime.UtcNow
-
-                Dim LastEditUnix As Integer = CInt(TimeToUnix(LastEdit))
-                Dim ActualTimeUnix As Integer = CInt(TimeToUnix(actualtime))
-
-
-                Dim Timediff As Integer = ActualTimeUnix - LastEditUnix - 3600
-                Dim TriggerTimeDiff As Long = TimeStringToSeconds(UserDate)
-
-                Dim TimediffToHours As Integer = CInt(Math.Truncate(Timediff / 3600))
-                Dim TimediffToMinutes As Integer = CInt(Math.Truncate(Timediff / 60))
-                Dim TimediffToDays As Integer = CInt(Math.Truncate(Timediff / 86400))
-                Dim responsestring As String = String.Empty
-
-                Log("Timediff  " & User & ": " & Timediff, "LOCAL", BOTName)
-                Log("Trigger Timediff " & User & ": " & TriggerTimeDiff, "LOCAL", BOTName)
-
-                If Timediff > TriggerTimeDiff Then
-
-                    If TimediffToMinutes <= 1 Then
-                        responsestring = String.Format("¡{0} editó recién!", User)
-                    Else
-                        If TimediffToMinutes < 60 Then
-                            responsestring = String.Format("La última edición de {0} fue hace {1} minutos", User, TimediffToMinutes)
-                        Else
-                            If TimediffToMinutes < 120 Then
-                                responsestring = String.Format("La última edición de {0} fue hace más de {1} hora", User, TimediffToHours)
-                            Else
-                                If TimediffToMinutes < 1440 Then
-                                    responsestring = String.Format("La última edición de {0} fue hace más de {1} horas", User, TimediffToHours)
-                                Else
-                                    If TimediffToMinutes < 2880 Then
-                                        responsestring = String.Format("La última edición de {0} fue hace {1} día", User, TimediffToDays)
-                                    Else
-                                        responsestring = String.Format("La última edición de {0} fue hace más de {1} días", User, TimediffToDays)
-                                    End If
-                                End If
-                            End If
-                        End If
-                    End If
-                    responsestring = responsestring & ". El proximo aviso será en 5 minutos."
-
-                    Messages.Add(New IRCMessage(OP, responsestring))
-                End If
-            Next
-        Catch ex As System.ObjectDisposedException
-            Debug_Log("CheckUsers EX: " & ex.Message, "IRC", BOTName)
-        End Try
-
-        Return Messages.ToArray
-
-    End Function
 
     ''' <summary>
     ''' Retorna una lista de plantillas si se le entrega como parámetro un array de tipo string con texto en formato válido de plantilla.
@@ -379,6 +325,9 @@ Public Module CommFunctions
     ''' <param name="templatearray"></param>
     ''' <returns></returns>
     Function GetTemplates(ByVal templatearray As List(Of String)) As List(Of Template)
+        If templatearray Is Nothing Then
+            Return New List(Of Template)
+        End If
         Dim TemplateList As New List(Of Template)
         For Each t As String In templatearray
             TemplateList.Add(New Template(t, False))
@@ -391,10 +340,12 @@ Public Module CommFunctions
     ''' </summary>
     ''' <param name="WikiPage"></param>
     ''' <returns></returns>
-    Function GetTemplates(ByVal WikiPage As Page) As List(Of Template)
-
+    Function GetTemplates(ByVal wikiPage As Page) As List(Of Template)
+        If wikiPage Is Nothing Then
+            Return New List(Of Template)
+        End If
         Dim TemplateList As New List(Of Template)
-        Dim temps As List(Of String) = GetTemplateTextArray(WikiPage.Text)
+        Dim temps As List(Of String) = GetTemplateTextArray(wikiPage.Text)
 
         For Each t As String In temps
             TemplateList.Add(New Template(t, False))
@@ -404,7 +355,7 @@ Public Module CommFunctions
 
     Function GetCurrentThreads() As Integer
         Try
-            Return Process.GetCurrentProcess().Threads.Count
+            Return Process.GetCurrentProcess().Threads.Count 
         Catch ex As Exception
             Debug_Log(ex.Message, "LOCAL", BOTName)
             Return 0
@@ -412,9 +363,9 @@ Public Module CommFunctions
 
     End Function
 
-    Function GetMemoryUsage() As Long
+    Function PrivateMemory() As Long
         Try
-            Return Process.GetCurrentProcess().PrivateMemorySize64
+            Return CLng(Process.GetCurrentProcess().PrivateMemorySize64 / 1024)
         Catch ex As Exception
             Debug_Log(ex.Message, "LOCAL", BOTName)
             Return 0
@@ -422,34 +373,39 @@ Public Module CommFunctions
 
     End Function
 
+    Function UsedMemory() As Long
+        Try
+            Return CLng(Process.GetCurrentProcess().WorkingSet64 / 1024)
+        Catch ex As Exception
+            Debug_Log(ex.Message, "LOCAL", BOTName)
+            Return 0
+        End Try
 
-    Public LastDailyTask As DateTime
+    End Function
 
-    Sub DailyTask()
-
-        If LastDailyTask = Nothing Then
-            RunDailyTask()
-            LastDailyTask = DateTime.Now
-            Exit Sub
-        End If
-        Dim span As TimeSpan = LastDailyTask - DateTime.Now
-
-        If span.Hours >= 24 Then
-            RunDailyTask()
-            LastDailyTask = DateTime.Now
-            Exit Sub
-        End If
-
-    End Sub
 
     Sub RunDailyTask()
-        Mainwikibot.ArchiveAllInclusions(True)
+        ArchiveAllInclusions(True)
     End Sub
 
     Sub WriteLine(ByVal type As String, ByVal source As String, message As String)
         Dim msgstr As String = "[" & DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & "]" & " [" & source & " " & type & "] " & message
         Console.WriteLine(msgstr)
     End Sub
+
+    Function PressKeyTimeout() As Boolean
+        Dim exitloop As Boolean = False
+        Console.WriteLine("Press any key to exit or wait 5 seconds")
+        For timeout As Integer = 0 To 5
+            Console.Write(".")
+            If Console.KeyAvailable Then
+                exitloop = True
+                Exit For
+            End If
+            System.Threading.Thread.Sleep(1000)
+        Next
+        Return exitloop
+    End Function
 
 
 End Module

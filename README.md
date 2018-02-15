@@ -1,5 +1,5 @@
 # PeriodiBOT
-Bot multipropósito para wikis compatible con MONO (probado en Ubuntu 16.14 LTS).
+Bot multipropósito para wikis compatible con MONO.
 
 Simplemente quise compartir el código de mi BOT para que cualquiera pueda usarlo y aportar a su mejora.
 El código tiene mucho por mejorar y no es en lo absoluto eficiente, en su desarrollo he priorizado la simplicidad hasta un cierto nivel.

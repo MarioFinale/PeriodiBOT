@@ -27,7 +27,9 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DocumentationFile>PeriodiBOT-IRC.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>ExtendedDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -74,6 +76,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bot.vb" />
+    <Compile Include="PeriodiBOT_Tasks.vb" />
+    <Compile Include="WikiTask.vb" />
     <Compile Include="CommFunctions.vb" />
     <Compile Include="Config.vb" />
     <Compile Include="DirectApiCalls.vb" />
@@ -104,6 +108,7 @@
     <Compile Include="Template.vb" />
     <Compile Include="TextFunctions.vb" />
     <Compile Include="WebFunctions.vb" />
+    <Compile Include="WikiUser.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
