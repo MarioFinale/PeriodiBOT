@@ -640,7 +640,7 @@ Namespace WikiBot
         Function GetallInclusions(ByVal pageName As String) As String()
             Dim newlist As New List(Of String)
             Dim s As String = String.Empty
-            s = _bot.POSTQUERY("?action=query&list=embeddedin&eilimit=500&format=json&eititle=" & pageName)
+            s = _bot.POSTQUERY("action=query&list=embeddedin&eilimit=500&format=json&eititle=" & pageName)
             Dim pages As String() = TextInBetween(s, """title"":""", """}")
             For Each _pag As String In pages
                 newlist.Add(NormalizeUnicodetext(_pag))
