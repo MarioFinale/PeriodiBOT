@@ -173,7 +173,7 @@ Module TextFunctions
     Function NormalizeUnicodetext(ByVal text As String) As String
         Dim temptext As String = Regex.Replace(text, "\\u([\dA-Fa-f]{4})", Function(v) ChrW(Convert.ToInt32(v.Groups(1).Value, 16)))
         temptext = Regex.Replace(temptext, "(?<!\\)\\n", Environment.NewLine)
-        temptext = Regex.Replace(temptext, "(?<!\\)\\t", Environment.NewLine)
+        temptext = Regex.Replace(temptext, "(?<!\\)\\t", ControlChars.Tab)
         temptext = temptext.Replace("\""", """")
         temptext = temptext.Replace("\\", "\")
         temptext = temptext.Replace("\\n", "\n")
