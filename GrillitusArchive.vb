@@ -287,10 +287,7 @@ Class GrillitusArchive
                                     destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
                                                       .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
                                 End If
-
-
                                 Archives.Add(New Tuple(Of String, String)(destination, t))
-
                                 ArchivedThreads += 1
 
                             End If
@@ -314,7 +311,6 @@ Class GrillitusArchive
 
 
                                 Archives.Add(New Tuple(Of String, String)(destination, t))
-
                                 ArchivedThreads += 1
                             End If
                         End If
