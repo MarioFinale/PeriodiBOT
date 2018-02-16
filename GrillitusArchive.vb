@@ -207,7 +207,7 @@ Class GrillitusArchive
                                 Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim ThreadMonth2 As String = threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES"))
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
-                                Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
+                                Dim Threadhyear As Integer = CInt(Math.Ceiling(threaddate.Month / 6 + 1))
                                 Dim destination As String = ArchiveCfg(0)
                                 If ArchiveCfg(0).Contains("MMMM") Then
                                     destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
@@ -232,7 +232,7 @@ Class GrillitusArchive
                                 Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim ThreadMonth2 As String = threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES"))
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
-                                Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
+                                Dim Threadhyear As Integer = CInt(Math.Ceiling(threaddate.Month / 6 + 1))
                                 Dim destination As String = ArchiveCfg(0)
                                 If ArchiveCfg(0).Contains("MMMM") Then
                                     destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
@@ -278,7 +278,7 @@ Class GrillitusArchive
                                 Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim ThreadMonth2 As String = threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES"))
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
-                                Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
+                                Dim Threadhyear As Integer = CInt(Math.Ceiling(threaddate.Month / 6 + 1))
                                 Dim destination As String = ArchiveCfg(0)
                                 If ArchiveCfg(0).Contains("MMMM") Then
                                     destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
@@ -302,7 +302,7 @@ Class GrillitusArchive
                                 Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim ThreadMonth2 As String = threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES"))
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
-                                Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
+                                Dim Threadhyear As Integer = CInt(Math.Ceiling(threaddate.Month / 6 + 1))
                                 Dim destination As String = ArchiveCfg(0)
                                 If ArchiveCfg(0).Contains("MMMM") Then
                                     destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
@@ -367,6 +367,11 @@ Class GrillitusArchive
 
                 'Anadir los hilos al texto
                 ArchivePageText = ArchivePageText & ThreadText
+
+                'Añadir la plantilla de archivo
+                If Not Regex.Match(ArchivePageText, "{{ *[Aa]rchivo *}}").Success Then
+                    ArchivePageText = "{{Archivo}}" & Environment.NewLine & ArchivePageText
+                End If
 
                 'Si se usa la caja de archivos
                 If useBox Then
