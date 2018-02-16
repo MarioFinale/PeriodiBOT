@@ -213,15 +213,8 @@ Class GrillitusArchive
                                 Else
                                     Threadhyear = 2
                                 End If
-                                Dim destination As String = ArchiveCfg(0)
-                                If ArchiveCfg(0).Contains("MMMM") Then
-                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
-                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
-                                Else
-                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
-                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
-                                End If
-
+                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
+                                              .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
 
                                 Archives.Add(New Tuple(Of String, String)(destination, t))
 
@@ -243,16 +236,8 @@ Class GrillitusArchive
                                 Else
                                     Threadhyear = 2
                                 End If
-                                Dim destination As String = ArchiveCfg(0)
-                                If ArchiveCfg(0).Contains("MMMM") Then
-                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
-                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
-                                Else
-                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
-                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
-                                End If
-
-
+                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
+                                              .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
 
                                 Archives.Add(New Tuple(Of String, String)(destination, t))
 
@@ -294,16 +279,11 @@ Class GrillitusArchive
                                 Else
                                     Threadhyear = 2
                                 End If
-                                Dim destination As String = ArchiveCfg(0)
-                                If ArchiveCfg(0).Contains("MMMM") Then
-                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
-                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
-                                Else
-                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
-                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
-                                End If
+                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
+                                              .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+
                                 Archives.Add(New Tuple(Of String, String)(destination, t))
-                                ArchivedThreads += 1
+                                    ArchivedThreads += 1
 
                             End If
                         Else
@@ -320,15 +300,8 @@ Class GrillitusArchive
                                 Else
                                     Threadhyear = 2
                                 End If
-                                Dim destination As String = ArchiveCfg(0)
-                                If ArchiveCfg(0).Contains("MMMM") Then
-                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
-                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
-                                Else
-                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
-                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
-                                End If
-
+                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
+                                              .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
 
                                 Archives.Add(New Tuple(Of String, String)(destination, t))
                                 ArchivedThreads += 1
