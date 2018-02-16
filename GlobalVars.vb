@@ -29,6 +29,7 @@ Module GlobalVars
     Public OpFilePath As String = Exepath & "OPs.cfg"
 
     Public ResumePageName As String = "Usuario:PeriodiBOT/Resumen página"
+    Const DidYouKnowPageName As String = "PeriodiBOT/Sabias que"
 
 
     Public LogC As New LogEngine(Log_Filepath, User_Filepath)

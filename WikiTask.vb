@@ -39,7 +39,7 @@ Namespace WikiBot
                 Next
                 Qstring = Qstring.Trim(CType("|", Char))
 
-                Dim QueryResponse As String = Gethtmlsource(_siteurl & "?action=query&formatversion=2&prop=pageimages&format=json&titles=" & Qstring)
+                Dim QueryResponse As String = _bot.GETQUERY("action=query&formatversion=2&prop=pageimages&format=json&titles=" & Qstring)
                 Dim ResponseArray As New List(Of String)
 
                 For Each m As Match In Regex.Matches(QueryResponse, "({).+?(})(,|])(?={|})")
@@ -248,150 +248,7 @@ Namespace WikiBot
             Return PagenameAndResume
         End Function
 
-        ''' <summary>
-        ''' Retorna el valor ORES (en %) de los EDIT ID (eswiki) indicados como SortedList (con el formato {ID,Score}), los EDIT ID deben ser distintos. 
-        ''' En caso de no existir el EDIT ID, retorna 0.
-        ''' </summary>
-        ''' <param name="revids">Array con EDIT ID's unicos.</param>
-        ''' <remarks>Los EDIT ID deben ser distintos</remarks>
-        Function GetORESScores(ByVal revids As Integer()) As SortedList(Of Integer, Double())
 
-            Dim Revlist As List(Of List(Of Integer)) = SplitIntegerArrayIntoChunks(revids, 50)
-            Dim EditAndScoreList As New SortedList(Of Integer, Double())
-            For Each ListOfList As List(Of Integer) In Revlist
-
-                Dim Qstring As String = String.Empty
-                For Each n As Integer In ListOfList
-                    Qstring = Qstring & n.ToString & "|"
-                Next
-                Qstring = Qstring.Trim(CType("|", Char))
-                Try
-                    Dim s As String = _bot.GET(("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & UrlWebEncode(Qstring)))
-
-                    For Each m As Match In Regex.Matches(s, "({|, )(""[0-9]+"":).+?(}}}})")
-
-                        Dim EditID_str As String = Regex.Match(m.Value, """[0-9]+""").Value
-                        EditID_str = EditID_str.Trim(CType("""", Char()))
-                        EditID_str = RemoveAllAlphas(EditID_str)
-                        Dim EditID As Integer = Integer.Parse(EditID_str)
-
-                        If m.Value.Contains("error") Then
-
-                            Debug_Log("GetORESScore: Server error in query of ORES score from revid " & EditID_str & " (invalid diff?)", "LOCAL", BOTName)
-                            EditAndScoreList.Add(EditID, {0, 0})
-                        Else
-                            Try
-                                Dim DMGScore_str As String = TextInBetween(TextInBetweenInclusive(s, "{""damaging"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
-                                Dim GoodFaithScore_str As String = TextInBetween(TextInBetweenInclusive(s, """goodfaith"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
-
-                                Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, "LOCAL", BOTName)
-
-                                Dim DMGScore As Double = Double.Parse(DMGScore_str) * 100
-                                Dim GoodFaithScore As Double = Double.Parse(GoodFaithScore_str) * 100
-
-                                Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, "LOCAL", BOTName)
-
-                                EditAndScoreList.Add(EditID, {DMGScore, GoodFaithScore})
-                            Catch ex As IndexOutOfRangeException
-                                Debug_Log("GetORESScore: IndexOutOfRange EX in ORES score from revid " & EditID_str & " EX: " & ex.Message, "LOCAL", BOTName)
-                                EditAndScoreList.Add(EditID, {0, 0})
-                            Catch ex2 As Exception
-                                Debug_Log("GetORESScore: EX in ORES score from revid " & EditID_str & " EX: " & ex2.Message, "LOCAL", BOTName)
-                                EditAndScoreList.Add(EditID, {0, 0})
-                            End Try
-                        End If
-
-                    Next
-                Catch ex As Exception
-                    Debug_Log("GetORESScore: EX obttaining ORES scores EX: " & ex.Message, "LOCAL", BOTName)
-                End Try
-            Next
-
-            Return EditAndScoreList
-
-        End Function
-
-        ''' <summary>
-        ''' Retorna el ultimo REVID (como integer) de las paginas indicadas como SortedList (con el formato {Pagename,Revid}), las paginas deben ser distintas. 
-        ''' En caso de no existir la pagina, retorna -1 como REVID.
-        ''' </summary>
-        ''' <param name="pageNames">Array con nombres de paginas unicos.</param>
-        ''' <remarks></remarks>
-        Function GetLastRevIds(ByVal pageNames As String()) As SortedList(Of String, Integer)
-            Debug_Log("GetLastRevIDs: Get Wikipedia last RevisionID of """ & pageNames.Count.ToString & """ pages.", "LOCAL", BOTName)
-            Dim PageNamesList As List(Of String) = pageNames.ToList
-            PageNamesList.Sort()
-            Dim PageList As List(Of List(Of String)) = SplitStringArrayIntoChunks(PageNamesList.ToArray, 50)
-            Dim PagenameAndLastId As New SortedList(Of String, Integer)
-            For Each ListInList As List(Of String) In PageList
-                Dim Qstring As String = String.Empty
-                For Each s As String In ListInList
-                    s = UrlWebEncode(s)
-                    Qstring = Qstring & s & "|"
-                Next
-                Qstring = Qstring.Trim(CType("|", Char))
-
-                Dim QueryResponse As String = _bot.GETQUERY(("?action=query&prop=revisions&format=json&titles=" & Qstring))
-                Dim ResponseArray As String() = TextInBetweenInclusive(QueryResponse, ",""title"":", "}]")
-
-                For Each s As String In ResponseArray
-
-                    Dim pagetitle As String = TextInBetween(s, ",""title"":""", """,""")(0)
-
-                    If s.Contains(",""missing"":") Then
-                        If Not PagenameAndLastId.ContainsKey(pagetitle) Then
-                            PagenameAndLastId.Add(UrlWebDecode(NormalizeUnicodetext(pagetitle)).Replace(" ", "_"), -1)
-                        End If
-                    Else
-                        If Not PagenameAndLastId.ContainsKey(pagetitle) Then
-                            Dim TemplateTitle As String = String.Empty
-                            Dim Revid As String = TextInBetween(s, pagetitle & """,""revisions"":[{""revid"":", ",""parentid"":")(0)
-                            Dim Revid_ToInt As Integer = CType(Revid, Integer)
-
-                            Dim modlist As New List(Of String)
-
-                            For Each tx As String In PageNamesList.ToArray
-                                Dim tmp As String = tx.ToLower.Replace("_", " ")
-                                modlist.Add(tmp)
-                            Next
-
-                            Dim normtext As String = NormalizeUnicodetext(pagetitle)
-                            normtext = normtext.ToLower.Replace("_", " ")
-                            Dim ItemIndex As Integer = modlist.IndexOf(normtext)
-                            TemplateTitle = PageNamesList(ItemIndex)
-                            PagenameAndLastId.Add(TemplateTitle, Revid_ToInt)
-
-                        End If
-                    End If
-                Next
-            Next
-            Debug_Log("GetLastRevIDs: Done """ & PagenameAndLastId.Count.ToString & """ pages returned.", "LOCAL", BOTName)
-            Return PagenameAndLastId
-        End Function
-
-        ''' <summary>
-        ''' Retorna el ultimo REVID (como integer) de la pagina indicada como integer. 
-        ''' En caso de no existir la pagina, retorna -1 como REVID.
-        ''' </summary>
-        ''' <param name="pageName">Nombre exacto de la pagina.</param>
-        ''' <remarks></remarks>
-        Function GetLastRevId(ByVal pageName As String) As Integer
-            Debug_Log("GetLastRevID: Get Wikipedia last RevisionID of page """ & pageName & """.", "LOCAL", BOTName)
-            pageName = UrlWebEncode(pageName)
-            Try
-                Dim QueryText As String = String.Empty
-                Debug_Log("GetLastRevID: Query of last RevisionID of page """ & pageName & """.", "LOCAL", BOTName)
-                QueryText = _bot.GETQUERY(("?action=query&prop=revisions&format=json&titles=" & pageName))
-
-                Dim ID As Integer = Integer.Parse(TextInBetween(QueryText, """revid"":", ",""")(0))
-                Debug_Log("GetLastRevID: Last RevisionID of page """ & pageName & " is: " & ID.ToString, "LOCAL", BOTName)
-                Return ID
-            Catch ex As Exception
-                Debug_Log("GetLastRevID: Query of last RevisionID from page """ & pageName & " failed, returning Nothing", "LOCAL", BOTName)
-                Debug_Log("GetLastRevID: ex message: " & ex.Message, "LOCAL", BOTName)
-                Return Nothing
-            End Try
-        End Function
 
         ''' <summary>
         ''' Retorna una pagina aleatoria

@@ -80,7 +80,6 @@
     <Compile Include="WikiTask.vb" />
     <Compile Include="CommFunctions.vb" />
     <Compile Include="Config.vb" />
-    <Compile Include="DirectApiCalls.vb" />
     <Compile Include="GlobalVars.vb" />
     <Compile Include="GrillitusArchive.vb" />
     <Compile Include="IRCMessage.vb" />
@@ -107,7 +106,6 @@
     <Compile Include="Page.vb" />
     <Compile Include="Template.vb" />
     <Compile Include="TextFunctions.vb" />
-    <Compile Include="WebFunctions.vb" />
     <Compile Include="WikiUser.vb" />
   </ItemGroup>
   <ItemGroup>

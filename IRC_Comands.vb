@@ -394,7 +394,7 @@ Class IRC_Comands
 
     Private Function ArchivePage(ByVal source As String, page As String, user As String, ircClient As IRC_Client) As IRCMessage
         Debug_Log("ArchivePage requested", source, user)
-        Dim PageName As String = TitleFirstGuess(page)
+        Dim PageName As String = _bot.TitleFirstGuess(page)
         Dim responsestring As String = ColoredText("Archivando ", "04") & """" & PageName & """"
         Task.Run(Sub()
                      Dim p As Page = WikiAction.Getpage(PageName)
@@ -424,7 +424,7 @@ Class IRC_Comands
     End Function
 
     Function GetResume(ByVal source As String, Page As String, user As String) As IRCMessage
-        Dim PageName As String = TitleFirstGuess(Page)
+        Dim PageName As String = _bot.TitleFirstGuess(Page)
 
         Log("IRC: GetResume of " & Page, "IRC", user)
 
@@ -696,7 +696,7 @@ Class IRC_Comands
 
 
     Private Function PageInfo(ByVal source As String, page As String, Username As String) As IRCMessage
-        Dim PageName As String = TitleFirstGuess(page)
+        Dim PageName As String = _bot.TitleFirstGuess(page)
         Log("IRC: Get PageInfo of " & page, "IRC", Username)
 
         If Not PageName = String.Empty Then

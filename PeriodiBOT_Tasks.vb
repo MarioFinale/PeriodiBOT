@@ -199,7 +199,7 @@ Public Module PeriodiBOT_Tasks
 
 
         Debug_Log("UpdatePageExtracts: Adding IDS to IDLIST", "LOCAL", BOTName)
-        Dim IDLIST As SortedList(Of String, Integer) = WikiAction.GetLastRevIds(p.ToArray)
+        Dim IDLIST As SortedList(Of String, Integer) = _bot.GetLastRevIds(p.ToArray)
 
         Debug_Log("UpdatePageExtracts: Adding Old resumes to list", "LOCAL", BOTName)
         For Each s As String In p.ToArray
@@ -239,7 +239,7 @@ Public Module PeriodiBOT_Tasks
         '===========================================================================================
 
         Debug_Log("UpdatePageExtracts: getting ORES of IDS", "LOCAL", BOTName)
-        Dim EditScoreList As SortedList(Of Integer, Double()) = WikiAction.GetORESScores(IDLIST.Values.ToArray)
+        Dim EditScoreList As SortedList(Of Integer, Double()) = _bot.GetORESScores(IDLIST.Values.ToArray)
 
         '==========================================================================================
         'Choose between a old resume and a new resume depending if new resume is safe to use
@@ -312,11 +312,6 @@ Public Module PeriodiBOT_Tasks
         Catch ex As Exception
             Log("UpdatePageExtracts: Error updating page extracts", "LOCAL", BOTName)
             Debug_Log(ex.Message, "LOCAL", BOTName)
-            _bot.CleanCookies()
-            _bot.WikiLogOn()
-            If ex.Message.ToLower.Contains("token") Then
-                Debug_Log("UpdatePageExtracts: Token exception", "LOCAL", BOTName)
-            End If
             BotIRC.Sendmessage(ColoredText("Error al actualizar los extractos, ver LOG.", "04"))
             Return False
         End Try
