@@ -1,7 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
 Imports PeriodiBOT_IRC.WikiBot
-
+Imports PeriodiBOT_IRC.IRC
 Module GlobalVars
 
 

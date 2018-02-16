@@ -142,7 +142,7 @@ Class GrillitusArchive
 
         Debug_Log("Archive: Declare vars", "LOCAL", BOTName)
 
-        Dim IndexPage As Page = WikiAction.Getpage(PageToArchive.Title & "/Archivo-00-índice")
+        Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
         Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
 
         Dim Newpagetext As String = PageToArchive.Text
@@ -153,7 +153,7 @@ Class GrillitusArchive
         Dim Archives As New List(Of Tuple(Of String, String))
 
         Debug_Log("Archive: Get threads of page " & PageToArchive.Title, "LOCAL", BOTName)
-        Dim threads As String() = WikiAction.GetPageThreads(PageToArchive.Text)
+        Dim threads As String() = _bot.GetPageThreads(PageToArchive.Text)
 
         Dim notify As Boolean
         Dim strategy As String = String.Empty
@@ -181,7 +181,7 @@ Class GrillitusArchive
                 '-----------------------------------------------------------------------------------------------
                 'Firma mas reciente en la seccion
                 If Strategy = "FirmaMásRecienteEnLaSección" Then
-                    Dim threaddate As DateTime = WikiAction.MostRecentDate(t)
+                    Dim threaddate As DateTime = _bot.MostRecentDate(t)
 
                     Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
                     Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
@@ -205,11 +205,17 @@ Class GrillitusArchive
 
                                 Dim Threadyear As String = threaddate.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
+                                Dim ThreadMonth2 As String = threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES"))
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
-
-                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
-                                                       .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                                Dim destination As String = ArchiveCfg(0)
+                                If ArchiveCfg(0).Contains("MMMM") Then
+                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
+                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                                Else
+                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
+                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                                End If
 
 
                                 Archives.Add(New Tuple(Of String, String)(destination, t))
@@ -224,11 +230,18 @@ Class GrillitusArchive
 
                                 Dim Threadyear As String = threaddate.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
+                                Dim ThreadMonth2 As String = threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES"))
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
+                                Dim destination As String = ArchiveCfg(0)
+                                If ArchiveCfg(0).Contains("MMMM") Then
+                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
+                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                                Else
+                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
+                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                                End If
 
-                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
-                                                       .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
 
 
                                 Archives.Add(New Tuple(Of String, String)(destination, t))
@@ -241,7 +254,7 @@ Class GrillitusArchive
                     'Firma en el ultimo parrafo
                     '-----------------------------------------------------------------------------------------------------
                 ElseIf Strategy = "FirmaEnÚltimoPárrafo" Then
-                    Dim threaddate As Date = WikiAction.LastParagraphDateTime(t)
+                    Dim threaddate As Date = _bot.LastParagraphDateTime(t)
                     Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
                     Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
 
@@ -263,11 +276,17 @@ Class GrillitusArchive
 
                                 Dim Threadyear As String = threaddate.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
+                                Dim ThreadMonth2 As String = threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES"))
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
-
-                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
-                                                       .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                                Dim destination As String = ArchiveCfg(0)
+                                If ArchiveCfg(0).Contains("MMMM") Then
+                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
+                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                                Else
+                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
+                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                                End If
 
 
                                 Archives.Add(New Tuple(Of String, String)(destination, t))
@@ -279,14 +298,20 @@ Class GrillitusArchive
                             'Archivado normal
                             If threaddate < LimitDate Then
                                 Newpagetext = Newpagetext.Replace(t, "")
-
                                 Dim Threadyear As String = threaddate.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
+                                Dim ThreadMonth2 As String = threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES"))
                                 Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
                                 Dim Threadhyear As Integer = CInt((threaddate.Month - 1) / 6 + 1)
+                                Dim destination As String = ArchiveCfg(0)
+                                If ArchiveCfg(0).Contains("MMMM") Then
+                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2) _
+                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                                Else
+                                    destination = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
+                                                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                                End If
 
-                                Dim destination As String = ArchiveCfg(0).Replace("AAAA", Threadyear).Replace("MM", ThreadMonth) _
-                                                       .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
 
                                 Archives.Add(New Tuple(Of String, String)(destination, t))
 
@@ -319,14 +344,15 @@ Class GrillitusArchive
                 End If
             Next
 
+
             'Guardar los hilos en los archivos correspondientes por fecha
             For Each k As KeyValuePair(Of String, String) In Sl
                 Debug_Log("Archive: Save threads", "LOCAL", BOTName)
-                Dim isminor As Boolean = Not Notify
+                Dim isminor As Boolean = Not notify
                 Dim Archivepage As String = k.Key
                 Dim ThreadText As String = Environment.NewLine & k.Value
-                Dim threadcount As Integer = WikiAction.GetPageThreads(Environment.NewLine & ThreadText).Count
-                Dim ArchPage As Page = WikiAction.Getpage(Archivepage)
+                Dim threadcount As Integer = _bot.GetPageThreads(Environment.NewLine & ThreadText).Count
+                Dim ArchPage As Page = _bot.Getpage(Archivepage)
                 Dim ArchivePageText As String = ArchPage.Text
                 ArchivePages.Add(Archivepage)
                 'Verificar si la página de archivado está en el mismo espacio de nombres
@@ -351,11 +377,10 @@ Class GrillitusArchive
                 End If
 
                 'Texto de resumen de edicion
-                Dim SummaryText As String = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].", threadcount, MaxDays.ToString, PageToArchive.Title)
+                Dim SummaryText As String = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].", threadcount, maxDays.ToString, PageToArchive.Title)
                 'Guardar
                 ArchPage.Save(ArchivePageText, SummaryText, isminor, True)
             Next
-
 
             'Actualizar caja si corresponde
             If useBox Then
@@ -365,9 +390,10 @@ Class GrillitusArchive
             'Guardar pagina principal
             If Not String.IsNullOrEmpty(Newpagetext) Then
                 Debug_Log("Archive: Save main page", "LOCAL", BOTName)
+
                 'Si debe tener caja de archivos...
                 If UseBox Then
-                    If Not Newpagetext.Contains("{{" & IndexPage.Title & "}}") Then
+                    If Not Regex.Match(Newpagetext, "{{" & IndexPage.Title & "}}", RegexOptions.IgnoreCase).Success Then
                         Dim Archivetemplate As String = Regex.Match(PageToArchive.Text, "{{ *[Aa]rchivado automático[\s\S]+?}}").Value
                         Newpagetext = Newpagetext.Replace(Archivetemplate, Archivetemplate & Environment.NewLine & "{{" & IndexPage.Title & "}}" & Environment.NewLine)
                     End If
@@ -394,10 +420,11 @@ Class GrillitusArchive
 
 
     Private Function UpdateBox(Indexpage As Page, ArchivePages As IEnumerable(Of String)) As Boolean
+        Dim boxstring As String = "<!-- Caja generada por PeriodiBOT, puedes editarla cuanto quieras, pero los nuevos enlaces siempre se añadirán al final. -->"
         Try
             'Verificar si está creada la página de archivo, si no, la crea.
             If Not Indexpage.Exists Then
-                Dim newtext As String = "{{caja archivos|" & Environment.NewLine
+                Dim newtext As String = boxstring & Environment.NewLine & "{{caja archivos|" & Environment.NewLine
 
                 For Each p As String In ArchivePages
                     If Not newtext.Contains(p) Then
@@ -415,10 +442,10 @@ Class GrillitusArchive
 
             Else
                 Debug_Log("UpdateBox: Updating Box", "LOCAL", BOTName)
-                Dim ArchiveBoxMatch As Match = Regex.Match(Indexpage.Text, "{{caja archivos\|[\s\S]+?}}")
+                Dim ArchiveBoxMatch As Match = Regex.Match(Indexpage.Text, "{{[Cc]aja (de)* *archivos[\s\S]+?}}")
                 Dim Newbox As String = String.Empty
                 If ArchiveBoxMatch.Success Then
-                    Newbox = ArchiveBoxMatch.Value.Replace("{{caja archivos|", "").Replace("}}", "")
+                    Newbox = Regex.Replace(ArchiveBoxMatch.Value, "{{[Cc]aja (de)* *archivos", "").Replace("}}", "")
 
                     'Generar links en caja de archivos:
                     For Each p As String In ArchivePages
@@ -432,13 +459,13 @@ Class GrillitusArchive
 
                         End If
                     Next
-                    Newbox = "{{caja archivos|" & Newbox & "}}"
+                    Newbox = boxstring & Environment.NewLine & "{{Caja de archivos" & Newbox & "}}"
                     Dim newtext As String = Indexpage.Text.Replace(ArchiveBoxMatch.Value, Newbox)
                     Indexpage.Save(newtext, "Bot: Actualizando caja de archivos.", True, True)
 
                 Else 'No contiene una plantilla de caja de archivo, en ese caso se crea una nueva por sobre el contenido de la pagina
 
-                    Dim newtext As String = "{{caja archivos|" & Environment.NewLine
+                    Dim newtext As String = boxstring & Environment.NewLine & "{{caja archivos|" & Environment.NewLine
 
                     For Each p As String In ArchivePages
                         If Not newtext.Contains(p) Then
@@ -528,10 +555,10 @@ Class GrillitusArchive
         If IRC Then
             BotIRC.Sendmessage(ColoredText("Archivando todas las páginas...", "04"))
         End If
-        Dim includedpages As String() = WikiAction.GetallInclusions("Plantilla:Archivado automático")
+        Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Archivado automático")
         For Each pa As String In includedpages
             Log("ArchiveAllInclusions: Page " & pa, "LOCAL", BOTName)
-            Dim _Page As Page = WikiAction.Getpage(pa)
+            Dim _Page As Page = _bot.Getpage(pa)
             If _Page.Exists Then
                 Try
                     Archive(_Page)

@@ -95,9 +95,10 @@ Public Module PeriodiBOT_Tasks
     ''' el último usuario que la editó y el segundo el título real de la página.
     ''' </summary>
     Function GetAllRequestedpages() As SortedList(Of String, String())
+        Dim _bot As Bot = ESWikiBOT
         Dim plist As New SortedList(Of String, String())
-        For Each s As String In WikiFuncs.GetallInclusions(ResumePageName)
-            Dim Pag As Page = WikiFuncs.Getpage(s)
+        For Each s As String In _bot.GetallInclusions(ResumePageName)
+            Dim Pag As Page = _bot.Getpage(s)
             Dim pagetext As String = Pag.Text
             For Each s2 As String In TextInBetween(pagetext, "{{" & ResumePageName & "|", "}}")
                 If Not plist.Keys.Contains(s2) Then
@@ -118,13 +119,13 @@ Public Module PeriodiBOT_Tasks
         Dim _bot As Bot = ESWikiBOT
         Dim slist As SortedList(Of String, String()) = GetAllRequestedpages()
         Dim Reqlist As New SortedList(Of String, String())
-        Dim ResumePage As Page = WikiFuncs.Getpage(ResumePageName)
+        Dim ResumePage As Page = ESWikiBOT.Getpage(ResumePageName)
         Dim rtext As String = ResumePage.Text
 
         For Each pair As KeyValuePair(Of String, String()) In slist
             Try
                 If Not rtext.Contains("|" & pair.Key & "=") Then
-                    Dim pag As Page = WikiFuncs.Getpage(pair.Key)
+                    Dim pag As Page = _bot.Getpage(pair.Key)
                     If pag.Exists Then
                         Reqlist.Add(pair.Key, pair.Value)
                     End If
@@ -166,7 +167,7 @@ Public Module PeriodiBOT_Tasks
 
 
         Debug_Log("UpdatePageExtracts: Loading resume page", "LOCAL", BOTName)
-        Dim ResumePage As Page = WikiFuncs.Getpage(ResumePageName)
+        Dim ResumePage As Page = _bot.Getpage(ResumePageName)
 
         Dim ResumePageText As String = ResumePage.Text
         Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL", BOTName)
@@ -217,8 +218,8 @@ Public Module PeriodiBOT_Tasks
 
         '============================================================================================
         ' Adding New resumes to list
-        Dim Page_Resume_pair As SortedList(Of String, String) = WikiAction.GetPagesExtract(p.ToArray)
-        Dim Page_Image_pair As SortedList(Of String, String) = WikiAction.GetImagesExtract(p.ToArray)
+        Dim Page_Resume_pair As SortedList(Of String, String) = _bot.GetPagesExtract(p.ToArray)
+        Dim Page_Image_pair As SortedList(Of String, String) = _bot.GetImagesExtract(p.ToArray)
 
         For Each Page As String In Page_Resume_pair.Keys
 
