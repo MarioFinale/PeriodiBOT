@@ -223,6 +223,10 @@ Namespace WikiBot
             End Try
         End Function
 
+
+
+
+
         ''' <summary>
         ''' Guarda la página en la wiki. Si la página no existe, la crea.
         ''' </summary>
@@ -234,19 +238,11 @@ Namespace WikiBot
             If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Then
                 Throw New ArgumentNullException("Text")
             End If
-
-
-
             Dim ntimestamp As String = GetLastTimeStamp(_title)
 
             If Not ntimestamp = _timestamp Then
                 Log("Edit conflict on " & _title, "BOT", BOTName)
                 Return "Edit conflict"
-            End If
-
-            If Not BotCanEdit(_text, _username) Then
-                Log("Bots can't edit " & _title & "!", "BOT", BOTName)
-                Return "No Bots"
             End If
             Dim minorstr As String = String.Empty
 
@@ -291,6 +287,63 @@ Namespace WikiBot
         End Function
 
         ''' <summary>
+        ''' Guarda la página en la wiki. Comprueba si la página tiene la plantilla {{nobots}}. Si la página no existe, la crea.
+        ''' </summary>
+        ''' <param name="text">Texto (wikicódigo) de la página</param>
+        ''' <param name="Summary">Resumen de la edición</param>
+        ''' <param name="IsMinor">¿Marcar como menor?</param>
+        ''' <returns></returns>
+        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBOT As Boolean) As String
+            If Not BotCanEdit(_text, _username) Then
+                Log("Bots can't edit " & _title & "!", "BOT", BOTName)
+                Return "No Bots"
+            End If
+            Return SavePage(text, summary, isMinor, isBOT)
+        End Function
+
+        ''' <summary>
+        ''' Guarda la página en la wiki. Comprueba si la página tiene la plantilla {{nobots}}. Si la página no existe, la crea.
+        ''' </summary>
+        ''' <param name="text">Texto (wikicódigo) de la página</param>
+        ''' <param name="Summary">Resumen de la edición</param>
+        ''' <param name="IsMinor">¿Marcar como menor?</param>
+        ''' <returns></returns>
+        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean) As String
+            If Not BotCanEdit(_text, _username) Then
+                Log("Bots can't edit " & _title & "!", "BOT", BOTName)
+                Return "No Bots"
+            End If
+            Return SavePage(text, summary, isMinor, False)
+        End Function
+
+        ''' <summary>
+        ''' Guarda la página en la wiki. Comprueba si la página tiene la plantilla {{nobots}}. Si la página no existe, la crea.
+        ''' </summary>
+        ''' <param name="text">Texto (wikicódigo) de la página</param>
+        ''' <param name="Summary">Resumen de la edición</param>
+        ''' <returns></returns>
+        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String) As String
+            If Not BotCanEdit(_text, _username) Then
+                Log("Bots can't edit " & _title & "!", "BOT", BOTName)
+                Return "No Bots"
+            End If
+            Return SavePage(text, summary, False, False)
+        End Function
+
+        ''' <summary>
+        ''' Guarda la página en la wiki. Comprueba si la página tiene la plantilla {{nobots}}. Si la página no existe, la crea.
+        ''' </summary>
+        ''' <param name="text">Texto (wikicódigo) de la página</param>
+        ''' <returns></returns>
+        Overloads Function CheckAndSave(ByVal text As String) As String
+            If Not BotCanEdit(_text, _username) Then
+                Log("Bots can't edit " & _title & "!", "BOT", BOTName)
+                Return "No Bots"
+            End If
+            Return SavePage(text, "Bot edit", False, False)
+        End Function
+
+        ''' <summary>
         ''' Guarda la página en la wiki. Si la página no existe, la crea.
         ''' </summary>
         ''' <param name="text">Texto (wikicódigo) de la página</param>
@@ -300,6 +353,7 @@ Namespace WikiBot
         Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBOT As Boolean) As String
             Return SavePage(text, summary, isMinor, isBOT)
         End Function
+
 
         ''' <summary>
         ''' Guarda la página en la wiki. Si la página no existe, la crea.

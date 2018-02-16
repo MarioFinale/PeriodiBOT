@@ -321,7 +321,7 @@ Namespace WikiBot
             If PageText.Contains(requestedtext) Then
                 PageText = PageText.Replace(requestedtext, newtext)
             End If
-            requestedpage.Save(PageText, String.Format("(Bot): Reemplazando '{0}' por '{1}' {2}.", requestedtext, newtext, reason))
+            requestedpage.CheckAndSave(PageText, String.Format("(Bot): Reemplazando '{0}' por '{1}' {2}.", requestedtext, newtext, reason))
             Return True
 
         End Function
@@ -357,7 +357,7 @@ Namespace WikiBot
                 Next
 
                 Try
-                    requestedPage.Save(PageText, "(Bot): Removiendo referencias que contengan '" & requestedRef & "' según solicitud", False)
+                    requestedPage.CheckAndSave(PageText, "(Bot): Removiendo referencias que contengan '" & requestedRef & "' según solicitud", False, True)
                     Return True
                 Catch ex As Exception
                     Return False
