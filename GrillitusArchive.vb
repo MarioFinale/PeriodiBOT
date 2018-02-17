@@ -309,7 +309,7 @@ Namespace WikiBot
                     'Si se usa la caja de archivos
                     If useBox Then
                         'Verificar si contiene la plantilla de indice
-                        If Not Regex.Match(Newpagetext, "{{" & IndexPage.Title & "}}", RegexOptions.IgnoreCase).Success Then
+                        If Not Regex.Match(ArchivePageText, "{{" & IndexPage.Title & "}}", RegexOptions.IgnoreCase).Success Then
                             ArchivePageText = "{{" & IndexPage.Title & "}}" & Environment.NewLine & ArchivePageText
                         End If
                     End If
