@@ -431,7 +431,7 @@ Class GrillitusArchive
 
                         If Archivename.Success Then
                             Dim Subpagename As String() = p.Split("/"c)
-                            ArchiveBoxLink = "[[" & p & "|" & Subpagename.Last & "]]"
+                            ArchiveBoxLink = "[[" & p & "|/" & Subpagename.Last & "]]"
                         End If
                         newtext = newtext & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
                     End If
@@ -452,7 +452,8 @@ Class GrillitusArchive
                             Dim ArchiveBoxLink As String = "[[" & p & "]]"
                             Dim Archivename As Match = Regex.Match(p, "\/.+")
                             If Archivename.Success Then
-                                ArchiveBoxLink = "[[" & p & "|" & Archivename.Value & "]]"
+                                Dim Subpagename As String() = p.Split("/"c)
+                                ArchiveBoxLink = "[[" & p & "|/" & Subpagename.Last & "]]"
                             End If
                             Newbox = Newbox & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
 
@@ -472,7 +473,8 @@ Class GrillitusArchive
                             Dim Archivename As Match = Regex.Match(p, "\/.+")
 
                             If Archivename.Success Then
-                                ArchiveBoxLink = "[[" & p & "|" & Archivename.Value & "]]"
+                                Dim Subpagename As String() = p.Split("/"c)
+                                ArchiveBoxLink = "[[" & p & "|/" & Subpagename.Last & "]]"
                             End If
                             newtext = newtext & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
                         End If
