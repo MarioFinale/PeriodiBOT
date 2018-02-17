@@ -370,6 +370,12 @@ Class GrillitusArchive
 
                 'Texto de resumen de edicion
                 Dim SummaryText As String = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].", threadcount, maxDays.ToString, PageToArchive.Title)
+                If ArchivedThreads > 1 Then
+                    SummaryText = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].", threadcount, maxDays.ToString, PageToArchive.Title)
+                Else
+                    SummaryText = String.Format("Bot: Archivando {0} hilo con más de {1} días de antigüedad desde [[{2}]].", threadcount, maxDays.ToString, PageToArchive.Title)
+                End If
+
                 'Guardar
                 ArchPage.Save(ArchivePageText, SummaryText, isminor, True)
             Next
@@ -424,7 +430,8 @@ Class GrillitusArchive
                         Dim Archivename As Match = Regex.Match(p, "\/.+")
 
                         If Archivename.Success Then
-                            ArchiveBoxLink = "[[" & p & "|" & Archivename.Value & "]]"
+                            Dim Subpagename As String() = p.Split("/"c)
+                            ArchiveBoxLink = "[[" & p & "|" & Subpagename.Last & "]]"
                         End If
                         newtext = newtext & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
                     End If
