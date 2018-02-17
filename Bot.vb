@@ -548,7 +548,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function GetPageThreads(ByVal pagetext As String) As String()
             Dim newline As String = Environment.NewLine
-            Dim mc As MatchCollection = Regex.Matches(pagetext, "[\n \r]((==(?!=)).+?(==(?!=)))")
+            Dim mc As MatchCollection = Regex.Matches(pagetext, "[\n\r]((==(?!=)).+?(==(?!=)))")
 
             Dim threadlist As New List(Of String)
 
