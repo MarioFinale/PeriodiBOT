@@ -77,7 +77,6 @@
   <ItemGroup>
     <Compile Include="Bot.vb" />
     <Compile Include="PeriodiBOT_Tasks.vb" />
-    <Compile Include="WikiTask.vb" />
     <Compile Include="CommFunctions.vb" />
     <Compile Include="Config.vb" />
     <Compile Include="GlobalVars.vb" />

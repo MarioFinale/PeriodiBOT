@@ -2,7 +2,6 @@
 Option Explicit On
 Imports PeriodiBOT_IRC.WikiBot
 Public Module PeriodiBOT_Tasks
-    Dim WikiFuncs As New WikiTask(ESWikiBOT)
     ''' <summary>
     ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
     ''' </summary>
@@ -153,7 +152,6 @@ Public Module PeriodiBOT_Tasks
     ''' <param name="IRC">Si se establece este valor envía un comando en IRC avisando de la actualización</param>
     ''' <returns></returns>
     Function UpdatePageExtracts(ByVal irc As Boolean) As Boolean
-        Dim WikiAction As New WikiTask(ESWikiBOT)
         Dim _bot As Bot = ESWikiBOT
         If irc Then
             BotIRC.Sendmessage(ColoredText("Actualizando extractos...", "04"))

@@ -5,11 +5,9 @@ Imports PeriodiBOT_IRC.WikiBot
 
 Class GrillitusArchive
     Private _bot As Bot
-    Private WikiAction As WikiTask
 
     Sub New(ByVal WorkerBot As WikiBot.Bot)
         _bot = WorkerBot
-        WikiAction = New WikiTask(WorkerBot)
     End Sub
 
 

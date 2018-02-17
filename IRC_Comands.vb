@@ -8,13 +8,11 @@ Namespace IRC
         Private _IrcNickName As String
         Private Client As IRC_Client
         Private _bot As Bot
-        Private WikiAction As WikiTask
+
 
         Public Function ResolveCommand(ByVal imputline As String, ByRef HasExited As Boolean, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client, WorkerBot As Bot) As IRCMessage
             Client = IRCCLient
             _bot = WorkerBot
-            WikiAction = New WikiTask(WorkerBot)
-
             _IrcNickName = BOTIRCNickName
 
             Try
