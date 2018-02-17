@@ -25,7 +25,7 @@ Namespace WikiBot
             End Get
         End Property
 
-        Public ReadOnly Property Username As String
+        Public ReadOnly Property UserName As String
             Get
                 Return _userName
             End Get
@@ -159,8 +159,8 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="Text">Título aproximado o similar al de una página</param>
         ''' <returns></returns>
-        Function TitleFirstGuess(Text As String) As String
-            Dim titles As String() = GetTitlesFromQueryText(GETQUERY("action=query&format=json&list=search&utf8=1&srsearch=" & Text))
+        Function TitleFirstGuess(text As String) As String
+            Dim titles As String() = GetTitlesFromQueryText(GETQUERY("action=query&format=json&list=search&utf8=1&srsearch=" & text))
             If titles.Count >= 1 Then
                 Return titles(0)
             Else
@@ -863,7 +863,6 @@ Namespace WikiBot
             Return postresponse
         End Function
 
-
         ''' <summary>
         ''' Limpia todas las cookies, retorna "true" si finaliza correctamente.
         ''' </summary>
@@ -875,9 +874,6 @@ Namespace WikiBot
                 Return False
             End Try
         End Function
-
-
-
 
         ''' <summary>Realiza una solicitud de tipo GET a un recurso web y retorna el texto.</summary>
         ''' <param name="pageURL">URL absoluta del recurso web.</param>

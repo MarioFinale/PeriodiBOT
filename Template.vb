@@ -122,7 +122,7 @@ Namespace WikiBot
         ''' <param name="templatetext"></param>
         Sub GetTemplateOfText(ByVal templatetext As String)
             If String.IsNullOrWhiteSpace(templatetext) Then
-                Throw New ArgumentException("templatetext")
+                Throw New ArgumentException("Empty parameter", "templatetext")
             End If
             'Verificar si se paso una plantilla
             If Not templatetext.Substring(0, 2) = "{{" Then
@@ -139,7 +139,6 @@ Namespace WikiBot
             _parameters = New List(Of Tuple(Of String, String))
 
 
-            Dim ContainsTemplates As Boolean = True
             Dim NewText As String = _text
             Dim ReplacedTemplates As New List(Of String)
             Dim TemplateInnerText = NewText.Substring(2, NewText.Length - 4)
@@ -191,7 +190,6 @@ Namespace WikiBot
             Dim TotalParams As New List(Of Tuple(Of String, String))
 
             For Each m As Match In params
-                Dim ntext As String = innertext.Substring(1, m.Value.Length - 1)
                 Dim ParamNamematch As Match = Regex.Match(m.Value, "\|[^\|=]+=")
 
                 If ParamNamematch.Success Then

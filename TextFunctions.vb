@@ -265,18 +265,12 @@ Module TextFunctions
                 If OpenTemplate.Count = CloseTemplate.Count Then
 
                     Dim BeginPos As Integer = OpenTemplate(0).Index
-                    Dim EndPos As Integer = CloseTemplate(CloseTemplate.Count - 1).Index
-
                     Dim Textbefore As String = temptext.Substring(0, BeginPos)
-
                     Dim Lenght As Integer = temptext.Length - (Textbefore.Length)
-
                     Dim TemplateText As String = temptext.Substring(BeginPos, Lenght)
 
                     temptext = ""
                     templist.Add(TemplateText)
-
-                    Dim a As Integer = 1
                 End If
             End If
 

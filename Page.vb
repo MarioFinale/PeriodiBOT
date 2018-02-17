@@ -159,11 +159,11 @@ Namespace WikiBot
         ''' <param name="site">Sitio de la página</param>
         ''' <param name="wbot">Bot logueado a la wiki</param>
         ''' <param name="username">Nombre de usuario que realiza las ediciones</param>
-        Public Sub New(ByVal PageTitle As String, ByVal site As String, ByRef wbot As Bot, ByVal username As String)
+        Public Sub New(ByVal pageTitle As String, ByVal site As String, ByRef wbot As Bot, ByVal userName As String)
             _bot = wbot
-            Log("Loading page " & PageTitle, "LOCAL", BOTName)
-            _username = username
-            Loadpage(PageTitle, site)
+            Log("Loading page " & pageTitle, "LOCAL", BOTName)
+            _username = userName
+            Loadpage(pageTitle, site)
         End Sub
         ''' <summary>
         ''' Inicializa de nuevo la página (al crear una página esta ya está inicializada).
@@ -182,7 +182,7 @@ Namespace WikiBot
         Private Function Loadpage(ByVal PageTitle As String, ByVal site As String) As Boolean
             Log("Obtaining server data of " & PageTitle, "LOCAL", BOTName)
             If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
-                Throw New ArgumentNullException("PateTitle")
+                Throw New ArgumentNullException("Empty parameter", "PageTitle")
             End If
             _siteurl = site
             PageInfoData(PageTitle)
@@ -236,7 +236,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Private Function SavePage(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean) As String
             If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Then
-                Throw New ArgumentNullException("Text")
+                Throw New ArgumentNullException("Empty parameter", "Text")
             End If
             Dim ntimestamp As String = GetLastTimeStamp(_title)
 
@@ -475,7 +475,7 @@ Namespace WikiBot
                 Return True
             End If
             If String.IsNullOrWhiteSpace(user) Then
-                Throw New ArgumentException("user")
+                Throw New ArgumentException("Parameter empty", "user")
             End If
             user = user.Normalize
             Return Not Regex.IsMatch(text, "\{\{(nobots|bots\|(allow=none|deny=(?!none).*(" & user & "|all)|optout=all))\}\}", RegexOptions.IgnoreCase)
