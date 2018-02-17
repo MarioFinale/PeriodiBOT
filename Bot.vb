@@ -686,7 +686,7 @@ Namespace WikiBot
 
             Next
             Dates.Sort()
-            Return Dates.First
+            Return Dates.Last
 
         End Function
 
