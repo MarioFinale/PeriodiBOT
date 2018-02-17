@@ -1,6 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
 Imports PeriodiBOT_IRC.WikiBot
+Imports PeriodiBOT_IRC.IRC
 Public Module PeriodiBOT_Tasks
     ''' <summary>
     ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
