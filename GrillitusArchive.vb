@@ -420,7 +420,7 @@ Namespace WikiBot
 
                             End If
                         Next
-                        Newbox = boxstring & Environment.NewLine & "{{Caja de archivos" & Newbox & "}}"
+                        Newbox = "{{Caja de archivos" & Newbox & "}}"
                         Dim newtext As String = Indexpage.Text.Replace(ArchiveBoxMatch.Value, Newbox)
                         Indexpage.Save(newtext, "Bot: Actualizando caja de archivos.", True, True)
 
