@@ -600,6 +600,44 @@ Namespace WikiBot
         End Function
 
         ''' <summary>
+        ''' Entrega 
+        ''' </summary>
+        ''' <param name="text">Entrega la ultima fecha, que aparezca en un texto dado (si la fecha tiene formato de firma wikipedia).</param>
+        ''' <returns></returns>
+        Function ESWikiDatetime(ByVal text As String) As DateTime
+            Dim TheDate As DateTime = Nothing
+            Dim matchc As MatchCollection = Regex.Matches(text, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
+
+            If matchc.Count = 0 Then
+                Return DateTime.Parse("23:59 31/12/9999")
+            End If
+
+            For Each m As Match In matchc
+                Try
+                    Dim parsedtxt As String = m.Value.ToLower.Replace(" ene ", "/01/").Replace(" feb ", "/02/") _
+                .Replace(" mar ", "/03/").Replace(" abr ", "/04/").Replace(" may ", "/05/") _
+                .Replace(" jun ", "/06/").Replace(" jul ", "/07/").Replace(" ago ", "/08/") _
+                .Replace(" sep ", "/09/").Replace(" oct ", "/10/").Replace(" nov ", "/11/") _
+                .Replace(" dic ", "/12/").Replace(vbLf, String.Empty).Replace(" (utc)", String.Empty)
+                    parsedtxt = parsedtxt.Replace(" 1/", " 01/").Replace(" 2/", " 02/").Replace(" 3/", " 03/").
+                Replace(" 4/", " 04/").Replace(" 5/", " 05/").Replace(" 6/", " 06/").Replace(" 7/", " 07/").
+                Replace(" 8/", " 08/").Replace(" 9/", " 09/")
+
+                    Debug_Log("GetLastDateTime: Try parse", "LOCAL", BOTName)
+                    TheDate = DateTime.ParseExact(parsedtxt, "HH:mm dd'/'MM'/'yyyy", System.Globalization.CultureInfo.InvariantCulture)
+
+                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """", "LOCAL", BOTName)
+                Catch ex As System.FormatException
+                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions", BOTName)
+                End Try
+
+            Next
+            Return TheDate
+
+        End Function
+
+
+        ''' <summary>
         ''' Entrega como array de DateTime todas las fechas (Formato de firma Wikipedia) en el texto dado.
         ''' </summary>
         ''' <param name="text">Texto a evaluar</param>
@@ -617,37 +655,38 @@ Namespace WikiBot
         ''' <summary>
         ''' Entrega como DateTime la fecha más reciente en el texto dado (en formato de firma wikipedia).
         ''' </summary>
-        ''' <param name="comment"></param>
+        ''' <param name="text"></param>
         ''' <returns></returns>
-        Function MostRecentDate(ByVal comment As String) As DateTime
+        Function MostRecentDate(ByVal text As String) As DateTime
+            Dim Dates As New List(Of DateTime)
+            Dim matchc As MatchCollection = Regex.Matches(text, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
 
-            Dim dattimelist As New List(Of DateTime)
-            Debug_Log("Begin GetLastDateTime", "LOCAL", BOTName)
+            If matchc.Count = 0 Then
+                Return DateTime.Parse("23:59 31/12/9999")
+            End If
 
-            For Each m As Match In Regex.Matches(comment, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
-                Debug_Log("GetLastDateTime match: """ & m.Value & """", "LOCAL", BOTName)
+            For Each m As Match In matchc
                 Try
                     Dim parsedtxt As String = m.Value.ToLower.Replace(" ene ", "/01/").Replace(" feb ", "/02/") _
                 .Replace(" mar ", "/03/").Replace(" abr ", "/04/").Replace(" may ", "/05/") _
                 .Replace(" jun ", "/06/").Replace(" jul ", "/07/").Replace(" ago ", "/08/") _
                 .Replace(" sep ", "/09/").Replace(" oct ", "/10/").Replace(" nov ", "/11/") _
                 .Replace(" dic ", "/12/").Replace(vbLf, String.Empty).Replace(" (utc)", String.Empty)
+                    parsedtxt = parsedtxt.Replace(" 1/", " 01/").Replace(" 2/", " 02/").Replace(" 3/", " 03/").
+                Replace(" 4/", " 04/").Replace(" 5/", " 05/").Replace(" 6/", " 06/").Replace(" 7/", " 07/").
+                Replace(" 8/", " 08/").Replace(" 9/", " 09/")
 
                     Debug_Log("GetLastDateTime: Try parse", "LOCAL", BOTName)
-                    dattimelist.Add(DateTime.Parse(parsedtxt))
+                    Dates.Add(DateTime.ParseExact(parsedtxt, "HH:mm dd'/'MM'/'yyyy", System.Globalization.CultureInfo.InvariantCulture))
+
                     Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """", "LOCAL", BOTName)
                 Catch ex As System.FormatException
                     Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions", BOTName)
                 End Try
-            Next
-            If Not dattimelist.Count = 0 Then
-                Debug_Log("GetMostRecentDateTime: returning """ & dattimelist.Last.ToLongDateString & """", "LOCAL", BOTName)
-                Return dattimelist.Last
-            Else
-                Debug_Log("GetMostRecentDateTime: Returning nothing ", "LOCAL", BOTName)
-                Return New Date(9999, 12, 31)
 
-            End If
+            Next
+            Dates.Sort()
+            Return Dates.First
 
         End Function
 
