@@ -597,17 +597,17 @@ Namespace WikiBot
 
             If matchc.Count = 0 Then
                 Dim mlines As MatchCollection = Regex.Matches(text, ".+\n")
-                For i As Integer = (-mlines.Count + 1) To (mlines.Count - 1)
+                For i As Integer = mlines.Count - 1 To 0 Step -1
 
-                    If -i = (mlines.Count - 1) Then
-                        If Regex.Match(mlines(-i).Value, signpattern).Success Then
-                            lastparagraph = mlines(-i).Value
+                    If i = (mlines.Count - 1) Then
+                        If Regex.Match(mlines(i).Value, signpattern).Success Then
+                            lastparagraph = mlines(i).Value
                             Exit For
                         End If
                     Else
-                        If Not (mlines(-i).Value(0) = ";"c) Or (mlines(-i).Value(0) = ":"c) Then
-                            If Regex.Match(mlines(-i).Value, signpattern).Success Then
-                                lastparagraph = mlines(-i).Value
+                        If Not (mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Then
+                            If Regex.Match(mlines(i).Value, signpattern).Success Then
+                                lastparagraph = mlines(i).Value
                                 Exit For
                             End If
                         Else
