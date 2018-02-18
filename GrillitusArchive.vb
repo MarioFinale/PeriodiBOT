@@ -260,9 +260,7 @@ Namespace WikiBot
                 End Try
             Next
 
-
             If ArchivedThreads > 0 Then
-
                 Debug_Log("Archive: List pages", "LOCAL", BOTName)
                 'Lista de Pagina de archivado e hilos a archivar
                 Dim Sl As New SortedList(Of String, String)
@@ -276,7 +274,6 @@ Namespace WikiBot
                         Sl.Item(tdestiny) = Sl.Item(tdestiny) & Thread
                     End If
                 Next
-
 
                 'Guardar los hilos en los archivos correspondientes por fecha
                 For Each k As KeyValuePair(Of String, String) In Sl
@@ -374,8 +371,8 @@ Namespace WikiBot
             Else
                 Threadhyear = 2
             End If
-            Return destination.Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
-                          .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+            Return TitleCase(destination.Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
+                          .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString))
         End Function
 
         Private Function UpdateBox(Indexpage As Page, ArchivePages As IEnumerable(Of String)) As Boolean

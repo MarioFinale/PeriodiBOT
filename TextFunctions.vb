@@ -41,7 +41,7 @@ Module TextFunctions
     ''' </summary>
     ''' <param name="val">Texto a evaluar</param>
     ''' <returns></returns>
-    Function UppercaseFirstLetter(ByVal val As String) As String
+    Function TitleCase(ByVal val As String) As String
         If String.IsNullOrEmpty(val) Then
             Return val
         End If
@@ -56,7 +56,7 @@ Module TextFunctions
     ''' <returns></returns>
     Function NormalizeText(ByVal text As String) As String
         Dim s As String = text.ToLower
-        Return UppercaseFirstLetter(s)
+        Return TitleCase(s)
     End Function
     ''' <summary>
     ''' verifica si una cadena de texto es numérica.

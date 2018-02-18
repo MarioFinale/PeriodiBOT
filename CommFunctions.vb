@@ -319,7 +319,7 @@ Public Module CommFunctions
 
     Function GetCurrentThreads() As Integer
         Try
-            Return Process.GetCurrentProcess().Threads.Count 
+            Return Process.GetCurrentProcess().Threads.Count
         Catch ex As Exception
             Debug_Log(ex.Message, "LOCAL", BOTName)
             Return 0
@@ -371,5 +371,5 @@ Public Module CommFunctions
         Return exitloop
     End Function
 
-
 End Module
+
