@@ -298,7 +298,7 @@ Namespace WikiBot
                     End If
 
                     'Verificar si la página de archivado es una subpágina de la raiz
-                    If Not ArchPage.Title.Contains(PageToArchive.RootPage) Then
+                    If Not ArchPage.Title.StartsWith(PageToArchive.RootPage) Then
                         Log("Archive: The page " & ArchPage.Title & " is not a subpage of " & PageToArchive.RootPage & " aborting.", "LOCAL", BOTName)
                     End If
 
