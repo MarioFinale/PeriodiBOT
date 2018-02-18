@@ -298,13 +298,9 @@ Namespace WikiBot
                         Return False
                     End If
 
-                    'Verificar si la página de archivado es una subpágina de la principal (solo para espacios de nombre 1,3,10,14,101,105)
-                    Dim contentNamespaces As Integer() = {1, 3, 10, 14, 101, 105}
-                    If contentNamespaces.Contains(PageToArchive.PageNamespace) Then
-                        If Not ArchPage.Title.Contains(PageToArchive.Title) Then
-                            Log("Archive: The page " & ArchPage.Title & " is not a subpage of " & PageToArchive.Title & " aborting.", "LOCAL", BOTName)
-                            Return False
-                        End If
+                    'Verificar si la página de archivado es una subpágina de la raiz
+                    If Not ArchPage.Title.Contains(PageToArchive.RootPage) Then
+                        Log("Archive: The page " & ArchPage.Title & " is not a subpage of " & PageToArchive.Title & " aborting.", "LOCAL", BOTName)
                     End If
 
                     'Anadir los hilos al texto
