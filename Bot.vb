@@ -595,17 +595,19 @@ Namespace WikiBot
             Dim signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)"
             Dim matchc As MatchCollection = Regex.Matches(lastparagraph, signpattern)
 
-            If matchc.Count = 0 Then
+            If matchc.Count = 0 And Not (((lastparagraph(0) = ";"c) Or (lastparagraph(0) = ":"c) Or (lastparagraph(0) = "*"c) Or (lastparagraph(0) = "#"c))) Then
                 Dim mlines As MatchCollection = Regex.Matches(text, ".+\n")
                 For i As Integer = mlines.Count - 1 To 0 Step -1
 
                     If i = (mlines.Count - 1) Then
-                        If Regex.Match(mlines(i).Value, signpattern).Success Then
-                            lastparagraph = mlines(i).Value
-                            Exit For
+                        If Not (mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c) Then
+                            If Regex.Match(mlines(i).Value, signpattern).Success Then
+                                lastparagraph = mlines(i).Value
+                                Exit For
+                            End If
                         End If
                     Else
-                        If Not (mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Then
+                        If Not (mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c) Then
                             If Regex.Match(mlines(i).Value, signpattern).Success Then
                                 lastparagraph = mlines(i).Value
                                 Exit For

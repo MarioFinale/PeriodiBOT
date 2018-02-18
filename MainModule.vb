@@ -39,7 +39,6 @@ Module MainModule
         ArchiveAllTask.Run()
 
 
-
         Do
             Dim command As String = Console.ReadLine()
             If Not String.IsNullOrWhiteSpace(command) Then
