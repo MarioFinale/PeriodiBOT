@@ -370,7 +370,7 @@ Namespace WikiBot
         Private Function SetPageDestination(ByVal threaddate As Date, destination As String) As String
             Dim Threadyear As String = threaddate.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
             Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
-            Dim ThreadMonth2 As String = threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES"))
+            Dim ThreadMonth2 As String = UppercaseFirstCharacter(threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES")))
             Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
             Dim Threadhyear As Integer
 
@@ -382,13 +382,6 @@ Namespace WikiBot
 
             Dim PageDestination As String = destination.Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
                           .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
-
-            Dim threadMonthlenght As Integer = ThreadMonth2.Count
-            If PageDestination.Length > threadMonthlenght Then
-                If PageDestination.Substring(0, threadMonthlenght) = ThreadMonth2 Then
-                    PageDestination = UppercaseFirstCharacter(PageDestination)
-                End If
-            End If
 
             Return PageDestination
         End Function

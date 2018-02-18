@@ -579,7 +579,6 @@ Namespace WikiBot
                 End If
 
             Next
-
             Return threadlist.ToArray
         End Function
         ''' <summary>
@@ -593,6 +592,31 @@ Namespace WikiBot
             End If
             text = text.Trim(CType(vbCrLf, Char())) & " "
             Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
+            Dim signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)"
+            Dim matchc As MatchCollection = Regex.Matches(lastparagraph, signpattern)
+
+            If matchc.Count = 0 Then
+                Dim mlines As MatchCollection = Regex.Matches(text, ".+\n")
+                For i As Integer = (-mlines.Count + 1) To (mlines.Count - 1)
+
+                    If -i = (mlines.Count - 1) Then
+                        If Regex.Match(mlines(-i).Value, signpattern).Success Then
+                            lastparagraph = mlines(-i).Value
+                            Exit For
+                        End If
+                    Else
+                        If Not (mlines(-i).Value(0) = ";"c) Or (mlines(-i).Value(0) = ":"c) Then
+                            If Regex.Match(mlines(-i).Value, signpattern).Success Then
+                                lastparagraph = mlines(-i).Value
+                                Exit For
+                            End If
+                        Else
+                            Exit For
+                        End If
+                    End If
+                Next
+
+            End If
 
             Dim TheDate As DateTime = ESWikiDatetime(lastparagraph)
             Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL", BOTName)
