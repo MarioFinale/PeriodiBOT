@@ -123,7 +123,10 @@ Namespace WikiBot
             Log("Archive: Page " & PageToArchive.Title, "LOCAL", BOTName)
 
             'Verificar el espacio de nombres de la página se archiva
-            If Not ValidNamespace(PageToArchive) Then Return False
+            If Not ValidNamespace(PageToArchive) Then
+                Log("Archive: The page" & PageToArchive.Title & " is not in a valid namespace, aborting.", "LOCAL", BOTName)
+                Return False
+            End If
 
             'Verificar si es una discusión de usuario.
             If PageToArchive.PageNamespace = 3 Then
@@ -135,7 +138,10 @@ Namespace WikiBot
                 'Cargar usuario
                 Dim User As New WikiUser(_bot, Username)
                 'Validar usuario
-                If Not ValidUser(User) Then Return False
+                If Not ValidUser(User) Then
+                    Log("Archive: The user" & User.UserName & " doesn't meet the requirements.", "LOCAL", BOTName)
+                    Return False
+                End If
             End If
 
             Debug_Log("Archive: Declare vars", "LOCAL", BOTName)
@@ -285,14 +291,20 @@ Namespace WikiBot
                     Dim ArchPage As Page = _bot.Getpage(Archivepage)
                     Dim ArchivePageText As String = ArchPage.Text
                     ArchivePages.Add(Archivepage)
+
                     'Verificar si la página de archivado está en el mismo espacio de nombres
                     If Not ArchPage.PageNamespace = PageToArchive.PageNamespace Then
+                        Log("Archive: The page " & ArchPage.Title & " is not a in the same namespace of " & PageToArchive.Title & " aborting.", "LOCAL", BOTName)
                         Return False
                     End If
 
-                    'Verificar si la página de archivado es una subpágina de la principal
-                    If Not ArchPage.Title.Contains(PageToArchive.Title) Then
-                        Return False
+                    'Verificar si la página de archivado es una subpágina de la principal (solo para espacios de nombre 1,3,10,14,101,105)
+                    Dim contentNamespaces As Integer() = {1, 3, 10, 14, 101, 105}
+                    If contentNamespaces.Contains(PageToArchive.PageNamespace) Then
+                        If Not ArchPage.Title.Contains(PageToArchive.Title) Then
+                            Log("Archive: The page " & ArchPage.Title & " is not a subpage of " & PageToArchive.Title & " aborting.", "LOCAL", BOTName)
+                            Return False
+                        End If
                     End If
 
                     'Anadir los hilos al texto
