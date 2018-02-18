@@ -21,8 +21,10 @@ Namespace WikiBot
         Private _Namespace As Integer
         Private _extract As String
         Private _thumbnail As String
+        Private _rootPage As String
         Private _bot As Bot
 
+#Region "Properties"
         ''' <summary>
         ''' Entrega el puntaje ORES {reverted,goodfaith} de la página.
         ''' </summary>
@@ -140,6 +142,12 @@ Namespace WikiBot
             End Get
         End Property
 
+        Public ReadOnly Property RootPage As String
+            Get
+                Return _rootPage
+            End Get
+        End Property
+
         ''' <summary>
         ''' ¿La página existe?
         ''' </summary>
@@ -151,7 +159,7 @@ Namespace WikiBot
                 Return True
             End If
         End Function
-
+#End Region
         ''' <summary>
         ''' Inicializa una nueva página, por lo general no se llama de forma directa. Se puede obtener una página creandola con Bot.Getpage.
         ''' </summary>
@@ -516,7 +524,7 @@ Namespace WikiBot
             Dim PCategories As New List(Of String)
             Dim PageImage As String = ""
             Dim PExtract As String = ""
-
+            Dim Rootp As String = ""
             Try
 
                 PageID = TextInBetween(QueryText, "{""pageid"":", ",""ns")(0)
@@ -542,6 +550,13 @@ Namespace WikiBot
             End Try
 
 
+            If Regex.Match(PTitle, "\/.+").Success Then
+                Rootp = PTitle.Split("/"c)(0)
+            Else
+                Rootp = PTitle
+            End If
+
+            _rootPage = Rootp
             _title = PTitle
             _ID = Integer.Parse(PageID)
             _lastuser = User

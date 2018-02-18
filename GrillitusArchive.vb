@@ -379,7 +379,7 @@ Namespace WikiBot
             Else
                 Threadhyear = 2
             End If
-            Return TitleCase(destination.Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
+            Return UppercaseFirstCharacter(destination.Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
                           .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString))
         End Function
 
