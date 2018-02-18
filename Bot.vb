@@ -589,7 +589,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function LastParagraphDateTime(ByVal text As String) As DateTime
             If String.IsNullOrEmpty(text) Then
-                Throw New ArgumentException("text")
+                Throw New ArgumentException("Empty var", "text")
             End If
             text = text.Trim(CType(vbCrLf, Char())) & " "
             Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
@@ -609,24 +609,31 @@ Namespace WikiBot
             Dim matchc As MatchCollection = Regex.Matches(text, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
 
             If matchc.Count = 0 Then
+                EX_Log("No date match", "ESWikiDateTime", BOTName)
                 Return DateTime.Parse("23:59 31/12/9999")
             End If
 
             For Each m As Match In matchc
                 Try
-                    Dim parsedtxt As String = m.Value.ToLower.Replace(" ene ", "/01/").Replace(" feb ", "/02/") _
-                .Replace(" mar ", "/03/").Replace(" abr ", "/04/").Replace(" may ", "/05/") _
-                .Replace(" jun ", "/06/").Replace(" jul ", "/07/").Replace(" ago ", "/08/") _
-                .Replace(" sep ", "/09/").Replace(" oct ", "/10/").Replace(" nov ", "/11/") _
-                .Replace(" dic ", "/12/").Replace(vbLf, String.Empty).Replace(" (utc)", String.Empty)
-                    parsedtxt = parsedtxt.Replace(" 1/", " 01/").Replace(" 2/", " 02/").Replace(" 3/", " 03/").
-                Replace(" 4/", " 04/").Replace(" 5/", " 05/").Replace(" 6/", " 06/").Replace(" 7/", " 07/").
-                Replace(" 8/", " 08/").Replace(" 9/", " 09/")
+                    Dim parsedtxt As String = m.Value.Replace(" "c, "/"c)
+                    parsedtxt = parsedtxt.Replace(":"c, "/"c)
+                    parsedtxt = parsedtxt.ToLower.Replace("ene", "01").Replace("feb", "02") _
+                .Replace("mar", "03").Replace("abr", "04").Replace("may", "05") _
+                .Replace("jun", "06").Replace("jul", "07").Replace("ago", "08") _
+                .Replace("sep", "09").Replace("oct", "10").Replace("nov", "11") _
+                .Replace("dic", "12")
 
-                    Debug_Log("GetLastDateTime: Try parse", "LOCAL", BOTName)
-                    TheDate = DateTime.ParseExact(parsedtxt, "HH:mm dd'/'MM'/'yyyy", System.Globalization.CultureInfo.InvariantCulture)
+                    parsedtxt = Regex.Replace(parsedtxt, "([^0-9/])", "")
+                    Dim dates As New List(Of Integer)
+                    For Each s As String In parsedtxt.Split("/"c)
+                        If Not String.IsNullOrWhiteSpace(s) Then
+                            dates.Add(Integer.Parse(s))
+                        End If
+                    Next
 
-                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """", "LOCAL", BOTName)
+                    Dim dat As New DateTime(dates(4), dates(3), dates(2), dates(0), dates(1), 0)
+                    TheDate = dat
+                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL", BOTName)
                 Catch ex As System.FormatException
                     Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions", BOTName)
                 End Try

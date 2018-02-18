@@ -257,12 +257,11 @@ Namespace WikiBot
                                     ArchivedThreads += 1
                                 End If
                             End If
-
-
                         End If
                     End If
                 Catch ex As Exception
                     Log("Archive: Thread error on " & PageToArchive.Title, "LOCAL", BOTName)
+                    EX_Log(ex.Message, "Archive", BOTName)
                 End Try
             Next
 
@@ -374,13 +373,24 @@ Namespace WikiBot
             Dim ThreadMonth2 As String = threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES"))
             Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
             Dim Threadhyear As Integer
+
             If threaddate.Month < 6 Then
                 Threadhyear = 1
             Else
                 Threadhyear = 2
             End If
-            Return UppercaseFirstCharacter(destination.Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
-                          .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString))
+
+            Dim PageDestination As String = destination.Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
+                          .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+
+            Dim threadMonthlenght As Integer = ThreadMonth2.Count
+            If PageDestination.Length > threadMonthlenght Then
+                If PageDestination.Substring(0, threadMonthlenght) = ThreadMonth2 Then
+                    PageDestination = UppercaseFirstCharacter(PageDestination)
+                End If
+            End If
+
+            Return PageDestination
         End Function
 
         Private Function UpdateBox(Indexpage As Page, ArchivePages As IEnumerable(Of String)) As Boolean
