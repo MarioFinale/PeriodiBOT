@@ -605,6 +605,8 @@ Namespace WikiBot
                                 lastparagraph = mlines(i).Value
                                 Exit For
                             End If
+                        Else
+                            Exit For
                         End If
                     Else
                         If Not (mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c) Then
