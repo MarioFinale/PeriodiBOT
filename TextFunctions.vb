@@ -278,8 +278,10 @@ Module TextFunctions
 
         Dim innertemplates As New List(Of String)
         For Each t As String In templist
-            Dim innertext As String = t.Substring(2, t.Length - 4)
-            innertemplates.AddRange(GetTemplateTextArray(innertext))
+            If t.Length >= 4 Then
+                Dim innertext As String = t.Substring(2, t.Length - 4)
+                innertemplates.AddRange(GetTemplateTextArray(innertext))
+            End If
         Next
 
         templist.AddRange(innertemplates)

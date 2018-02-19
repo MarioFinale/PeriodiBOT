@@ -534,6 +534,7 @@ Namespace WikiBot
                         Archive(_Page)
                     Catch ex As Exception
                         Debug_Log("Archive error, page " & _Page.Title, "LOCAL", BOTName)
+                        EX_Log(ex.Message, "ArchiveAllInclusions", BOTName)
                     End Try
 
                 End If
