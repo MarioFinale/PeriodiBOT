@@ -735,6 +735,9 @@ Namespace WikiBot
             Return ArchiveFcn.Archive(pageToArchive)
         End Function
 
+
+
+
         ''' <summary>
         ''' Retorna un array de tipo string con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
         ''' </summary>
