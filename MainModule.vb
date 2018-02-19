@@ -17,26 +17,26 @@ Module MainModule
 
         BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword)
         BotIRC.Start()
-        ESWikiBOT.Archive(ESWikiBOT.Getpage("Wikipedia:Bot/Solicitudes"))
-        ''Tarea para verificar actividad de usuario.
-        'Dim CheckUsersFunc As New Func(Of IRCMessage())(AddressOf CheckUsers)
-        'Dim CheckUsersIRCTask As New IRCTask(BotIRC, 300000, True, CheckUsersFunc, "CheckUsers")
-        'CheckUsersIRCTask.Run()
 
-        'Dim UpdateExtractFunc As New Func(Of IRCMessage())(Function()
-        '                                                       UpdatePageExtracts(True)
-        '                                                       Return {New IRCMessage(BOTName, " ")}
-        '                                                   End Function)
-        'Dim UpdateExtractTask As New IRCTask(BotIRC, 43200000, True, UpdateExtractFunc, "UpdateExtracts")
-        'UpdateExtractTask.Run()
+        'Tarea para verificar actividad de usuario.
+        Dim CheckUsersFunc As New Func(Of IRCMessage())(AddressOf CheckUsers)
+        Dim CheckUsersIRCTask As New IRCTask(BotIRC, 300000, True, CheckUsersFunc, "CheckUsers")
+        CheckUsersIRCTask.Run()
+
+        Dim UpdateExtractFunc As New Func(Of IRCMessage())(Function()
+                                                               UpdatePageExtracts(True)
+                                                               Return {New IRCMessage(BOTName, " ")}
+                                                           End Function)
+        Dim UpdateExtractTask As New IRCTask(BotIRC, 43200000, True, UpdateExtractFunc, "UpdateExtracts")
+        UpdateExtractTask.Run()
 
 
-        'Dim ArchiveAllFunc As New Func(Of IRCMessage())(Function()
-        '                                                    ArchiveAllInclusions(True)
-        '                                                    Return {New IRCMessage(BOTName, " ")}
-        '                                                End Function)
-        'Dim ArchiveAllTask As New IRCTask(BotIRC, 43200000, True, ArchiveAllFunc, "ArchiveAll")
-        'ArchiveAllTask.Run()
+        Dim ArchiveAllFunc As New Func(Of IRCMessage())(Function()
+                                                            ArchiveAllInclusions(True)
+                                                            Return {New IRCMessage(BOTName, " ")}
+                                                        End Function)
+        Dim ArchiveAllTask As New IRCTask(BotIRC, 43200000, True, ArchiveAllFunc, "ArchiveAll")
+        ArchiveAllTask.Run()
 
 
         Do
