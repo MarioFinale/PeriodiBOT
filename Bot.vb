@@ -600,7 +600,7 @@ Namespace WikiBot
                 For i As Integer = mlines.Count - 1 To 0 Step -1
 
                     If i = (mlines.Count - 1) Then
-                        If Not (mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c) Then
+                        If Not ((mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c)) Then
                             If Regex.Match(mlines(i).Value, signpattern).Success Then
                                 lastparagraph = mlines(i).Value
                                 Exit For
@@ -609,7 +609,7 @@ Namespace WikiBot
                             Exit For
                         End If
                     Else
-                        If Not (mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c) Then
+                        If Not ((mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c)) Then
                             If Regex.Match(mlines(i).Value, signpattern).Success Then
                                 lastparagraph = mlines(i).Value
                                 Exit For
