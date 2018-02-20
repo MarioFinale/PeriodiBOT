@@ -18,6 +18,7 @@ Module MainModule
         BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword)
         BotIRC.Start()
 
+
         'Tarea para verificar actividad de usuario.
         Dim CheckUsersFunc As New Func(Of IRCMessage())(AddressOf CheckUsers)
         Dim CheckUsersIRCTask As New IRCTask(BotIRC, 300000, True, CheckUsersFunc, "CheckUsers")

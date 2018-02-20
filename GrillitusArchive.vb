@@ -202,7 +202,7 @@ Namespace WikiBot
                                     .Replace("-6-", "-06-").Replace("-7-", "-07-").Replace("-8-", "-08-").Replace("-9-", "-09-").Trim()
                                 Dim fecha As DateTime = DateTime.ParseExact(fechastr, "dd'-'MM'-'yyyy", System.Globalization.CultureInfo.InvariantCulture)
 
-                                If DateTime.Now.AddDays(1) >= fecha Then
+                                If DateTime.Now > fecha.AddDays(1) Then
                                     'Quitar el hilo de la pagina
                                     Newpagetext = Newpagetext.Replace(t, "")
                                     Dim destination As String = SetPageDestination(threaddate, ArchiveCfg(0))
@@ -241,7 +241,7 @@ Namespace WikiBot
 
                                 Dim fecha As DateTime = DateTime.ParseExact(fechastr, "dd'-'MM'-'yyyy", System.Globalization.CultureInfo.InvariantCulture)
 
-                                If DateTime.Now.AddDays(1) >= fecha Then
+                                If DateTime.Now > fecha.AddDays(1) Then
                                     Newpagetext = Newpagetext.Replace(t, "")
                                     Dim destination As String = SetPageDestination(threaddate, ArchiveCfg(0))
                                     Archives.Add(New Tuple(Of String, String)(destination, t))
