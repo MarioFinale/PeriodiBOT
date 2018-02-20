@@ -128,10 +128,7 @@ Namespace IRC
                                                                                                 Return {Command.ResolveCommand(sCommand, HasExited, _sNickName, Me, ESWikiBOT)}
                                                                                             End Function)
                                                Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc, "ResolveCommand")
-
-                                               Debug_Log("Run irc response", "LOCAL", BOTName)
                                                IRCResponseTask.Run()
-
 
                                                If Not _tcpclientConnection.Connected Then
                                                    Debug_Log("IRC: DISCONNECTED", "IRC", BOTName)
