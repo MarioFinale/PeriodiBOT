@@ -129,7 +129,7 @@ Namespace WikiBot
         Sub LoadInfo()
             Dim queryresponse As String = _bot.POSTQUERY("action=query&format=json&list=users&usprop=blockinfo|groups|editcount|registration|gender&ususers=" & _userName)
             Try
-                _userName = TextInBetween(queryresponse, """name"":""", """")(0)
+                _userName = NormalizeUnicodetext(TextInBetween(queryresponse, """name"":""", """")(0))
 
                 If queryresponse.Contains("""missing"":""""") Then
                     _exists = False
@@ -154,9 +154,9 @@ Namespace WikiBot
                     _blocked = True
                     _blockID = Integer.Parse(TextInBetween(queryresponse, """blockid"":", ",")(0))
                     _blockedTimestamp = TextInBetween(queryresponse, """blockedtimestamp"":""", """")(0)
-                    _blockedBy = TextInBetween(queryresponse, """blockedby"":""", """")(0)
-                    _blockedbyID = Integer.Parse(TextInBetween(queryresponse, """blockedbyid"":", ",")(0))
-                    _blockReason = TextInBetween(queryresponse, """blockreason"":""", """")(0)
+                    _blockedBy = NormalizeUnicodetext(TextInBetween(queryresponse, """blockedby"":""", """")(0))
+                    _blockedbyId = Integer.Parse(TextInBetween(queryresponse, """blockedbyid"":", ",")(0))
+                    _blockReason = NormalizeUnicodetext(TextInBetween(queryresponse, """blockreason"":""", """")(0))
                     _blockExpiry = TextInBetween(queryresponse, """blockexpiry"":""", """")(0)
                 End If
 
