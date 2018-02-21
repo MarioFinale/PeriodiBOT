@@ -21,8 +21,6 @@ Namespace WikiBot
 
             End If
 
-
-
         End Function
 
 

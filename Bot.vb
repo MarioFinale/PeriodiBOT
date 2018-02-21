@@ -12,6 +12,7 @@ Namespace WikiBot
         Private _userName As String = String.Empty
         Private _siteurl As String = String.Empty
         Private Api As ApiSession
+        Private signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4}( \([A-z]{3,4}\))*"
 #Region "Properties"
         Public ReadOnly Property Bot As Boolean
             Get
@@ -592,7 +593,6 @@ Namespace WikiBot
             End If
             text = text.Trim(CType(vbCrLf, Char())) & " "
             Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
-            Dim signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)"
             Dim matchc As MatchCollection = Regex.Matches(lastparagraph, signpattern)
 
             If matchc.Count = 0 And Not (((lastparagraph(0) = ";"c) Or (lastparagraph(0) = ":"c) Or (lastparagraph(0) = "*"c) Or (lastparagraph(0) = "#"c))) Then
@@ -634,7 +634,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function ESWikiDatetime(ByVal text As String) As DateTime
             Dim TheDate As DateTime = Nothing
-            Dim matchc As MatchCollection = Regex.Matches(text, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
+            Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
             If matchc.Count = 0 Then
                 EX_Log("No date match", "ESWikiDateTime", BOTName)
@@ -679,7 +679,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function AllDateTimes(ByVal text As String) As DateTime()
             Dim Datelist As New List(Of DateTime)
-            For Each m As Match In Regex.Matches(text, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
+            For Each m As Match In Regex.Matches(text, signpattern)
                 Dim TheDate As DateTime = ESWikiDatetime(m.Value)
                 Datelist.Add(TheDate)
                 Log("AllDateTimes: Adding " & TheDate.ToString, "LOCAL", BOTName)
@@ -693,35 +693,42 @@ Namespace WikiBot
         ''' <param name="text"></param>
         ''' <returns></returns>
         Function MostRecentDate(ByVal text As String) As DateTime
-            Dim Dates As New List(Of DateTime)
-            Dim matchc As MatchCollection = Regex.Matches(text, "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4} \(UTC\)")
+            Dim dates As New List(Of DateTime)
+            Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
             If matchc.Count = 0 Then
+                EX_Log("No date match", "ESWikiDateTime", BOTName)
                 Return DateTime.Parse("23:59 31/12/9999")
             End If
 
             For Each m As Match In matchc
                 Try
-                    Dim parsedtxt As String = m.Value.ToLower.Replace(" ene ", "/01/").Replace(" feb ", "/02/") _
-                .Replace(" mar ", "/03/").Replace(" abr ", "/04/").Replace(" may ", "/05/") _
-                .Replace(" jun ", "/06/").Replace(" jul ", "/07/").Replace(" ago ", "/08/") _
-                .Replace(" sep ", "/09/").Replace(" oct ", "/10/").Replace(" nov ", "/11/") _
-                .Replace(" dic ", "/12/").Replace(vbLf, String.Empty).Replace(" (utc)", String.Empty)
-                    parsedtxt = parsedtxt.Replace(" 1/", " 01/").Replace(" 2/", " 02/").Replace(" 3/", " 03/").
-                Replace(" 4/", " 04/").Replace(" 5/", " 05/").Replace(" 6/", " 06/").Replace(" 7/", " 07/").
-                Replace(" 8/", " 08/").Replace(" 9/", " 09/")
+                    Dim parsedtxt As String = m.Value.Replace(" "c, "/"c)
+                    parsedtxt = parsedtxt.Replace(":"c, "/"c)
+                    parsedtxt = parsedtxt.ToLower.Replace("ene", "01").Replace("feb", "02") _
+                .Replace("mar", "03").Replace("abr", "04").Replace("may", "05") _
+                .Replace("jun", "06").Replace("jul", "07").Replace("ago", "08") _
+                .Replace("sep", "09").Replace("oct", "10").Replace("nov", "11") _
+                .Replace("dic", "12")
 
-                    Debug_Log("GetLastDateTime: Try parse", "LOCAL", BOTName)
-                    Dates.Add(DateTime.ParseExact(parsedtxt, "HH:mm dd'/'MM'/'yyyy", System.Globalization.CultureInfo.InvariantCulture))
-
-                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """", "LOCAL", BOTName)
+                    parsedtxt = Regex.Replace(parsedtxt, "([^0-9/])", "")
+                    Dim datesInt As New List(Of Integer)
+                    For Each s As String In parsedtxt.Split("/"c)
+                        If Not String.IsNullOrWhiteSpace(s) Then
+                            datesInt.Add(Integer.Parse(s))
+                        End If
+                    Next
+                    Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
+                    dates.Add(dat)
+                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL", BOTName)
                 Catch ex As System.FormatException
                     Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions", BOTName)
                 End Try
 
             Next
-            Dates.Sort()
-            Return Dates.Last
+            dates.Sort()
+            Return dates.Last
+
 
         End Function
 

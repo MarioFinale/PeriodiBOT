@@ -16,9 +16,7 @@ Public Module PeriodiBOT_Tasks
                 Dim OP As String = UserdataLine(0)
                 Dim UserDate As String = UserdataLine(2)
                 Dim User As New WikiUser(ESWikiBOT, username)
-                Log("CheckUsers: Checking user " & username, "IRC", BOTName)
-
-                Dim LastEdit As DateTime = User.Lastedit
+                Dim LastEdit As DateTime = User.LastEdit
                 If Not User.Exists Then
                     Log("CheckUsers: The user " & username & " has not edited on this wiki", "IRC", BOTName)
                     Continue For

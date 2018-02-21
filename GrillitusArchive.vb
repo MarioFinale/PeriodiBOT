@@ -413,23 +413,27 @@ Namespace WikiBot
                     Dim ArchiveBoxMatch As Match = Regex.Match(Indexpage.Text, "{{[Cc]aja (de)* *archivos[\s\S]+?}}")
                     Dim Newbox As String = String.Empty
                     If ArchiveBoxMatch.Success Then
-                        Newbox = Regex.Replace(ArchiveBoxMatch.Value, "{{[Cc]aja (de)* *archivos", "").Replace("}}", "")
-
-                        'Generar links en caja de archivos:
-                        For Each p As String In ArchivePages
-                            If Not Newbox.Contains(p) Then
-                                Dim ArchiveBoxLink As String = "[[" & p & "]]"
-                                Dim Archivename As Match = Regex.Match(p, "\/.+")
-                                If Archivename.Success Then
-                                    Dim Subpagename As String() = p.Split("/"c)
-                                    ArchiveBoxLink = "[[" & p & "|/" & Subpagename.Last & "]]"
-                                End If
-                                Newbox = Newbox & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
-
+                        Dim temptxt As String = ArchiveBoxMatch.Value
+                        Dim temp As New Template(ArchiveBoxMatch.Value, False)
+                        For Each t As Tuple(Of String, String) In temp.Parameters
+                            'Buscar el item 1 de la plantilla de caja de archivos
+                            If t.Item1 = "1" Then                                'Generar links en caja de archivos:
+                                For Each p As String In ArchivePages
+                                    If Not temptxt.Contains(p) Then
+                                        Dim ArchiveBoxLink As String = "[[" & p & "]]"
+                                        Dim Archivename As Match = Regex.Match(p, "\/.+")
+                                        If Archivename.Success Then
+                                            Dim Subpagename As String() = p.Split("/"c)
+                                            ArchiveBoxLink = "[[" & p & "|/" & Subpagename.Last & "]]"
+                                        End If
+                                        ArchiveBoxLink = "<center>" & ArchiveBoxLink & "</center>"
+                                        temptxt = temptxt.Replace(t.Item2, t.Item2.TrimEnd(CType(Environment.NewLine, Char())) & Environment.NewLine & ArchiveBoxLink & Environment.NewLine)
+                                    End If
+                                Next
+                                Exit For
                             End If
                         Next
-                        Newbox = "{{Caja de archivos" & Newbox & "}}"
-                        Dim newtext As String = Indexpage.Text.Replace(ArchiveBoxMatch.Value, Newbox)
+                        Dim newtext As String = Indexpage.Text.Replace(ArchiveBoxMatch.Value, temptxt)
                         Indexpage.Save(newtext, "Bot: Actualizando caja de archivos.", True, True)
 
                     Else 'No contiene una plantilla de caja de archivo, en ese caso se crea una nueva por sobre el contenido de la pagina
