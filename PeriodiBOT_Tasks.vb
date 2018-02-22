@@ -28,7 +28,7 @@ Public Module PeriodiBOT_Tasks
                 Dim ActualTimeUnix As Integer = CInt(TimeToUnix(actualtime))
 
 
-                Dim Timediff As Integer = ActualTimeUnix - LastEditUnix - 3600
+                Dim Timediff As Integer = ActualTimeUnix - LastEditUnix
                 Dim TriggerTimeDiff As Long = TimeStringToSeconds(UserDate)
 
                 Dim TimediffToHours As Integer = CInt(Math.Truncate(Timediff / 3600))
