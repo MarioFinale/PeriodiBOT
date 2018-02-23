@@ -36,7 +36,7 @@ Module MainModule
                                                             ArchiveAllInclusions(True)
                                                             Return {New IRCMessage(BOTName, " ")}
                                                         End Function)
-        Dim ArchiveAllTask As New IRCTask(BotIRC, 43200000, True, ArchiveAllFunc, "ArchiveAll")
+        Dim ArchiveAllTask As New IRCTask(BotIRC, 86400000, True, ArchiveAllFunc, "ArchiveAll")
         ArchiveAllTask.Run()
 
 
