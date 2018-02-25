@@ -423,8 +423,7 @@ Namespace WikiBot
                                         Dim ArchiveBoxLink As String = "[[" & p & "]]"
                                         Dim Archivename As Match = Regex.Match(p, "\/.+")
                                         If Archivename.Success Then
-                                            Dim Subpagename As String() = p.Split("/"c)
-                                            ArchiveBoxLink = "[[" & p & "|/" & Subpagename.Last & "]]"
+                                            ArchiveBoxLink = "[[" & p & "|/" & Archivename.Value & "]]"
                                         End If
                                         ArchiveBoxLink = "<center>" & ArchiveBoxLink & "</center>"
                                         temptxt = temptxt.Replace(t.Item2, t.Item2.TrimEnd(CType(Environment.NewLine, Char())) & Environment.NewLine & ArchiveBoxLink & Environment.NewLine)
