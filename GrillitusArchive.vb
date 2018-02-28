@@ -121,6 +121,9 @@ Namespace WikiBot
         ''' <returns></returns>
         Function Archive(ByVal PageToArchive As Page) As Boolean
             Log("Archive: Page " & PageToArchive.Title, "LOCAL", BOTName)
+            Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
+            Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
+            Dim Newpagetext As String = PageToArchive.Text
 
             'Verificar el espacio de nombres de la página se archiva
             If Not ValidNamespace(PageToArchive) Then
@@ -142,14 +145,12 @@ Namespace WikiBot
                     Log("Archive: The user" & User.UserName & " doesn't meet the requirements.", "LOCAL", BOTName)
                     Return False
                 End If
+                'Validar que destino de archivado sea una subpágina del usuario.
+                If Not ArchiveCfg(0).StartsWith(PageToArchive.Title) Then
+                    Log("Archive: The page" & ArchiveCfg(0) & " isn't a subpage of the same user.", "LOCAL", BOTName)
+                    Return False
+                End If
             End If
-
-            Debug_Log("Archive: Declare vars", "LOCAL", BOTName)
-
-            Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
-            Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
-
-            Dim Newpagetext As String = PageToArchive.Text
 
             Dim ArchivePages As New List(Of String)
 
@@ -174,7 +175,7 @@ Namespace WikiBot
             End If
 
             Debug_Log("Archive: Declare limit date", "LOCAL", BOTName)
-            Dim LimitDate As DateTime = DateTime.Now.AddDays(-MaxDays)
+            Dim LimitDate As DateTime = DateTime.Now.AddDays(-maxDays)
             Debug_Log("Archive: Read Threads", "LOCAL", BOTName)
 
             For Each t As String In threads
@@ -184,7 +185,7 @@ Namespace WikiBot
                     End If
                     '-----------------------------------------------------------------------------------------------
                     'Firma mas reciente en la seccion
-                    If Strategy = "FirmaMásRecienteEnLaSección" Then
+                    If strategy = "FirmaMásRecienteEnLaSección" Then
                         Dim threaddate As DateTime = _bot.MostRecentDate(t)
 
                         Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
@@ -223,7 +224,7 @@ Namespace WikiBot
 
                         'Firma en el ultimo parrafo
                         '-----------------------------------------------------------------------------------------------------
-                    ElseIf Strategy = "FirmaEnÚltimoPárrafo" Then
+                    ElseIf strategy = "FirmaEnÚltimoPárrafo" Then
                         Dim threaddate As Date = _bot.LastParagraphDateTime(t)
                         Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
                         Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
@@ -340,19 +341,19 @@ Namespace WikiBot
                     Debug_Log("Archive: Save main page", "LOCAL", BOTName)
 
                     'Si debe tener caja de archivos...
-                    If UseBox Then
+                    If useBox Then
                         If Not Regex.Match(Newpagetext, "{{" & IndexPage.Title & "}}", RegexOptions.IgnoreCase).Success Then
                             Dim Archivetemplate As String = Regex.Match(PageToArchive.Text, "{{ *[Aa]rchivado automático[\s\S]+?}}").Value
                             Newpagetext = Newpagetext.Replace(Archivetemplate, Archivetemplate & Environment.NewLine & "{{" & IndexPage.Title & "}}" & Environment.NewLine)
                         End If
                     End If
 
-                    Dim isminor As Boolean = Not Notify
+                    Dim isminor As Boolean = Not notify
                     Dim Summary As String
                     If ArchivedThreads > 1 Then
-                        Summary = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad.", ArchivedThreads, MaxDays.ToString)
+                        Summary = String.Format("Bot: Archivando {0} hilos con más de {1} días de antigüedad.", ArchivedThreads, maxDays.ToString)
                     Else
-                        Summary = String.Format("Bot: Archivando {0} hilo con más de {1} días de antigüedad.", ArchivedThreads, MaxDays.ToString)
+                        Summary = String.Format("Bot: Archivando {0} hilo con más de {1} días de antigüedad.", ArchivedThreads, maxDays.ToString)
                     End If
                     PageToArchive.Save(Newpagetext, Summary, isminor, True)
                 End If
