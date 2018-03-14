@@ -12,30 +12,29 @@ Namespace WikiBot
         End Sub
 
 
-        Function GetPageText() As String
-            Dim IncludedPages As Integer = 0
-            Dim TopicThreads As Dictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) = GetAllTopicThreads(IncludedPages)
+        Function GetTopicText(Optional ByRef Inclusions As Integer = 0) As Dictionary(Of String, List(Of String))
+            Dim TopicThreads As Dictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) = GetAllTopicThreads(Inclusions) 'Obtener los temas y la información
+            Dim TopicList As New Dictionary(Of String, List(Of String)) 'Inicializar la lista con el texto
 
-            Dim TopicList As New Dictionary(Of String, List(Of String))
-
-            For Each topic As String In TopicThreads.Keys
-                If Not TopicList.Keys.Contains(topic) Then
+            For Each topic As String In TopicThreads.Keys 'Por cada tema...
+                If Not TopicList.Keys.Contains(topic) Then 'Si no está en el diccionario, se añade
                     TopicList.Add(topic, New List(Of String))
                 End If
+                For Each thread As Tuple(Of String, String, String, String, Date, Integer) In TopicThreads.Item(topic) 'Por cada hilo en el tema
+                    Dim line As String = "* " 'Inicializar la línea con los datos
+                    Dim threadDate As String = thread.Item5.ToString("dd-MM-yyyy") & " " 'Fecha
+                    Dim threadType As String = thread.Item4 & " " 'En que zona del café está
+                    Dim threadTitle As String = thread.Item1 & " " 'Título del hilo
+                    Dim threadResume As String = "- " & thread.Item2 & " " 'Resumen del hilo
+                    Dim threadLink As String = thread.Item3 & " " 'Enlace al hilo
+                    Dim threadSize As String = "(" & Math.Ceiling(thread.Item6 / 1024).ToString & "&nbsp;kB)" 'Kbytes del hilo
 
-                Dim Line As String = "* "
-
-
-
-
-
+                    line = line & threadDate & threadType & "- " & threadResume & "[[" & threadLink & "|" & threadTitle & "]]" & threadResume & threadSize 'Poner todo junto
+                    TopicList.Item(topic).Add(line) 'Añadirlo a la lista de la clave en el diccionario
+                Next
             Next
-
-
-
-
-
-
+            'Regresar el diccionario
+            Return TopicList
         End Function
 
 
