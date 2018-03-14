@@ -12,7 +12,23 @@ Namespace WikiBot
         End Sub
 
 
-        Function GetTopicText(Optional ByRef Inclusions As Integer = 0) As Dictionary(Of String, List(Of String))
+        Function GetTopicsPageText() As String
+            Dim pagetext As String = "{{/Encabezado}}" & Environment.NewLine
+            Dim UpdateDate As Date = Date.UtcNow
+            Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES"))
+            Dim MainTopics As String() = {"Bloqueos y suspensiones", "Comunidad", "Edición", "Organización", "Temas técnicos", "Títulos", "Wikimedia y proyectos Wikimedia", "Varios"}
+
+
+
+
+
+
+
+        End Function
+
+
+
+        Function GetTopicsText(Optional ByRef Inclusions As Integer = 0) As Dictionary(Of String, List(Of String))
             Dim TopicThreads As Dictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) = GetAllTopicThreads(Inclusions) 'Obtener los temas y la información
             Dim TopicList As New Dictionary(Of String, List(Of String)) 'Inicializar la lista con el texto
 
