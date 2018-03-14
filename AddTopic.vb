@@ -59,22 +59,22 @@ Namespace WikiBot
 
             For Each t As String In _bot.GetPageThreads(Text) 'Por cada hilo en el texto....
 
-                Dim threadTitle As String = Regex.Match(t, "(\n|^)(==.+==)").Value.Trim.Trim("="c).Trim 'Inicializa el título del hilo 
-                'Normalizar el título del hilo si tiene enlaces
-                '----------
-                If (Regex.Match(threadTitle, "(\[\[[^\]]+\|)").Success) Or (Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Success) Then
-                    If Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Success Then
-                        Dim threadsimplelink As String = Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Value
-                        Dim newthreadsimplelink As String = threadsimplelink.Replace("["c, "").Replace("]"c, "")
-                        threadTitle = threadTitle.Replace(threadsimplelink, newthreadsimplelink)
-                    End If
-                    threadTitle = Regex.Replace(threadTitle, "(\[{1,2}[^\|\]]+)", "").Replace("]"c, "").Replace("|"c, "")
-                End If
-                '----------
                 Dim TopicMatch As Match = Regex.Match(t, "({{[Tt]ema.+?}})") 'Regex para plantilla de tema
-
                 'Si la plantilla de tema se encuentra en el hilo:
+
                 If TopicMatch.Success Then
+                    Dim threadTitle As String = Regex.Match(t, "(\n|^)(==.+==)").Value.Trim.Trim("="c).Trim 'Inicializa el título del hilo 
+                    'Normalizar el título del hilo si tiene enlaces
+                    '----------
+                    If (Regex.Match(threadTitle, "(\[\[[^\]]+\|)").Success) Or (Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Success) Then
+                        If Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Success Then
+                            Dim threadsimplelink As String = Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Value
+                            Dim newthreadsimplelink As String = threadsimplelink.Replace("["c, "").Replace("]"c, "")
+                            threadTitle = threadTitle.Replace(threadsimplelink, newthreadsimplelink)
+                        End If
+                        threadTitle = Regex.Replace(threadTitle, "(\[{1,2}[^\|\]]+)", "").Replace("]"c, "").Replace("|"c, "")
+                    End If
+                    '----------
                     Dim ThreadLink As String = (PageTitle & "#" & threadTitle).Replace(" "c, "_"c) 'Generar enlace al hilo específico
                     Dim threadResume As String = String.Empty 'Inicializa el resumen del hilo
                     Dim threadBytes As Integer = Encoding.Unicode.GetByteCount(t) 'Bytes del hilo 
