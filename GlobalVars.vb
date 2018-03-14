@@ -31,6 +31,7 @@ Module GlobalVars
     Public Const ResumePageName As String = "Usuario:PeriodiBOT/Resumen página"
     Public Const DidYouKnowPageName As String = "PeriodiBOT/Sabias que"
     Public Const TopicPageName As String = "Wikipedia:Café por tema"
+    Public Const TopicTemplate As String = "Plantilla:Tema"
 
     Public LogC As New LogEngine(Log_Filepath, User_Filepath)
     Public Userdata As List(Of String()) = LogC.LogUserData

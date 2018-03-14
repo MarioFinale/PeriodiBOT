@@ -77,41 +77,6 @@ Public Module CommFunctions
     End Sub
 
     ''' <summary>
-    ''' Entrega la fecha más reciente en una fira de un comentario de wikipedia.
-    ''' </summary>
-    ''' <param name="comment"></param>
-    ''' <returns></returns>
-    Function GetMostRecentDateTime(ByVal comment As String) As DateTime
-        Dim dattimelist As New List(Of DateTime)
-        Debug_Log("Begin GetLastDateTime", "LOCAL", BOTName)
-
-        For Each m As Match In Regex.Matches(comment, "(\ [0-9][0-9]:[0-9][0-9]\ ).*(\(UTC\))")
-            Try
-                Dim parsedtxt As String = m.Value.Replace(" ene ", "/01/").Replace(" feb ", "/02/") _
-                .Replace(" mar ", "/03/").Replace(" abr ", "/04/").Replace(" may ", "/05/") _
-                .Replace(" jun ", "/06/").Replace(" jul ", "/07/").Replace(" ago ", "/08/") _
-                .Replace(" sep ", "/09/").Replace(" oct ", "/10/").Replace(" nov ", "/11/") _
-                .Replace(" dic ", "/12/").Replace(vbLf, String.Empty).Replace(" (UTC)", String.Empty)
-
-                Debug_Log("GetMostRecentDateTime: Try parse", "LOCAL", BOTName)
-                dattimelist.Add(DateTime.Parse(parsedtxt))
-                Debug_Log("GetMostRecentDateTime parse string: """ & parsedtxt & """", "LOCAL", BOTName)
-            Catch ex As System.FormatException
-                Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions", BOTName)
-            End Try
-        Next
-        Debug_Log("GetMostRecentDateTime: Sorting", "LOCAL", BOTName)
-        dattimelist.Sort()
-        If Not dattimelist.Count = 0 Then
-            Debug_Log("GetMostRecentDateTime: returning """ & dattimelist.Last.ToLongDateString & """", "LOCAL", BOTName)
-            Return dattimelist.Last
-        Else
-            Debug_Log("GetMostRecentDateTime: Returning nothing ", "LOCAL", BOTName)
-            Return Nothing
-        End If
-    End Function
-
-    ''' <summary>
     ''' Retorna true si un numero es par.
     ''' </summary>
     ''' <param name="Number"></param>
@@ -242,44 +207,6 @@ Public Module CommFunctions
                 Select(Function(x) x.Select(Function(v) v.Value).ToList()).
                 ToList()
     End Function
-
-
-    ''' <summary>
-    ''' Retorna la última fecha en un comentario (si la fecha tiene formato de firma wikipedia).
-    ''' </summary>
-    ''' <param name="comment"></param>
-    ''' <returns></returns>
-    Function GetLastDateTime(ByVal comment As String) As DateTime
-        Dim dattimelist As New List(Of DateTime)
-        Debug_Log("Begin GetLastDateTime", "LOCAL", BOTName)
-
-        For Each m As Match In Regex.Matches(comment, "(\ [0-9][0-9]:[0-9][0-9]\ ).*(\(UTC\))")
-            Debug_Log("GetLastDateTime match: """ & m.Value & """", "LOCAL", BOTName)
-            Try
-                Dim parsedtxt As String = m.Value.ToLower.Replace(" ene ", "/01/").Replace(" feb ", "/02/") _
-                .Replace(" mar ", "/03/").Replace(" abr ", "/04/").Replace(" may ", "/05/") _
-                .Replace(" jun ", "/06/").Replace(" jul ", "/07/").Replace(" ago ", "/08/") _
-                .Replace(" sep ", "/09/").Replace(" oct ", "/10/").Replace(" nov ", "/11/") _
-                .Replace(" dic ", "/12/").Replace(vbLf, String.Empty).Replace(" (utc)", String.Empty)
-
-                Debug_Log("GetLastDateTime: Try parse", "LOCAL", BOTName)
-                dattimelist.Add(DateTime.Parse(parsedtxt))
-                Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """", "LOCAL", BOTName)
-            Catch ex As System.FormatException
-                Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "LOCAL", BOTName)
-            End Try
-        Next
-        If Not dattimelist.Count = 0 Then
-            Debug_Log("GetMostRecentDateTime: returning """ & dattimelist.Last.ToLongDateString & """", "LOCAL", BOTName)
-            Return dattimelist.Last
-        Else
-            Debug_Log("GetMostRecentDateTime: Returnung nothing ", "LOCAL", BOTName)
-            Return Nothing
-        End If
-
-    End Function
-
-
 
 
     ''' <summary>

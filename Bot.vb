@@ -549,11 +549,21 @@ Namespace WikiBot
         ''' <returns></returns>
         Function GetPageThreads(ByVal pagetext As String) As String()
             Dim newline As String = Environment.NewLine
-            Dim mc As MatchCollection = Regex.Matches(pagetext, "[\n\r]((==(?!=)).+?(==(?!=)))")
+            Dim temptext As String = pagetext
+
+            Dim commentMatch As MatchCollection = Regex.Matches(temptext, "(<!--)[\s\S]*?(-->)")
+
+            Dim CommentsList As New List(Of String)
+            For i As Integer = 0 To commentMatch.Count - 1
+                CommentsList.Add(commentMatch(i).Value)
+                temptext = temptext.Replace(commentMatch(i).Value, ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, "04"))
+            Next
+
+            Dim mc As MatchCollection = Regex.Matches(temptext, "[\n\r]((==(?!=)).+?(==(?!=)))")
 
             Dim threadlist As New List(Of String)
 
-            Dim temptext As String = pagetext
+
             For i As Integer = 0 To mc.Count - 1
 
                 Dim nextmatch As Integer = (i + 1)
@@ -562,12 +572,12 @@ Namespace WikiBot
 
                     Dim threadtitle As String = mc(i).Value
                     Dim nextthreadtitle As String = mc(nextmatch).Value
+                    Dim threadtext As String = String.Empty
 
-                    Dim threadtext As String = TextInBetween(temptext, threadtitle, nextthreadtitle)(0)
-
+                    threadtext = TextInBetween(temptext, threadtitle, nextthreadtitle)(0)
                     Dim Completethread As String = threadtitle & threadtext
                     threadlist.Add(Completethread)
-                    temptext = temptext.Replace(Completethread, "")
+                    temptext = ReplaceFirst(temptext, Completethread, "")
 
                 Else
                     Dim threadtitle As String = mc(i).Value
@@ -575,12 +585,21 @@ Namespace WikiBot
                     Dim ThreadPos As Integer = temptext.IndexOf(threadtitle)
                     Dim threadlenght As Integer = temptext.Length - temptext.Substring(0, ThreadPos).Length
                     Dim threadtext As String = temptext.Substring(ThreadPos, threadlenght)
-
                     threadlist.Add(threadtext)
-                End If
 
+                End If
             Next
-            Return threadlist.ToArray
+            Dim EndThreadList As New List(Of String)
+            For Each t As String In threadlist
+                Dim nthreadtext As String = t
+                For i As Integer = 0 To commentMatch.Count - 1
+                    Dim commenttext As String = ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, "04")
+                    nthreadtext = nthreadtext.Replace(commenttext, CommentsList(i))
+                Next
+                EndThreadList.Add(nthreadtext)
+            Next
+
+            Return EndThreadList.ToArray
         End Function
         ''' <summary>
         ''' Entrega como DateTime la última fecha (formato firma Wikipedia) en el último parrafo. Si no encuentra firma retorna 31/12/9999.
@@ -746,7 +765,7 @@ Namespace WikiBot
 
 
         ''' <summary>
-        ''' Retorna un array de tipo string con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
+        ''' Retorna un array de tipo string con todas las páginas donde el nombre de la página indicada es llamada (no confundir con "lo que enlaza aquí").
         ''' </summary>
         ''' <param name="pageName">Nombre exacto de la pagina.</param>
         Function GetallInclusions(ByVal pageName As String) As String()
@@ -760,6 +779,34 @@ Namespace WikiBot
             Return newlist.ToArray
         End Function
 
+        ''' <summary>
+        ''' Retorna un array de tipo string con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
+        ''' </summary>
+        ''' <param name="ThePage">Página que se llama.</param>
+        Function GetallInclusions(ByVal ThePage As Page) As String()
+            Return GetallInclusions(ThePage.Title)
+        End Function
+
+        ''' <summary>
+        ''' Retorna un array con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
+        ''' </summary>
+        ''' <param name="pageName">Nombre exacto de la pagina.</param>
+        Function GetallInclusionsPages(ByVal pageName As String) As Page()
+            Dim pages As String() = GetallInclusions(pageName)
+            Dim pagelist As New List(Of Page)
+            For Each p As String In pages
+                pagelist.Add(Getpage(p))
+            Next
+            Return pagelist.ToArray
+        End Function
+
+        ''' <summary>
+        ''' Retorna un array con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
+        ''' </summary>
+        ''' <param name="ThePage">Página que se llama.</param>
+        Function GetallInclusionsPages(ByVal ThePage As Page) As Page()
+            Return GetallInclusionsPages(ThePage.Title)
+        End Function
 
         ''' <summary>
         ''' Retorna un elemento Page coincidente al nombre entregado como parámetro.

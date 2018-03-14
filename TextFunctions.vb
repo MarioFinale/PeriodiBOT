@@ -91,6 +91,22 @@ Module TextFunctions
         mlist = TextInBetween(SourceString, "|" & Environment.NewLine & "|", "=").ToList
         Return mlist.ToArray
     End Function
+
+    ''' <summary>
+    ''' Reeplaza la primera ocurrencia de una cadena dada en la cadena de entrada.
+    ''' </summary>
+    ''' <param name="text">Cadena de texto a modificar.</param>
+    ''' <param name="search">Cadena texto a buscar.</param>
+    ''' <param name="replace">Cadena texto de reemplazo.</param>
+    ''' <returns></returns>
+    Function ReplaceFirst(ByVal text As String, ByVal search As String, ByVal replace As String) As String
+        Dim pos As Integer = text.IndexOf(search)
+        If pos < 0 Then
+            Return text
+        End If
+        Return text.Substring(0, pos) & replace + text.Substring(pos + search.Length)
+    End Function
+
     ''' <summary>
     ''' Soluciona un error de la api en los resúmenes, donde cuertas plantillas los números los entrega repetidos con varios símbolos en medio.
     ''' </summary>
