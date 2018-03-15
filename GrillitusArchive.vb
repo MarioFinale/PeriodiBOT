@@ -486,8 +486,13 @@ Namespace WikiBot
             For Each tup As Tuple(Of String, String) In ArchiveTemplate.Parameters
                 If tup.Item1 = "Destino" Then
                     Destination = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+                    If Destination.Contains(":") Then
+                        Dim destNamespace As String = Destination.Split(":"c)(0)
+                        Dim destParsedNamespace As String = UppercaseFirstCharacter(Destination.ToLower)
+                        ReplaceFirst(Destination, destNamespace, destParsedNamespace)
+                    End If
                 End If
-                If tup.Item1 = "Días a mantener" Then
+                    If tup.Item1 = "Días a mantener" Then
                     Days = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
                 End If
                 If tup.Item1 = "Avisar al archivar" Then
