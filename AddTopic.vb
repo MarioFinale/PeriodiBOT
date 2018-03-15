@@ -13,10 +13,15 @@ Namespace WikiBot
 
 
         Function GetTopicsPageText() As String
+            Dim scannedPages As Integer = 0
             Dim pagetext As String = "{{/Encabezado}}" & Environment.NewLine
             Dim UpdateDate As Date = Date.UtcNow
-            Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES"))
+            Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado por " & BOTName & " al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) & " sobre un total de " & scannedPages.ToString & "páginas de archivo."
+
             Dim MainTopics As String() = {"Bloqueos y suspensiones", "Comunidad", "Edición", "Organización", "Temas técnicos", "Títulos", "Wikimedia y proyectos Wikimedia", "Varios"}
+
+
+
 
 
 

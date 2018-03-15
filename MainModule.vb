@@ -18,7 +18,7 @@ Module MainModule
         ESWikiBOT = New Bot(WPUserName, BOTPassword, ApiURL)
         Dim topicw As New AddTopic(ESWikiBOT)
 
-        topicw.GetTopicsPageText()
+
 
         topicw.GetAllTopicThreads()
 
