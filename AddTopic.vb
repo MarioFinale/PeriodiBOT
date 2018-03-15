@@ -14,17 +14,29 @@ Namespace WikiBot
 
         Function GetTopicsPageText() As String
             Dim scannedPages As Integer = 0
+            Dim topics As Dictionary(Of String, List(Of String)) = GetTopicsText(scannedPages)
             Dim pagetext As String = "{{/Encabezado}}" & Environment.NewLine
             Dim UpdateDate As Date = Date.UtcNow
             Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado por " & BOTName & " al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) & " sobre un total de " & scannedPages.ToString & "páginas de archivo."
 
-            Dim MainTopics As String() = {"Bloqueos y suspensiones", "Comunidad", "Edición", "Organización", "Temas técnicos", "Títulos", "Wikimedia y proyectos Wikimedia", "Varios"}
+            Dim TopicGroups As Dictionary(Of String, List(Of String)) = GetTopicGroups()
 
 
 
 
 
 
+
+
+
+
+
+        End Function
+
+
+        Function GetTopicGroups() As Dictionary(Of String, List(Of String))
+
+            Dim GroupsPage As Page = _bot.Getpage(TopicGroupsPage)
 
 
 
@@ -53,6 +65,7 @@ Namespace WikiBot
                     line = line & threadDate & threadType & "- " & threadResume & "[[" & threadLink & "|" & threadTitle & "]]" & threadResume & threadSize 'Poner todo junto
                     TopicList.Item(topic).Add(line) 'Añadirlo a la lista de la clave en el diccionario
                 Next
+                TopicList(topic).Sort()
             Next
             'Regresar el diccionario
             Return TopicList
