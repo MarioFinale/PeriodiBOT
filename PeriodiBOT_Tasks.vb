@@ -244,7 +244,7 @@ Public Module PeriodiBOT_Tasks
         Debug_Log("UpdatePageExtracts: Recreating text", "LOCAL", BOTName)
         For Each s As String In p.ToArray
             Try
-                If (EditScoreList(IDLIST(s))(0) > 22) And
+                If (EditScoreList(IDLIST(s))(0) > 20) And
       (CountCharacter(NewResumes(s), CType("[", Char)) =
       CountCharacter(NewResumes(s), CType("]", Char))) Then
                     'Is a safe edit

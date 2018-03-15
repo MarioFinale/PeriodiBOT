@@ -485,7 +485,7 @@ Namespace WikiBot
 
             For Each tup As Tuple(Of String, String) In ArchiveTemplate.Parameters
                 If tup.Item1 = "Destino" Then
-                    Destination = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+                    Destination = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim()
                     If Destination.Contains(":") Then
                         Dim destNamespace As String = Destination.Split(":"c)(0)
                         Dim destParsedNamespace As String = UppercaseFirstCharacter(Destination.ToLower)
