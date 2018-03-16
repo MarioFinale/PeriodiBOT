@@ -31,12 +31,16 @@ Namespace WikiBot
 
 
 
+
+
+
         End Function
 
 
         Function GetTopicGroups() As Dictionary(Of String, List(Of String))
 
-            Dim GroupsPage As Page = _bot.Getpage(TopicGroupsPage)
+            Dim GroupsPage As Page = _bot.Getpage(TopicGroupsPage) 'Inicializar página de grupos
+
 
 
 

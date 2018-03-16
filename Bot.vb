@@ -71,6 +71,23 @@ Namespace WikiBot
             End If
         End Function
 
+        Function getSpamListregexes(ByVal spamlistPage As Page) As List(Of String)
+            Dim Lines As String() = GetLines(spamlistPage.Text, True) 'Extraer las líneas del texto de la página
+            Dim Regexes As New List(Of String) 'Declarar lista con líneas con expresiones regulares
+
+            For Each l As String In Lines 'Por cada línea...
+                Dim tempText As String = l
+                If l.Contains("#"c) Then 'Si contiene un comentario
+                    tempText = tempText.Split("#"c)(0) 'Obtener el texto antes del comentario
+                End If
+                tempText.Trim() 'Eliminar los espacios en blanco
+                If Not String.IsNullOrWhiteSpace(tempText) Then 'Verificar que no esté vacio
+                    Regexes.Add(tempText) 'Añadir a la lista
+                End If
+            Next
+
+        End Function
+
 
         ''' <summary>
         ''' Retorna una pagina aleatoria

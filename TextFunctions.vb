@@ -108,6 +108,35 @@ Module TextFunctions
     End Function
 
     ''' <summary>
+    ''' Retorna las líneas contenidas en una cadena de texto.
+    ''' </summary>
+    ''' <param name="text">Texto a evaluar.</param>
+    ''' <returns></returns>
+    Function GetLines(ByVal text As String) As String()
+        Return GetLines(text, False)
+    End Function
+
+    ''' <summary>
+    ''' Retorna las líneas contenidas en una cadena de texto.
+    ''' </summary>
+    ''' <param name="text">Texto a evaluar.</param>
+    ''' <param name="removeemptylines">Eliminar las líneas vacías</param>
+    ''' <returns></returns>
+    Function GetLines(ByVal text As String, ByVal removeEmptyLines As Boolean) As String()
+        Dim lines As New List(Of String)
+        Using reader As New IO.StringReader(text)
+            Dim line As String = String.Empty
+            Do While Not ((line = reader.ReadLine()) = Nothing)
+                If removeEmptyLines And String.IsNullOrWhiteSpace(line) Then
+                    Continue Do
+                End If
+            Loop
+            lines.Add(line)
+        End Using
+        Return lines.ToArray
+    End Function
+
+    ''' <summary>
     ''' Soluciona un error de la api en los resúmenes, donde cuertas plantillas los números los entrega repetidos con varios símbolos en medio.
     ''' </summary>
     ''' <param name="text"></param>
