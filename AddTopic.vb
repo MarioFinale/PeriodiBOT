@@ -22,31 +22,46 @@ Namespace WikiBot
 
             Dim EndList As New Dictionary(Of String, Dictionary(Of String, List(Of String))) 'Diccionario con (grupo,(tema, lineas()))
 
-            For Each t As String In topics.Keys
-                For Each tg As String In TopicGroups.Keys
-                    If TopicGroups(tg).Contains(t) Then 'Si la lista del grupo contiene el tema
-                        If Not EndList.Keys.Contains(tg) Then 'Si el grupo no esta en el diccionario final
-                            EndList.Add(tg, New Dictionary(Of String, List(Of String))) 'Añade e inicializa el grupo
+
+
+            For Each topic As String In topics.Keys 'Por cada tema
+                Dim hasGroup As Boolean = False 'Tiene grupo?
+                For Each group As String In TopicGroups.Keys 'Por cada grupo
+                    If TopicGroups(group).Contains(topic) Then 'Si el grupo contiene el tema
+                        hasGroup = True 'Si tiene grupo
+                        If Not EndList.Keys.Contains(group) Then 'Si el diccionario final no contiene el grupo
+                            EndList.Add(group, New Dictionary(Of String, List(Of String))) 'Se añade el grupo al diccionario final
                         End If
-                        If Not EndList(tg).Keys.Contains(t) Then 'Si el tema no está en el diccionario final
-                            EndList(tg).Add(t, New List(Of String)) 'Añade e inicializa el tema
+                        If Not EndList(group).Keys.Contains(topic) Then 'Si el diccionario del grupo del diccionario final no contiene el tema
+                            EndList(group).Add(topic, New List(Of String)) 'Se añade el tema al diccionario del grupo en el diccionario final
                         End If
-                        EndList(tg)(t).AddRange(topics(t)) 'Añade las líneas al tema
+                        EndList(group)(topic).AddRange(topics(topic)) 'Añade todas la líneas del tema a la lista del tema en el diccionario del grupo en el diccionario final
+                    Else
+                        hasGroup = False 'No tiene grupo
                     End If
                 Next
+                If Not hasGroup Then 'Si ningún grupo contiene el tema
+                    If Not EndList.Keys.Contains("Varios") Then 'Si el diccionario final no contiene el grupo "varios"
+                        EndList.Add("Varios", New Dictionary(Of String, List(Of String))) 'Se añade el grupo "varios" al diccionario final
+                    End If
+                    If Not EndList("Varios").Keys.Contains(topic) Then 'Si el diccionario del grupo "varios" del diccionario final no contiene el tema
+                        EndList("Varios").Add(topic, New List(Of String)) 'Se añade el tema al diccionario del grupo "varios" en el diccionario final
+                    End If
+                    EndList("Varios")(topic).AddRange(topics(topic)) 'Añade todas la líneas del tema a la lista del tema en el diccionario del grupo "varios" en el diccionario final
+                End If
             Next
+
+
+
 
             For Each g As String In EndList.Keys 'Por cada grupo en la lista
                 pagetext = pagetext & Environment.NewLine & "== " & g & "==" 'Añadir al texto el título
                 For Each t As String In EndList(g).Keys 'Por cada tema
                     pagetext = pagetext & Environment.NewLine & "=== " & t & " ==="
-
-
-
+                    For Each l As String In EndList(g)(t)
+                        pagetext = pagetext & Environment.NewLine & l
+                    Next
                 Next
-
-
-
             Next
 
 
