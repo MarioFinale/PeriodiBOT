@@ -232,8 +232,17 @@ Namespace WikiBot
         End Function
 
 
-
-
+        ''' <summary>
+        ''' Guarda la página en la wiki. Si la página no existe, la crea.
+        ''' </summary>
+        ''' <param name="text">Texto (wikicódigo) de la página</param>
+        ''' <param name="EditSummary">Resumen de la edición</param>
+        ''' <param name="IsMinor">¿Marcar como menor?</param>
+        ''' <param name="Spamreplace">¿Reemplazar los link marcados como spam?</param>
+        ''' <returns></returns>
+        Overloads Function Save(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean, ByVal SpamReplace As Boolean) As String
+            Return SavePage(text, EditSummary, IsMinor, IsBot, SpamReplace, 0)
+        End Function
 
         ''' <summary>
         ''' Guarda la página en la wiki. Si la página no existe, la crea.
@@ -242,7 +251,7 @@ Namespace WikiBot
         ''' <param name="EditSummary">Resumen de la edición</param>
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Private Function SavePage(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean) As String
+        Private Overloads Function SavePage(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean, ByVal Spamreplace As Boolean, ByRef RetryCount As Integer) As String
             If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Then
                 Throw New ArgumentNullException("Empty parameter", "Text")
             End If
@@ -285,13 +294,53 @@ Namespace WikiBot
                 Return "Edit successful!"
             End If
 
-            If postresult.Contains("abusefilter") Then
+            If postresult.ToLower.Contains("abusefilter") Then
                 Log("AbuseFilter Triggered! on " & _title, "LOCAL", BOTName)
                 Debug_Log("ABUSEFILTER: " & postresult, "BOT", BOTName)
                 Return "AbuseFilter"
             End If
 
+            If postresult.ToLower.Contains("spamblacklist") Then
+                Log("AbuseFilter Triggered! on " & _title, "LOCAL", BOTName)
+                Debug_Log("ABUSEFILTER: " & postresult, "BOT", BOTName)
+                If Spamreplace Then
+                    Dim spamlinkRegex As String = TextInBetween(postresult, """spamblacklist"":""", """")(0)
+                    Dim newtext As String = Regex.Replace(text, RegexParser(spamlinkRegex), "es.wikipedia.org/wiki/Wikipedia:Spam")
+                    If Not RetryCount > MaxRetry Then
+                        Return SavePage(newtext, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
+                    Else
+                        Log("Max retry count saving " & _title, "LOCAL", BOTName)
+                        Return "Max retry count"
+                    End If
+                Else
+                    Return "SpamBlacklist"
+                End If
+            End If
+            'Unexpected result, retry
+            If Not RetryCount > MaxRetry Then
+                Return SavePage(text, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
+            Else
+                Log("Max retry count saving " & _title, "LOCAL", BOTName)
+                Debug_Log("Unexpected saving result: " & postresult, "BOT", BOTName)
+                Return "Max retry count"
+            End If
+
             Return "Unexpected result"
+        End Function
+
+        ''' <summary>
+        ''' Guarda la página en la wiki. Comprueba si la página tiene la plantilla {{nobots}}. Si la página no existe, la crea.
+        ''' </summary>
+        ''' <param name="text">Texto (wikicódigo) de la página</param>
+        ''' <param name="Summary">Resumen de la edición</param>
+        ''' <param name="IsMinor">¿Marcar como menor?</param>
+        ''' <returns></returns>
+        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBOT As Boolean, ByVal SpamReplace As Boolean) As String
+            If Not BotCanEdit(_text, _username) Then
+                Log("Bots can't edit " & _title & "!", "BOT", BOTName)
+                Return "No Bots"
+            End If
+            Return SavePage(text, summary, isMinor, isBOT, False, 0)
         End Function
 
         ''' <summary>
@@ -306,7 +355,7 @@ Namespace WikiBot
                 Log("Bots can't edit " & _title & "!", "BOT", BOTName)
                 Return "No Bots"
             End If
-            Return SavePage(text, summary, isMinor, isBOT)
+            Return SavePage(text, summary, isMinor, isBOT, False, 0)
         End Function
 
         ''' <summary>
@@ -321,7 +370,7 @@ Namespace WikiBot
                 Log("Bots can't edit " & _title & "!", "BOT", BOTName)
                 Return "No Bots"
             End If
-            Return SavePage(text, summary, isMinor, False)
+            Return SavePage(text, summary, isMinor, False, False, 0)
         End Function
 
         ''' <summary>
@@ -335,7 +384,7 @@ Namespace WikiBot
                 Log("Bots can't edit " & _title & "!", "BOT", BOTName)
                 Return "No Bots"
             End If
-            Return SavePage(text, summary, False, False)
+            Return SavePage(text, summary, False, False, False, 0)
         End Function
 
         ''' <summary>
@@ -348,7 +397,7 @@ Namespace WikiBot
                 Log("Bots can't edit " & _title & "!", "BOT", BOTName)
                 Return "No Bots"
             End If
-            Return SavePage(text, "Bot edit", False, False)
+            Return SavePage(text, "Bot edit", False, False, False, 0)
         End Function
 
         ''' <summary>
@@ -359,7 +408,7 @@ Namespace WikiBot
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <returns></returns>
         Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBOT As Boolean) As String
-            Return SavePage(text, summary, isMinor, isBOT)
+            Return SavePage(text, summary, isMinor, isBOT, False, 0)
         End Function
 
 
@@ -371,7 +420,7 @@ Namespace WikiBot
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <returns></returns>
         Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean) As String
-            Return SavePage(text, summary, isMinor, False)
+            Return SavePage(text, summary, isMinor, False, False, 0)
         End Function
 
         ''' <summary>
@@ -381,7 +430,7 @@ Namespace WikiBot
         ''' <param name="Summary">Resumen de la edición</param>
         ''' <returns></returns>
         Overloads Function Save(ByVal text As String, ByVal summary As String) As String
-            Return SavePage(text, summary, False, False)
+            Return SavePage(text, summary, False, False, False, 0)
         End Function
 
         ''' <summary>
@@ -390,7 +439,7 @@ Namespace WikiBot
         ''' <param name="text">Texto (wikicódigo) de la página</param>
         ''' <returns></returns>
         Overloads Function Save(ByVal text As String) As String
-            Return SavePage(text, "Bot edit", False, False)
+            Return SavePage(text, "Bot edit", False, False, False, 0)
         End Function
 
         ''' <summary>

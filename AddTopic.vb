@@ -18,11 +18,36 @@ Namespace WikiBot
             Dim pagetext As String = "{{/Encabezado}}" & Environment.NewLine
             Dim UpdateDate As Date = Date.UtcNow
             Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado por " & BOTName & " al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) & " sobre un total de " & scannedPages.ToString & "páginas de archivo."
-
             Dim TopicGroups As Dictionary(Of String, List(Of String)) = GetTopicGroups()
 
+            Dim EndList As New Dictionary(Of String, Dictionary(Of String, List(Of String))) 'Diccionario con (grupo,(tema, lineas()))
+
+            For Each t As String In topics.Keys
+                For Each tg As String In TopicGroups.Keys
+                    If TopicGroups(tg).Contains(t) Then 'Si la lista del grupo contiene el tema
+                        If Not EndList.Keys.Contains(tg) Then 'Si el grupo no esta en el diccionario final
+                            EndList.Add(tg, New Dictionary(Of String, List(Of String))) 'Añade e inicializa el grupo
+                        End If
+                        If Not EndList(tg).Keys.Contains(t) Then 'Si el tema no está en el diccionario final
+                            EndList(tg).Add(t, New List(Of String)) 'Añade e inicializa el tema
+                        End If
+                        EndList(tg)(t).AddRange(topics(t)) 'Añade las líneas al tema
+                    End If
+                Next
+            Next
+
+            For Each g As String In EndList.Keys 'Por cada grupo en la lista
+                pagetext = pagetext & Environment.NewLine & "== " & g & "==" 'Añadir al texto el título
+                For Each t As String In EndList(g).Keys 'Por cada tema
+                    pagetext = pagetext & Environment.NewLine & "=== " & t & " ==="
 
 
+
+                Next
+
+
+
+            Next
 
 
 
@@ -40,13 +65,21 @@ Namespace WikiBot
         Function GetTopicGroups() As Dictionary(Of String, List(Of String))
 
             Dim GroupsPage As Page = _bot.Getpage(TopicGroupsPage) 'Inicializar página de grupos
-
-
-
-
-
+            Dim Threads As String() = _bot.GetPageThreads(GroupsPage.Text) 'Obtener hilos de la página
+            Dim Groups As New Dictionary(Of String, List(Of String))
+            For Each t As String In Threads 'Por cada hilo...
+                Dim threadTitle As String = Regex.Match(t, "(\n|^)(==.+==)").Value.Trim.Trim("="c).Trim 'Obtiene el título del hilo 
+                If Not Groups.Keys.Contains(threadTitle) Then 'Si el diccionario no contiene el título del hilo...
+                    Groups.Add(threadTitle, New List(Of String)) 'Añade el hilo al diccionario
+                End If
+                For Each l As String In GetLines(t, True) 'Por cada línea en el hilo...
+                    Dim top As String = l.Trim.Trim("*"c).Trim 'Eliminar los espacios en blanco y asteriscos al principio y al final
+                    Groups(threadTitle).Add(top) 'Añadirlo a la clave en el diccionario
+                Next
+            Next
+            'Regresar el diccionario
+            Return Groups
         End Function
-
 
 
         Function GetTopicsText(Optional ByRef Inclusions As Integer = 0) As Dictionary(Of String, List(Of String))
