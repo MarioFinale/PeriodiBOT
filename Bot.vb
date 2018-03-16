@@ -71,7 +71,7 @@ Namespace WikiBot
             End If
         End Function
 
-        Function getSpamListregexes(ByVal spamlistPage As Page) As List(Of String)
+        Function GetSpamListregexes(ByVal spamlistPage As Page) As String()
             Dim Lines As String() = GetLines(spamlistPage.Text, True) 'Extraer las líneas del texto de la página
             Dim Regexes As New List(Of String) 'Declarar lista con líneas con expresiones regulares
 
@@ -85,7 +85,7 @@ Namespace WikiBot
                     Regexes.Add(tempText) 'Añadir a la lista
                 End If
             Next
-
+            Return Regexes.ToArray
         End Function
 
 
