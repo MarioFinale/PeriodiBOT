@@ -346,7 +346,7 @@ Namespace WikiBot
         ''' <param name="pageNames">Array con nombres de página unicos.</param>
         ''' <remarks></remarks>
         Overloads Function GetPagesExtract(ByVal pageNames As String()) As SortedList(Of String, String)
-            Return BOTGetPagesExtract(pageNames, 660)
+            Return BOTGetPagesExtract(pageNames, 660, False)
         End Function
 
         ''' <summary>
@@ -357,7 +357,7 @@ Namespace WikiBot
         ''' <param name="characterLimit">Límite de carácteres en el resumen.</param>
         ''' <remarks></remarks>
         Overloads Function GetPagesExtract(ByVal pageNames As String(), ByVal characterLimit As Integer) As SortedList(Of String, String)
-            Return BOTGetPagesExtract(pageNames, characterLimit)
+            Return BOTGetPagesExtract(pageNames, characterLimit, False)
         End Function
 
         ''' <summary>
@@ -365,8 +365,20 @@ Namespace WikiBot
         ''' En caso de no existir el la página o el resumen, no lo retorna.
         ''' </summary>
         ''' <param name="pageNames">Array con nombres de página unicos.</param>
+        ''' <param name="characterLimit">Límite de carácteres en el resumen.</param>
         ''' <remarks></remarks>
-        Private Function BOTGetPagesExtract(ByVal pageNames As String(), charLimit As Integer) As SortedList(Of String, String)
+        Overloads Function GetPagesExtract(ByVal pageNames As String(), ByVal characterLimit As Integer, ByVal wiki As Boolean) As SortedList(Of String, String)
+            Return BOTGetPagesExtract(pageNames, characterLimit, wiki)
+        End Function
+
+
+        ''' <summary>
+        ''' Retorna los resúmenes de las páginas indicadas en el array de entrada como SortedList (con el formato {Página,Resumen}), los nombres de página deben ser distintos. 
+        ''' En caso de no existir el la página o el resumen, no lo retorna.
+        ''' </summary>
+        ''' <param name="pageNames">Array con nombres de página unicos.</param>
+        ''' <remarks></remarks>
+        Private Function BOTGetPagesExtract(ByVal pageNames As String(), charLimit As Integer, wiki As Boolean) As SortedList(Of String, String)
             Log("Get Wikipedia page extracts on chunks", "LOCAL", BOTName)
             Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
@@ -466,6 +478,12 @@ Namespace WikiBot
                                         Next
                                         TreatedExtract = RemoveExcessOfSpaces(TreatedExtract)
                                     End If
+                                End If
+
+                                'Si el título de la página está en el resumen, coloca en negritas la primera ocurrencia
+                                If wiki Then
+                                    Dim regx As New Regex(Regex.Escape(pagetitle), RegexOptions.IgnoreCase)
+                                    TreatedExtract = regx.Replace(TreatedExtract, "'''" & pagetitle & "'''", 1)
                                 End If
 
                                 PagenameAndResume.Add(PageKey, TreatedExtract)

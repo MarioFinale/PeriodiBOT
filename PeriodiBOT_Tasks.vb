@@ -215,7 +215,7 @@ Public Module PeriodiBOT_Tasks
 
         '============================================================================================
         ' Adding New resumes to list
-        Dim Page_Resume_pair As SortedList(Of String, String) = _bot.GetPagesExtract(p.ToArray)
+        Dim Page_Resume_pair As SortedList(Of String, String) = _bot.GetPagesExtract(p.ToArray, 660, True)
         Dim Page_Image_pair As SortedList(Of String, String) = _bot.GetImagesExtract(p.ToArray)
 
         For Each Page As String In Page_Resume_pair.Keys
