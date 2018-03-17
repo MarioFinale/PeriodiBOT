@@ -166,7 +166,12 @@ Namespace WikiBot
                     threadTitle = Regex.Replace(threadTitle, "\{{1,2}|\}{1,2}", "") 'Quitar plantillas
                     Dim threadResume As String = String.Empty 'Inicializa el resumen del hilo
                     Dim threadBytes As Integer = Encoding.Unicode.GetByteCount(t) 'Bytes del hilo 
+                    Log("get signature", "LOCAL", BOTName)
                     Dim lastsignature As Date = _bot.FirstDate(t) 'Firma más antigua del hilo
+                    If lastsignature.Year = 9999 Then
+                        Continue For
+                    End If
+                    Log("get subsection", "LOCAL", BOTName)
                     Dim Subsection As String = "Miscelánea"
                     If Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Success Then
                         Subsection = Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Value.Trim("/"c).Split("/"c)(1) 'Café del archivado
