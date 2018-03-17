@@ -19,8 +19,8 @@ Module MainModule
         Dim topicw As New AddTopic(ESWikiBOT)
 
 
-
-        topicw.GetAllTopicThreads()
+        topicw.GetTopicGroups()
+        topicw.GetTopicsPageText()
 
 
 

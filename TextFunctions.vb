@@ -81,6 +81,18 @@ Module TextFunctions
             .Replace("|", "\|").Replace("?", "\?").Replace("*", "\*").Replace("+", "\+").Replace("(", "\(").Replace(")", "\)") _
             .Replace("{", "\{").Replace("}", "\}")
     End Function
+
+    ''' <summary>
+    ''' Realiza los escapes para usar una cadena de texto dentro de una expresión regular, exceptuando el "pipe" (|).
+    ''' </summary>
+    ''' <param name="s">Texto a evaluar.</param>
+    ''' <returns></returns>
+    Function SpamListParser(ByVal s As String) As String
+        s = s.Replace("\", "\\")
+        Return s.Replace("[", "\[").Replace("/", "\/").Replace("^", "\^").Replace("$", "\$").Replace(".", "\.") _
+            .Replace("?", "\?").Replace("*", "\*").Replace("+", "\+").Replace("(", "\(").Replace(")", "\)") _
+            .Replace("{", "\{").Replace("}", "\}")
+    End Function
     ''' <summary>
     ''' Entrega el título de la página en la pseudoplantilla de resúmenes de página.
     ''' </summary>
@@ -123,17 +135,12 @@ Module TextFunctions
     ''' <param name="removeemptylines">Eliminar las líneas vacías</param>
     ''' <returns></returns>
     Function GetLines(ByVal text As String, ByVal removeEmptyLines As Boolean) As String()
-        Dim lines As New List(Of String)
-        Using reader As New IO.StringReader(text)
-            Dim line As String = String.Empty
-            Do While Not ((line = reader.ReadLine()) = Nothing)
-                If removeEmptyLines And String.IsNullOrWhiteSpace(line) Then
-                    Continue Do
-                End If
-            Loop
-            lines.Add(line)
-        End Using
-        Return lines.ToArray
+
+        Dim thelines As List(Of String) = text.Split({vbCrLf, vbCr, vbLf}, StringSplitOptions.None).ToList
+        If removeEmptyLines Then
+            thelines.RemoveAll(Function(x) String.IsNullOrWhiteSpace(x))
+        End If
+        Return thelines.ToArray
     End Function
 
     ''' <summary>

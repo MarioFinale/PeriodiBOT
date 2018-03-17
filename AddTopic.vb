@@ -51,34 +51,20 @@ Namespace WikiBot
                 End If
             Next
 
-
-
-
             For Each g As String In EndList.Keys 'Por cada grupo en la lista
                 pagetext = pagetext & Environment.NewLine & "== " & g & "==" 'Añadir al texto el título
                 For Each t As String In EndList(g).Keys 'Por cada tema
-                    pagetext = pagetext & Environment.NewLine & "=== " & t & " ==="
-                    For Each l As String In EndList(g)(t)
+                    pagetext = pagetext & Environment.NewLine & "=== " & t & " ===" 'Añadir el tema al texto
+                    For Each l As String In EndList(g)(t) 'Por cada linea del tema
                         pagetext = pagetext & Environment.NewLine & l
                     Next
                 Next
             Next
-
-
-
-
-
-
-
-
-
-
-
+            Return pagetext
         End Function
 
 
         Function GetTopicGroups() As Dictionary(Of String, List(Of String))
-
             Dim GroupsPage As Page = _bot.Getpage(TopicGroupsPage) 'Inicializar página de grupos
             Dim Threads As String() = _bot.GetPageThreads(GroupsPage.Text) 'Obtener hilos de la página
             Dim Groups As New Dictionary(Of String, List(Of String))
@@ -88,8 +74,10 @@ Namespace WikiBot
                     Groups.Add(threadTitle, New List(Of String)) 'Añade el hilo al diccionario
                 End If
                 For Each l As String In GetLines(t, True) 'Por cada línea en el hilo...
-                    Dim top As String = l.Trim.Trim("*"c).Trim 'Eliminar los espacios en blanco y asteriscos al principio y al final
-                    Groups(threadTitle).Add(top) 'Añadirlo a la clave en el diccionario
+                    If Not Regex.Match(l, "(\n|^)(==.+==)").Success Then 'Si no es el título del hilo
+                        Dim top As String = l.Trim.Trim("*"c).Trim 'Eliminar los espacios en blanco y asteriscos al principio y al final
+                        Groups(threadTitle).Add(top) 'Añadirlo a la clave en el diccionario
+                    End If
                 Next
             Next
             'Regresar el diccionario
@@ -110,11 +98,14 @@ Namespace WikiBot
                     Dim threadDate As String = thread.Item5.ToString("dd-MM-yyyy") & " " 'Fecha
                     Dim threadType As String = thread.Item4 & " " 'En que zona del café está
                     Dim threadTitle As String = thread.Item1 & " " 'Título del hilo
-                    Dim threadResume As String = "- " & thread.Item2 & " " 'Resumen del hilo
+                    Dim threadResume As String = String.Empty
+                    If Not String.IsNullOrWhiteSpace(thread.Item2) Then
+                        threadResume = "- " & thread.Item2 & " " 'Resumen del hilo
+                    End If
                     Dim threadLink As String = thread.Item3 & " " 'Enlace al hilo
                     Dim threadSize As String = "(" & Math.Ceiling(thread.Item6 / 1024).ToString & "&nbsp;kB)" 'Kbytes del hilo
 
-                    line = line & threadDate & threadType & "- " & threadResume & "[[" & threadLink & "|" & threadTitle & "]]" & threadResume & threadSize 'Poner todo junto
+                    line = line & threadDate & threadType & "- " & "[[" & threadLink.Trim & "|" & threadTitle.Trim & "]] " & threadResume & threadSize 'Poner todo junto
                     TopicList.Item(topic).Add(line) 'Añadirlo a la lista de la clave en el diccionario
                 Next
                 TopicList(topic).Sort()
@@ -129,6 +120,9 @@ Namespace WikiBot
             Dim pages As String() = _bot.GetallInclusions(TopicTemplate) 'Paginas que incluyen la plantilla de tema.
             For Each p As String In pages 'Por cada página que incluya la plantilla tema, no se llama a GetallInclusionsPages por temas de memoria.
                 TopicAndTitleList = GetTopicsOfpage(_bot.Getpage(p), TopicAndTitleList) 'Añadir nuevos hilos al diccionario
+                If TopicAndTitleList.Keys.Count > 10 Then
+                    Exit For
+                End If
             Next
             Inclusions = pages.Length 'Cuantas páginas se revisaron
             Return TopicAndTitleList 'Retorna el diccionario
@@ -153,14 +147,17 @@ Namespace WikiBot
                     '----------
                     If (Regex.Match(threadTitle, "(\[\[[^\]]+\|)").Success) Or (Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Success) Then
                         If Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Success Then
-                            Dim threadsimplelink As String = Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Value
-                            Dim newthreadsimplelink As String = threadsimplelink.Replace("["c, "").Replace("]"c, "")
-                            threadTitle = threadTitle.Replace(threadsimplelink, newthreadsimplelink)
+                            Dim threadmatches As MatchCollection = Regex.Matches(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})")
+                            For Each tm As Match In threadmatches
+                                Dim threadsimplelink As String = tm.Value
+                                Dim newthreadsimplelink As String = threadsimplelink.Replace("["c, "").Replace("]"c, "")
+                                threadTitle = threadTitle.Replace(threadsimplelink, newthreadsimplelink)
+                            Next
                         End If
                         threadTitle = Regex.Replace(threadTitle, "(\[{1,2}[^\|\]]+)", "").Replace("]"c, "").Replace("|"c, "")
                     End If
                     '----------
-                    Dim ThreadLink As String = (PageTitle & "#" & threadTitle).Replace(" "c, "_"c) 'Generar enlace al hilo específico
+                    Dim ThreadLink As String = (PageTitle & "#" & threadTitle).Trim.Replace(" ", "_") 'Generar enlace al hilo específico
                     Dim threadResume As String = String.Empty 'Inicializa el resumen del hilo
                     Dim threadBytes As Integer = Encoding.Unicode.GetByteCount(t) 'Bytes del hilo 
                     Dim lastsignature As Date = _bot.MostRecentDate(t) 'Firma más nueva del hilo

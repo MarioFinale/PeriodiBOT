@@ -305,7 +305,7 @@ Namespace WikiBot
                 Debug_Log("ABUSEFILTER: " & postresult, "BOT", BOTName)
                 If Spamreplace Then
                     Dim spamlinkRegex As String = TextInBetween(postresult, """spamblacklist"":""", """")(0)
-                    Dim newtext As String = Regex.Replace(text, RegexParser(spamlinkRegex), "es.wikipedia.org/wiki/Wikipedia:Spam")
+                    Dim newtext As String = Regex.Replace(text, SpamListParser(spamlinkRegex), "es.wikipedia.org/wiki/Wikipedia:Spam")
                     If Not RetryCount > MaxRetry Then
                         Return SavePage(newtext, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
                     Else
@@ -582,7 +582,7 @@ Namespace WikiBot
                 Wikitext = NormalizeUnicodetext(TextInBetween(QueryText, """wikitext"",""*"":""", """}]")(0))
                 Size = NormalizeUnicodetext(TextInBetween(QueryText, ",""size"":", ",""")(0))
                 PRevID = TextInBetween(QueryText, """revid"":", ",""")(0)
-                PExtract = TextInBetween(QueryText, """extract"":""", """}")(0)
+                PExtract = NormalizeUnicodetext(TextInBetween(QueryText, """extract"":""", """}")(0))
             Catch ex As IndexOutOfRangeException
                 Log("Warning: The page '" & pageName & "' doesn't exist yet!", "LOCAL", BOTName)
             End Try
