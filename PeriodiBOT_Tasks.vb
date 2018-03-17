@@ -42,21 +42,21 @@ Public Module PeriodiBOT_Tasks
                 If Timediff > TriggerTimeDiff Then
 
                     If TimediffToMinutes <= 1 Then
-                        responsestring = String.Format("¡{0} editó recién!", User)
+                        responsestring = String.Format("¡{0} editó recién!", User.UserName)
                     Else
                         If TimediffToMinutes < 60 Then
-                            responsestring = String.Format("La última edición de {0} fue hace {1} minutos", User, TimediffToMinutes)
+                            responsestring = String.Format("La última edición de {0} fue hace {1} minutos", User.UserName, TimediffToMinutes)
                         Else
                             If TimediffToMinutes < 120 Then
-                                responsestring = String.Format("La última edición de {0} fue hace más de {1} hora", User, TimediffToHours)
+                                responsestring = String.Format("La última edición de {0} fue hace más de {1} hora", User.UserName, TimediffToHours)
                             Else
                                 If TimediffToMinutes < 1440 Then
-                                    responsestring = String.Format("La última edición de {0} fue hace más de {1} horas", User, TimediffToHours)
+                                    responsestring = String.Format("La última edición de {0} fue hace más de {1} horas", User.UserName, TimediffToHours)
                                 Else
                                     If TimediffToMinutes < 2880 Then
-                                        responsestring = String.Format("La última edición de {0} fue hace {1} día", User, TimediffToDays)
+                                        responsestring = String.Format("La última edición de {0} fue hace {1} día", User.UserName, TimediffToDays)
                                     Else
-                                        responsestring = String.Format("La última edición de {0} fue hace más de {1} días", User, TimediffToDays)
+                                        responsestring = String.Format("La última edición de {0} fue hace más de {1} días", User.UserName, TimediffToDays)
                                     End If
                                 End If
                             End If
