@@ -17,7 +17,7 @@ Namespace WikiBot
             Dim topics As SortedDictionary(Of String, List(Of String)) = GetTopicsText(scannedPages)
             Dim pagetext As String = "{{/Encabezado}}" & Environment.NewLine
             Dim UpdateDate As Date = Date.UtcNow
-            Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado por " & BOTName & " al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) & " sobre un total de " & scannedPages.ToString & " páginas de archivo."
+            Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) & " por [[Usuario:" & BOTName & "|" & BOTName & "]] sobre un total de " & scannedPages.ToString & " páginas de archivo."
             pagetext = pagetext & Environment.NewLine & UpdateText
             Dim TopicGroups As SortedDictionary(Of String, List(Of String)) = GetTopicGroups()
 
@@ -133,7 +133,7 @@ Namespace WikiBot
 
             For Each t As String In _bot.GetPageThreads(Text) 'Por cada hilo en el texto....
 
-                Dim TopicMatch As Match = Regex.Match(t, "({{[Tt]ema.+?}})") 'Regex para plantilla de tema
+                Dim TopicMatch As Match = Regex.Match(t, "({{ *[Tt]ema *\|.+?}})") 'Regex para plantilla de tema
                 'Si la plantilla de tema se encuentra en el hilo:
 
                 If TopicMatch.Success Then

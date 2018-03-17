@@ -19,9 +19,9 @@ Module MainModule
         Dim topicw As New AddTopic(ESWikiBOT)
 
 
-        topicw.GetTopicGroups()
-        topicw.GetTopicsPageText()
 
+        Dim topicpage As Page = ESWikiBOT.Getpage(TopicPageName)
+        topicpage.Save(topicw.GetTopicsPageText(), "Bot: Actualizando temas (TEST)", False, True)
 
 
         BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword)
