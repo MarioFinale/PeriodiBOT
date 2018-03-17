@@ -27,7 +27,9 @@ Namespace WikiBot
             Dim topics As SortedDictionary(Of String, List(Of String)) = GetTopicsText(scannedPages)
             Dim pagetext As String = "{{/Encabezado}}" & Environment.NewLine
             Dim UpdateDate As Date = Date.UtcNow
-            Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) & " por [[Usuario:" & BOTName & "|" & BOTName & "]] sobre un total de " & scannedPages.ToString & " páginas de archivo."
+            Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) _
+                & " por [[Usuario:" & BOTName & "|" & BOTName & "]] sobre un total de " & scannedPages.ToString & " páginas de archivo." & Environment.NewLine
+
             pagetext = pagetext & Environment.NewLine & UpdateText
             Dim TopicGroups As SortedDictionary(Of String, List(Of String)) = GetTopicGroups()
 
