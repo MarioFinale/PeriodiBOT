@@ -42,7 +42,7 @@ Module MainModule
                                                        UpdateTopics()
                                                        Return {New IRCMessage(BOTName, " ")}
                                                    End Function)
-        Dim TopicTask As New IRCTask(BotIRC, 86400000, True, ArchiveAllFunc, "ArchiveAll")
+        Dim TopicTask As New IRCTask(BotIRC, 86400000, True, TopicFunc, "TopicUpdate")
 
 
         Do
