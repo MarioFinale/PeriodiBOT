@@ -45,7 +45,6 @@ Module MainModule
         Dim TopicTask As New IRCTask(BotIRC, 86400000, True, ArchiveAllFunc, "ArchiveAll")
 
 
-
         Do
             Dim command As String = Console.ReadLine()
             If Not String.IsNullOrWhiteSpace(command) Then
