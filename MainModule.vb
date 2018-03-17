@@ -21,6 +21,14 @@ Module MainModule
         Dim CheckUsersIRCTask As New IRCTask(BotIRC, 300000, True, CheckUsersFunc, "CheckUsers")
         CheckUsersIRCTask.Run()
 
+        'Tarea para actualizar el café temático
+        Dim TopicFunc As New Func(Of IRCMessage())(Function()
+                                                       UpdateTopics()
+                                                       Return {New IRCMessage(BOTName, " ")}
+                                                   End Function)
+        Dim TopicTask As New IRCTask(BotIRC, 86400000, True, TopicFunc, "TopicUpdate")
+        TopicTask.Run()
+
         'Tarea para actualizar extractos
         Dim UpdateExtractFunc As New Func(Of IRCMessage())(Function()
                                                                UpdatePageExtracts(True)
@@ -36,13 +44,6 @@ Module MainModule
                                                         End Function)
         Dim ArchiveAllTask As New IRCTask(BotIRC, 86400000, True, ArchiveAllFunc, "ArchiveAll")
         ArchiveAllTask.Run()
-
-        'Tarea para actualizar el café temático
-        Dim TopicFunc As New Func(Of IRCMessage())(Function()
-                                                       UpdateTopics()
-                                                       Return {New IRCMessage(BOTName, " ")}
-                                                   End Function)
-        Dim TopicTask As New IRCTask(BotIRC, 86400000, True, TopicFunc, "TopicUpdate")
 
 
         Do
