@@ -30,7 +30,7 @@ Module GlobalVars
 
     Public Const ResumePageName As String = "Usuario:PeriodiBOT/Resumen página"
     Public Const DidYouKnowPageName As String = "PeriodiBOT/Sabias que"
-    Public Const TopicPageName As String = "Wikipedia:Café por tema"
+    Public Const TopicPageName As String = "Usuario:PeriodiBOT/Café por tema"
     Public Const TopicTemplate As String = "Plantilla:Tema"
     Public Const TopicGroupsPage As String = "Wikipedia:Café por tema/Grupos"
     Public Const MaxRetry As Integer = 3
