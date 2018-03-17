@@ -162,7 +162,7 @@ Public Module PeriodiBOT_Tasks
     Function UpdatePageExtracts(ByVal irc As Boolean) As Boolean
         Dim _bot As Bot = ESWikiBOT
         If irc Then
-            BotIRC.Sendmessage(ColoredText("Actualizando extractos...", "04"))
+            BotIRC.Sendmessage(ColoredText("Actualizando extractos.", "04"))
         End If
 
         Log("UpdatePageExtracts: Beginning update of page extracts", "LOCAL", BOTName)
@@ -311,7 +311,7 @@ Public Module PeriodiBOT_Tasks
 
             Log("UpdatePageExtracts: Update of page extracts completed successfully", "LOCAL", BOTName)
             If irc Then
-                BotIRC.Sendmessage(ColoredText("Extractos actualizados!", "04"))
+                BotIRC.Sendmessage(ColoredText("¡Extractos actualizados!", "04"))
             End If
 
             Return True
