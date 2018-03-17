@@ -118,9 +118,6 @@ Namespace WikiBot
             Dim pages As String() = _bot.GetallInclusions(TopicTemplate) 'Paginas que incluyen la plantilla de tema.
             For Each p As String In pages 'Por cada página que incluya la plantilla tema, no se llama a GetallInclusionsPages por temas de memoria.
                 TopicAndTitleList = GetTopicsOfpage(_bot.Getpage(p), TopicAndTitleList) 'Añadir nuevos hilos al diccionario
-                If TopicAndTitleList.Keys.Count > 10 Then
-                    Exit For
-                End If
             Next
             Inclusions = pages.Length 'Cuantas páginas se revisaron
             Return TopicAndTitleList 'Retorna el diccionario
