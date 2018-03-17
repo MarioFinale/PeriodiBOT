@@ -27,17 +27,17 @@ Public Module PeriodiBOT_Tasks
                 Dim LastEditUnix As Integer = CInt(TimeToUnix(LastEdit))
                 Dim ActualTimeUnix As Integer = CInt(TimeToUnix(actualtime))
 
-
                 Dim Timediff As Integer = ActualTimeUnix - LastEditUnix
+                If Not OS.ToLower.Contains("unix") Then 'En sistemas windows hay una hora de desfase
+                    Timediff = Timediff - 3600
+                End If
+
                 Dim TriggerTimeDiff As Long = TimeStringToSeconds(UserDate)
 
                 Dim TimediffToHours As Integer = CInt(Math.Truncate(Timediff / 3600))
                 Dim TimediffToMinutes As Integer = CInt(Math.Truncate(Timediff / 60))
                 Dim TimediffToDays As Integer = CInt(Math.Truncate(Timediff / 86400))
                 Dim responsestring As String = String.Empty
-
-                Debug_Log("Timediff  " & username & ": " & Timediff, "LOCAL", BOTName)
-                Debug_Log("Trigger Timediff " & username & ": " & TriggerTimeDiff, "LOCAL", BOTName)
 
                 If Timediff > TriggerTimeDiff Then
 

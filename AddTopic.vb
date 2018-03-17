@@ -60,9 +60,9 @@ Namespace WikiBot
             Next
 
             For Each g As String In EndList.Keys 'Por cada grupo en la lista
-                pagetext = pagetext & Environment.NewLine & "== " & g & "==" 'Añadir al texto el título
+                pagetext = pagetext & Environment.NewLine & "== " & g & "==" & Environment.NewLine 'Añadir al texto el título
                 For Each t As String In EndList(g).Keys 'Por cada tema
-                    pagetext = pagetext & Environment.NewLine & "=== " & t & " ===" 'Añadir el tema al texto
+                    pagetext = pagetext & Environment.NewLine & "=== " & t & " ===" & Environment.NewLine 'Añadir al texto el título 'Añadir el tema al texto
                     For Each l As String In EndList(g)(t) 'Por cada linea del tema
                         pagetext = pagetext & Environment.NewLine & l
                     Next
@@ -162,16 +162,15 @@ Namespace WikiBot
                     End If
                     '----------
                     threadTitle = Regex.Replace(threadTitle, "<+.+?>+", "") 'Quitar etiquetas HTML
-                    Dim ThreadLink As String = UrlWebEncode((PageTitle & "#" & threadTitle).Trim.Replace(" ", "_").Replace("'''", "").Replace("''", "")) 'Generar enlace al hilo específico
+                    Dim threadTitleLink As String = UrlWebEncode(threadTitle.Trim.Replace(" ", "_").Replace("'''", "").Replace("''", ""))
+                    Dim threadLink As String = PageTitle & "#" & threadTitleLink 'Generar enlace al hilo específico
                     threadTitle = Regex.Replace(threadTitle, "\{{1,2}|\}{1,2}", "") 'Quitar plantillas
                     Dim threadResume As String = String.Empty 'Inicializa el resumen del hilo
                     Dim threadBytes As Integer = Encoding.Unicode.GetByteCount(t) 'Bytes del hilo 
-                    Log("get signature", "LOCAL", BOTName)
                     Dim lastsignature As Date = _bot.FirstDate(t) 'Firma más antigua del hilo
                     If lastsignature.Year = 9999 Then
                         Continue For
                     End If
-                    Log("get subsection", "LOCAL", BOTName)
                     Dim Subsection As String = "Miscelánea"
                     If Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Success Then
                         Subsection = Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Value.Trim("/"c).Split("/"c)(1) 'Café del archivado

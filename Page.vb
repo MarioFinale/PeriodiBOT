@@ -558,7 +558,6 @@ Namespace WikiBot
 
             Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions" & UrlWebEncode("|") & "pageimages" & UrlWebEncode("|") & "categories" & UrlWebEncode("|") & "extracts" & "&rvprop=user" &
             UrlWebEncode("|") & "timestamp" & UrlWebEncode("|") & "size" & UrlWebEncode("|") & "content" & UrlWebEncode("|") & "ids" & "&exlimit=1&explaintext&exintro&titles=" & UrlWebEncode(pageName)
-
             'Fix temporal, un BUG en la api de Mediawiki provoca que los extractos en solicitudes POST sean distintos a los de GET
             Dim QueryText As String = _bot.GETQUERY(querystring)
 
@@ -575,7 +574,6 @@ Namespace WikiBot
             Dim PExtract As String = ""
             Dim Rootp As String = ""
             Try
-
                 PageID = TextInBetween(QueryText, "{""pageid"":", ",""ns")(0)
                 User = TextInBetween(QueryText, """user"":""", """,")(0)
                 Timestamp = TextInBetween(QueryText, """timestamp"":""", """,")(0)
@@ -587,17 +585,15 @@ Namespace WikiBot
                 Log("Warning: The page '" & pageName & "' doesn't exist yet!", "LOCAL", BOTName)
             End Try
 
-            Try
+            If TextInBetween(QueryText, """pageimage"":""", """").Count >= 1 Then
                 PageImage = TextInBetween(QueryText, """pageimage"":""", """")(0)
+            Else
+                Debug_Log("The page '" & pageName & "' doesn't have any thumbnail", "LOCAL", BOTName)
+            End If
 
-                For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")
-                    PCategories.Add(NormalizeUnicodetext(m.Value.Replace("title"":""", "")))
-                Next
-            Catch ex As IndexOutOfRangeException
-                Log("Warning: The page '" & pageName & "' doesn't have any thumbnail!", "LOCAL", BOTName)
-
-            End Try
-
+            For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")
+                PCategories.Add(NormalizeUnicodetext(m.Value.Replace("title"":""", "")))
+            Next
 
             If Regex.Match(PTitle, "\/.+").Success Then
                 Rootp = PTitle.Split("/"c)(0)
@@ -628,7 +624,6 @@ Namespace WikiBot
         Function GetLastTimeStamp(ByVal pageName As String) As String
             Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions&rvprop=timestamp&titles=" & pageName
             Dim QueryText As String = _bot.POSTQUERY(querystring)
-
             Try
                 Return TextInBetween(QueryText, """timestamp"":""", """")(0)
             Catch ex As IndexOutOfRangeException

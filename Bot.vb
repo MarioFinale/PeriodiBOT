@@ -1092,9 +1092,7 @@ Namespace WikiBot
             If Cookies Is Nothing Then
                 Cookies = New CookieContainer
             End If
-
             Dim tempcookies As CookieContainer = Cookies
-
             Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageURL), HttpWebRequest)
             postreq.Method = "GET"
             postreq.KeepAlive = True
@@ -1109,7 +1107,6 @@ Namespace WikiBot
             End If
             Dim postreqreader As New StreamReader(postresponse.GetResponseStream())
             Return postreqreader.ReadToEnd
-
         End Function
 
         ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>
