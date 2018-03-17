@@ -136,7 +136,7 @@ Module TextFunctions
     ''' <returns></returns>
     Function GetLines(ByVal text As String, ByVal removeEmptyLines As Boolean) As String()
 
-        Dim thelines As List(Of String) = text.Split({vbCrLf, vbCr, vbLf}, StringSplitOptions.None).ToList
+        Dim thelines As List(Of String) = text.Split({vbCrLf, vbCr, vbLf, Environment.NewLine}, StringSplitOptions.None).ToList
         If removeEmptyLines Then
             thelines.RemoveAll(Function(x) String.IsNullOrWhiteSpace(x))
         End If

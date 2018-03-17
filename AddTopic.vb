@@ -14,14 +14,14 @@ Namespace WikiBot
 
         Function GetTopicsPageText() As String
             Dim scannedPages As Integer = 0
-            Dim topics As Dictionary(Of String, List(Of String)) = GetTopicsText(scannedPages)
+            Dim topics As SortedDictionary(Of String, List(Of String)) = GetTopicsText(scannedPages)
             Dim pagetext As String = "{{/Encabezado}}" & Environment.NewLine
             Dim UpdateDate As Date = Date.UtcNow
-            Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado por " & BOTName & " al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) & " sobre un total de " & scannedPages.ToString & "páginas de archivo."
-            Dim TopicGroups As Dictionary(Of String, List(Of String)) = GetTopicGroups()
+            Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado por " & BOTName & " al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) & " sobre un total de " & scannedPages.ToString & " páginas de archivo."
+            pagetext = pagetext & Environment.NewLine & UpdateText
+            Dim TopicGroups As SortedDictionary(Of String, List(Of String)) = GetTopicGroups()
 
-            Dim EndList As New Dictionary(Of String, Dictionary(Of String, List(Of String))) 'Diccionario con (grupo,(tema, lineas()))
-
+            Dim EndList As New SortedDictionary(Of String, SortedDictionary(Of String, List(Of String))) 'Diccionario con (grupo,(tema, lineas()))
 
 
             For Each topic As String In topics.Keys 'Por cada tema
@@ -30,19 +30,17 @@ Namespace WikiBot
                     If TopicGroups(group).Contains(topic) Then 'Si el grupo contiene el tema
                         hasGroup = True 'Si tiene grupo
                         If Not EndList.Keys.Contains(group) Then 'Si el diccionario final no contiene el grupo
-                            EndList.Add(group, New Dictionary(Of String, List(Of String))) 'Se añade el grupo al diccionario final
+                            EndList.Add(group, New SortedDictionary(Of String, List(Of String))) 'Se añade el grupo al diccionario final
                         End If
                         If Not EndList(group).Keys.Contains(topic) Then 'Si el diccionario del grupo del diccionario final no contiene el tema
                             EndList(group).Add(topic, New List(Of String)) 'Se añade el tema al diccionario del grupo en el diccionario final
                         End If
                         EndList(group)(topic).AddRange(topics(topic)) 'Añade todas la líneas del tema a la lista del tema en el diccionario del grupo en el diccionario final
-                    Else
-                        hasGroup = False 'No tiene grupo
                     End If
                 Next
                 If Not hasGroup Then 'Si ningún grupo contiene el tema
                     If Not EndList.Keys.Contains("Varios") Then 'Si el diccionario final no contiene el grupo "varios"
-                        EndList.Add("Varios", New Dictionary(Of String, List(Of String))) 'Se añade el grupo "varios" al diccionario final
+                        EndList.Add("Varios", New SortedDictionary(Of String, List(Of String))) 'Se añade el grupo "varios" al diccionario final
                     End If
                     If Not EndList("Varios").Keys.Contains(topic) Then 'Si el diccionario del grupo "varios" del diccionario final no contiene el tema
                         EndList("Varios").Add(topic, New List(Of String)) 'Se añade el tema al diccionario del grupo "varios" en el diccionario final
@@ -64,10 +62,10 @@ Namespace WikiBot
         End Function
 
 
-        Function GetTopicGroups() As Dictionary(Of String, List(Of String))
+        Function GetTopicGroups() As SortedDictionary(Of String, List(Of String))
             Dim GroupsPage As Page = _bot.Getpage(TopicGroupsPage) 'Inicializar página de grupos
             Dim Threads As String() = _bot.GetPageThreads(GroupsPage.Text) 'Obtener hilos de la página
-            Dim Groups As New Dictionary(Of String, List(Of String))
+            Dim Groups As New SortedDictionary(Of String, List(Of String))
             For Each t As String In Threads 'Por cada hilo...
                 Dim threadTitle As String = Regex.Match(t, "(\n|^)(==.+==)").Value.Trim.Trim("="c).Trim 'Obtiene el título del hilo 
                 If Not Groups.Keys.Contains(threadTitle) Then 'Si el diccionario no contiene el título del hilo...
@@ -85,9 +83,9 @@ Namespace WikiBot
         End Function
 
 
-        Function GetTopicsText(Optional ByRef Inclusions As Integer = 0) As Dictionary(Of String, List(Of String))
-            Dim TopicThreads As Dictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) = GetAllTopicThreads(Inclusions) 'Obtener los temas y la información
-            Dim TopicList As New Dictionary(Of String, List(Of String)) 'Inicializar la lista con el texto
+        Function GetTopicsText(Optional ByRef Inclusions As Integer = 0) As SortedDictionary(Of String, List(Of String))
+            Dim TopicThreads As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) = GetAllTopicThreads(Inclusions) 'Obtener los temas y la información
+            Dim TopicList As New SortedDictionary(Of String, List(Of String)) 'Inicializar la lista con el texto
 
             For Each topic As String In TopicThreads.Keys 'Por cada tema...
                 If Not TopicList.Keys.Contains(topic) Then 'Si no está en el diccionario, se añade
@@ -115,8 +113,8 @@ Namespace WikiBot
         End Function
 
 
-        Function GetAllTopicThreads(Optional ByRef Inclusions As Integer = 0) As Dictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))
-            Dim TopicAndTitleList As New Dictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) 'Inicializar diccionario que contiene temas e hilos
+        Function GetAllTopicThreads(Optional ByRef Inclusions As Integer = 0) As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))
+            Dim TopicAndTitleList As New SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) 'Inicializar diccionario que contiene temas e hilos
             Dim pages As String() = _bot.GetallInclusions(TopicTemplate) 'Paginas que incluyen la plantilla de tema.
             For Each p As String In pages 'Por cada página que incluya la plantilla tema, no se llama a GetallInclusionsPages por temas de memoria.
                 TopicAndTitleList = GetTopicsOfpage(_bot.Getpage(p), TopicAndTitleList) 'Añadir nuevos hilos al diccionario
@@ -128,12 +126,12 @@ Namespace WikiBot
             Return TopicAndTitleList 'Retorna el diccionario
         End Function
 
-        Function GetTopicsOfpage(ByVal SourcePage As Page, ByVal TopicAndTitleList As Dictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))) As Dictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))
+        Function GetTopicsOfpage(ByVal SourcePage As Page, ByVal TopicAndTitleList As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))) As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))
             Dim Text As String = SourcePage.Text 'Texto de la página
             Dim PageTitle As String = SourcePage.Title 'Título de la página (con el espacio de nombres).
 
             If TopicAndTitleList Is Nothing Then 'Si no está inicializado correctamente...
-                TopicAndTitleList = New Dictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) 'Diccionario: Tema,(titulo, resumen, enlace, ubicación, fecha, bytes)
+                TopicAndTitleList = New SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) 'Diccionario: Tema,(titulo, resumen, enlace, ubicación, fecha, bytes)
             End If
 
             For Each t As String In _bot.GetPageThreads(Text) 'Por cada hilo en el texto....
@@ -150,7 +148,7 @@ Namespace WikiBot
                             Dim threadmatches As MatchCollection = Regex.Matches(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})")
                             For Each tm As Match In threadmatches
                                 Dim threadsimplelink As String = tm.Value
-                                Dim newthreadsimplelink As String = threadsimplelink.Replace("["c, "").Replace("]"c, "")
+                                Dim newthreadsimplelink As String = threadsimplelink.Replace("["c, "").Replace("]"c, "").Trim.TrimStart(":"c).Trim
                                 threadTitle = threadTitle.Replace(threadsimplelink, newthreadsimplelink)
                             Next
                         End If
