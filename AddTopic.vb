@@ -11,6 +11,16 @@ Namespace WikiBot
             _bot = workerbot
         End Sub
 
+        Function UpdateTopics() As Boolean
+            Try
+                Dim topicpage As Page = ESWikiBOT.Getpage(TopicPageName)
+                topicpage.Save(GetTopicsPageText(), "Bot: Actualizando temas", False, True)
+                Return True
+            Catch ex As Exception
+                Return False
+            End Try
+        End Function
+
 
         Function GetTopicsPageText() As String
             Dim scannedPages As Integer = 0

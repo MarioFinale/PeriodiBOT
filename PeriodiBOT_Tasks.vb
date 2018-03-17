@@ -88,6 +88,15 @@ Public Module PeriodiBOT_Tasks
     End Function
 
     ''' <summary>
+    ''' Crea una nueva instancia de la clase de actualizacion de temas y actualiza el cafe temático.
+    ''' </summary>
+    ''' <returns></returns>
+    Function UpdateTopics() As Boolean
+        Dim topicw As New AddTopic(ESWikiBOT)
+        Return topicw.UpdateTopics()
+    End Function
+
+    ''' <summary>
     ''' Revisa todas las páginas que llamen a la página indicada y las retorna como sortedlist.
     ''' La Key es el nombre de la página en la plantilla y el valor asociado es un array donde el primer elemento es
     ''' el último usuario que la editó y el segundo el título real de la página.
