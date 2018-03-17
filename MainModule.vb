@@ -17,9 +17,6 @@ Module MainModule
         Log("Starting...", "LOCAL", BOTName)
         ESWikiBOT = New Bot(WPUserName, BOTPassword, ApiURL)
         Dim topicw As New AddTopic(ESWikiBOT)
-
-
-
         Dim topicpage As Page = ESWikiBOT.Getpage(TopicPageName)
         topicpage.Save(topicw.GetTopicsPageText(), "Bot: Actualizando temas (TEST)", False, True)
 

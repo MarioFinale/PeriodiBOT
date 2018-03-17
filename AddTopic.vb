@@ -98,7 +98,7 @@ Namespace WikiBot
                     Dim threadTitle As String = thread.Item1 & " " 'Título del hilo
                     Dim threadResume As String = String.Empty
                     If Not String.IsNullOrWhiteSpace(thread.Item2) Then
-                        threadResume = "- " & thread.Item2 & " " 'Resumen del hilo
+                        threadResume = "- " & thread.Item2.TrimEnd("."c) & ". " 'Resumen del hilo
                     End If
                     Dim threadLink As String = thread.Item3 & " " 'Enlace al hilo
                     Dim threadSize As String = "(" & Math.Ceiling(thread.Item6 / 1024).ToString & "&nbsp;kB)" 'Kbytes del hilo
@@ -152,13 +152,15 @@ Namespace WikiBot
                         threadTitle = Regex.Replace(threadTitle, "(\[{1,2}[^\|\]]+)", "").Replace("]"c, "").Replace("|"c, "")
                     End If
                     '----------
-                    Dim ThreadLink As String = (PageTitle & "#" & threadTitle).Trim.Replace(" ", "_") 'Generar enlace al hilo específico
+                    threadTitle = Regex.Replace(threadTitle, "<+.+?>+", "") 'Quitar etiquetas HTML
+                    Dim ThreadLink As String = UrlWebEncode((PageTitle & "#" & threadTitle).Trim.Replace(" ", "_").Replace("'''", "").Replace("''", "")) 'Generar enlace al hilo específico
+                    threadTitle = Regex.Replace(threadTitle, "\{{1,2}|\}{1,2}", "") 'Quitar plantillas
                     Dim threadResume As String = String.Empty 'Inicializa el resumen del hilo
                     Dim threadBytes As Integer = Encoding.Unicode.GetByteCount(t) 'Bytes del hilo 
                     Dim lastsignature As Date = _bot.MostRecentDate(t) 'Firma más nueva del hilo
                     Dim Subsection As String = "Miscelánea"
-                    If Regex.Match(ThreadLink, "(\/Archivo\/.+?)(\/)").Success Then
-                        Subsection = Regex.Match(ThreadLink, "(\/Archivo\/.+?)(\/)").Value.Trim("/"c).Split("/"c)(1) 'Café del archivado
+                    If Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Success Then
+                        Subsection = Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Value.Trim("/"c).Split("/"c)(1) 'Café del archivado
                     End If
 
                     Dim TopicTemp As New Template(TopicMatch.Value, False) 'Inicializa una plantilla usando el pseudoparser entregando el texto de la plantilla como parámetro
@@ -171,21 +173,21 @@ Namespace WikiBot
                             Topics.Add(p.Item2) 'Añade el tema a la lista de temas
                         End If
                     Next
-
                     'Añadir temas a diccionario
                     For Each topic As String In Topics
                         If Not TopicAndTitleList.Keys.Contains(topic) Then
                             'si no existe el tema en el diccionario, lo inicializa y añade el hilo
                             TopicAndTitleList.Add(topic, New List(Of Tuple(Of String, String, String, String, Date, Integer)))
                             TopicAndTitleList.Item(topic).Add(New Tuple(Of String, String, String, String, Date, Integer)(threadTitle, threadResume, ThreadLink, Subsection, lastsignature, threadBytes))
+                            TopicAndTitleList.Item(topic).OrderBy(Function(x) x.Item5)
                         Else
                             'si existe solo añade el hilo
                             TopicAndTitleList.Item(topic).Add(New Tuple(Of String, String, String, String, Date, Integer)(threadTitle, threadResume, ThreadLink, Subsection, lastsignature, threadBytes))
+                            TopicAndTitleList.Item(topic).OrderBy(Function(x) x.Item5)
                         End If
                     Next
 
                 End If
-
             Next
             Return TopicAndTitleList 'Retorna el diccionario
         End Function
