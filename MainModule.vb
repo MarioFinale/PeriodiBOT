@@ -24,7 +24,7 @@ Module MainModule
         'Tarea para actualizar el café temático
         Dim TopicFunc As New Func(Of IRCMessage())(Function()
                                                        UpdateTopics()
-                                                       Return {New IRCMessage(BOTName, " ")}
+                                                       Return {New IRCMessage(IRCChannel, ColoredText("¡Temas actualizados!", "04"))}
                                                    End Function)
         Dim TopicTask As New IRCTask(BotIRC, 86400000, True, TopicFunc, "TopicUpdate")
         TopicTask.Run()
