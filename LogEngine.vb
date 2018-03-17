@@ -76,6 +76,11 @@ Class LogEngine
     ''' </summary>
     Sub SaveLogWorker()
         SaveData(_logPath, LogQueue)
+        SyncLock (_logData)
+            If _logData.Count > 100 Then
+                _logData.RemoveRange(0, 99)
+            End If
+        End SyncLock
     End Sub
     ''' <summary>
     ''' Guarda los datos desde un queue a un archivo de log.
@@ -337,7 +342,7 @@ Class LogEngine
     ''' <param name="str">Cadea de texto a añadir</param>
     Sub SafeEnqueue(ByVal _QueueToEnqueue As Queue(Of String()), ByVal str As String())
         SyncLock (_logData)
-            Logdata.Add(str)
+            _logData.Add(str)
         End SyncLock
         SyncLock (_QueueToEnqueue)
             _QueueToEnqueue.Enqueue(str)

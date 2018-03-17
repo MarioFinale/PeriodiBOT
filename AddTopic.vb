@@ -106,7 +106,6 @@ Namespace WikiBot
                     line = line & threadDate & threadType & "- " & "[[" & threadLink.Trim & "|" & threadTitle.Trim & "]] " & threadResume & threadSize 'Poner todo junto
                     TopicList.Item(topic).Add(line) 'Añadirlo a la lista de la clave en el diccionario
                 Next
-                TopicList(topic).Sort()
             Next
             'Regresar el diccionario
             Return TopicList
@@ -157,7 +156,7 @@ Namespace WikiBot
                     threadTitle = Regex.Replace(threadTitle, "\{{1,2}|\}{1,2}", "") 'Quitar plantillas
                     Dim threadResume As String = String.Empty 'Inicializa el resumen del hilo
                     Dim threadBytes As Integer = Encoding.Unicode.GetByteCount(t) 'Bytes del hilo 
-                    Dim lastsignature As Date = _bot.MostRecentDate(t) 'Firma más nueva del hilo
+                    Dim lastsignature As Date = _bot.FirstDate(t) 'Firma más antigua del hilo
                     Dim Subsection As String = "Miscelánea"
                     If Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Success Then
                         Subsection = Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Value.Trim("/"c).Split("/"c)(1) 'Café del archivado
@@ -179,11 +178,11 @@ Namespace WikiBot
                             'si no existe el tema en el diccionario, lo inicializa y añade el hilo
                             TopicAndTitleList.Add(topic, New List(Of Tuple(Of String, String, String, String, Date, Integer)))
                             TopicAndTitleList.Item(topic).Add(New Tuple(Of String, String, String, String, Date, Integer)(threadTitle, threadResume, ThreadLink, Subsection, lastsignature, threadBytes))
-                            TopicAndTitleList.Item(topic).OrderBy(Function(x) x.Item5)
+                            TopicAndTitleList.Item(topic) = TopicAndTitleList.Item(topic).OrderBy(Function(x) x.Item5).ToList
                         Else
                             'si existe solo añade el hilo
                             TopicAndTitleList.Item(topic).Add(New Tuple(Of String, String, String, String, Date, Integer)(threadTitle, threadResume, ThreadLink, Subsection, lastsignature, threadBytes))
-                            TopicAndTitleList.Item(topic).OrderBy(Function(x) x.Item5)
+                            TopicAndTitleList.Item(topic) = TopicAndTitleList.Item(topic).OrderBy(Function(x) x.Item5).ToList
                         End If
                     Next
 
