@@ -26,7 +26,7 @@ Module MainModule
                                                        UpdateTopics()
                                                        Return {New IRCMessage(IRCChannel, ColoredText("¡Temas actualizados!", "04"))}
                                                    End Function)
-        Dim TopicTask As New IRCTask(BotIRC, 86400000, True, TopicFunc, "TopicUpdate")
+        Dim TopicTask As New IRCTask(BotIRC, 21600000, True, TopicFunc, "TopicUpdate")
         TopicTask.Run()
 
         'Tarea para actualizar extractos
@@ -34,7 +34,7 @@ Module MainModule
                                                                UpdatePageExtracts(True)
                                                                Return {New IRCMessage(BOTName, " ")}
                                                            End Function)
-        Dim UpdateExtractTask As New IRCTask(BotIRC, 43200000, True, UpdateExtractFunc, "UpdateExtracts")
+        Dim UpdateExtractTask As New IRCTask(BotIRC, 3600000, True, UpdateExtractFunc, "UpdateExtracts")
         UpdateExtractTask.Run()
 
         'Tarea para archivar todo
