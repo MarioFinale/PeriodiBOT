@@ -92,11 +92,11 @@ Class LogEngine
         Try
             Do Until _queue.Count = 0
                 AppendLinesToText(filepath, SafeDequeue(_queue))
-                System.Threading.Thread.Sleep(100)
+                System.Threading.Thread.Sleep(10)
             Loop
             Return True
         Catch ex As Exception
-            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", BOTName)
+            EX_Log(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, BOTName)
             Return False
         End Try
     End Function
@@ -108,13 +108,10 @@ Class LogEngine
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
     Public Function Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
-
         Task.Run(Sub()
                      AddEvent(text, source, user, "LOG")
                  End Sub)
-
         WriteLine("LOG", source, user & ": " & text)
-
         Return True
     End Function
     ''' <summary>
@@ -138,13 +135,10 @@ Class LogEngine
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
     Public Function EX_Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
-
         Task.Run(Sub()
                      AddEvent(text, source, user, "EX")
                  End Sub)
-
         WriteLine("EX", source, user & ": " & text)
-
         Return True
     End Function
 
@@ -167,13 +161,10 @@ Class LogEngine
     ''' <param name="filename">Nombre y ruta del archivo</param>
     ''' <returns></returns>
     Private Function LoadLinesFromFile(ByRef filename As String) As List(Of String())
-
         Dim ItemList As New List(Of String())
-
         If Not System.IO.File.Exists(filename) Then
             System.IO.File.Create(filename).Close()
         End If
-
         For Each line As String In System.IO.File.ReadAllLines(filename)
             Dim items As String() = line.Split(CType("|", Char))
             ItemList.Add(items)

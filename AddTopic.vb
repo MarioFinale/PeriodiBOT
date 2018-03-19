@@ -17,6 +17,7 @@ Namespace WikiBot
                 topicpage.Save(GetTopicsPageText(), "Bot: Actualizando temas", False, True)
                 Return True
             Catch ex As Exception
+                EX_Log(ex.Message, "UpdateTopics", BOTName)
                 Return False
             End Try
         End Function
@@ -170,14 +171,13 @@ Namespace WikiBot
                     Dim threadResume As String = String.Empty 'Inicializa el resumen del hilo
                     Dim threadBytes As Integer = Encoding.Unicode.GetByteCount(t) 'Bytes del hilo 
                     Dim lastsignature As Date = _bot.FirstDate(t) 'Firma más antigua del hilo
-                    If lastsignature.Year = 9999 Then
-                        Continue For
+                    If lastsignature.Year = 9999 Then 'Hilo con plantilla pero sin firma
+                        Continue For 'No añadir hilo
                     End If
-                    Dim Subsection As String = "Miscelánea"
-                    If Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Success Then
+                    Dim Subsection As String = "Miscelánea" 'Subsección por defecto, aplica para cuando el café aún no era dividido por subpáginas
+                    If Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Success Then 'Obtener el café del archivado
                         Subsection = Regex.Match(PageTitle, "(\/Archivo\/.+?)(\/)").Value.Trim("/"c).Split("/"c)(1) 'Café del archivado
                     End If
-
                     Dim TopicTemp As New Template(TopicMatch.Value, False) 'Inicializa una plantilla usando el pseudoparser entregando el texto de la plantilla como parámetro
                     Dim Topics As New List(Of String) 'lista con los temas del hilo
                     'Obtener datos de la plantilla
@@ -206,8 +206,6 @@ Namespace WikiBot
             Next
             Return TopicAndTitleList 'Retorna el diccionario
         End Function
-
-
 
     End Class
 End Namespace

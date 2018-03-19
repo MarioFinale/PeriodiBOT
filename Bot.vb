@@ -1089,24 +1089,36 @@ Namespace WikiBot
         ''' <param name="pageURL">URL absoluta del recurso web.</param>
         ''' <param name="getCookies">Si es "true" establece los cookies en la variable local "cookies" (como cookiecontainer) </param>
         Public Function GetDataAndResult(ByVal pageURL As String, getCookies As Boolean, Optional ByRef Cookies As CookieContainer = Nothing) As String
-            If Cookies Is Nothing Then
-                Cookies = New CookieContainer
-            End If
-            Dim tempcookies As CookieContainer = Cookies
-            Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageURL), HttpWebRequest)
-            postreq.Method = "GET"
-            postreq.KeepAlive = True
-            postreq.CookieContainer = tempcookies
-            postreq.UserAgent = UserAgent
-            postreq.ContentType = "application/x-www-form-urlencoded"
-            Dim postresponse As HttpWebResponse
-            postresponse = DirectCast(postreq.GetResponse, HttpWebResponse)
-            tempcookies.Add(postresponse.Cookies)
-            If getCookies Then
-                Cookies = tempcookies
-            End If
-            Dim postreqreader As New StreamReader(postresponse.GetResponseStream())
-            Return postreqreader.ReadToEnd
+            Dim tryCount As Integer = 0
+
+            Do Until tryCount = MaxRetry
+                Try
+                    If Cookies Is Nothing Then
+                        Cookies = New CookieContainer
+                    End If
+                    Dim tempcookies As CookieContainer = Cookies
+                    Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageURL), HttpWebRequest)
+                    postreq.Method = "GET"
+                    postreq.KeepAlive = True
+                    postreq.Timeout = 60000
+                    postreq.CookieContainer = tempcookies
+                    postreq.UserAgent = UserAgent
+                    postreq.ContentType = "application/x-www-form-urlencoded"
+                    Dim postresponse As HttpWebResponse
+                    postresponse = DirectCast(postreq.GetResponse, HttpWebResponse)
+                    tempcookies.Add(postresponse.Cookies)
+                    If getCookies Then
+                        Cookies = tempcookies
+                    End If
+                    Dim postreqreader As New StreamReader(postresponse.GetResponseStream())
+                    Return postreqreader.ReadToEnd
+                Catch ex As ProtocolViolationException 'Catch para los headers erróneos que a veces entrega la API de MediaWiki
+                    EX_Log(ex.Message, ex.TargetSite.Name, BOTName)
+                    Debug_Log("EX STACK TRACE: " & ex.StackTrace, ex.Source, BOTName)
+                    tryCount += 1
+                End Try
+            Loop
+            Throw New MaxRetriesExceededExeption
         End Function
 
         ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>
