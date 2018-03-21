@@ -14,8 +14,13 @@ Namespace WikiBot
         Function UpdateTopics() As Boolean
             Try
                 Dim topicpage As Page = ESWikiBOT.Getpage(TopicPageName)
-                topicpage.Save(GetTopicsPageText(), "Bot: Actualizando temas", False, True)
-                Return True
+                Dim newtext As String = GetTopicsPageText()
+                If Not newtext.Length = topicpage.Text.Length Then
+                    topicpage.Save(GetTopicsPageText(), "Bot: Actualizando temas", False, True)
+                    Return True
+                Else
+                    Return False
+                End If
             Catch ex As Exception
                 EX_Log(ex.Message, "UpdateTopics", BOTName)
                 Return False
@@ -63,9 +68,9 @@ Namespace WikiBot
             Next
 
             For Each g As String In EndList.Keys 'Por cada grupo en la lista
-                pagetext = pagetext & Environment.NewLine & "== " & g & "==" & Environment.NewLine 'Añadir al texto el título
+                pagetext = pagetext & Environment.NewLine & Environment.NewLine & "== " & g & "==" & Environment.NewLine 'Añadir al texto el título
                 For Each t As String In EndList(g).Keys 'Por cada tema
-                    pagetext = pagetext & Environment.NewLine & "=== " & t & " ===" & Environment.NewLine 'Añadir al texto el título 'Añadir el tema al texto
+                    pagetext = pagetext & Environment.NewLine & "=== " & t & " ===" & Environment.NewLine 'Añadir el tema al texto
                     For Each l As String In EndList(g)(t) 'Por cada linea del tema
                         pagetext = pagetext & Environment.NewLine & l
                     Next

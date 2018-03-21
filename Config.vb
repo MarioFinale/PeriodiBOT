@@ -66,7 +66,7 @@ Module Config
             MainIRCNetwork = Console.ReadLine
             Console.WriteLine("IRC NickName: ")
             IRCBotNickName = Console.ReadLine
-            Console.WriteLine("IRC nickserv/server password (press enter if not password is set): ")
+            Console.WriteLine("IRC nickserv/server password: ")
             IRCBotPassword = Console.ReadLine
             Console.WriteLine("IRC main Channel: ")
             MainIRCChannel = Console.ReadLine
