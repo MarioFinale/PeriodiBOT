@@ -51,7 +51,7 @@ Module Config
 
         If Not ConfigOK Then
             Console.Clear()
-            Console.WriteLine("No config file, please fill the data or close the program and create a config file.")
+            Console.WriteLine("No config file, please fill the data or exit the program and create a mew config file.")
             Console.WriteLine("Bot Name: ")
             MainBotName = Console.ReadLine
             Console.WriteLine("Wikipedia Username: ")
