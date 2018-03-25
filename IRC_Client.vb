@@ -131,7 +131,7 @@ Namespace IRC
                                                IRCResponseTask.Run()
 
                                                If Not _tcpclientConnection.Connected Then
-                                                   Debug_Log("IRC: DISCONNECTED", "IRC", BOTName)
+                                                   Debug_Log("IRC: DISCONNECTED", "IRC", _sNickName)
                                                    Exit While
                                                End If
 
@@ -181,7 +181,7 @@ Namespace IRC
                         _networkStream.Dispose()
                     Catch ex2 As Exception
                         'In case of something really bad happens
-                        Debug_Log("IRC: Error ex2: " + ex2.Message, "IRC", BOTName)
+                        Debug_Log("IRC: Error ex2: " + ex2.Message, "IRC", _sNickName)
                     End Try
 
                 End Try
@@ -246,6 +246,135 @@ Namespace IRC
         End Function
 
 
+        Private OPlist As List(Of String)
+        Sub LoadConfig()
+
+            OPlist = New List(Of String)
+            If System.IO.File.Exists(OpFilePath) Then
+                Log("Loading operators", "LOCAL")
+                Dim opstr As String() = System.IO.File.ReadAllLines(OpFilePath)
+                Try
+                    For Each op As String In opstr
+                        OPlist.Add(op)
+                    Next
+                Catch ex As IndexOutOfRangeException
+                    Log("Malformed OpList", "LOCAL")
+                End Try
+            Else
+                Log("No Ops file", "LOCAL")
+                Try
+                    System.IO.File.Create(OpFilePath).Close()
+                Catch ex As System.IO.IOException
+                    Log("Error creating ops file", "LOCAL")
+                End Try
+
+            End If
+
+            If OPlist.Count = 0 Then
+                Log("Warning: No Ops defined!", "LOCAL")
+                Console.WriteLine("IRC OP (Nickname!hostname): ")
+                Dim MainOp As String = Console.ReadLine
+                Try
+                    System.IO.File.WriteAllText(OpFilePath, MainOp)
+                Catch ex As System.IO.IOException
+                    Log("Error saving ops file", "LOCAL")
+                End Try
+            End If
+
+        End Sub
+
+        ''' <summary>
+        ''' Verifica un mensaje en IRC y si el que lo envió es un operador, añade un operador a la lista.
+        ''' </summary>
+        ''' <param name="message">Línea completa del mensaje</param>
+        ''' <param name="Source">Origen del mensaje</param>
+        ''' <param name="user">Usuario que crea el evento</param>
+        ''' <returns></returns>
+        Function AddOP(ByVal message As String, ByVal Source As String, ByVal user As String) As Boolean
+            Dim CommandParts As String() = message.Split(CType(" ", Char()))
+            Dim Param As String = CommandParts(4)
+            If Not OPlist.Contains(Param) Then
+                If IsOp(message, Source, user) Then
+                    OPlist.Add(Param)
+                    Try
+                        System.IO.File.WriteAllLines(OpFilePath, OPlist.ToArray)
+                        Return True
+                    Catch ex As System.IO.IOException
+                        Log("Error saving ops file", "LOCAL")
+                        Return False
+                    End Try
+                Else
+                    Return False
+                End If
+            Else
+                Return False
+            End If
+
+        End Function
+
+        ''' <summary>
+        ''' Verifica un mensaje en IRC y si el que lo envió es un operador elimina el operador indicado en el mensaje.
+        ''' </summary>
+        ''' <param name="message">Línea completa del mensaje</param>
+        ''' <param name="Source">Origen del mensaje</param>
+        ''' <param name="user">Usuario que crea el evento</param>
+        ''' <returns></returns>
+        Function DelOP(ByVal message As String, ByVal Source As String, ByVal user As String) As Boolean
+            Dim CommandParts As String() = message.Split(CType(" ", Char()))
+            Dim Param As String = CommandParts(4)
+
+            If IsOp(message, Source, user) Then
+
+                If OPlist.Contains(Param) Then
+                    OPlist.Remove(Param)
+                    Try
+                        System.IO.File.WriteAllLines(OpFilePath, OPlist.ToArray)
+                        Return True
+                    Catch ex As System.IO.IOException
+                        Log("Error saving ops file", "LOCAL")
+                        Return False
+                    End Try
+                Else
+                    Return False
+                End If
+            Else
+                Return False
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Verifica un mensaje en IRC y retorna verdadero si el que lo envió es un operador.
+        ''' </summary>
+        ''' <param name="message">Línea completa del mensaje</param>
+        ''' <param name="Source">Origen del mensaje</param>
+        ''' <param name="user">Usuario que crea el evento</param>
+        ''' <returns></returns>
+        Function IsOp(ByVal message As String, Source As String, user As String) As Boolean
+            Try
+                Dim Scommand0 As String = message.Split(CType(" ", Char()))(0)
+                Dim Nickname As String = GetUserFromChatresponse(message)
+                Dim Hostname As String = Scommand0.Split(CType("@", Char()))(1)
+
+                Log(String.Format("Checking if user {0} on host {1} is OP", Nickname, Hostname), Source, user)
+
+                Dim OpString As String = Nickname & "!" & Hostname
+                If OPlist.Contains(OpString) Then
+                    Log(String.Format("User {0} on host {1} is OP", Nickname, Hostname), Source, user)
+                    Return True
+                Else
+                    Log(String.Format("User {0} on host {1} is not OP", Nickname, Hostname), Source, user)
+                    Return False
+                End If
+            Catch ex As IndexOutOfRangeException
+                Log("EX Checking if user is OP : " & ex.Message, Source, user)
+                Return False
+            End Try
+        End Function
+
+
 
     End Class
+
+
+
 End Namespace

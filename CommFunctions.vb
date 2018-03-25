@@ -16,6 +16,19 @@ Public Module CommFunctions
     Public Function Log(ByVal text As String, source As String, user As String) As Boolean
         Return LogC.Log(text, source, user)
     End Function
+
+
+    ''' <summary>
+    ''' Registra un evento normal.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <returns></returns>
+    Public Function Log(ByVal text As String, source As String) As Boolean
+        Return LogC.Log(text, source, BotCodename)
+    End Function
+
+
     ''' <summary>
     ''' Registra un evento de tipo debug.
     ''' </summary>
@@ -26,6 +39,17 @@ Public Module CommFunctions
     Public Function Debug_Log(ByVal text As String, source As String, user As String) As Boolean
         Return LogC.Debug_log(text, source, user)
     End Function
+
+    ''' <summary>
+    ''' Registra un evento de tipo debug.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <returns></returns>
+    Public Function Debug_Log(ByVal text As String, source As String) As Boolean
+        Return LogC.Debug_log(text, source, BotCodename)
+    End Function
+
     ''' <summary>
     ''' Registra una excepción.
     ''' </summary>
@@ -35,6 +59,16 @@ Public Module CommFunctions
     ''' <returns></returns>
     Public Function EX_Log(ByVal text As String, source As String, user As String) As Boolean
         Return LogC.EX_Log(text, source, user)
+    End Function
+
+    ''' <summary>
+    ''' Registra una excepción.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <returns></returns>
+    Public Function EX_Log(ByVal text As String, source As String) As Boolean
+        Return LogC.EX_Log(text, source, BotCodename)
     End Function
 
     ''' <summary>
@@ -154,7 +188,7 @@ Public Module CommFunctions
             Return total
 
         Catch ex As Exception
-            Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "CommFuncs", BOTName)
+            Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "CommFuncs")
             Return 0
         End Try
     End Function
@@ -249,7 +283,7 @@ Public Module CommFunctions
         Try
             Return Process.GetCurrentProcess().Threads.Count
         Catch ex As Exception
-            Debug_Log(ex.Message, "LOCAL", BOTName)
+            Debug_Log(ex.Message, "LOCAL")
             Return 0
         End Try
 
@@ -259,7 +293,7 @@ Public Module CommFunctions
         Try
             Return CLng(Process.GetCurrentProcess().PrivateMemorySize64 / 1024)
         Catch ex As Exception
-            Debug_Log(ex.Message, "LOCAL", BOTName)
+            Debug_Log(ex.Message, "LOCAL")
             Return 0
         End Try
 
@@ -269,7 +303,7 @@ Public Module CommFunctions
         Try
             Return CLng(Process.GetCurrentProcess().WorkingSet64 / 1024)
         Catch ex As Exception
-            Debug_Log(ex.Message, "LOCAL", BOTName)
+            Debug_Log(ex.Message, "LOCAL")
             Return 0
         End Try
 

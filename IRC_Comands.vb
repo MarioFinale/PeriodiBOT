@@ -17,7 +17,7 @@ Namespace IRC
 
             Try
                 If Not imputline = Nothing Then
-                    Dim CommandResponse As New IRCMessage(BOTName, "")
+                    Dim CommandResponse As New IRCMessage(_IrcNickName, "")
                     Dim sCommandParts As String() = imputline.Split(CType(" ", Char()))
                     Dim Prefix As String = sCommandParts(0)
 
@@ -139,7 +139,7 @@ Namespace IRC
                                 End If
 
                             ElseIf MainParam = ("%archiveall") Then 'Archivado de grillitus
-                                If IsOp(imputline, Source, Realname) Then
+                                If Client.IsOp(imputline, Source, Realname) Then
                                     Dim paramarr As String() = param.Split(CType(" ", Char))
                                     If paramarr.Count >= 2 Then
                                         CommandResponse = CommandInfo(Source, MainParam, Realname)
@@ -151,39 +151,39 @@ Namespace IRC
                                 End If
 
                             ElseIf MainParam = ("%join") Then
-                                If IsOp(imputline, Source, Realname) Then
+                                If Client.IsOp(imputline, Source, Realname) Then
                                     Return JoinRoom(Source, Totalparam, Realname)
                                 End If
 
                             ElseIf MainParam = ("%leave") Or MainParam = ("%part") Then
-                                If IsOp(imputline, Source, Realname) Then
+                                If Client.IsOp(imputline, Source, Realname) Then
                                     Return LeaveRoom(Source, Totalparam, Realname)
                                 End If
 
                             ElseIf MainParam = ("%q") Or MainParam = ("%quit") Then
-                                If IsOp(imputline, Source, Realname) Then
+                                If Client.IsOp(imputline, Source, Realname) Then
                                     Return Quit(Source, Realname, HasExited)
                                 End If
 
                             ElseIf MainParam = ("%op") Then
-                                If IsOp(imputline, Source, Realname) Then
+                                If Client.IsOp(imputline, Source, Realname) Then
                                     CommandResponse = SetOp(imputline, Source, Realname)
                                 End If
                             ElseIf MainParam = ("%deop") Then
-                                If IsOp(imputline, Source, Realname) Then
+                                If Client.IsOp(imputline, Source, Realname) Then
                                     CommandResponse = DeOp(imputline, Source, Realname)
                                 End If
 
                             ElseIf MainParam = ("%updateExtracts") Or MainParam = ("%update") Or
                         MainParam = ("%upex") Or MainParam = ("%updex") Then
-                                If IsOp(imputline, Source, Realname) Then
+                                If Client.IsOp(imputline, Source, Realname) Then
                                     Task.Run(Sub()
                                                  UpdatePageExtracts(True)
                                              End Sub)
                                 End If
 
                             ElseIf MainParam = ("%archive") Then
-                                If IsOp(imputline, Source, Realname) Then
+                                If Client.IsOp(imputline, Source, Realname) Then
                                     Dim paramarr As String() = param.Split(CType(" ", Char))
                                     If paramarr.Count >= 2 Then
                                         CommandResponse = ArchivePage(Source, Totalparam, Realname, Client)
@@ -229,7 +229,7 @@ Namespace IRC
             If CountCharacter(param, CChar("!")) = 1 Then
                 Dim requestedop As String = param.Split(CType("!", Char()))(0)
 
-                If AddOP(message, source, realname) Then
+                If Client.AddOP(message, source, realname) Then
                     responsestring = "El usuario " & requestedop & " se añadió como operador"
 
                 Else
@@ -253,7 +253,7 @@ Namespace IRC
             If CountCharacter(param, CChar("!")) = 1 Then
 
                 Dim requestedop As String = param.Split(CType("!", Char()))(0)
-                If DelOP(message, source, realname) Then
+                If Client.DelOP(message, source, realname) Then
                     responsestring = "El usuario " & requestedop & " se ha eliminado como operador"
                 Else
                     responsestring = "El usuario " & requestedop & " no se ha eliminado como operador"
@@ -413,7 +413,7 @@ Namespace IRC
 
         Private Function GetUserTime(ByVal user As String) As String()
             Dim Usertime As String = String.Empty
-            For Each line As String() In UserData
+            For Each line As String() In Userdata
                 If line(0) = user Then
                     Usertime = line(0)
                 End If
@@ -427,7 +427,7 @@ Namespace IRC
 
             If Not PageName = String.Empty Then
                 Dim pretext As String = "Entradilla de " & ColoredText(PageName, "03") & " en Wikipedia: " & _bot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
-                Dim endtext As String = "Enlace al artículo: " & ColoredText(" " & site & "wiki/" & PageName.Replace(" ", "_") & " ", "10")
+                Dim endtext As String = "Enlace al artículo: " & ColoredText(" " & _bot.WikiUrl & "wiki/" & PageName.Replace(" ", "_") & " ", "10")
                 Dim mes As New IRCMessage(source, {pretext, endtext})
                 Return mes
             Else
@@ -439,7 +439,7 @@ Namespace IRC
 
         Private Function LastLogComm(ByVal messageline As String, ByVal source As String, User As String) As IRCMessage
             Dim responsestring As String = String.Empty
-            If IsOp(messageline, source, User) Then
+            If Client.IsOp(messageline, source, User) Then
                 Dim lastlogdata As String() = LastLog("IRC", User)
                 responsestring = String.Format("Ultimo registro de: {3} via {2} a las {0}/ Tipo: {4}/ Accion: {1}", ColoredText(lastlogdata(0), "04"), lastlogdata(1), lastlogdata(2), lastlogdata(3), lastlogdata(4))
             End If
@@ -459,9 +459,9 @@ Namespace IRC
             Dim uptimestr As String = elapsedtime.ToString("d\.hh\:mm")
             Dim responsestring As String
 
-            If IsOp(Message, source, user) Then
+            If Client.IsOp(Message, source, user) Then
                 If GetCurrentThreads() = 0 Then
-                    responsestring = String.Format("{1} Versión: {0} (Uptime: {2}; Bajo {3} (MONO)). Ordenes: %ord", ColoredText(Version, "03"), BOTName, uptimestr, ColoredText(OS, "04"))
+                    responsestring = String.Format("{1} Versión: {0} (Uptime: {2}; Bajo {3} (MONO)). Ordenes: %ord", ColoredText(Version, "03"), _IrcNickName, uptimestr, ColoredText(OS, "04"))
                     Log("IRC: Requested info (%??)", "IRC", user)
                 Else
                     responsestring = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Hilos: {4}; Memoria (en uso): {6}Kb, (Privada): {5}Kb). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, PrivateMemory.ToString, UsedMemory.ToString)
@@ -469,7 +469,7 @@ Namespace IRC
                 End If
 
             Else
-                responsestring = String.Format("{1} Versión: {0}. Ordenes: %ord", ColoredText(Version, "03"), BOTName)
+                responsestring = String.Format("{1} Versión: {0}. Ordenes: %ord", ColoredText(Version, "03"), _IrcNickName)
                 Log("IRC: Requested info (%??)", "IRC", user)
             End If
             Dim mes As New IRCMessage(source, responsestring)
@@ -708,7 +708,7 @@ Namespace IRC
                                            ColoredText(PageName, "03"), ColoredText(pag.Lastuser, "03"), ColoredText(CatString, "06"), ColoredText(pag.PageViews.ToString, "13"),
                                            "Dañina: " & ColoredText(pag.ORESScores(0).ToString, "04") & " Buena fé: " & ColoredText(pag.ORESScores(1).ToString, "03"), ColoredText(pag.Size.ToString, "03"))
 
-                Dim endmessage As String = "Enlace al artículo: " & ColoredText(" " & site & "wiki/" & PageName.Replace(" ", "_") & " ", "10")
+                Dim endmessage As String = "Enlace al artículo: " & ColoredText(" " & _bot.WikiUrl & "wiki/" & PageName.Replace(" ", "_") & " ", "10")
 
                 Dim mes As New IRCMessage(source, {beginmessage, endmessage})
                 Return mes

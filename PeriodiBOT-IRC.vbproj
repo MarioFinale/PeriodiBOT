@@ -6,7 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B5915676-AE07-4379-8F0A-D1DB6C584903}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <StartupObject>Sub Main</StartupObject>
+    <StartupObject>
+    </StartupObject>
     <RootNamespace>PeriodiBOT_IRC</RootNamespace>
     <AssemblyName>PeriodiBOT-IRC</AssemblyName>
     <FileAlignment>512</FileAlignment>
@@ -76,6 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddTopic.vb" />
+    <Compile Include="APIHandler.vb" />
     <Compile Include="Bot.vb" />
     <Compile Include="PeriodiBOT_Tasks.vb" />
     <Compile Include="CommFunctions.vb" />

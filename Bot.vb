@@ -8,11 +8,24 @@ Imports System.Text.RegularExpressions
 Namespace WikiBot
     Public Class Bot
 
-        Private BotCookies As CookieContainer
+
+        Private _botPassword As String
+        Private _botCookies As CookieContainer
         Private _userName As String = String.Empty
-        Private _siteurl As String = String.Empty
-        Private Api As ApiSession
+        Private _apiUrl As String = String.Empty
+        Private _wikiUrl As String = String.Empty
+
+        Private Api As APIHandler
         Private signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4}( \([A-z]{3,4}\))*"
+        Private _localName As String
+
+        Private _ircNickName As String
+        Private _ircChannel As String
+        Private _ircPassword As String
+        Private _ircUrl As String
+
+
+
 #Region "Properties"
         Public ReadOnly Property Bot As Boolean
             Get
@@ -20,9 +33,9 @@ Namespace WikiBot
             End Get
         End Property
 
-        Public ReadOnly Property Siteurl As String
+        Public ReadOnly Property ApiUrl As String
             Get
-                Return _siteurl
+                Return _apiUrl
             End Get
         End Property
 
@@ -31,12 +44,48 @@ Namespace WikiBot
                 Return _userName
             End Get
         End Property
+
+        Public ReadOnly Property LocalName As String
+            Get
+                Return _localName
+            End Get
+        End Property
+
+        Public ReadOnly Property WikiUrl As String
+            Get
+                Return _wikiUrl
+            End Get
+        End Property
+
+        Public ReadOnly Property IrcUrl As String
+            Get
+                Return _ircUrl
+            End Get
+        End Property
+
+        Public ReadOnly Property IrcPassword As String
+            Get
+                Return _ircPassword
+            End Get
+        End Property
+
+        Public ReadOnly Property IrcChannel As String
+            Get
+                Return _ircChannel
+            End Get
+        End Property
+
+        Public ReadOnly Property IrcNickName As String
+            Get
+                Return _ircNickName
+            End Get
+        End Property
+
 #End Region
 
-        Sub New(ByVal botUserName As String, botPassword As String, pageURL As String)
-            Api = New ApiSession(botUserName, botPassword, pageURL)
-            _userName = Api.UserName
-            _siteurl = Api.Siteurl
+        Sub New()
+            LoadConfig()
+            Api = New APIHandler(_userName, _botPassword, _apiUrl)
         End Sub
 
         Function POSTQUERY(ByVal postdata As String) As String
@@ -93,7 +142,7 @@ Namespace WikiBot
         ''' Retorna una pagina aleatoria
         ''' </summary>
         Function GetRandomPage() As String()
-            Log("GetRandomPage: Starting query of random page.", "LOCAL", BOTName)
+            Log("GetRandomPage: Starting query of random page.", "LOCAL")
             Try
                 Dim QueryText As String = String.Empty
                 QueryText = GETQUERY("action=query&format=json&list=random&rnnamespace=0&rnlimit=10")
@@ -101,13 +150,13 @@ Namespace WikiBot
                 Dim plist As New List(Of String)
 
                 For Each s As String In TextInBetween(QueryText, """title"":""", """}")
-                    Log("GetRandomPage: Found """ & s & """.", "LOCAL", BOTName)
+                    Log("GetRandomPage: Found """ & s & """.", "LOCAL")
                     plist.Add(NormalizeUnicodetext(s))
                 Next
-                Log("GetRandomPage: Ended.", "LOCAL", BOTName)
+                Log("GetRandomPage: Ended.", "LOCAL")
                 Return plist.ToArray
             Catch ex As Exception
-                Debug_Log("GetRandomPage: ex message: " & ex.Message, "LOCAL", BOTName)
+                Debug_Log("GetRandomPage: ex message: " & ex.Message, "LOCAL")
                 Return {""}
             End Try
         End Function
@@ -119,7 +168,7 @@ Namespace WikiBot
         ''' <param name="pageNames">Array con nombres de paginas unicos.</param>
         ''' <remarks></remarks>
         Function GetLastRevIds(ByVal pageNames As String()) As SortedList(Of String, Integer)
-            Debug_Log("GetLastRevIDs: Get Wikipedia last RevisionID of """ & pageNames.Count.ToString & """ pages.", "LOCAL", BOTName)
+            Debug_Log("GetLastRevIDs: Get Wikipedia last RevisionID of """ & pageNames.Count.ToString & """ pages.", "LOCAL")
             Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
             Dim PageList As List(Of List(Of String)) = SplitStringArrayIntoChunks(PageNamesList.ToArray, 50)
@@ -166,7 +215,7 @@ Namespace WikiBot
                     End If
                 Next
             Next
-            Debug_Log("GetLastRevIDs: Done """ & PagenameAndLastId.Count.ToString & """ pages returned.", "LOCAL", BOTName)
+            Debug_Log("GetLastRevIDs: Done """ & PagenameAndLastId.Count.ToString & """ pages returned.", "LOCAL")
             Return PagenameAndLastId
         End Function
 
@@ -214,33 +263,33 @@ Namespace WikiBot
 
                         If m.Value.Contains("error") Then
 
-                            Debug_Log("GetORESScore: Server error in query of ORES score from revid " & EditID_str & " (invalid diff?)", "LOCAL", BOTName)
+                            Debug_Log("GetORESScore: Server error in query of ORES score from revid " & EditID_str & " (invalid diff?)", "LOCAL")
                             EditAndScoreList.Add(EditID, {0, 0})
                         Else
                             Try
                                 Dim DMGScore_str As String = TextInBetween(TextInBetweenInclusive(s, "{""damaging"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
                                 Dim GoodFaithScore_str As String = TextInBetween(TextInBetweenInclusive(s, """goodfaith"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
 
-                                Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, "LOCAL", BOTName)
+                                Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, "LOCAL")
 
                                 Dim DMGScore As Double = Double.Parse(DMGScore_str) * 100
                                 Dim GoodFaithScore As Double = Double.Parse(GoodFaithScore_str) * 100
 
-                                Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, "LOCAL", BOTName)
+                                Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, "LOCAL")
 
                                 EditAndScoreList.Add(EditID, {DMGScore, GoodFaithScore})
                             Catch ex As IndexOutOfRangeException
-                                Debug_Log("GetORESScore: IndexOutOfRange EX in ORES score from revid " & EditID_str & " EX: " & ex.Message, "LOCAL", BOTName)
+                                Debug_Log("GetORESScore: IndexOutOfRange EX in ORES score from revid " & EditID_str & " EX: " & ex.Message, "LOCAL")
                                 EditAndScoreList.Add(EditID, {0, 0})
                             Catch ex2 As Exception
-                                Debug_Log("GetORESScore: EX in ORES score from revid " & EditID_str & " EX: " & ex2.Message, "LOCAL", BOTName)
+                                Debug_Log("GetORESScore: EX in ORES score from revid " & EditID_str & " EX: " & ex2.Message, "LOCAL")
                                 EditAndScoreList.Add(EditID, {0, 0})
                             End Try
                         End If
 
                     Next
                 Catch ex As Exception
-                    Debug_Log("GetORESScore: EX obttaining ORES scores EX: " & ex.Message, "LOCAL", BOTName)
+                    Debug_Log("GetORESScore: EX obttaining ORES scores EX: " & ex.Message, "LOCAL")
                 End Try
             Next
 
@@ -379,7 +428,7 @@ Namespace WikiBot
         ''' <param name="pageNames">Array con nombres de página unicos.</param>
         ''' <remarks></remarks>
         Private Function BOTGetPagesExtract(ByVal pageNames As String(), charLimit As Integer, wiki As Boolean) As SortedList(Of String, String)
-            Log("Get Wikipedia page extracts on chunks", "LOCAL", BOTName)
+            Log("Get Wikipedia page extracts on chunks", "LOCAL")
             Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
 
@@ -493,7 +542,7 @@ Namespace WikiBot
                     Next
                 Next
             Catch ex As Exception
-                Debug_Log("BOTGetPagesExtract EX: " & ex.Message, "LOCAL", BOTName)
+                Debug_Log("BOTGetPagesExtract EX: " & ex.Message, "LOCAL")
             End Try
             Return PagenameAndResume
         End Function
@@ -677,7 +726,7 @@ Namespace WikiBot
             End If
 
             Dim TheDate As DateTime = ESWikiDatetime(lastparagraph)
-            Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL", BOTName)
+            Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL")
             Return TheDate
         End Function
 
@@ -691,7 +740,7 @@ Namespace WikiBot
             Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
             If matchc.Count = 0 Then
-                EX_Log("No date match", "ESWikiDateTime", BOTName)
+                EX_Log("No date match", "ESWikiDateTime")
                 Return DateTime.Parse("23:59 31/12/9999")
             End If
 
@@ -715,9 +764,9 @@ Namespace WikiBot
 
                     Dim dat As New DateTime(dates(4), dates(3), dates(2), dates(0), dates(1), 0)
                     TheDate = dat
-                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL", BOTName)
+                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
                 Catch ex As System.FormatException
-                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions", BOTName)
+                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
                 End Try
 
             Next
@@ -736,7 +785,7 @@ Namespace WikiBot
             For Each m As Match In Regex.Matches(text, signpattern)
                 Dim TheDate As DateTime = ESWikiDatetime(m.Value)
                 Datelist.Add(TheDate)
-                Log("AllDateTimes: Adding " & TheDate.ToString, "LOCAL", BOTName)
+                Log("AllDateTimes: Adding " & TheDate.ToString, "LOCAL")
             Next
             Return Datelist.ToArray
         End Function
@@ -751,7 +800,7 @@ Namespace WikiBot
             Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
             If matchc.Count = 0 Then
-                EX_Log("No date match", "ESWikiDateTime", BOTName)
+                EX_Log("No date match", "ESWikiDateTime")
                 Return DateTime.Parse("23:59 31/12/9999")
             End If
 
@@ -774,9 +823,9 @@ Namespace WikiBot
                     Next
                     Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
                     dates.Add(dat)
-                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL", BOTName)
+                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
                 Catch ex As System.FormatException
-                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions", BOTName)
+                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
                 End Try
 
             Next
@@ -796,7 +845,7 @@ Namespace WikiBot
             Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
             If matchc.Count = 0 Then
-                EX_Log("No date match", "ESWikiDateTime", BOTName)
+                EX_Log("No date match", "ESWikiDateTime")
                 Return New DateTime(9999, 12, 31, 23, 59, 59)
             End If
 
@@ -819,9 +868,9 @@ Namespace WikiBot
                     Next
                     Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
                     dates.Add(dat)
-                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL", BOTName)
+                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
                 Catch ex As System.FormatException
-                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions", BOTName)
+                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
                 End Try
 
             Next
@@ -839,9 +888,6 @@ Namespace WikiBot
             Dim ArchiveFcn As New GrillitusArchive(Me)
             Return ArchiveFcn.Archive(pageToArchive)
         End Function
-
-
-
 
         ''' <summary>
         ''' Retorna un array de tipo string con todas las páginas donde el nombre de la página indicada es llamada (no confundir con "lo que enlaza aquí").
@@ -892,293 +938,116 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="pageName">Nombre exacto de la página</param>
         Function Getpage(ByVal pageName As String) As Page
-            Return New Page(pageName, _siteurl, Me, _userName)
+            Return New Page(pageName, Me)
         End Function
 
 
-    End Class
+#Region "Config"
+
+        ''' <summary>
+        ''' Inicializa las configuraciones genereales del programa desde el archivo de configuración.
+        ''' Si no existe el archivo, solicita datos al usuario y lo genera.
+        ''' </summary>
+        ''' <returns></returns>
+        Function LoadConfig() As Boolean
+            Dim MainBotName As String = String.Empty
+            Dim WPSite As String = String.Empty
+            Dim WPAPI As String = String.Empty
+            Dim WPBotUserName As String = String.Empty
+            Dim WPBotPassword As String = String.Empty
+            Dim IRCBotNickName As String = String.Empty
+            Dim IRCBotPassword As String = String.Empty
+            Dim MainIRCNetwork As String = String.Empty
+            Dim MainIRCChannel As String = String.Empty
+            Dim ConfigOK As Boolean = False
+            Console.WriteLine("==================== PeriodiBOT " & Version & " ====================")
+            Debug_Log("PeriodiBOT " & Version, "LOCAL", "Undefined")
+            If System.IO.File.Exists(ConfigFilePath) Then
+                Log("Loading config", "LOCAL", "Undefined")
+                Dim Configstr As String = System.IO.File.ReadAllText(ConfigFilePath)
+                Try
+                    MainBotName = TextInBetween(Configstr, "BOTName=""", """")(0)
+                    WPBotUserName = TextInBetween(Configstr, "WPUserName=""", """")(0)
+                    WPSite = TextInBetween(Configstr, "PageURL=""", """")(0)
+                    WPBotPassword = TextInBetween(Configstr, "WPBotPassword=""", """")(0)
+                    WPAPI = TextInBetween(Configstr, "ApiURL=""", """")(0)
+                    MainIRCNetwork = TextInBetween(Configstr, "IRCNetwork=""", """")(0)
+                    IRCBotNickName = TextInBetween(Configstr, "IRCBotNickName=""", """")(0)
+                    IRCBotPassword = TextInBetween(Configstr, "IRCBotPassword=""", """")(0)
+                    MainIRCChannel = TextInBetween(Configstr, "IRCChannel=""", """")(0)
+                    ConfigOK = True
+                Catch ex As IndexOutOfRangeException
+                    Log("Malformed config", "LOCAL", "Undefined")
+                End Try
+            Else
+                Log("No config file", "LOCAL", "Undefined")
+                Try
+                    System.IO.File.Create(ConfigFilePath).Close()
+                Catch ex As System.IO.IOException
+                    Log("Error creating new config file", "LOCAL", "Undefined")
+                End Try
+
+            End If
+
+            If Not ConfigOK Then
+                Console.Clear()
+                Console.WriteLine("No config file, please fill the data or exit the program and create a mew config file.")
+                Console.WriteLine("Bot Name: ")
+                MainBotName = Console.ReadLine
+                Console.WriteLine("Wikipedia Username: ")
+                WPBotUserName = Console.ReadLine
+                Console.WriteLine("Wikipedia bot password: ")
+                WPBotPassword = Console.ReadLine
+                Console.WriteLine("Wikipedia main URL: ")
+                WPSite = Console.ReadLine
+                Console.WriteLine("Wikipedia API URL: ")
+                WPAPI = Console.ReadLine
+                Console.WriteLine("IRC Network: ")
+                MainIRCNetwork = Console.ReadLine
+                Console.WriteLine("IRC NickName: ")
+                IRCBotNickName = Console.ReadLine
+                Console.WriteLine("IRC nickserv/server password: ")
+                IRCBotPassword = Console.ReadLine
+                Console.WriteLine("IRC main Channel: ")
+                MainIRCChannel = Console.ReadLine
+
+                Dim configstr As String = String.Format("======================CONFIG======================
+BOTName=""{0}""
+WPUserName=""{1}""
+WPBotPassword=""{2}""
+PageURL=""{3}""
+ApiURL=""{4}""
+IRCNetwork=""{5}""
+IRCBotNickName=""{6}""
+IRCBotPassword=""{7}""
+IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, MainIRCChannel)
+
+                Try
+                    System.IO.File.WriteAllText(ConfigFilePath, configstr)
+                Catch ex As System.IO.IOException
+                    Log("Error saving config file", "LOCAL", "Undefined")
+                End Try
+
+            End If
+
+            _localName = MainBotName
+            _userName = WPBotUserName
+            _botPassword = WPBotPassword
+            _apiUrl = WPAPI
+            _wikiUrl = WPSite
 
 
+            _ircUrl = MainIRCNetwork
+            _ircChannel = MainIRCChannel
+            _ircNickName = IRCBotNickName
+            _ircPassword = IRCBotPassword
+            Return True
+        End Function
 
-
-
-
-
-
-    Class ApiSession
-
-        Private ApiCookies As CookieContainer
-        Private _userName As String = String.Empty
-
-        Private _botusername As String = String.Empty
-        Private _botpass As String = String.Empty
-        Private _siteurl As String = String.Empty
-        Private UserAgent As String = BOTName & " (http://es.wikipedia.org/wiki/Usuario_discusión:MarioFinale)"
-
-#Region "Properties"
-        Public ReadOnly Property UserName As String
-            Get
-                Return _userName
-            End Get
-        End Property
-
-        Public ReadOnly Property Siteurl As String
-            Get
-                Return _siteurl
-            End Get
-        End Property
 #End Region
 
-        ''' <summary>
-        ''' Inicializa una nueva instancia del BOT.
-        ''' </summary>
-        ''' <param name="BotUsername">Nombre de usuario del bot</param>
-        ''' <param name="BotPassword">Contraseña del bot (solo botpassword), más información ver https://www.mediawiki.org/wiki/Manual:Bot_passwords </param>
-        ''' <param name="PageURL">Nombre exacto de la página</param>
-        Sub New(ByVal botUserName As String, botPassword As String, pageURL As String)
-            If String.IsNullOrWhiteSpace(botUserName) Then
-                Throw New ArgumentException("No username")
-            End If
-            If String.IsNullOrWhiteSpace(botPassword) Then
-                Throw New ArgumentException("No BotPassword")
-            End If
-            If String.IsNullOrWhiteSpace(pageURL) Then
-                Throw New ArgumentException("No PageURL")
-            End If
-            _botusername = botUserName
-            _botpass = botPassword
-            _siteurl = pageURL
-            ApiCookies = New CookieContainer
-            LogOn()
-            _userName = botUserName.Split("@"c)(0).Trim()
-        End Sub
-
-        ''' <summary>
-        ''' Obtiene un Token y cookies de ingreso, establece las cookies de la clase y retorna el token como string.
-        ''' </summary>
-        Private Function GetWikiToken() As String
-            Log("Obtaining token...", "LOCAL", BOTName)
-            Dim postdata As String = "action=query&meta=tokens&type=login&format=json"
-            Dim postresponse As String = PostDataAndGetResult(_siteurl, postdata, True, ApiCookies)
-            Dim token As String = TextInBetween(postresponse, """logintoken"":""", """}}}")(0).Replace("\\", "\")
-            Log("Token obtained!", "LOCAL", BOTName)
-            Return token
-        End Function
-
-        ''' <summary>
-        ''' Luego de obtener un Token y cookies de ingreso, envía estos al servidor para loguear y guarda las cookies de sesión.
-        ''' </summary>
-        Public Function LogOn() As String
-            Log("Signing in...", "LOCAL", BOTName)
-            Dim token As String = String.Empty
-            Dim url As String = _siteurl
-            Dim postdata As String = String.Empty
-            Dim postresponse As String = String.Empty
-            Dim lresult As String = String.Empty
-            Dim exitloop As Boolean = False
-
-            Do Until exitloop
-                Try
-                    token = GetWikiToken()
-                    postdata = "action=login&format=json&lgname=" & _botusername & "&lgpassword=" & _botpass & "&lgdomain=" & "&lgtoken=" & UrlWebEncode(token)
-                    postresponse = PostDataAndGetResult(url, postdata, True, ApiCookies)
-                    lresult = TextInBetween(postresponse, "{""result"":""", """,")(0)
-                    Log("Login result: " & lresult, "LOCAL", BOTName)
-                    Dim lUserID As String = TextInBetween(postresponse, """lguserid"":", ",")(0)
-                    Log("UserID: " & lUserID, "LOCAL", BOTName)
-                    Dim lUsername As String = TextInBetween(postresponse, """lgusername"":""", """}")(0)
-                    Log("Username: " & lUsername, "LOCAL", BOTName)
-                    Return lresult
-                Catch ex As IndexOutOfRangeException
-                    Log("Logon error", "LOCAL", BOTName)
-                    If lresult.ToLower = "failed" Then
-                        Dim reason As String = TextInBetween(postresponse, """reason"":""", """")(0)
-                        Console.WriteLine(Environment.NewLine & Environment.NewLine)
-                        Console.WriteLine("Login Failed")
-                        Console.WriteLine("Reason: " & reason)
-                        Console.WriteLine(Environment.NewLine & Environment.NewLine)
-                        Console.Write("Press any key to exit...")
-                        Console.ReadKey()
-                        ExitProgram()
-                        Return lresult
-                    End If
-                    Return lresult
-                Catch ex2 As System.Net.WebException
-                    Log("Network error", "LOCAL", BOTName)
-                    Console.WriteLine(Environment.NewLine & Environment.NewLine)
-                    Dim reason As String = ex2.Message
-                    Console.WriteLine("Login Failed (Network error)")
-                    Console.WriteLine(reason)
-                    Console.WriteLine(Environment.NewLine & Environment.NewLine)
-                Catch ex3 As Exception
-                    Log("Logon error", "LOCAL", BOTName)
-                    Debug_Log("Logon error: " & ex3.Message, "LOCAL", BOTName)
-                    Console.WriteLine(Environment.NewLine & Environment.NewLine)
-                    Dim reason As String = ex3.Message
-                    Console.WriteLine("Login Failed")
-                    Console.WriteLine("Reason: " & reason)
-                    Console.WriteLine(Environment.NewLine & Environment.NewLine)
-                End Try
-                exitloop = PressKeyTimeout()
-            Loop
-            ExitProgram()
-            Return lresult
-        End Function
-
-        Public Function POSTQUERY(ByVal postdata As String) As String
-            Dim postresponse As String = PostDataAndGetResult(_siteurl, postdata, True, ApiCookies)
-            Return postresponse
-        End Function
-
-        Public Function GETQUERY(ByVal getdata As String) As String
-            Dim getresponse As String = GetDataAndResult(_siteurl & "?" & getdata, True, ApiCookies)
-            Return getresponse
-        End Function
-
-        Public Overloads Function [GET](ByVal urlstring As String) As String
-            If String.IsNullOrWhiteSpace(urlstring) Then
-                Return String.Empty
-            End If
-            Dim getresponse As String = GetDataAndResult(urlstring, True, ApiCookies)
-            Return getresponse
-        End Function
-
-        Public Overloads Function [GET](ByVal url As Uri) As String
-            If String.IsNullOrWhiteSpace(url.ToString) Then
-                Return String.Empty
-            End If
-            Dim getresponse As String = GetDataAndResult(url.ToString, True, ApiCookies)
-            Return getresponse
-        End Function
-
-        Public Overloads Function POST(ByVal urlstring As String, ByVal postdata As String) As String
-            If String.IsNullOrWhiteSpace(urlstring) Then
-                Return String.Empty
-            End If
-            If String.IsNullOrWhiteSpace(postdata) Then
-                Return String.Empty
-            End If
-            Dim postresponse As String = PostDataAndGetResult(urlstring, postdata, True, ApiCookies)
-            Return postresponse
-        End Function
-
-        Public Overloads Function POST(ByVal url As Uri, ByVal postdata As String) As String
-            If String.IsNullOrWhiteSpace(url.ToString) Then
-                Return String.Empty
-            End If
-            If String.IsNullOrWhiteSpace(postdata) Then
-                Return String.Empty
-            End If
-            Dim postresponse As String = PostDataAndGetResult(url, postdata, True, ApiCookies)
-            Return postresponse
-        End Function
-
-        ''' <summary>
-        ''' Limpia todas las cookies, retorna "true" si finaliza correctamente.
-        ''' </summary>
-        Public Function CleanCookies() As Boolean
-            Try
-                ApiCookies = New CookieContainer
-                Return True
-            Catch ex As Exception
-                Return False
-            End Try
-        End Function
-
-        ''' <summary>Realiza una solicitud de tipo GET a un recurso web y retorna el texto.</summary>
-        ''' <param name="pageURL">URL absoluta del recurso web.</param>
-        ''' <param name="getCookies">Si es "true" establece los cookies en la variable local "cookies" (como cookiecontainer) </param>
-        Public Function GetDataAndResult(ByVal pageURL As String, getCookies As Boolean, Optional ByRef Cookies As CookieContainer = Nothing) As String
-            Dim tryCount As Integer = 0
-
-            Do Until tryCount = MaxRetry
-                Try
-                    If Cookies Is Nothing Then
-                        Cookies = New CookieContainer
-                    End If
-                    Dim tempcookies As CookieContainer = Cookies
-                    Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageURL), HttpWebRequest)
-                    postreq.Method = "GET"
-                    postreq.KeepAlive = True
-                    postreq.Timeout = 60000
-                    postreq.CookieContainer = tempcookies
-                    postreq.UserAgent = UserAgent
-                    postreq.ContentType = "application/x-www-form-urlencoded"
-                    Dim postresponse As HttpWebResponse
-                    postresponse = DirectCast(postreq.GetResponse, HttpWebResponse)
-                    tempcookies.Add(postresponse.Cookies)
-                    If getCookies Then
-                        Cookies = tempcookies
-                    End If
-                    Dim postreqreader As New StreamReader(postresponse.GetResponseStream())
-                    Return postreqreader.ReadToEnd
-                Catch ex As ProtocolViolationException 'Catch para los headers erróneos que a veces entrega la API de MediaWiki
-                    EX_Log(ex.Message, ex.TargetSite.Name, BOTName)
-                    Debug_Log("EX STACK TRACE: " & ex.StackTrace, ex.Source, BOTName)
-                    tryCount += 1
-                End Try
-            Loop
-            Throw New MaxRetriesExceededExeption
-        End Function
-
-        ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>
-        ''' <param name="pageURI">URI absoluta del recurso web.</param>
-        ''' <param name="postData">Cadena de texto que se envia en el POST.</param>
-        ''' <param name="getCookies">Si es "true" establece los cookies en la variable local "cookies" (como cookiecontainer) </param>
-        Public Function PostDataAndGetResult(pageURI As Uri, postData As String, getCookies As Boolean, Optional ByRef Cookies As CookieContainer = Nothing) As String
-            Return PostDataAndGetResult(pageURI.ToString, postData, getCookies, Cookies)
-        End Function
-
-        ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>
-        ''' <param name="pageURL">URL absoluta del recurso web.</param>
-        ''' <param name="postData">Cadena de texto que se envia en el POST.</param>
-        ''' <param name="getCookies">Si es "true" establece los cookies en la variable local "cookies" (como cookiecontainer) </param>
-        Public Function PostDataAndGetResult(pageURL As String, postData As String, getCookies As Boolean, Optional ByRef Cookies As CookieContainer = Nothing) As String
-
-            If String.IsNullOrEmpty(pageURL) Then
-                Throw New ArgumentNullException("pageURL", "No URL specified.")
-            End If
-
-            If Cookies Is Nothing Then
-                Cookies = New CookieContainer
-            End If
-
-            Dim tempcookies As CookieContainer = Cookies
-
-            Dim encoding As New UTF8Encoding
-            Dim byteData As Byte() = encoding.GetBytes(postData)
-            Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageURL), HttpWebRequest)
-
-            postreq.Method = "POST"
-            postreq.KeepAlive = True
-            postreq.CookieContainer = tempcookies
-            postreq.UserAgent = UserAgent
-            postreq.ContentType = "application/x-www-form-urlencoded"
-            postreq.ContentLength = byteData.Length
-
-            Dim postreqstream As Stream = postreq.GetRequestStream()
-            postreqstream.Write(byteData, 0, byteData.Length)
-            postreqstream.Close()
-
-            Dim postresponse As HttpWebResponse
-            postresponse = DirectCast(postreq.GetResponse, HttpWebResponse)
-            tempcookies.Add(postresponse.Cookies)
-            If getCookies Then
-                Cookies = tempcookies
-            End If
-            Dim postreqreader As New StreamReader(postresponse.GetResponseStream())
-            Return postreqreader.ReadToEnd
-
-
-        End Function
-
-
 
     End Class
-
-
-
-
 
 
 End Namespace

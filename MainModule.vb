@@ -10,10 +10,10 @@ Module MainModule
 
     Sub Main()
         Uptime = DateTime.Now
-        LoadConfig()
-        Log("Starting...", "LOCAL", BOTName)
-        ESWikiBOT = New Bot(WPUserName, BOTPassword, ApiURL)
-        BotIRC = New IRC_Client(IRCNetwork, IRCChannel, BOTIRCName, 6667, False, IRCPassword)
+        Log("Starting...", "LOCAL")
+        ESWikiBOT = New Bot()
+
+        BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword)
         BotIRC.Start()
 
         'Tarea para avisar inactividad de usuario en IRC
@@ -24,7 +24,7 @@ Module MainModule
         'Tarea para actualizar el café temático
         Dim TopicFunc As New Func(Of IRCMessage())(Function()
                                                        UpdateTopics()
-                                                       Return {New IRCMessage(IRCChannel, ColoredText("¡Temas actualizados!", "04"))}
+                                                       Return {New IRCMessage(ESWikiBOT.IrcNickName, ColoredText("¡Temas actualizados!", "04"))}
                                                    End Function)
         Dim TopicTask As New IRCTask(BotIRC, 21600000, True, TopicFunc, "TopicUpdate")
         TopicTask.Run()
@@ -32,7 +32,7 @@ Module MainModule
         'Tarea para actualizar extractos
         Dim UpdateExtractFunc As New Func(Of IRCMessage())(Function()
                                                                UpdatePageExtracts(True)
-                                                               Return {New IRCMessage(BOTName, " ")}
+                                                               Return {New IRCMessage(ESWikiBOT.IrcNickName, " ")}
                                                            End Function)
         Dim UpdateExtractTask As New IRCTask(BotIRC, 3600000, True, UpdateExtractFunc, "UpdateExtracts")
         UpdateExtractTask.Run()
@@ -40,7 +40,7 @@ Module MainModule
         'Tarea para archivar todo
         Dim ArchiveAllFunc As New Func(Of IRCMessage())(Function()
                                                             ArchiveAllInclusions(True)
-                                                            Return {New IRCMessage(BOTName, " ")}
+                                                            Return {New IRCMessage(ESWikiBOT.IrcNickName, " ")}
                                                         End Function)
         Dim ArchiveAllTask As New IRCTask(BotIRC, 86400000, True, ArchiveAllFunc, "ArchiveAll")
         ArchiveAllTask.Run()

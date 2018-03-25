@@ -4,16 +4,7 @@ Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.IRC
 Module GlobalVars
 
-
-    Public BOTName As String
-    Public WPUserName As String
-    Public BOTPassword As String
-    Public site As String
-    Public ApiURL As String
-    Public IRCNetwork As String
-    Public BOTIRCName As String
-    Public IRCPassword As String
-    Public IRCChannel As String
+    Public Const BotCodename As String = "PeriodiBOT"
     Public Exepath As String = AppDomain.CurrentDomain.BaseDirectory
 
     ''' <summary>
