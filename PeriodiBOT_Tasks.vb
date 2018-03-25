@@ -2,23 +2,25 @@
 Option Explicit On
 Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.IRC
+Imports PeriodiBOT_IRC.CommFunctions
+
 Public Module PeriodiBOT_Tasks
     ''' <summary>
     ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
     ''' </summary>
     ''' <returns></returns>
     Function CheckUsers() As IRCMessage()
-        Log("CheckUsers: Checking users", "LOCAL")
+        EventLogger.Log("CheckUsers: Checking users", "LOCAL")
         Dim Messages As New List(Of IRCMessage)
         Try
-            For Each UserdataLine As String() In Userdata
+            For Each UserdataLine As String() In EventLogger.LogUserData
                 Dim username As String = UserdataLine(1)
                 Dim OP As String = UserdataLine(0)
                 Dim UserDate As String = UserdataLine(2)
                 Dim User As New WikiUser(ESWikiBOT, username)
                 Dim LastEdit As DateTime = User.LastEdit
                 If Not User.Exists Then
-                    Log("CheckUsers: The user " & username & " has not edited on this wiki", "IRC")
+                    EventLogger.Log("CheckUsers: The user " & username & " has not edited on this wiki", "IRC")
                     Continue For
                 End If
 
@@ -68,7 +70,7 @@ Public Module PeriodiBOT_Tasks
                 End If
             Next
         Catch ex As System.ObjectDisposedException
-            Debug_Log("CheckUsers EX: " & ex.Message, "IRC")
+            EventLogger.Debug_Log("CheckUsers EX: " & ex.Message, "IRC")
         End Try
 
 
@@ -165,22 +167,22 @@ Public Module PeriodiBOT_Tasks
             BotIRC.Sendmessage(ColoredText("Actualizando extractos.", "04"))
         End If
 
-        Log("UpdatePageExtracts: Beginning update of page extracts", "LOCAL")
-        Debug_Log("UpdatePageExtracts: Declaring Variables", "LOCAL")
+        EventLogger.Log("UpdatePageExtracts: Beginning update of page extracts", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Declaring Variables", "LOCAL")
         Dim NewResumes As New SortedList(Of String, String)
         Dim OldResumes As New SortedList(Of String, String)
         Dim FinalList As New List(Of String)
 
 
-        Debug_Log("UpdatePageExtracts: Loading resume page", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Loading resume page", "LOCAL")
         Dim ResumePage As Page = _bot.Getpage(ResumePageName)
 
         Dim ResumePageText As String = ResumePage.Text
-        Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL")
 
 
         Dim NewResumePageText As String = "{{#switch:{{{1}}}|" & Environment.NewLine
-        Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL")
 
         Dim Extracttext As String = String.Empty
         Dim ExtractImage As String = String.Empty
@@ -188,7 +190,7 @@ Public Module PeriodiBOT_Tasks
         Dim NotSafepages As Integer = 0
         Dim NewPages As Integer = 0
         Dim NotSafePagesAdded As Integer = 0
-        Debug_Log("UpdatePageExtracts: Match list to ListOf", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Match list to ListOf", "LOCAL")
         Dim p As New List(Of String)
 
         p.AddRange(GetTitlesOfTemplate(ResumePageText))
@@ -200,27 +202,23 @@ Public Module PeriodiBOT_Tasks
             End If
         Next
 
-        Debug_Log("UpdatePageExtracts: Sort of ListOf", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Sort of ListOf", "LOCAL")
         p.Sort()
-        Debug_Log("UpdatePageExtracts: Creating new ResumePageText", "LOCAL")
-
-
-        Debug_Log("UpdatePageExtracts: Adding IDS to IDLIST", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Adding IDS to IDLIST", "LOCAL")
         Dim IDLIST As SortedList(Of String, Integer) = _bot.GetLastRevIds(p.ToArray)
-
-        Debug_Log("UpdatePageExtracts: Adding Old resumes to list", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Adding Old resumes to list", "LOCAL")
         For Each s As String In p.ToArray
             ' Adding Old resumes to list
             Try
                 Dim cont As String = TextInBetween(ResumePageText, "|" & s & "=", "Leer más...]]'''|")(0)
                 OldResumes.Add(s, ("|" & s & "=" & cont & "Leer más...]]'''|" & Environment.NewLine))
             Catch ex As IndexOutOfRangeException
-                Debug_Log("UpdatePageExtracts: No old resume of " & s, "LOCAL")
+                EventLogger.Debug_Log("UpdatePageExtracts: No old resume of " & s, "LOCAL")
             End Try
 
         Next
 
-        Debug_Log("UpdatePageExtracts: Adding New resumes to list", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Adding New resumes to list", "LOCAL")
 
         '============================================================================================
         ' Adding New resumes to list
@@ -245,12 +243,12 @@ Public Module PeriodiBOT_Tasks
 
         '===========================================================================================
 
-        Debug_Log("UpdatePageExtracts: getting ORES of IDS", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: getting ORES of IDS", "LOCAL")
         Dim EditScoreList As SortedList(Of Integer, Double()) = _bot.GetORESScores(IDLIST.Values.ToArray)
 
         '==========================================================================================
         'Choose between a old resume and a new resume depending if new resume is safe to use
-        Debug_Log("UpdatePageExtracts: Recreating text", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Recreating text", "LOCAL")
         For Each s As String In p.ToArray
             Try
                 If (EditScoreList(IDLIST(s))(0) > 20) And
@@ -277,10 +275,9 @@ Public Module PeriodiBOT_Tasks
         Next
         '==========================================================================================
 
-        Debug_Log("UpdatePageExtracts: Concatenating text", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Concatenating text", "LOCAL")
         NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & "<!-- MARK -->" & Environment.NewLine & "|}}"
-
-        Debug_Log("UpdatePageExtracts: Done, trying to save", "LOCAL")
+        EventLogger.Debug_Log("UpdatePageExtracts: Done, trying to save", "LOCAL")
 
         Try
             If NotSafepages = 0 Then
@@ -309,7 +306,7 @@ Public Module PeriodiBOT_Tasks
 
             End If
 
-            Log("UpdatePageExtracts: Update of page extracts completed successfully", "LOCAL")
+            EventLogger.Log("UpdatePageExtracts: Update of page extracts completed successfully", "LOCAL")
             If irc Then
                 BotIRC.Sendmessage(ColoredText("¡Extractos actualizados!", "04"))
             End If
@@ -317,8 +314,8 @@ Public Module PeriodiBOT_Tasks
             Return True
 
         Catch ex As Exception
-            Log("UpdatePageExtracts: Error updating page extracts", "LOCAL")
-            Debug_Log(ex.Message, "LOCAL")
+            EventLogger.Log("UpdatePageExtracts: Error updating page extracts", "LOCAL")
+            EventLogger.Debug_Log(ex.Message, "LOCAL")
             BotIRC.Sendmessage(ColoredText("Error al actualizar los extractos, ver LOG.", "04"))
             Return False
         End Try

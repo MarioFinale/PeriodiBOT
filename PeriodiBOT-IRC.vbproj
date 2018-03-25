@@ -81,7 +81,6 @@
     <Compile Include="Bot.vb" />
     <Compile Include="PeriodiBOT_Tasks.vb" />
     <Compile Include="CommFunctions.vb" />
-    <Compile Include="Config.vb" />
     <Compile Include="GlobalVars.vb" />
     <Compile Include="GrillitusArchive.vb" />
     <Compile Include="IRCMessage.vb" />
@@ -107,7 +106,6 @@
     </Compile>
     <Compile Include="Page.vb" />
     <Compile Include="Template.vb" />
-    <Compile Include="TextFunctions.vb" />
     <Compile Include="WikiUser.vb" />
   </ItemGroup>
   <ItemGroup>

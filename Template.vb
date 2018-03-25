@@ -1,10 +1,10 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Text.RegularExpressions
+Imports PeriodiBOT_IRC.CommFunctions
 Namespace WikiBot
+
     Public Class Template
-
-
         Private _name As String
         Private _parameters As List(Of Tuple(Of String, String))
         Private _text As String

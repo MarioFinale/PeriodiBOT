@@ -1,19 +1,17 @@
 ﻿Option Strict On
 Option Explicit On
-Imports System.IO
+
 Imports System.Net
-Imports System.Text
 Imports System.Text.RegularExpressions
+Imports PeriodiBOT_IRC.CommFunctions
 
 Namespace WikiBot
     Public Class Bot
-
-
         Private _botPassword As String
         Private _botCookies As CookieContainer
-        Private _userName As String = String.Empty
-        Private _apiUrl As String = String.Empty
-        Private _wikiUrl As String = String.Empty
+        Private _botUserName As String
+        Private _apiUrl As String
+        Private _wikiUrl As String
 
         Private Api As APIHandler
         Private signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4}( \([A-z]{3,4}\))*"
@@ -23,8 +21,6 @@ Namespace WikiBot
         Private _ircChannel As String
         Private _ircPassword As String
         Private _ircUrl As String
-
-
 
 #Region "Properties"
         Public ReadOnly Property Bot As Boolean
@@ -41,7 +37,7 @@ Namespace WikiBot
 
         Public ReadOnly Property UserName As String
             Get
-                Return _userName
+                Return _localName
             End Get
         End Property
 
@@ -85,7 +81,7 @@ Namespace WikiBot
 
         Sub New()
             LoadConfig()
-            Api = New APIHandler(_userName, _botPassword, _apiUrl)
+            Api = New APIHandler(_botUserName, _botPassword, _apiUrl)
         End Sub
 
         Function POSTQUERY(ByVal postdata As String) As String
@@ -142,7 +138,7 @@ Namespace WikiBot
         ''' Retorna una pagina aleatoria
         ''' </summary>
         Function GetRandomPage() As String()
-            Log("GetRandomPage: Starting query of random page.", "LOCAL")
+            EventLogger.Log("GetRandomPage: Starting query of random page.", "LOCAL")
             Try
                 Dim QueryText As String = String.Empty
                 QueryText = GETQUERY("action=query&format=json&list=random&rnnamespace=0&rnlimit=10")
@@ -150,13 +146,13 @@ Namespace WikiBot
                 Dim plist As New List(Of String)
 
                 For Each s As String In TextInBetween(QueryText, """title"":""", """}")
-                    Log("GetRandomPage: Found """ & s & """.", "LOCAL")
+                    EventLogger.Log("GetRandomPage: Found """ & s & """.", "LOCAL")
                     plist.Add(NormalizeUnicodetext(s))
                 Next
-                Log("GetRandomPage: Ended.", "LOCAL")
+                EventLogger.Log("GetRandomPage: Ended.", "LOCAL")
                 Return plist.ToArray
             Catch ex As Exception
-                Debug_Log("GetRandomPage: ex message: " & ex.Message, "LOCAL")
+                EventLogger.Debug_Log("GetRandomPage: ex message: " & ex.Message, "LOCAL")
                 Return {""}
             End Try
         End Function
@@ -168,7 +164,7 @@ Namespace WikiBot
         ''' <param name="pageNames">Array con nombres de paginas unicos.</param>
         ''' <remarks></remarks>
         Function GetLastRevIds(ByVal pageNames As String()) As SortedList(Of String, Integer)
-            Debug_Log("GetLastRevIDs: Get Wikipedia last RevisionID of """ & pageNames.Count.ToString & """ pages.", "LOCAL")
+            EventLogger.Debug_Log("GetLastRevIDs: Get Wikipedia last RevisionID of """ & pageNames.Count.ToString & """ pages.", "LOCAL")
             Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
             Dim PageList As List(Of List(Of String)) = SplitStringArrayIntoChunks(PageNamesList.ToArray, 50)
@@ -215,7 +211,7 @@ Namespace WikiBot
                     End If
                 Next
             Next
-            Debug_Log("GetLastRevIDs: Done """ & PagenameAndLastId.Count.ToString & """ pages returned.", "LOCAL")
+            EventLogger.Debug_Log("GetLastRevIDs: Done """ & PagenameAndLastId.Count.ToString & """ pages returned.", "LOCAL")
             Return PagenameAndLastId
         End Function
 
@@ -263,33 +259,33 @@ Namespace WikiBot
 
                         If m.Value.Contains("error") Then
 
-                            Debug_Log("GetORESScore: Server error in query of ORES score from revid " & EditID_str & " (invalid diff?)", "LOCAL")
+                            EventLogger.Debug_Log("GetORESScore: Server error in query of ORES score from revid " & EditID_str & " (invalid diff?)", "LOCAL")
                             EditAndScoreList.Add(EditID, {0, 0})
                         Else
                             Try
                                 Dim DMGScore_str As String = TextInBetween(TextInBetweenInclusive(s, "{""damaging"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
                                 Dim GoodFaithScore_str As String = TextInBetween(TextInBetweenInclusive(s, """goodfaith"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
 
-                                Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, "LOCAL")
+                                EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, "LOCAL")
 
                                 Dim DMGScore As Double = Double.Parse(DMGScore_str) * 100
                                 Dim GoodFaithScore As Double = Double.Parse(GoodFaithScore_str) * 100
 
-                                Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, "LOCAL")
+                                EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, "LOCAL")
 
                                 EditAndScoreList.Add(EditID, {DMGScore, GoodFaithScore})
                             Catch ex As IndexOutOfRangeException
-                                Debug_Log("GetORESScore: IndexOutOfRange EX in ORES score from revid " & EditID_str & " EX: " & ex.Message, "LOCAL")
+                                EventLogger.Debug_Log("GetORESScore: IndexOutOfRange EX in ORES score from revid " & EditID_str & " EX: " & ex.Message, "LOCAL")
                                 EditAndScoreList.Add(EditID, {0, 0})
                             Catch ex2 As Exception
-                                Debug_Log("GetORESScore: EX in ORES score from revid " & EditID_str & " EX: " & ex2.Message, "LOCAL")
+                                EventLogger.Debug_Log("GetORESScore: EX in ORES score from revid " & EditID_str & " EX: " & ex2.Message, "LOCAL")
                                 EditAndScoreList.Add(EditID, {0, 0})
                             End Try
                         End If
 
                     Next
                 Catch ex As Exception
-                    Debug_Log("GetORESScore: EX obttaining ORES scores EX: " & ex.Message, "LOCAL")
+                    EventLogger.Debug_Log("GetORESScore: EX obttaining ORES scores EX: " & ex.Message, "LOCAL")
                 End Try
             Next
 
@@ -428,7 +424,7 @@ Namespace WikiBot
         ''' <param name="pageNames">Array con nombres de página unicos.</param>
         ''' <remarks></remarks>
         Private Function BOTGetPagesExtract(ByVal pageNames As String(), charLimit As Integer, wiki As Boolean) As SortedList(Of String, String)
-            Log("Get Wikipedia page extracts on chunks", "LOCAL")
+            EventLogger.Log("Get Wikipedia page extracts on chunks", "LOCAL")
             Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
 
@@ -542,7 +538,7 @@ Namespace WikiBot
                     Next
                 Next
             Catch ex As Exception
-                Debug_Log("BOTGetPagesExtract EX: " & ex.Message, "LOCAL")
+                EventLogger.Debug_Log("BOTGetPagesExtract EX: " & ex.Message, "LOCAL")
             End Try
             Return PagenameAndResume
         End Function
@@ -726,7 +722,7 @@ Namespace WikiBot
             End If
 
             Dim TheDate As DateTime = ESWikiDatetime(lastparagraph)
-            Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL")
+            EventLogger.Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL")
             Return TheDate
         End Function
 
@@ -740,7 +736,7 @@ Namespace WikiBot
             Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
             If matchc.Count = 0 Then
-                EX_Log("No date match", "ESWikiDateTime")
+                EventLogger.EX_Log("No date match", "ESWikiDateTime")
                 Return DateTime.Parse("23:59 31/12/9999")
             End If
 
@@ -764,9 +760,9 @@ Namespace WikiBot
 
                     Dim dat As New DateTime(dates(4), dates(3), dates(2), dates(0), dates(1), 0)
                     TheDate = dat
-                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
+                    EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
                 Catch ex As System.FormatException
-                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
+                    EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
                 End Try
 
             Next
@@ -785,7 +781,7 @@ Namespace WikiBot
             For Each m As Match In Regex.Matches(text, signpattern)
                 Dim TheDate As DateTime = ESWikiDatetime(m.Value)
                 Datelist.Add(TheDate)
-                Log("AllDateTimes: Adding " & TheDate.ToString, "LOCAL")
+                EventLogger.Log("AllDateTimes: Adding " & TheDate.ToString, "LOCAL")
             Next
             Return Datelist.ToArray
         End Function
@@ -800,7 +796,7 @@ Namespace WikiBot
             Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
             If matchc.Count = 0 Then
-                EX_Log("No date match", "ESWikiDateTime")
+                EventLogger.EX_Log("No date match", "ESWikiDateTime")
                 Return DateTime.Parse("23:59 31/12/9999")
             End If
 
@@ -823,9 +819,9 @@ Namespace WikiBot
                     Next
                     Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
                     dates.Add(dat)
-                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
+                    EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
                 Catch ex As System.FormatException
-                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
+                    EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
                 End Try
 
             Next
@@ -845,7 +841,7 @@ Namespace WikiBot
             Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
             If matchc.Count = 0 Then
-                EX_Log("No date match", "ESWikiDateTime")
+                EventLogger.EX_Log("No date match", "ESWikiDateTime")
                 Return New DateTime(9999, 12, 31, 23, 59, 59)
             End If
 
@@ -868,9 +864,9 @@ Namespace WikiBot
                     Next
                     Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
                     dates.Add(dat)
-                    Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
+                    EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
                 Catch ex As System.FormatException
-                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
+                    EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
                 End Try
 
             Next
@@ -961,9 +957,9 @@ Namespace WikiBot
             Dim MainIRCChannel As String = String.Empty
             Dim ConfigOK As Boolean = False
             Console.WriteLine("==================== PeriodiBOT " & Version & " ====================")
-            Debug_Log("PeriodiBOT " & Version, "LOCAL", "Undefined")
+            EventLogger.Debug_log("PeriodiBOT " & Version, "LOCAL", "Undefined")
             If System.IO.File.Exists(ConfigFilePath) Then
-                Log("Loading config", "LOCAL", "Undefined")
+                EventLogger.Log("Loading config", "LOCAL", "Undefined")
                 Dim Configstr As String = System.IO.File.ReadAllText(ConfigFilePath)
                 Try
                     MainBotName = TextInBetween(Configstr, "BOTName=""", """")(0)
@@ -977,14 +973,14 @@ Namespace WikiBot
                     MainIRCChannel = TextInBetween(Configstr, "IRCChannel=""", """")(0)
                     ConfigOK = True
                 Catch ex As IndexOutOfRangeException
-                    Log("Malformed config", "LOCAL", "Undefined")
+                    EventLogger.Log("Malformed config", "LOCAL", "Undefined")
                 End Try
             Else
-                Log("No config file", "LOCAL", "Undefined")
+                EventLogger.Log("No config file", "LOCAL", "Undefined")
                 Try
                     System.IO.File.Create(ConfigFilePath).Close()
                 Catch ex As System.IO.IOException
-                    Log("Error creating new config file", "LOCAL", "Undefined")
+                    EventLogger.Log("Error creating new config file", "LOCAL", "Undefined")
                 End Try
 
             End If
@@ -994,7 +990,7 @@ Namespace WikiBot
                 Console.WriteLine("No config file, please fill the data or exit the program and create a mew config file.")
                 Console.WriteLine("Bot Name: ")
                 MainBotName = Console.ReadLine
-                Console.WriteLine("Wikipedia Username: ")
+                Console.WriteLine("Wikipedia Bot Username: ")
                 WPBotUserName = Console.ReadLine
                 Console.WriteLine("Wikipedia bot password: ")
                 WPBotPassword = Console.ReadLine
@@ -1025,13 +1021,13 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                 Try
                     System.IO.File.WriteAllText(ConfigFilePath, configstr)
                 Catch ex As System.IO.IOException
-                    Log("Error saving config file", "LOCAL", "Undefined")
+                    EventLogger.Log("Error saving config file", "LOCAL", "Undefined")
                 End Try
 
             End If
 
             _localName = MainBotName
-            _userName = WPBotUserName
+            _botUserName = WPBotUserName
             _botPassword = WPBotPassword
             _apiUrl = WPAPI
             _wikiUrl = WPSite

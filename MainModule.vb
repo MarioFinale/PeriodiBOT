@@ -5,12 +5,17 @@ Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.IRC
+Imports PeriodiBOT_IRC.CommFunctions
+
 
 Module MainModule
 
+
+
     Sub Main()
+
         Uptime = DateTime.Now
-        Log("Starting...", "LOCAL")
+        EventLogger.Log("Starting...", "LOCAL")
         ESWikiBOT = New Bot()
 
         BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword)

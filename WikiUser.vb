@@ -1,9 +1,9 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Globalization
+Imports PeriodiBOT_IRC.CommFunctions
 
 Namespace WikiBot
-
 
     Public Class WikiUser
         Private _bot As Bot
@@ -107,7 +107,7 @@ Namespace WikiBot
 
         Public ReadOnly Property UserId As Integer
             Get
-                Return _userID
+                Return _userId
             End Get
         End Property
 
@@ -138,7 +138,7 @@ Namespace WikiBot
                     _exists = True
                 End If
 
-                _userID = Integer.Parse(TextInBetween(queryresponse, """userid"":", ",")(0))
+                _userId = Integer.Parse(TextInBetween(queryresponse, """userid"":", ",")(0))
                 _editCount = Integer.Parse(TextInBetween(queryresponse, """editcount"":", ",")(0))
                 Try
                     Dim registrationString As String = TextInBetween(queryresponse, """registration"":""", """")(0).Replace("-"c, "").Replace("T"c, "").Replace("Z"c, "").Replace(":"c, "")
@@ -161,10 +161,10 @@ Namespace WikiBot
                 End If
 
             Catch ex As IndexOutOfRangeException
-                EX_Log("Wikiuser LoadInfo" & ex.Message, "LOCAL")
+                EventLogger.EX_Log("Wikiuser LoadInfo" & ex.Message, "LOCAL")
 
             Catch ex2 As Exception
-                EX_Log("Wikiuser LoadInfo: " & ex2.Message, "LOCAL")
+                EventLogger.EX_Log("Wikiuser LoadInfo: " & ex2.Message, "LOCAL")
             End Try
 
         End Sub

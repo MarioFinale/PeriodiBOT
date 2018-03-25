@@ -2,7 +2,7 @@
 Option Explicit On
 Imports System.IO
 Imports System.Net.Sockets
-Imports System.Threading
+Imports PeriodiBOT_IRC.CommFunctions
 Namespace IRC
     Public Class IRC_Client
         Private _sServer As String = String.Empty 'Server
@@ -66,7 +66,7 @@ Namespace IRC
 
         Public Async Sub Start()
 
-            Log("Starting IRCclient", "IRC", _sNickName)
+            EventLogger.Log("Starting IRCclient", "IRC", _sNickName)
             Dim sIsInvisible As String = String.Empty
             Dim sCommand As String = String.Empty 'linea recibida
             Dim Lastdate As DateTime = DateTime.Now
@@ -131,7 +131,7 @@ Namespace IRC
                                                IRCResponseTask.Run()
 
                                                If Not _tcpclientConnection.Connected Then
-                                                   Debug_Log("IRC: DISCONNECTED", "IRC", _sNickName)
+                                                   EventLogger.Debug_log("IRC: DISCONNECTED", "IRC", _sNickName)
                                                    Exit While
                                                End If
 
@@ -147,9 +147,9 @@ Namespace IRC
                                            End While
 
                                        Catch IOEX As System.IO.IOException
-                                           Log("IRC: Error Connecting: " + IOEX.Message, "IRC", _sNickName)
+                                           EventLogger.Log("IRC: Error Connecting: " + IOEX.Message, "IRC", _sNickName)
                                        Catch OtherEx As Exception
-                                           Log("IRC: Error Connecting: " + OtherEx.Message, "IRC", _sNickName)
+                                           EventLogger.Log("IRC: Error Connecting: " + OtherEx.Message, "IRC", _sNickName)
                                        End Try
 
                                    End Sub)
@@ -157,7 +157,7 @@ Namespace IRC
                 Catch ex As SocketException
 
                     'No connection, catch and retry
-                    Debug_Log("IRC: Error Connecting: " + ex.Message, "IRC", _sNickName)
+                    EventLogger.Debug_log("IRC: Error Connecting: " + ex.Message, "IRC", _sNickName)
 
                     Try
                         'close connections
@@ -171,7 +171,7 @@ Namespace IRC
                 Catch ex As Exception
 
                     'In case of something goes wrong
-                    Debug_Log("IRC: Error: " + ex.Message, "IRC", _sNickName)
+                    EventLogger.Debug_log("IRC: Error: " + ex.Message, "IRC", _sNickName)
                     Try
                         _streamWriter.WriteLine("QUIT :FATAL ERROR.")
                         _streamWriter.Flush()
@@ -181,7 +181,7 @@ Namespace IRC
                         _networkStream.Dispose()
                     Catch ex2 As Exception
                         'In case of something really bad happens
-                        Debug_Log("IRC: Error ex2: " + ex2.Message, "IRC", _sNickName)
+                        EventLogger.Debug_log("IRC: Error ex2: " + ex2.Message, "IRC", _sNickName)
                     End Try
 
                 End Try
@@ -189,7 +189,7 @@ Namespace IRC
                     ExitProgram()
                 End If
 
-                Log("Lost connection, retrying on 5 seconds...", "IRC", _sNickName)
+                EventLogger.Log("Lost connection, retrying on 5 seconds...", "IRC", _sNickName)
                 System.Threading.Thread.Sleep(5000)
             Loop
 
@@ -251,33 +251,33 @@ Namespace IRC
 
             OPlist = New List(Of String)
             If System.IO.File.Exists(OpFilePath) Then
-                Log("Loading operators", "LOCAL")
+                EventLogger.Log("Loading operators", "LOCAL")
                 Dim opstr As String() = System.IO.File.ReadAllLines(OpFilePath)
                 Try
                     For Each op As String In opstr
                         OPlist.Add(op)
                     Next
                 Catch ex As IndexOutOfRangeException
-                    Log("Malformed OpList", "LOCAL")
+                    EventLogger.Log("Malformed OpList", "LOCAL")
                 End Try
             Else
-                Log("No Ops file", "LOCAL")
+                EventLogger.Log("No Ops file", "LOCAL")
                 Try
                     System.IO.File.Create(OpFilePath).Close()
                 Catch ex As System.IO.IOException
-                    Log("Error creating ops file", "LOCAL")
+                    EventLogger.Log("Error creating ops file", "LOCAL")
                 End Try
 
             End If
 
             If OPlist.Count = 0 Then
-                Log("Warning: No Ops defined!", "LOCAL")
+                EventLogger.Log("Warning: No Ops defined!", "LOCAL")
                 Console.WriteLine("IRC OP (Nickname!hostname): ")
                 Dim MainOp As String = Console.ReadLine
                 Try
                     System.IO.File.WriteAllText(OpFilePath, MainOp)
                 Catch ex As System.IO.IOException
-                    Log("Error saving ops file", "LOCAL")
+                    EventLogger.Log("Error saving ops file", "LOCAL")
                 End Try
             End If
 
@@ -300,7 +300,7 @@ Namespace IRC
                         System.IO.File.WriteAllLines(OpFilePath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
-                        Log("Error saving ops file", "LOCAL")
+                        EventLogger.Log("Error saving ops file", "LOCAL")
                         Return False
                     End Try
                 Else
@@ -331,7 +331,7 @@ Namespace IRC
                         System.IO.File.WriteAllLines(OpFilePath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
-                        Log("Error saving ops file", "LOCAL")
+                        EventLogger.Log("Error saving ops file", "LOCAL")
                         Return False
                     End Try
                 Else
@@ -355,18 +355,18 @@ Namespace IRC
                 Dim Nickname As String = GetUserFromChatresponse(message)
                 Dim Hostname As String = Scommand0.Split(CType("@", Char()))(1)
 
-                Log(String.Format("Checking if user {0} on host {1} is OP", Nickname, Hostname), Source, user)
+                EventLogger.Log(String.Format("Checking if user {0} on host {1} is OP", Nickname, Hostname), Source, user)
 
                 Dim OpString As String = Nickname & "!" & Hostname
                 If OPlist.Contains(OpString) Then
-                    Log(String.Format("User {0} on host {1} is OP", Nickname, Hostname), Source, user)
+                    EventLogger.Log(String.Format("User {0} on host {1} is OP", Nickname, Hostname), Source, user)
                     Return True
                 Else
-                    Log(String.Format("User {0} on host {1} is not OP", Nickname, Hostname), Source, user)
+                    EventLogger.Log(String.Format("User {0} on host {1} is not OP", Nickname, Hostname), Source, user)
                     Return False
                 End If
             Catch ex As IndexOutOfRangeException
-                Log("EX Checking if user is OP : " & ex.Message, Source, user)
+                EventLogger.Log("EX Checking if user is OP : " & ex.Message, Source, user)
                 Return False
             End Try
         End Function

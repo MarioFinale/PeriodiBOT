@@ -1,7 +1,9 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Text.RegularExpressions
-Imports PeriodiBOT_IRC.WikiBot
+Imports PeriodiBOT_IRC.CommFunctions
+
+
 Namespace WikiBot
     Class GrillitusArchive
         Private _bot As Bot
@@ -17,22 +19,22 @@ Namespace WikiBot
         ''' <param name="user">Usuario de Wiki</param>
         ''' <returns></returns>
         Private Function ValidUser(ByVal user As WikiUser) As Boolean
-            Debug_Log("ValidUser: Check user", "LOCAL")
+            EventLogger.Debug_Log("ValidUser: Check user", "LOCAL")
             'Verificar si el usuario existe
             If Not user.Exists Then
-                Log("ValidUser: User " & user.UserName & " doesn't exist", "LOCAL")
+                EventLogger.Log("ValidUser: User " & user.UserName & " doesn't exist", "LOCAL")
                 Return False
             End If
 
             'Verificar si el usuario está bloqueado.
             If user.Blocked Then
-                Log("ValidUser: User " & user.UserName & " is blocked", "LOCAL")
+                EventLogger.Log("ValidUser: User " & user.UserName & " is blocked", "LOCAL")
                 Return False
             End If
 
             'Verificar si el usuario editó hace al menos 4 días.
             If Date.Now.Subtract(user.LastEdit).Days >= 4 Then
-                Log("ValidUser: User " & user.UserName & " is inactive", "LOCAL")
+                EventLogger.Log("ValidUser: User " & user.UserName & " is inactive", "LOCAL")
                 Return False
             End If
             Return True
@@ -45,7 +47,7 @@ Namespace WikiBot
         Private Function ValidNamespace(pageToCheck As Page) As Boolean
             Dim validNamespaces As Integer() = {1, 3, 4, 5, 11, 15, 101, 102, 103, 105, 447, 829}
             If Not validNamespaces.Contains(pageToCheck.PageNamespace) Then
-                Log("Archive: The page " & pageToCheck.Title & " doesn't belong to any valid namespace. (NS:" & pageToCheck.PageNamespace & ")", "LOCAL")
+                EventLogger.Log("Archive: The page " & pageToCheck.Title & " doesn't belong to any valid namespace. (NS:" & pageToCheck.PageNamespace & ")", "LOCAL")
                 Return False
             End If
             Return True
@@ -59,14 +61,14 @@ Namespace WikiBot
             Try
                 'Destino
                 If String.IsNullOrEmpty(Params(0)) Then
-                    Log("Archive: Malformed config, aborting.", "LOCAL")
+                    EventLogger.Log("Archive: Malformed config, aborting.", "LOCAL")
                     Return False
                 Else
                     destination = Params(0)
                 End If
                 'Dias a mantener
                 If String.IsNullOrEmpty(Params(1)) Then
-                    Log("Archive: Malformed config, aborting.", "LOCAL")
+                    EventLogger.Log("Archive: Malformed config, aborting.", "LOCAL")
                     Return False
                 Else
                     maxDays = Integer.Parse(Params(1))
@@ -120,14 +122,14 @@ Namespace WikiBot
         ''' <param name="PageToArchive">Página a archivar</param>
         ''' <returns></returns>
         Function Archive(ByVal PageToArchive As Page) As Boolean
-            Log("Archive: Page " & PageToArchive.Title, "LOCAL")
+            EventLogger.Log("Archive: Page " & PageToArchive.Title, "LOCAL")
             Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
             Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
             Dim Newpagetext As String = PageToArchive.Text
 
             'Verificar el espacio de nombres de la página se archiva
             If Not ValidNamespace(PageToArchive) Then
-                Log("Archive: The page" & PageToArchive.Title & " is not in a valid namespace, aborting.", "LOCAL")
+                EventLogger.Log("Archive: The page" & PageToArchive.Title & " is not in a valid namespace, aborting.", "LOCAL")
                 Return False
             End If
 
@@ -142,22 +144,22 @@ Namespace WikiBot
                 Dim User As New WikiUser(_bot, Username)
                 'Validar usuario
                 If Not ValidUser(User) Then
-                    Log("Archive: The user" & User.UserName & " doesn't meet the requirements.", "LOCAL")
+                    EventLogger.Log("Archive: The user" & User.UserName & " doesn't meet the requirements.", "LOCAL")
                     Return False
                 End If
                 'Validar que destino de archivado sea una subpágina del usuario.
                 If Not ArchiveCfg(0).StartsWith(PageToArchive.Title) Then
-                    Log("Archive: The page" & ArchiveCfg(0) & " isn't a subpage of the same user.", "LOCAL")
+                    EventLogger.Log("Archive: The page" & ArchiveCfg(0) & " isn't a subpage of the same user.", "LOCAL")
                     Return False
                 End If
             End If
 
             Dim ArchivePages As New List(Of String)
 
-            Debug_Log("Archive: Declare tuples", "LOCAL")
+            EventLogger.Debug_Log("Archive: Declare tuples", "LOCAL")
             Dim Archives As New List(Of Tuple(Of String, String))
 
-            Debug_Log("Archive: Get threads of page " & PageToArchive.Title, "LOCAL")
+            EventLogger.Debug_Log("Archive: Get threads of page " & PageToArchive.Title, "LOCAL")
             Dim threads As String() = _bot.GetPageThreads(PageToArchive.Text)
 
             Dim notify As Boolean
@@ -170,13 +172,13 @@ Namespace WikiBot
 
             Dim ArchivedThreads As Integer = 0
             If threads.Count = 1 Then
-                Log("Archive: The page " & PageToArchive.Title & " only have one thread, aborting.", "LOCAL")
+                EventLogger.Log("Archive: The page " & PageToArchive.Title & " only have one thread, aborting.", "LOCAL")
                 Return False
             End If
 
-            Debug_Log("Archive: Declare limit date", "LOCAL")
+            EventLogger.Debug_Log("Archive: Declare limit date", "LOCAL")
             Dim LimitDate As DateTime = DateTime.Now.AddDays(-maxDays)
-            Debug_Log("Archive: Read Threads", "LOCAL")
+            EventLogger.Debug_Log("Archive: Read Threads", "LOCAL")
 
             For Each t As String In threads
                 Try
@@ -261,13 +263,13 @@ Namespace WikiBot
                         End If
                     End If
                 Catch ex As Exception
-                    Log("Archive: Thread error on " & PageToArchive.Title, "LOCAL")
-                    EX_Log(ex.Message, "Archive")
+                    EventLogger.Log("Archive: Thread error on " & PageToArchive.Title, "LOCAL")
+                    EventLogger.EX_Log(ex.Message, "Archive")
                 End Try
             Next
 
             If ArchivedThreads > 0 Then
-                Debug_Log("Archive: List pages", "LOCAL")
+                EventLogger.Debug_Log("Archive: List pages", "LOCAL")
                 'Lista de Pagina de archivado e hilos a archivar
                 Dim Sl As New SortedList(Of String, String)
 
@@ -283,7 +285,7 @@ Namespace WikiBot
 
                 'Guardar los hilos en los archivos correspondientes por fecha
                 For Each k As KeyValuePair(Of String, String) In Sl
-                    Debug_Log("Archive: Save threads", "LOCAL")
+                    EventLogger.Debug_Log("Archive: Save threads", "LOCAL")
                     Dim isminor As Boolean = Not notify
                     Dim Archivepage As String = k.Key
                     Dim ThreadText As String = Environment.NewLine & k.Value
@@ -294,13 +296,13 @@ Namespace WikiBot
 
                     'Verificar si la página de archivado está en el mismo espacio de nombres
                     If Not ArchPage.PageNamespace = PageToArchive.PageNamespace Then
-                        Log("Archive: The page " & ArchPage.Title & " is not a in the same namespace of " & PageToArchive.Title & " aborting.", "LOCAL")
+                        EventLogger.Log("Archive: The page " & ArchPage.Title & " is not a in the same namespace of " & PageToArchive.Title & " aborting.", "LOCAL")
                         Return False
                     End If
 
                     'Verificar si la página de archivado es una subpágina de la raiz
                     If Not ArchPage.Title.StartsWith(PageToArchive.RootPage) Then
-                        Log("Archive: The page " & ArchPage.Title & " is not a subpage of " & PageToArchive.RootPage & " aborting.", "LOCAL")
+                        EventLogger.Log("Archive: The page " & ArchPage.Title & " is not a subpage of " & PageToArchive.RootPage & " aborting.", "LOCAL")
                     End If
 
                     'Anadir los hilos al texto
@@ -338,7 +340,7 @@ Namespace WikiBot
 
                 'Guardar pagina principal
                 If Not String.IsNullOrEmpty(Newpagetext) Then
-                    Debug_Log("Archive: Save main page", "LOCAL")
+                    EventLogger.Debug_Log("Archive: Save main page", "LOCAL")
 
                     'Si debe tener caja de archivos...
                     If useBox Then
@@ -359,11 +361,11 @@ Namespace WikiBot
                 End If
 
             Else
-                Log("Archive: Nothing to archive on " & PageToArchive.Title, "LOCAL")
+                EventLogger.Log("Archive: Nothing to archive on " & PageToArchive.Title, "LOCAL")
             End If
 
 
-            Log("Archive: " & PageToArchive.Title & " done.", "LOCAL")
+            EventLogger.Log("Archive: " & PageToArchive.Title & " done.", "LOCAL")
             Return True
         End Function
 
@@ -410,7 +412,7 @@ Namespace WikiBot
                     Indexpage.Save(newtext, "Bot: Creando nueva caja de archivos.")
 
                 Else
-                    Debug_Log("UpdateBox: Updating Box", "LOCAL")
+                    EventLogger.Debug_Log("UpdateBox: Updating Box", "LOCAL")
                     Dim ArchiveBoxMatch As Match = Regex.Match(Indexpage.Text, "{{[Cc]aja (de)* *archivos[\s\S]+?}}")
                     Dim Newbox As String = String.Empty
                     If ArchiveBoxMatch.Success Then
@@ -459,7 +461,7 @@ Namespace WikiBot
                 End If
 
             Catch ex As Exception
-                EX_Log("UpdateBox: " & ex.Message, "LOCAL")
+                EventLogger.EX_Log("UpdateBox: " & ex.Message, "LOCAL")
                 Return False
             End Try
             Return True
@@ -536,14 +538,14 @@ Namespace WikiBot
             End If
             Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Archivado automático")
             For Each pa As String In includedpages
-                Log("ArchiveAllInclusions: Page " & pa, "LOCAL")
+                EventLogger.Log("ArchiveAllInclusions: Page " & pa, "LOCAL")
                 Dim _Page As Page = _bot.Getpage(pa)
                 If _Page.Exists Then
                     Try
                         Archive(_Page)
                     Catch ex As Exception
-                        Debug_Log("Archive error, page " & _Page.Title, "LOCAL")
-                        EX_Log(ex.Message, "ArchiveAllInclusions")
+                        EventLogger.Debug_Log("Archive error, page " & _Page.Title, "LOCAL")
+                        EventLogger.EX_Log(ex.Message, "ArchiveAllInclusions")
                     End Try
 
                 End If

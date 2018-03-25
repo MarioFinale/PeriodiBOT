@@ -1,12 +1,10 @@
 ﻿Option Strict On
 Option Explicit On
-Imports Microsoft.VisualBasic
-Imports System.IO
-Imports System.Data
-Imports System.Data.SqlClient
+Imports PeriodiBOT_IRC.CommFunctions
 
 Class LogEngine
-    Public _logData As New List(Of String())
+
+#Region "Private vars"
     Private _userData As New List(Of String())
     Private LogQueue As New Queue(Of String())
     Private _endLog As Boolean = False
@@ -14,6 +12,10 @@ Class LogEngine
     Private _userPath As String
     Private _logging As Boolean
     Private _defaultUser As String
+#End Region
+
+#Region "Properties"
+    Public _logData As New List(Of String())
     ''' <summary>
     ''' Retorna una lista con todos los eventos en el LOG hasta el momento que se solicita.
     ''' </summary>
@@ -45,12 +47,15 @@ Class LogEngine
         End Set
     End Property
 
+#End Region
+
+#Region "Create and Dispose"
     ''' <summary>
     ''' Crea una nueva instancia del motor de LOG's locales.
     ''' </summary>
     ''' <param name="LogPath">Archivo con ruta donde se guardará el archivo de LOG.</param>
     ''' <param name="UserPath">Archivo con ruta donde se guardará el archivo de usuarios.</param>
-    Public Sub New(ByVal LogPath As String, ByVal UserPath As String, ByVal DefaultUser As String)
+    Sub New(ByVal LogPath As String, ByVal UserPath As String, ByVal DefaultUser As String)
         _logPath = LogPath
         _userPath = UserPath
         _defaultUser = DefaultUser
@@ -73,35 +78,40 @@ Class LogEngine
             System.Threading.Thread.Sleep(100)
         Loop
     End Sub
+
+#End Region
+
+#Region "Log Functions"
     ''' <summary>
-    ''' Guarda los datos en el archivo de log, es llamado por otros threads.
+    ''' Registra un evento normal.
     ''' </summary>
-    Sub SaveLogWorker()
-        SaveData(_logPath, LogQueue)
-        SyncLock (_logData)
-            If _logData.Count > 100 Then
-                _logData.RemoveRange(0, 99)
-            End If
-        End SyncLock
-    End Sub
-    ''' <summary>
-    ''' Guarda los datos desde un queue a un archivo de log.
-    ''' </summary>
-    ''' <param name="filepath"></param>
-    ''' <param name="_queue"></param>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
     ''' <returns></returns>
-    Private Function SaveData(ByVal filepath As String, ByRef _queue As Queue(Of String())) As Boolean
-        Try
-            Do Until _queue.Count = 0
-                AppendLinesToText(filepath, SafeDequeue(_queue))
-                System.Threading.Thread.Sleep(10)
-            Loop
-            Return True
-        Catch ex As Exception
-            EX_Log(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, _defaultUser)
-            Return False
-        End Try
+    Function Log(ByVal text As String, source As String) As Boolean
+        Return Log(text, source, BotCodename)
     End Function
+
+    ''' <summary>
+    ''' Registra un evento de tipo debug.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <returns></returns>
+    Function Debug_Log(ByVal text As String, source As String) As Boolean
+        Return Debug_Log(text, source, BotCodename)
+    End Function
+
+    ''' <summary>
+    ''' Registra una excepción.
+    ''' </summary>
+    ''' <param name="text">Texto del evento</param>
+    ''' <param name="source">origen del evento</param>
+    ''' <returns></returns>
+    Function EX_Log(ByVal text As String, source As String) As Boolean
+        Return EX_Log(text, source, BotCodename)
+    End Function
+
     ''' <summary>
     ''' Inicia otro thread para guardar un evento de log
     ''' </summary>
@@ -112,10 +122,11 @@ Class LogEngine
     Public Function Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
         Task.Run(Sub()
                      AddEvent(text, source, user, "LOG")
+                     WriteLine("LOG", source, user & ": " & text)
                  End Sub)
-        WriteLine("LOG", source, user & ": " & text)
         Return True
     End Function
+
     ''' <summary>
     ''' Inicia otro thread para guardar un evento de log (debug)
     ''' </summary>
@@ -123,12 +134,13 @@ Class LogEngine
     ''' <param name="source">Fuente del evento</param>
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
-    Public Function Debug_log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
+    Public Function Debug_Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
         Task.Run(Sub()
                      AddEvent(text, source, user, "DEBUG")
                  End Sub)
         Return True
     End Function
+
     ''' <summary>
     ''' Inicia otro thread para guardar un evento de log
     ''' </summary>
@@ -142,77 +154,6 @@ Class LogEngine
                  End Sub)
         WriteLine("EX", source, user & ": " & text)
         Return True
-    End Function
-
-    ''' <summary>
-    ''' Añade un evento al queue
-    ''' </summary>
-    ''' <param name="text">Texto a registrar</param>
-    ''' <param name="Source">Fuente del evento</param>
-    ''' <param name="User">Usuario origen del evento</param>
-    ''' <param name="Type">Tipo de evento</param>
-    ''' <returns></returns>
-    Private Function AddEvent(ByVal text As String, Source As String, User As String, Type As String) As Boolean
-        Dim CurrDate As String = Date.Now().ToString("dd/MM/yyyy HH:mm:ss")
-        SafeEnqueue(LogQueue, {CurrDate, text, Source, User, Type})
-        Return True
-    End Function
-    ''' <summary>
-    ''' Regresa una lista de string() con todas las lineas en un archivo de texto.
-    ''' </summary>
-    ''' <param name="filename">Nombre y ruta del archivo</param>
-    ''' <returns></returns>
-    Private Function LoadLinesFromFile(ByRef filename As String) As List(Of String())
-        Dim ItemList As New List(Of String())
-        If Not System.IO.File.Exists(filename) Then
-            System.IO.File.Create(filename).Close()
-        End If
-        For Each line As String In System.IO.File.ReadAllLines(filename)
-            Dim items As String() = line.Split(CType("|", Char))
-            ItemList.Add(items)
-        Next
-        Return ItemList
-    End Function
-    ''' <summary>
-    ''' Añade línteas a un archivo de texto
-    ''' </summary>
-    ''' <param name="FilePath">Ruta y nombre del archivo</param>
-    ''' <param name="Lines">Líneas a añadir</param>
-    ''' <returns></returns>
-    Private Function AppendLinesToText(ByVal FilePath As String, Lines As String()) As Boolean
-
-        Try
-            If Not System.IO.File.Exists(FilePath) Then
-                System.IO.File.Create(FilePath).Close()
-            End If
-
-            Using Writer As New System.IO.StreamWriter(FilePath, True)
-
-                Dim LineStr As String = String.Empty
-                For Each item As String In Lines
-                    LineStr = LineStr & item & "|"
-                Next
-                LineStr = LineStr.Trim(CType("|", Char))
-                Writer.WriteLine(LineStr)
-            End Using
-            Return True
-
-        Catch ex As Exception
-            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
-            Return False
-        End Try
-
-    End Function
-    ''' <summary>
-    ''' Entrega el último registro de eventos.
-    ''' </summary>
-    ''' <param name="source">Fuente desde donde se solicita el último evento.</param>
-    ''' <param name="user">Usuario que lo solicita.</param>
-    ''' <returns></returns>
-    Public Function Lastlog(ByRef source As String, user As String) As String()
-        Dim logresponse As String() = Logdata.Last
-        Log("Request of lastlog", source, user)
-        Return logresponse
     End Function
 
     ''' <summary>
@@ -236,33 +177,29 @@ Class LogEngine
             LoadUsers()
             Return True
         Catch ex As Exception
-            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
+            Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             'Do something, idk...\
             LoadUsers()
             Return False
         End Try
     End Function
+
     ''' <summary>
     ''' Añade un nuevo usuario a la lista de aviso de inactividad de usuario
     ''' </summary>
     ''' <param name="UserAndTime">Array con {usuario a avisar, tiempo en formato d.hh:mm, operador} </param>
     ''' <returns></returns>
-    Public Function SetUserTime(ByVal UserAndTime As String()) As Boolean
+    Function SetUserTime(ByVal UserAndTime As String()) As Boolean
         Try
-
             Dim RequestedUser As String = UserAndTime(1)
             Dim UserTime As String = UserAndTime(2)
             Dim OP As String = UserAndTime(0)
-
             Dim UserList As New List(Of Integer)
-
             For Each line As String() In _userData
                 If line(0) = RequestedUser Then
                     UserList.Add(_userData.IndexOf(line))
                 End If
             Next
-
-
             Dim IsInList As Boolean = False
             Dim IsInListIndex As Integer = -1
             If UserList.Count >= 1 Then
@@ -274,17 +211,15 @@ Class LogEngine
                 Next
             Else
             End If
-
             If IsInList Then
                 _userData(IsInListIndex) = {OP, RequestedUser, UserTime}
             Else
                 _userData.Add({OP, RequestedUser, UserTime})
             End If
             SaveUsersToFile()
-            Userdata = _userData
             Return True
         Catch ex As Exception
-            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
+            Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             Return False
         End Try
 
@@ -294,16 +229,116 @@ Class LogEngine
     ''' Carga los usuarios desde el archivo de usuarios y los guarda en la variable local.
     ''' </summary>
     ''' <returns></returns>
-    Public Function LoadUsers() As Boolean
+    Function LoadUsers() As Boolean
         Try
             _userData = GetUsersFromFile()
-            Userdata = _userData
             Return True
         Catch ex As Exception
-            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
+            Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             Return False
         End Try
+    End Function
+#End Region
 
+#Region "Data Functions"
+    ''' <summary>
+    ''' Guarda los datos en el archivo de log, es llamado por otros threads.
+    ''' </summary>
+    Private Sub SaveLogWorker()
+        SaveData(_logPath, LogQueue)
+        SyncLock (_logData)
+            If _logData.Count > 100 Then
+                _logData.RemoveRange(0, 99)
+            End If
+        End SyncLock
+    End Sub
+
+    ''' <summary>
+    ''' Guarda los datos desde un queue a un archivo de log.
+    ''' </summary>
+    ''' <param name="filepath"></param>
+    ''' <param name="_queue"></param>
+    ''' <returns></returns>
+    Private Function SaveData(ByVal filepath As String, ByRef _queue As Queue(Of String())) As Boolean
+        Try
+            Do Until _queue.Count = 0
+                AppendLinesToText(filepath, SafeDequeue(_queue))
+                System.Threading.Thread.Sleep(10)
+            Loop
+            Return True
+        Catch ex As Exception
+            EX_Log(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, _defaultUser)
+            Return False
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Añade un evento al queue
+    ''' </summary>
+    ''' <param name="text">Texto a registrar</param>
+    ''' <param name="Source">Fuente del evento</param>
+    ''' <param name="User">Usuario origen del evento</param>
+    ''' <param name="Type">Tipo de evento</param>
+    ''' <returns></returns>
+    Private Function AddEvent(ByVal text As String, Source As String, User As String, Type As String) As Boolean
+        Dim CurrDate As String = Date.Now().ToString("dd/MM/yyyy HH:mm:ss")
+        SafeEnqueue(LogQueue, {CurrDate, text, Source, User, Type})
+        Return True
+    End Function
+
+    ''' <summary>
+    ''' Entrega el último registro de eventos.
+    ''' </summary>
+    ''' <param name="source">Fuente desde donde se solicita el último evento.</param>
+    ''' <param name="user">Usuario que lo solicita.</param>
+    ''' <returns></returns>
+    Public Function Lastlog(ByRef source As String, user As String) As String()
+        Dim logresponse As String() = Logdata.Last
+        Log("Request of lastlog", source, user)
+        Return logresponse
+    End Function
+
+    ''' <summary>
+    ''' Regresa una lista de string() con todas las lineas en un archivo de texto.
+    ''' </summary>
+    ''' <param name="filename">Nombre y ruta del archivo</param>
+    ''' <returns></returns>
+    Private Function LoadLinesFromFile(ByRef filename As String) As List(Of String())
+        Dim ItemList As New List(Of String())
+        If Not System.IO.File.Exists(filename) Then
+            System.IO.File.Create(filename).Close()
+        End If
+        For Each line As String In System.IO.File.ReadAllLines(filename)
+            Dim items As String() = line.Split(CType("|", Char))
+            ItemList.Add(items)
+        Next
+        Return ItemList
+    End Function
+
+    ''' <summary>
+    ''' Añade línteas a un archivo de texto
+    ''' </summary>
+    ''' <param name="FilePath">Ruta y nombre del archivo</param>
+    ''' <param name="Lines">Líneas a añadir</param>
+    ''' <returns></returns>
+    Private Function AppendLinesToText(ByVal FilePath As String, Lines As String()) As Boolean
+        Try
+            If Not System.IO.File.Exists(FilePath) Then
+                System.IO.File.Create(FilePath).Close()
+            End If
+            Using Writer As New System.IO.StreamWriter(FilePath, True)
+                Dim LineStr As String = String.Empty
+                For Each item As String In Lines
+                    LineStr = LineStr & item & "|"
+                Next
+                LineStr = LineStr.Trim(CType("|", Char))
+                Writer.WriteLine(LineStr)
+            End Using
+            Return True
+        Catch ex As Exception
+            Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
+            Return False
+        End Try
     End Function
 
     ''' <summary>
@@ -333,7 +368,7 @@ Class LogEngine
     ''' </summary>
     ''' <param name="_QueueToEnqueue">Queue a modificar</param>
     ''' <param name="str">Cadea de texto a añadir</param>
-    Sub SafeEnqueue(ByVal _QueueToEnqueue As Queue(Of String()), ByVal str As String())
+    Private Sub SafeEnqueue(ByVal _QueueToEnqueue As Queue(Of String()), ByVal str As String())
         SyncLock (_logData)
             _logData.Add(str)
         End SyncLock
@@ -341,16 +376,19 @@ Class LogEngine
             _QueueToEnqueue.Enqueue(str)
         End SyncLock
     End Sub
+
     ''' <summary>
     ''' Saca un ítem de un queue de forma segura para ser llamado desde múltiples threads.
     ''' </summary>
     ''' <param name="QueueToDequeue"></param>
     ''' <returns></returns>
-    Function SafeDequeue(ByVal QueueToDequeue As Queue(Of String())) As String()
+    Private Function SafeDequeue(ByVal QueueToDequeue As Queue(Of String())) As String()
         SyncLock (QueueToDequeue)
             Return QueueToDequeue.Dequeue()
         End SyncLock
     End Function
+
+#End Region
 
 End Class
 

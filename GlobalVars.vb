@@ -2,8 +2,9 @@
 Option Explicit On
 Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.IRC
-Module GlobalVars
+Imports PeriodiBOT_IRC.CommFunctions
 
+Module GlobalVars
     Public Const BotCodename As String = "PeriodiBOT"
     Public Exepath As String = AppDomain.CurrentDomain.BaseDirectory
 
@@ -25,12 +26,7 @@ Module GlobalVars
     Public Const TopicTemplate As String = "Plantilla:Tema"
     Public Const TopicGroupsPage As String = "Wikipedia:Café por tema/Grupos"
     Public Const MaxRetry As Integer = 3
-
-    Public LogC As New LogEngine(Log_Filepath, User_Filepath, BotCodename)
-    Public Userdata As List(Of String()) = LogC.LogUserData
     Public Uptime As DateTime
-
-
     Public ESWikiBOT As Bot
     'Public WikidataBOT As Bot
     Public BotIRC As IRC_Client

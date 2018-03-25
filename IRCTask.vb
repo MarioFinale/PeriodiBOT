@@ -1,9 +1,10 @@
 ﻿Option Strict On
 Option Explicit On
-Imports System.Runtime.InteropServices
-Imports PeriodiBOT_IRC
 Imports System.Threading
+Imports PeriodiBOT_IRC.CommFunctions
+
 Namespace IRC
+
     Public Class IRCTask
         Implements IDisposable
 
@@ -51,7 +52,7 @@ Namespace IRC
                                                                                              Next
 
                                                                                          Catch ex As Exception
-                                                                                             Debug_Log("TASK " & _source & " EX: " & ex.Message, "THREAD")
+                                                                                             EventLogger.Debug_Log("TASK " & _source & " EX: " & ex.Message, "THREAD")
                                                                                          End Try
 
                                                                                          If Not _infinite Then
@@ -79,7 +80,7 @@ Namespace IRC
         ''' </summary>
         ''' <param name="disposing"></param>
         Protected Overridable Sub Dispose(disposing As Boolean)
-            Debug_Log("End task func", "LOCAL")
+            EventLogger.Debug_Log("End task func", "LOCAL")
             _infinite = False
             If disposed Then Return
             If disposing Then

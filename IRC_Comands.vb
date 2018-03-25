@@ -1,7 +1,8 @@
 ﻿Option Strict On
 Option Explicit On
-Imports System.IO
 Imports PeriodiBOT_IRC.WikiBot
+Imports PeriodiBOT_IRC.CommFunctions
+
 Namespace IRC
     Class IRC_Comands
         Private LastMessage As IRCMessage
@@ -216,7 +217,7 @@ Namespace IRC
                     Return Nothing
                 End If
             Catch ex As Exception
-                Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _IrcNickName)
+                EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _IrcNickName)
                 Return Nothing
             End Try
         End Function
@@ -271,7 +272,7 @@ Namespace IRC
                 MainParam = MainParam.Replace("%"c, "")
             End If
 
-            Log("Commandinfo: " & MainParam, "IRC", realname)
+            EventLogger.Log("Commandinfo: " & MainParam, "IRC", realname)
             If MainParam = ("última") Or MainParam = ("ultima") Or MainParam = ("ult") Or MainParam = ("last") Then
 
                 responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
@@ -355,7 +356,7 @@ Namespace IRC
             Client.SendText(command)
             Dim responsestring As String = ColoredText("Entrando a sala solicitada", "04")
             Dim mes As New IRCMessage(source, responsestring)
-            Log("Joined room " & Room, "IRC", user)
+            EventLogger.Log("Joined room " & Room, "IRC", user)
             Return mes
         End Function
 
@@ -364,7 +365,7 @@ Namespace IRC
             Dim command As String = String.Format("PART {0}", Room)
             Client.SendText(command)
             Dim mes As New IRCMessage(source, responsestring)
-            Log("Joined room " & Room, "IRC", user)
+            EventLogger.Log("Joined room " & Room, "IRC", user)
             Return mes
         End Function
 
@@ -374,29 +375,29 @@ Namespace IRC
             HasExited = True
             Client.Quit(command)
             Dim mes As New IRCMessage(source, responsestring)
-            Log("QUIT", "IRC", user)
+            EventLogger.Log("QUIT", "IRC", user)
             Return mes
         End Function
 
         Private Function Div0(ByVal source As String, user As String) As IRCMessage
-            Debug_Log("Div0 requested", source, user)
+            EventLogger.Log("Div0 requested", source, user)
             Dim responsetext As String = IrcStringBuilder(source, "OK, dividiendo 1 por 0...")
             Client.SendText(responsetext)
             Dim i As Double = (1 / 0)
             Dim res As String = "Al parecer el resultado es """ & i.ToString & """"
             Dim mes As New IRCMessage(source, res)
-            Debug_Log("Div0 completed", source, user)
+            EventLogger.Log("Div0 completed", source, user)
             Return mes
         End Function
 
         Private Function ArchivePage(ByVal source As String, page As String, user As String, ircClient As IRC_Client) As IRCMessage
-            Debug_Log("ArchivePage requested", source, user)
+            EventLogger.Log("ArchivePage requested", source, user)
             Dim PageName As String = _bot.TitleFirstGuess(page)
             Dim responsestring As String = ColoredText("Archivando ", "04") & """" & PageName & """"
             Task.Run(Sub()
                          Dim p As Page = ESWikiBOT.Getpage(PageName)
                          If ESWikiBOT.Archive(p) Then
-                             Debug_Log("ArchivePage completed", source, user)
+                             EventLogger.Log("ArchivePage completed", source, user)
                              Dim completedResponse As String = ColoredText("Archivado de  ", "04") & """" & PageName & """ " & ColoredText("completo", "04")
                              ircClient.Sendmessage(New IRCMessage(source, completedResponse))
                          Else
@@ -412,7 +413,7 @@ Namespace IRC
 
         Private Function GetUserTime(ByVal user As String) As String()
             Dim Usertime As String = String.Empty
-            For Each line As String() In Userdata
+            For Each line As String() In EventLogger.LogUserData
                 If line(0) = user Then
                     Usertime = line(0)
                 End If
@@ -422,7 +423,7 @@ Namespace IRC
 
         Function GetResume(ByVal source As String, Page As String, user As String) As IRCMessage
             Dim PageName As String = _bot.TitleFirstGuess(Page)
-            Log("IRC: GetResume of " & Page, "IRC", user)
+            EventLogger.Log("IRC: GetResume of " & Page, "IRC", user)
 
             If Not PageName = String.Empty Then
                 Dim pretext As String = "Entradilla de " & ColoredText(PageName, "03") & " en Wikipedia: " & _bot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
@@ -439,7 +440,7 @@ Namespace IRC
         Private Function LastLogComm(ByVal messageline As String, ByVal source As String, User As String) As IRCMessage
             Dim responsestring As String = String.Empty
             If Client.IsOp(messageline, source, User) Then
-                Dim lastlogdata As String() = LastLog("IRC", User)
+                Dim lastlogdata As String() = EventLogger.Lastlog("IRC", User)
                 responsestring = String.Format("Ultimo registro de: {3} via {2} a las {0}/ Tipo: {4}/ Accion: {1}", ColoredText(lastlogdata(0), "04"), lastlogdata(1), lastlogdata(2), lastlogdata(3), lastlogdata(4))
             End If
             Dim mes As New IRCMessage(User, responsestring)
@@ -461,15 +462,15 @@ Namespace IRC
             If Client.IsOp(Message, source, user) Then
                 If GetCurrentThreads() = 0 Then
                     responsestring = String.Format("{1} Versión: {0} (Uptime: {2}; Bajo {3} (MONO)). Ordenes: %ord", ColoredText(Version, "03"), _IrcNickName, uptimestr, ColoredText(OS, "04"))
-                    Log("IRC: Requested info (%??)", "IRC", user)
+                    EventLogger.Log("IRC: Requested info (%??)", "IRC", user)
                 Else
                     responsestring = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Hilos: {4}; Memoria (en uso): {6}Kb, (Privada): {5}Kb). Ordenes: %ord", ColoredText(Version, "03"), ColoredText(OS, "04"), _IrcNickName, uptimestr, GetCurrentThreads.ToString, PrivateMemory.ToString, UsedMemory.ToString)
-                    Log("IRC: Requested info (%??)", "IRC", user)
+                    EventLogger.Log("IRC: Requested info (%??)", "IRC", user)
                 End If
 
             Else
                 responsestring = String.Format("{1} Versión: {0}. Ordenes: %ord", ColoredText(Version, "03"), _IrcNickName)
-                Log("IRC: Requested info (%??)", "IRC", user)
+                EventLogger.Log("IRC: Requested info (%??)", "IRC", user)
             End If
             Dim mes As New IRCMessage(source, responsestring)
             Return mes
@@ -480,14 +481,14 @@ Namespace IRC
                 Return Nothing
             End If
             Dim responsestring As String = String.Format("Hola {0}, Soy {1}, bot multipropósito de apoyo en IRC. Ordenes: '%Ord' | Ayuda con un comando %? <orden> | Más sobre mí: '%??'", ColoredText(user, "04"), ColoredText(_IrcNickName, "03"))
-            Log(String.Format("IRC: {0} was mentioned, returning info", _IrcNickName), "IRC", user)
+            EventLogger.Log(String.Format("IRC: {0} was mentioned, returning info", _IrcNickName), "IRC", user)
             Dim mes As New IRCMessage(source, responsestring)
             Return mes
         End Function
 
         Private Function Orders(ByVal source As String, user As String) As IRCMessage
             Dim responsestring As String = String.Format("Ordenes: %programa, %quita, %ultima, %usuarios, %info, %resumen, %??, Detalles del comando %? <orden>.")
-            Log("IRC: Requested orders (%ord)", "IRC", user)
+            EventLogger.Log("IRC: Requested orders (%ord)", "IRC", user)
             Dim mes As New IRCMessage(source, responsestring)
             Return mes
         End Function
@@ -501,26 +502,26 @@ Namespace IRC
                 If Requesteduser = String.Empty Then
                     responsestring = "Uso del comando: %quita <usuario>. Quita a un usuario de tu lista programada"
                 Else
-                    For Each Line As String() In Userdata
+                    For Each Line As String() In EventLogger.LogUserData
                         If Line(0) = OP Then
                             UsersOfOP.Add(Line(1))
-                            UsersOfOPIndex.Add(Userdata.IndexOf(Line))
+                            UsersOfOPIndex.Add(EventLogger.LogUserData.IndexOf(Line))
                         End If
                     Next
                     If UsersOfOP.Contains(Requesteduser) Then
                         Dim UserIndex As Integer = UsersOfOP.IndexOf(Requesteduser)
                         Dim UserIndexInUserdata As Integer = UsersOfOPIndex(UserIndex)
-                        Userdata.RemoveAt(UserIndexInUserdata)
+                        EventLogger.LogUserData.RemoveAt(UserIndexInUserdata)
                         responsestring = String.Format("Se ha quitado a '{0}' de tu lista", ColoredText(Requesteduser, "04"))
-                        Log(String.Format("IRC: Removed user {0} from list of {1} (%quita)", Requesteduser, OP), "IRC", Requesteduser)
-                        SaveUsersToFile()
+                        EventLogger.Log(String.Format("IRC: Removed user {0} from list of {1} (%quita)", Requesteduser, OP), "IRC", Requesteduser)
+                        EventLogger.SaveUsersToFile()
                     Else
                         responsestring = String.Format("El usuario '{0}' no esta en tu lista", ColoredText(Requesteduser, "04"))
                     End If
 
                 End If
             Catch ex As Exception
-                Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _IrcNickName)
+                EventLogger.Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _IrcNickName)
                 responsestring = String.Format("Se ha producido un error al quitar a '{0}' de tu lista", ColoredText(Requesteduser, "04"))
             End Try
 
@@ -554,10 +555,10 @@ Namespace IRC
                             ResponseString = ColoredText("Error:", "04") & " El intervalo debe ser igual o superior a 10 minutos"
                         Else
                             If wuser.Exists Then
-                                If SetUserTime({user, requesteduser, Dias & "." & Horas & ":" & Minutos, user}) Then
+                                If EventLogger.SetUserTime({user, requesteduser, Dias & "." & Horas & ":" & Minutos, user}) Then
                                     ResponseString = String.Format("Hecho: Serás avisado si {0} no edita en el tiempo especificado", requesteduser)
 
-                                    Log(String.Format("IRC: Added user {0} to list (%prog)", requesteduser), "IRC", user)
+                                    EventLogger.Log(String.Format("IRC: Added user {0} to list (%prog)", requesteduser), "IRC", user)
                                 Else
                                     ResponseString = ColoredText("Error", "04")
                                 End If
@@ -577,7 +578,7 @@ Namespace IRC
             Catch ex As InvalidCastException
                 ResponseString = String.Format(ColoredText("Error:", "04") & " El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
             Catch ex As Exception
-                Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", user)
+                EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", user)
                 Dim exmes As String = ex.Message
                 ResponseString = String.Format(ColoredText("Error:", "04") & " {0}", exmes)
             End Try
@@ -596,7 +597,7 @@ Namespace IRC
                 Catch ex As IndexOutOfRangeException
                     Return String.Empty
                 Catch ex2 As Exception
-                    Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex2.Message, "IRC", _IrcNickName)
+                    EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex2.Message, "IRC", _IrcNickName)
                     Return String.Empty
                 End Try
             Else
@@ -610,7 +611,7 @@ Namespace IRC
             Dim UserList As New List(Of String)
             Dim UserString As String = String.Empty
 
-            For Each line As String() In Userdata
+            For Each line As String() In EventLogger.LogUserData
                 If line(0) = Op Then
                     UserList.Add(line(1))
                 End If
@@ -646,12 +647,12 @@ Namespace IRC
         Private Function LastEdit(ByVal source As String, user As String, Username As String) As IRCMessage
             Dim wuser As New WikiUser(_bot, Username)
             Dim responsestring As String = String.Empty
-            Log(String.Format("IRC: Requested lastedit of {0} to list (%ultima)", Username), "IRC", user)
+            EventLogger.Log(String.Format("IRC: Requested lastedit of {0} to list (%ultima)", Username), "IRC", user)
 
             If Not wuser.Exists Then
                 responsestring = String.Format("El usuario {0} no tiene ninguna edición en el proyecto eswiki", ColoredText(Username, "04"))
             Else
-                Dim edittime As DateTime = wuser.Lastedit
+                Dim edittime As DateTime = wuser.LastEdit
                 Dim actualtime As DateTime = DateTime.UtcNow
                 actualtime = actualtime.AddTicks(-(actualtime.Ticks Mod TimeSpan.TicksPerSecond))
 
@@ -693,7 +694,7 @@ Namespace IRC
 
         Private Function PageInfo(ByVal source As String, page As String, Username As String) As IRCMessage
             Dim PageName As String = _bot.TitleFirstGuess(page)
-            Log("IRC: Get PageInfo of " & page, "IRC", Username)
+            EventLogger.Log("IRC: Get PageInfo of " & page, "IRC", Username)
 
             If Not PageName = String.Empty Then
                 Dim pag As Page = _bot.Getpage(PageName)

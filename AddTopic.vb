@@ -3,6 +3,7 @@ Option Explicit On
 Imports PeriodiBOT_IRC
 Imports System.Text.RegularExpressions
 Imports System.Text
+Imports PeriodiBOT_IRC.CommFunctions
 
 Namespace WikiBot
     Public Class AddTopic
@@ -22,7 +23,7 @@ Namespace WikiBot
                     Return False
                 End If
             Catch ex As Exception
-                EX_Log(ex.Message, "UpdateTopics", BOTName)
+                EventLogger.EX_Log(ex.Message, "UpdateTopics")
                 Return False
             End Try
         End Function
@@ -34,7 +35,7 @@ Namespace WikiBot
             Dim pagetext As String = "{{/Encabezado}}" & Environment.NewLine
             Dim UpdateDate As Date = Date.UtcNow
             Dim UpdateText As String = "<span style=""color:#0645AD"">►</span> Actualizado al " & UpdateDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) _
-                & " por [[Usuario:" & BOTName & "|" & BOTName & "]] sobre un total de " & scannedPages.ToString & " páginas de archivo." & Environment.NewLine
+                & " por [[Usuario:" & _bot.UserName & "|" & _bot.UserName & "]] sobre un total de " & scannedPages.ToString & " páginas de archivo." & Environment.NewLine
 
             pagetext = pagetext & Environment.NewLine & UpdateText
             Dim TopicGroups As SortedDictionary(Of String, List(Of String)) = GetTopicGroups()

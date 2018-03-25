@@ -2,6 +2,7 @@
 Option Explicit On
 Imports System.Net
 Imports System.Text.RegularExpressions
+Imports PeriodiBOT_IRC.CommFunctions
 
 Namespace WikiBot
     Public Class Page
@@ -167,7 +168,7 @@ Namespace WikiBot
         ''' <param name="wbot">Bot logueado a la wiki</param>
         Public Sub New(ByVal pageTitle As String, ByRef wbot As Bot)
             _bot = wbot
-            Log("Loading page " & pageTitle, "LOCAL", _bot.UserName)
+            EventLogger.Log("Loading page " & pageTitle, "LOCAL", _bot.UserName)
             _username = _bot.UserName
             Loadpage(pageTitle, _bot.WikiUrl)
         End Sub
@@ -175,7 +176,7 @@ Namespace WikiBot
         ''' Inicializa de nuevo la página (al crear una página esta ya está inicializada).
         ''' </summary>
         Public Sub Load()
-            Log("Loading page " & _title, "LOCAL", _username)
+            EventLogger.Log("Loading page " & _title, "LOCAL", _username)
             Loadpage(_title, _siteurl)
         End Sub
 
@@ -186,7 +187,7 @@ Namespace WikiBot
         ''' <param name="site">Sitio de la página</param>
         ''' <returns></returns>
         Private Function Loadpage(ByVal PageTitle As String, ByVal site As String) As Boolean
-            Log("Obtaining server data of " & PageTitle, "LOCAL", _username)
+            EventLogger.Log("Obtaining server data of " & PageTitle, "LOCAL", _username)
             If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
                 Throw New ArgumentNullException("Empty parameter", "PageTitle")
             End If
@@ -195,10 +196,9 @@ Namespace WikiBot
             _sections = GetPageThreads(_text)
             _ORESScores = GetORESScores(_currentRevID)
             _pageViews = GetPageViewsAvg(_title)
-            Log("Page " & PageTitle & " loaded", "LOCAL", _username)
+            EventLogger.Log("Page " & PageTitle & " loaded", "LOCAL", _username)
             Return True
         End Function
-
 
         ''' <summary>
         ''' Retorna el valor ORES (en %) de un EDIT ID (eswiki) indicados como porcentaje en double. 
@@ -207,24 +207,24 @@ Namespace WikiBot
         ''' <param name="revid">EDIT ID de la edicion a revisar</param>
         ''' <remarks>Los EDIT ID deben ser distintos</remarks>
         Private Function GetORESScores(ByVal revid As Integer) As Double()
-            Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString, "LOCAL", _username)
+            EventLogger.Debug_log("GetORESScore: Query of ORES score from revid " & revid.ToString, "LOCAL", _username)
             Try
                 Dim s As String = _bot.GET("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & revid)
 
                 Dim DMGScore_str As String = TextInBetween(TextInBetweenInclusive(s, "{""damaging"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
                 Dim GoodFaithScore_str As String = TextInBetween(TextInBetweenInclusive(s, """goodfaith"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
-                Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, "LOCAL", _username)
+                EventLogger.Debug_log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, "LOCAL", _username)
 
                 Dim DMGScore As Double = Math.Round((Double.Parse(DMGScore_str) * 100), 2)
                 Dim GoodFaithScore As Double = Math.Round((Double.Parse(GoodFaithScore_str) * 100), 2)
-                Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, "LOCAL", _username)
+                EventLogger.Debug_log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, "LOCAL", _username)
 
                 Return {DMGScore, GoodFaithScore}
             Catch ex As IndexOutOfRangeException
-                Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString & " failed, returning Nothing", "LOCAL", _username)
+                EventLogger.Debug_log("GetORESScore: Query of ORES score from revid " & revid.ToString & " failed, returning Nothing", "LOCAL", _username)
                 Return Nothing
             Catch ex2 As Exception
-                Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString & " failed: " & ex2.Message, "LOCAL", _username)
+                EventLogger.Debug_log("GetORESScore: Query of ORES score from revid " & revid.ToString & " failed: " & ex2.Message, "LOCAL", _username)
                 Return Nothing
             End Try
         End Function
@@ -249,14 +249,14 @@ Namespace WikiBot
         ''' <param name="EditSummary">Resumen de la edición</param>
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Private Overloads Function SavePage(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean, ByVal Spamreplace As Boolean, ByRef RetryCount As Integer) As String
+        Private Function SavePage(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean, ByVal Spamreplace As Boolean, ByRef RetryCount As Integer) As String
             If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Then
                 Throw New ArgumentNullException("Empty parameter", "Text")
             End If
             Dim ntimestamp As String = GetLastTimeStamp(_title)
 
             If Not ntimestamp = _timestamp Then
-                Log("Edit conflict on " & _title, "BOT", _username)
+                EventLogger.Log("Edit conflict on " & _title, "BOT", _username)
                 Return "Edit conflict"
             End If
             Dim minorstr As String = String.Empty
@@ -280,7 +280,7 @@ Namespace WikiBot
                 System.Threading.Thread.Sleep(1000) 'Some time to the server to process the data
                 Load() 'Update page data
             Catch ex As Exception
-                Log("POST error on " & _title, "BOT", _username)
+                EventLogger.Log("POST error on " & _title, "BOT", _username)
             End Try
 
             If String.IsNullOrWhiteSpace(postresult) Then
@@ -288,26 +288,26 @@ Namespace WikiBot
             End If
 
             If postresult.Contains("""result"":""Success""") Then
-                Log("Edit on " & _title & " successful!", "BOT", _username)
+                EventLogger.Log("Edit on " & _title & " successful!", "BOT", _username)
                 Return "Edit successful!"
             End If
 
             If postresult.ToLower.Contains("abusefilter") Then
-                Log("AbuseFilter Triggered! on " & _title, "LOCAL", _username)
-                Debug_Log("ABUSEFILTER: " & postresult, "BOT", _username)
+                EventLogger.Log("AbuseFilter Triggered! on " & _title, "LOCAL", _username)
+                EventLogger.Debug_Log("ABUSEFILTER: " & postresult, "BOT", _username)
                 Return "AbuseFilter"
             End If
 
             If postresult.ToLower.Contains("spamblacklist") Then
-                Log("AbuseFilter Triggered! on " & _title, "LOCAL", _username)
-                Debug_Log("ABUSEFILTER: " & postresult, "BOT", _username)
+                EventLogger.Log("AbuseFilter Triggered! on " & _title, "LOCAL", _username)
+                EventLogger.Debug_Log("ABUSEFILTER: " & postresult, "BOT", _username)
                 If Spamreplace Then
                     Dim spamlinkRegex As String = TextInBetween(postresult, """spamblacklist"":""", """")(0)
                     Dim newtext As String = Regex.Replace(text, SpamListParser(spamlinkRegex), Function(x) "<nowiki>" & x.Value & "</nowiki>") 'Reeplazar links con el Nowiki
                     If Not RetryCount > MaxRetry Then
                         Return SavePage(newtext, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
                     Else
-                        Log("Max retry count saving " & _title, "LOCAL", _username)
+                        EventLogger.Log("Max retry count saving " & _title, "LOCAL", _username)
                         Return "Max retry count"
                     End If
                 Else
@@ -318,8 +318,8 @@ Namespace WikiBot
             If Not RetryCount > MaxRetry Then
                 Return SavePage(text, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
             Else
-                Log("Max retry count saving " & _title, "LOCAL", _username)
-                Debug_Log("Unexpected saving result: " & postresult, "BOT", _username)
+                EventLogger.Log("Max retry count saving " & _title, "LOCAL", _username)
+                EventLogger.Debug_Log("Unexpected saving result: " & postresult, "BOT", _username)
                 Return "Max retry count"
             End If
 
@@ -335,7 +335,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBOT As Boolean, ByVal SpamReplace As Boolean) As String
             If Not BotCanEdit(_text, _username) Then
-                Log("Bots can't edit " & _title & "!", "BOT", _username)
+                EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
                 Return "No Bots"
             End If
             Return SavePage(text, summary, isMinor, isBOT, False, 0)
@@ -350,7 +350,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBOT As Boolean) As String
             If Not BotCanEdit(_text, _username) Then
-                Log("Bots can't edit " & _title & "!", "BOT", _username)
+                EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
                 Return "No Bots"
             End If
             Return SavePage(text, summary, isMinor, isBOT, False, 0)
@@ -365,7 +365,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean) As String
             If Not BotCanEdit(_text, _username) Then
-                Log("Bots can't edit " & _title & "!", "BOT", _username)
+                EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
                 Return "No Bots"
             End If
             Return SavePage(text, summary, isMinor, False, False, 0)
@@ -379,7 +379,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String) As String
             If Not BotCanEdit(_text, _username) Then
-                Log("Bots can't edit " & _title & "!", "BOT", _username)
+                EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
                 Return "No Bots"
             End If
             Return SavePage(text, summary, False, False, False, 0)
@@ -392,7 +392,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Overloads Function CheckAndSave(ByVal text As String) As String
             If Not BotCanEdit(_text, _username) Then
-                Log("Bots can't edit " & _title & "!", "BOT", _username)
+                EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
                 Return "No Bots"
             End If
             Return SavePage(text, "Bot edit", False, False, False, 0)
@@ -455,12 +455,12 @@ Namespace WikiBot
             End If
 
             If Not GetLastTimeStamp(_title) = _timestamp Then
-                Log("Edit conflict", "LOCAL", _username)
+                EventLogger.Log("Edit conflict", "LOCAL", _username)
                 Return "Edit conflict"
             End If
 
             If Not BotCanEdit(_text, _username) Then
-                Log("Bots can't edit this page!", "LOCAL", _username)
+                EventLogger.Log("Bots can't edit this page!", "LOCAL", _username)
                 Return "No Bots"
             End If
 
@@ -476,12 +476,12 @@ Namespace WikiBot
             Load() 'Update page data
 
             If postresult.Contains("""result"":""Success""") Then
-                Log("Edit successful!", "LOCAL", _username)
+                EventLogger.Log("Edit successful!", "LOCAL", _username)
                 Return "Edit successful!"
             End If
 
             If postresult.Contains("abusefilter") Then
-                Log("AbuseFilter Triggered!", "LOCAL", _username)
+                EventLogger.Log("AbuseFilter Triggered!", "LOCAL", _username)
                 Return "AbuseFilter Triggered"
             End If
 
@@ -580,13 +580,13 @@ Namespace WikiBot
                 PRevID = TextInBetween(QueryText, """revid"":", ",""")(0)
                 PExtract = NormalizeUnicodetext(TextInBetween(QueryText, """extract"":""", """}")(0))
             Catch ex As IndexOutOfRangeException
-                Log("Warning: The page '" & pageName & "' doesn't exist yet!", "LOCAL", _username)
+                EventLogger.Log("Warning: The page '" & pageName & "' doesn't exist yet!", "LOCAL", _username)
             End Try
 
             If TextInBetween(QueryText, """pageimage"":""", """").Count >= 1 Then
                 PageImage = TextInBetween(QueryText, """pageimage"":""", """")(0)
             Else
-                Debug_Log("The page '" & pageName & "' doesn't have any thumbnail", "LOCAL", _username)
+                EventLogger.Debug_log("The page '" & pageName & "' doesn't have any thumbnail", "LOCAL", _username)
             End If
 
             For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")
