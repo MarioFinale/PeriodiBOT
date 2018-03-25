@@ -1036,7 +1036,6 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             _apiUrl = WPAPI
             _wikiUrl = WPSite
 
-
             _ircUrl = MainIRCNetwork
             _ircChannel = MainIRCChannel
             _ircNickName = IRCBotNickName

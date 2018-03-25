@@ -51,7 +51,7 @@ Namespace IRC
                                                                                              Next
 
                                                                                          Catch ex As Exception
-                                                                                             Debug_Log("TASK " & _source & " EX: " & ex.Message, "THREAD", BOTName)
+                                                                                             Debug_Log("TASK " & _source & " EX: " & ex.Message, "THREAD")
                                                                                          End Try
 
                                                                                          If Not _infinite Then
@@ -79,7 +79,7 @@ Namespace IRC
         ''' </summary>
         ''' <param name="disposing"></param>
         Protected Overridable Sub Dispose(disposing As Boolean)
-            Debug_Log("End task func", "LOCAL", BOTName)
+            Debug_Log("End task func", "LOCAL")
             _infinite = False
             If disposed Then Return
             If disposing Then

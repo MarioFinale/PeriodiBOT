@@ -161,10 +161,10 @@ Namespace WikiBot
                 End If
 
             Catch ex As IndexOutOfRangeException
-                EX_Log("Wikiuser LoadInfo" & ex.Message, "LOCAL", BOTName)
+                EX_Log("Wikiuser LoadInfo" & ex.Message, "LOCAL")
 
             Catch ex2 As Exception
-                EX_Log("Wikiuser LoadInfo: " & ex2.Message, "LOCAL", BOTName)
+                EX_Log("Wikiuser LoadInfo: " & ex2.Message, "LOCAL")
             End Try
 
         End Sub

@@ -204,7 +204,6 @@ Namespace IRC
                         End If
                     End If
 
-
                     If Not LastMessage Is CommandResponse Then
 
                         LastMessage = CommandResponse

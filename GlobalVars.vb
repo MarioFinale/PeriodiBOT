@@ -26,7 +26,7 @@ Module GlobalVars
     Public Const TopicGroupsPage As String = "Wikipedia:Café por tema/Grupos"
     Public Const MaxRetry As Integer = 3
 
-    Public LogC As New LogEngine(Log_Filepath, User_Filepath)
+    Public LogC As New LogEngine(Log_Filepath, User_Filepath, BotCodename)
     Public Userdata As List(Of String()) = LogC.LogUserData
     Public Uptime As DateTime
 

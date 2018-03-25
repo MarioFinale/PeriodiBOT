@@ -13,6 +13,7 @@ Class LogEngine
     Private _logPath As String
     Private _userPath As String
     Private _logging As Boolean
+    Private _defaultUser As String
     ''' <summary>
     ''' Retorna una lista con todos los eventos en el LOG hasta el momento que se solicita.
     ''' </summary>
@@ -49,9 +50,10 @@ Class LogEngine
     ''' </summary>
     ''' <param name="LogPath">Archivo con ruta donde se guardará el archivo de LOG.</param>
     ''' <param name="UserPath">Archivo con ruta donde se guardará el archivo de usuarios.</param>
-    Public Sub New(ByVal LogPath As String, ByVal UserPath As String)
+    Public Sub New(ByVal LogPath As String, ByVal UserPath As String, ByVal DefaultUser As String)
         _logPath = LogPath
         _userPath = UserPath
+        _defaultUser = DefaultUser
         Task.Run(Sub()
                      Do Until _endLog
                          SaveLogWorker()
@@ -96,7 +98,7 @@ Class LogEngine
             Loop
             Return True
         Catch ex As Exception
-            EX_Log(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, BOTName)
+            EX_Log(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, _defaultUser)
             Return False
         End Try
     End Function
@@ -196,7 +198,7 @@ Class LogEngine
             Return True
 
         Catch ex As Exception
-            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", BOTName)
+            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             Return False
         End Try
 
@@ -234,7 +236,7 @@ Class LogEngine
             LoadUsers()
             Return True
         Catch ex As Exception
-            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", BOTName)
+            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             'Do something, idk...\
             LoadUsers()
             Return False
@@ -282,7 +284,7 @@ Class LogEngine
             Userdata = _userData
             Return True
         Catch ex As Exception
-            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", BOTName)
+            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             Return False
         End Try
 
@@ -298,7 +300,7 @@ Class LogEngine
             Userdata = _userData
             Return True
         Catch ex As Exception
-            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", BOTName)
+            Debug_log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             Return False
         End Try
 
