@@ -314,12 +314,15 @@ Namespace WikiBot
                     Return "SpamBlacklist"
                 End If
             End If
+
             'Unexpected result, retry
             If Not RetryCount > MaxRetry Then
+                'Refresh credentials, retry
+                _bot.Relogin()
                 Return SavePage(text, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
             Else
                 EventLogger.Log("Max retry count saving " & _title, "LOCAL", _username)
-                EventLogger.Debug_Log("Unexpected saving result: " & postresult, "BOT", _username)
+                EventLogger.Debug_Log("Unexpected result: " & postresult, "SavePage", _username)
                 Return "Max retry count"
             End If
 

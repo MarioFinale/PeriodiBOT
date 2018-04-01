@@ -84,6 +84,10 @@ Namespace WikiBot
             Api = New APIHandler(_botUserName, _botPassword, _apiUrl)
         End Sub
 
+        Sub Relogin()
+            Api = New APIHandler(_botUserName, _botPassword, _apiUrl)
+        End Sub
+
         Function POSTQUERY(ByVal postdata As String) As String
             Return Api.POSTQUERY(postdata)
         End Function
