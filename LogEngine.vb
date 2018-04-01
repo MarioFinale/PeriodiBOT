@@ -12,6 +12,7 @@ Class LogEngine
     Private _userPath As String
     Private _logging As Boolean
     Private _defaultUser As String
+    Private _Debug As Boolean
 #End Region
 
 #Region "Properties"
@@ -44,6 +45,15 @@ Class LogEngine
         End Get
         Set(value As Boolean)
             _endLog = value
+        End Set
+    End Property
+
+    Public Property Debug As Boolean
+        Get
+            Return _Debug
+        End Get
+        Set(value As Boolean)
+            _Debug = value
         End Set
     End Property
 
@@ -99,7 +109,11 @@ Class LogEngine
     ''' <param name="source">origen del evento</param>
     ''' <returns></returns>
     Function Debug_Log(ByVal text As String, source As String) As Boolean
-        Return Debug_Log(text, source, BotCodename)
+        If _Debug Then
+            Return Debug_Log(text, source, BotCodename)
+        Else
+            Return True
+        End If
     End Function
 
     ''' <summary>

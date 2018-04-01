@@ -72,141 +72,138 @@ Namespace IRC
                             Totalparam = Username
                         End If
 
+                        Dim Ultima As String() = {"%última", "%ultima", "%ult", "%last"}
+                        Dim Usuario As String() = {"%usuario", "%usuarios", "%users", "%usr", "%usrs"}
+                        Dim Programar As String() = {"%programar", "%programa", "%prog", "%progr", "%prg", "%avisa"}
+                        Dim Quitar As String() = {"%quitar", "%quita", "%saca", "%sacar"}
+                        Dim Ordenes As String() = {"%ord", "%ordenes", "%órdenes"}
+                        Dim Info As String() = {"%??"}
+                        Dim Ayuda As String() = {"%?", "%h", "%help", "%ayuda"}
+                        Dim Resumen As String() = {"%resumen", "%res", "%entrada", "%entradilla"}
+                        Dim InfoPagina As String() = {"%info", "%pag", "%pageinfo", "%infopagina"}
+                        Dim ArchivaTodo As String() = {"%archiveall"}
+                        Dim Entra As String() = {"%join"}
+                        Dim Sal As String() = {"%leave", "%part"}
+                        Dim Apagar As String() = {"%q", "%quit"}
+                        Dim AgregarOP As String() = {"%op"}
+                        Dim QuitarOP As String() = {"%deop"}
+                        Dim ActualizarExtractos As String() = {"%updateExtracts", "%update", "%upex", "%updex", "%updext"}
+                        Dim Archivar As String() = {"%archive"}
+                        Dim Divide0 As String() = {"%div0"}
+
 
                         If Params.Count >= 1 Then
 
-                            If MainParam = ("%última") Or
-                       MainParam = ("%ultima") Or MainParam = ("%ult") Or MainParam = ("%last") Then
-                                Dim paramarr As String() = param.Split(CType(" ", Char))
-                                If paramarr.Count >= 2 Then
-                                    CommandResponse = LastEdit(Source, Realname, Username)
-                                Else
-                                    CommandResponse = CommandInfo(Source, MainParam, Realname)
-                                End If
+                            Select Case True
 
-                            ElseIf MainParam = ("%usuario") Or MainParam = ("%usuarios") Or MainParam = ("%users") Or MainParam = ("%usr") Or
-                           MainParam = ("%usrs") Then
-                                CommandResponse = GetProgrammedUsers(Source, Realname)
-
-                            ElseIf MainParam = ("%programar") Or MainParam = ("%programa") Or MainParam = ("%prog") Or MainParam = ("%progr") Or
-                           MainParam = ("%prg") Or MainParam = ("%avisa") Then
-                                Dim paramarr As String() = param.Split(CType(" ", Char))
-
-                                If paramarr.Count >= 2 Then
-                                    CommandResponse = ProgramNewUser(Source, Realname, paramarr(1).Trim(CType(" ", Char())))
-                                Else
-                                    CommandResponse = CommandInfo(Source, MainParam, Realname)
-                                End If
-
-                            ElseIf MainParam = ("%quitar") Or MainParam = ("%quita") Or
-                           MainParam = ("%saca") Or MainParam = ("%sacar") Then
-                                CommandResponse = RemoveUser(Source, Realname, ParamsString)
-
-                            ElseIf MainParam = ("%ord") Or MainParam = ("%ordenes") Or
-                           MainParam = ("%órdenes") Then
-                                CommandResponse = Orders(Source, Realname)
-
-                            ElseIf MainParam = "%??" Then
-                                CommandResponse = About(imputline, Source, Realname)
-
-                            ElseIf MainParam = "%?" Or MainParam = "%h" Or MainParam = "%help" Or MainParam = "%ayuda" Then
-
-                                Dim paramarr As String() = param.Split(CType(" ", Char))
-
-                                If paramarr.Count >= 2 Then
-                                    CommandResponse = CommandInfo(Source, paramarr(1).Trim(CType(" ", Char())), Realname)
-                                Else
-                                    CommandResponse = CommandInfo(Source, MainParam, Realname)
-                                End If
-
-                            ElseIf MainParam = ("%lastlog") Then
-                                CommandResponse = LastLogComm(Totalparam, Source, Realname)
-
-                            ElseIf MainParam = ("%resumen") Or MainParam = ("%res") Or
-                           MainParam = ("%entrada") Or MainParam = ("%entradilla") Then
-                                Dim response As IRCMessage = GetResume(Source, Totalparam, Realname)
-
-                                If Not response.Text Is LastMessage.Text Then
-                                    LastMessage = response
-                                    Return response
-                                End If
-
-                            ElseIf MainParam = ("%info") Or MainParam = ("%pag") Or
-                           MainParam = ("%pageinfo") Or MainParam = ("%infopagina") Then
-                                Dim response As IRCMessage = PageInfo(Source, Totalparam, Realname)
-                                If Not response.Text Is LastMessage.Text Then
-                                    LastMessage = response
-                                    Return response
-                                End If
-
-                            ElseIf MainParam = ("%archiveall") Then 'Archivado de grillitus
-                                If Client.IsOp(imputline, Source, Realname) Then
+                                Case Ultima.Contains(MainParam)
                                     Dim paramarr As String() = param.Split(CType(" ", Char))
                                     If paramarr.Count >= 2 Then
-                                        CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                        CommandResponse = LastEdit(Source, Realname, Username)
                                     Else
+                                        CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                    End If
+
+                                Case Usuario.Contains(MainParam)
+                                    CommandResponse = GetProgrammedUsers(Source, Realname)
+
+                                Case Programar.Contains(MainParam)
+                                    Dim paramarr As String() = param.Split(CType(" ", Char))
+                                    If paramarr.Count >= 2 Then
+                                        CommandResponse = ProgramNewUser(Source, Realname, paramarr(1).Trim(CType(" ", Char())))
+                                    Else
+                                        CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                    End If
+
+                                Case Quitar.Contains(MainParam)
+                                    CommandResponse = RemoveUser(Source, Realname, ParamsString)
+
+                                Case Ordenes.Contains(MainParam)
+                                    CommandResponse = Orders(Source, Realname)
+
+                                Case Info.Contains(MainParam)
+                                    CommandResponse = About(imputline, Source, Realname)
+
+                                Case Ayuda.Contains(MainParam)
+                                    Dim paramarr As String() = param.Split(CType(" ", Char))
+                                    If paramarr.Count >= 2 Then
+                                        CommandResponse = CommandInfo(Source, paramarr(1).Trim(CType(" ", Char())), Realname)
+                                    Else
+                                        CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                    End If
+
+                                Case Resumen.Contains(MainParam)
+                                    CommandResponse = GetResume(Source, Totalparam, Realname)
+
+                                Case InfoPagina.Contains(MainParam)
+                                    CommandResponse = PageInfo(Source, Totalparam, Realname)
+
+                                Case ArchivaTodo.Contains(MainParam)
+                                    If Client.IsOp(imputline, Source, Realname) Then
+                                        Dim paramarr As String() = param.Split(CType(" ", Char))
+                                        If paramarr.Count >= 2 Then
+                                            CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                        Else
+                                            Task.Run(Sub()
+                                                         ArchiveAllInclusions(True)
+                                                     End Sub)
+                                        End If
+                                    End If
+
+                                Case Entra.Contains(MainParam)
+                                    If Client.IsOp(imputline, Source, Realname) Then
+                                        Return JoinRoom(Source, Totalparam, Realname)
+                                    End If
+
+                                Case Sal.Contains(MainParam)
+                                    If Client.IsOp(imputline, Source, Realname) Then
+                                        Return LeaveRoom(Source, Totalparam, Realname)
+                                    End If
+
+                                Case Apagar.Contains(MainParam)
+                                    If Client.IsOp(imputline, Source, Realname) Then
+                                        Return Quit(Source, Realname, HasExited)
+                                    End If
+
+                                Case AgregarOP.Contains(MainParam)
+                                    If Client.IsOp(imputline, Source, Realname) Then
+                                        CommandResponse = SetOp(imputline, Source, Realname)
+                                    End If
+
+                                Case QuitarOP.Contains(MainParam)
+                                    If Client.IsOp(imputline, Source, Realname) Then
+                                        CommandResponse = DeOp(imputline, Source, Realname)
+                                    End If
+
+                                Case ActualizarExtractos.Contains(MainParam)
+                                    If Client.IsOp(imputline, Source, Realname) Then
                                         Task.Run(Sub()
-                                                     ArchiveAllInclusions(True)
+                                                     UpdatePageExtracts(True)
                                                  End Sub)
                                     End If
-                                End If
 
-                            ElseIf MainParam = ("%join") Then
-                                If Client.IsOp(imputline, Source, Realname) Then
-                                    Return JoinRoom(Source, Totalparam, Realname)
-                                End If
-
-                            ElseIf MainParam = ("%leave") Or MainParam = ("%part") Then
-                                If Client.IsOp(imputline, Source, Realname) Then
-                                    Return LeaveRoom(Source, Totalparam, Realname)
-                                End If
-
-                            ElseIf MainParam = ("%q") Or MainParam = ("%quit") Then
-                                If Client.IsOp(imputline, Source, Realname) Then
-                                    Return Quit(Source, Realname, HasExited)
-                                End If
-
-                            ElseIf MainParam = ("%op") Then
-                                If Client.IsOp(imputline, Source, Realname) Then
-                                    CommandResponse = SetOp(imputline, Source, Realname)
-                                End If
-                            ElseIf MainParam = ("%deop") Then
-                                If Client.IsOp(imputline, Source, Realname) Then
-                                    CommandResponse = DeOp(imputline, Source, Realname)
-                                End If
-
-                            ElseIf MainParam = ("%updateExtracts") Or MainParam = ("%update") Or
-                        MainParam = ("%upex") Or MainParam = ("%updex") Then
-                                If Client.IsOp(imputline, Source, Realname) Then
-                                    Task.Run(Sub()
-                                                 UpdatePageExtracts(True)
-                                             End Sub)
-                                End If
-
-                            ElseIf MainParam = ("%archive") Then
-                                If Client.IsOp(imputline, Source, Realname) Then
-                                    Dim paramarr As String() = param.Split(CType(" ", Char))
-                                    If paramarr.Count >= 2 Then
-                                        CommandResponse = ArchivePage(Source, Totalparam, Realname, Client)
-                                    Else
-                                        CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                Case Archivar.Contains(MainParam)
+                                    If Client.IsOp(imputline, Source, Realname) Then
+                                        Dim paramarr As String() = param.Split(CType(" ", Char))
+                                        If paramarr.Count >= 2 Then
+                                            CommandResponse = ArchivePage(Source, Totalparam, Realname, Client)
+                                        Else
+                                            CommandResponse = CommandInfo(Source, MainParam, Realname)
+                                        End If
                                     End If
-                                End If
 
-                            ElseIf MainParam = ("%div0") Then
-                                Return Div0(Source, Realname)
+                                Case Divide0.Contains(MainParam)
+                                    Return Div0(Source, Realname)
 
-                            Else
-                                If param.ToLower.Contains(_IrcNickName.ToLower) And Not param.ToLower.Contains("*") And Not imputline.Contains(".freenode.net ") Then
-                                    CommandResponse = Commands(Source, Realname)
-                                End If
-                            End If
-
+                                Case Else
+                                    If param.ToLower.Contains(_IrcNickName.ToLower) And Not param.ToLower.Contains("*") And Not imputline.Contains(".freenode.net ") Then
+                                        CommandResponse = Commands(Source, Realname)
+                                    End If
+                            End Select
                         End If
                     End If
 
                     If Not LastMessage Is CommandResponse Then
-
                         LastMessage = CommandResponse
                         Return CommandResponse
                     Else
