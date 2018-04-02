@@ -39,20 +39,19 @@ Namespace IRC
                             sCommandText = sCommandText & " " & sCommandParts(i)
                         Next
 
-
-                        If Command = "PRIVMSG" Then
-                            If Source = Realname Then
-                                WriteLine("MSG", "IRC", Source & "" & sCommandText)
-
-                            Else
-                                WriteLine("MSG", "IRC", Source & " " & Realname & "" & sCommandText)
-
-                            End If
-                        Else
-                            WriteLine("INFO", "IRC", Command & "" & sCommandText)
-                        End If
-
-
+                        Select Case Command
+                            Case "PRIVMSG"
+                                If Source = Realname Then
+                                    WriteLine("MSG", "IRC", Source & "" & sCommandText)
+                                Else
+                                    WriteLine("MSG", "IRC", Source & " " & Realname & "" & sCommandText)
+                                End If
+                            Case "QUIT"
+                                Dim quser As String = Prefix.Split("!"c)(0).Remove(0, 1)
+                                WriteLine("MSG", "IRC", "USER " & quser & " QUIT: " & imputline.Split(":"c)(2))
+                            Case Else
+                                WriteLine("INFO", "IRC", Command & "" & sCommandText)
+                        End Select
 
                         Dim Params As String() = GetParams(param)
                         Dim MainParam As String = Params(0).ToLower
@@ -225,20 +224,16 @@ Namespace IRC
 
             If CountCharacter(param, CChar("!")) = 1 Then
                 Dim requestedop As String = param.Split(CType("!", Char()))(0)
-
                 If Client.AddOP(message, source, realname) Then
                     responsestring = "El usuario " & requestedop & " se añadió como operador"
 
                 Else
                     responsestring = "El usuario " & requestedop & " no se añadió como operador"
                 End If
-
             Else
                 responsestring = "Parámetro mal ingresado."
             End If
-
             Dim mes As New IRCMessage(source, responsestring)
-
             Return mes
         End Function
 

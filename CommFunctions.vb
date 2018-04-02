@@ -4,7 +4,9 @@ Imports System.Runtime.Serialization
 Imports System.Text.RegularExpressions
 Imports PeriodiBOT_IRC.WikiBot
 
-Class CommFunctions
+NotInheritable Class CommFunctions
+    Private Sub New()
+    End Sub
 
 #Region "Text Functions"
     ''' <summary>
@@ -292,9 +294,9 @@ Class CommFunctions
     ''' <param name="BackgroundColor">Color del fondo, i se omite se usa el color por defecto del cliente irc</param>
     Public Shared Function ColoredText(ByVal text As String, ForegroundColor As String, Optional BackgroundColor As String = "99") As String
         If BackgroundColor = "99" Then
-            Return Chr(3) & ForegroundColor & text & Chr(3) & Chr(27)
+            Return Chr(3) & ForegroundColor & text & Chr(3) & Chr(15)
         Else
-            Return Chr(3) & ForegroundColor & "," & BackgroundColor & text & Chr(3) & Chr(27)
+            Return Chr(3) & ForegroundColor & "," & BackgroundColor & text & Chr(3) & Chr(15)
         End If
     End Function
 

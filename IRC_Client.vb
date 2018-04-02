@@ -42,7 +42,7 @@ Namespace IRC
 
         Public Sub Initialize(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean, ByVal pass As String, ByVal realName As String, ByVal userName As String)
-
+            LoadConfig()
             _sServer = server
             _sChannel = channel
 
@@ -354,9 +354,7 @@ Namespace IRC
                 Dim Scommand0 As String = message.Split(CType(" ", Char()))(0)
                 Dim Nickname As String = GetUserFromChatresponse(message)
                 Dim Hostname As String = Scommand0.Split(CType("@", Char()))(1)
-
                 EventLogger.Log(String.Format("Checking if user {0} on host {1} is OP", Nickname, Hostname), Source, user)
-
                 Dim OpString As String = Nickname & "!" & Hostname
                 If OPlist.Contains(OpString) Then
                     EventLogger.Log(String.Format("User {0} on host {1} is OP", Nickname, Hostname), Source, user)
@@ -370,8 +368,6 @@ Namespace IRC
                 Return False
             End Try
         End Function
-
-
 
     End Class
 

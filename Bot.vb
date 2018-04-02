@@ -740,7 +740,7 @@ Namespace WikiBot
             Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
             If matchc.Count = 0 Then
-                EventLogger.EX_Log("No date match", "ESWikiDateTime")
+                EventLogger.Debug_Log("No date match", "ESWikiDateTime")
                 Return DateTime.Parse("23:59 31/12/9999")
             End If
 

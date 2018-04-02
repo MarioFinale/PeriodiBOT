@@ -61,11 +61,12 @@ Class LogEngine
 
 #Region "Create and Dispose"
     ''' <summary>
-    ''' Crea una nueva instancia del motor de LOG's locales.
+    ''' Crea una nueva instancia del motor de registros locales.
     ''' </summary>
     ''' <param name="LogPath">Archivo con ruta donde se guardará el archivo de LOG.</param>
     ''' <param name="UserPath">Archivo con ruta donde se guardará el archivo de usuarios.</param>
     Sub New(ByVal LogPath As String, ByVal UserPath As String, ByVal DefaultUser As String)
+        _Debug = False
         _logPath = LogPath
         _userPath = UserPath
         _defaultUser = DefaultUser
@@ -109,11 +110,7 @@ Class LogEngine
     ''' <param name="source">origen del evento</param>
     ''' <returns></returns>
     Function Debug_Log(ByVal text As String, source As String) As Boolean
-        If _Debug Then
-            Return Debug_Log(text, source, BotCodename)
-        Else
-            Return True
-        End If
+        Return Debug_Log(text, source, BotCodename)
     End Function
 
     ''' <summary>
@@ -149,9 +146,11 @@ Class LogEngine
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
     Public Function Debug_Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
-        Task.Run(Sub()
-                     AddEvent(text, source, user, "DEBUG")
-                 End Sub)
+        If _Debug Then
+            Task.Run(Sub()
+                         AddEvent(text, source, user, "DEBUG")
+                     End Sub)
+        End If
         Return True
     End Function
 

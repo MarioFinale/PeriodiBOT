@@ -187,7 +187,7 @@ Namespace WikiBot
         ''' <param name="site">Sitio de la página</param>
         ''' <returns></returns>
         Private Function Loadpage(ByVal PageTitle As String, ByVal site As String) As Boolean
-            EventLogger.Log("Obtaining server data of " & PageTitle, "LOCAL", _username)
+            EventLogger.Log("Loading page " & PageTitle, "LOCAL", _username)
             If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
                 Throw New ArgumentNullException("Empty parameter", "PageTitle")
             End If
@@ -576,7 +576,7 @@ Namespace WikiBot
             Dim Rootp As String = ""
             Try
                 PageID = TextInBetween(QueryText, "{""pageid"":", ",""ns")(0)
-                User = TextInBetween(QueryText, """user"":""", """,")(0)
+                User = NormalizeUnicodetext(TextInBetween(QueryText, """user"":""", """,")(0))
                 Timestamp = TextInBetween(QueryText, """timestamp"":""", """,")(0)
                 Wikitext = NormalizeUnicodetext(TextInBetween(QueryText, """wikitext"",""*"":""", """}]")(0))
                 Size = NormalizeUnicodetext(TextInBetween(QueryText, ",""size"":", ",""")(0))
