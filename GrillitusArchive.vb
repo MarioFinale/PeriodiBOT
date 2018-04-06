@@ -190,7 +190,7 @@ Namespace WikiBot
                     If strategy = "FirmaMásRecienteEnLaSección" Then
                         Dim threaddate As DateTime = _bot.MostRecentDate(t)
 
-                        Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
+                        Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha *\=")
                         Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
 
                         If Not DoNotArchiveMatch.Success Then

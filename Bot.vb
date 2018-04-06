@@ -16,6 +16,7 @@ Namespace WikiBot
         Private Api As APIHandler
         Private signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4}( \([A-z]{3,4}\))*"
         Private _localName As String
+        Private _userName As String
 
         Private _ircNickName As String
         Private _ircChannel As String
@@ -37,7 +38,7 @@ Namespace WikiBot
 
         Public ReadOnly Property UserName As String
             Get
-                Return _localName
+                Return _userName
             End Get
         End Property
 
@@ -82,6 +83,7 @@ Namespace WikiBot
         Sub New()
             LoadConfig()
             Api = New APIHandler(_botUserName, _botPassword, _apiUrl)
+            _userName = Api.UserName
         End Sub
 
         Sub Relogin()
@@ -800,7 +802,7 @@ Namespace WikiBot
             Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
             If matchc.Count = 0 Then
-                EventLogger.EX_Log("No date match", "ESWikiDateTime")
+                EventLogger.Debug_Log("No date match", "ESWikiDateTime")
                 Return DateTime.Parse("23:59 31/12/9999")
             End If
 

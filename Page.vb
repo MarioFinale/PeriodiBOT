@@ -288,19 +288,19 @@ Namespace WikiBot
             End If
 
             If postresult.Contains("""result"":""Success""") Then
-                EventLogger.Log("Edit on " & _title & " successful!", "BOT", _username)
+                EventLogger.Log("Edit on " & _title & " successful!", "LOCAL", _username)
                 Return "Edit successful!"
             End If
 
             If postresult.ToLower.Contains("abusefilter") Then
                 EventLogger.Log("AbuseFilter Triggered! on " & _title, "LOCAL", _username)
-                EventLogger.Debug_Log("ABUSEFILTER: " & postresult, "BOT", _username)
+                EventLogger.Debug_Log("ABUSEFILTER: " & postresult, "LOCAL", _username)
                 Return "AbuseFilter"
             End If
 
             If postresult.ToLower.Contains("spamblacklist") Then
                 EventLogger.Log("AbuseFilter Triggered! on " & _title, "LOCAL", _username)
-                EventLogger.Debug_Log("ABUSEFILTER: " & postresult, "BOT", _username)
+                EventLogger.Debug_Log("ABUSEFILTER: " & postresult, "LOCAL", _username)
                 If Spamreplace Then
                     Dim spamlinkRegex As String = TextInBetween(postresult, """spamblacklist"":""", """")(0)
                     Dim newtext As String = Regex.Replace(text, SpamListParser(spamlinkRegex), Function(x) "<nowiki>" & x.Value & "</nowiki>") 'Reeplazar links con el Nowiki

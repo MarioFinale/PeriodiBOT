@@ -5,8 +5,10 @@ Imports System.Text.RegularExpressions
 Imports PeriodiBOT_IRC.WikiBot
 
 NotInheritable Class CommFunctions
+#Region "Prevent init"
     Private Sub New()
     End Sub
+#End Region
 
 #Region "Text Functions"
     ''' <summary>

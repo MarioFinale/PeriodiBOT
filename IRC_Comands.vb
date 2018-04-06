@@ -89,6 +89,7 @@ Namespace IRC
                         Dim ActualizarExtractos As String() = {"%updateExtracts", "%update", "%upex", "%updex", "%updext"}
                         Dim Archivar As String() = {"%archive"}
                         Dim Divide0 As String() = {"%div0"}
+                        Dim Debug As String() = {"%debug", "%dbg"}
 
 
                         If Params.Count >= 1 Then
@@ -194,6 +195,11 @@ Namespace IRC
                                 Case Divide0.Contains(MainParam)
                                     Return Div0(Source, Realname)
 
+                                Case Debug.Contains(MainParam)
+                                    If Client.IsOp(imputline, Source, Realname) Then
+                                        CommandResponse = SetDebug(Source, MainParam, Realname)
+                                    End If
+
                                 Case Else
                                     If param.ToLower.Contains(_IrcNickName.ToLower) And Not param.ToLower.Contains("*") And Not imputline.Contains(".freenode.net ") Then
                                         CommandResponse = Commands(Source, Realname)
@@ -218,6 +224,18 @@ Namespace IRC
             End Try
         End Function
 
+        Private Function SetDebug(ByVal Message As String, ByVal source As String, user As String) As IRCMessage
+            Dim responsestring As String = String.Empty
+            If EventLogger.Debug Then
+                EventLogger.Debug = False
+                responsestring = ColoredText("Registro de eventos debug desactivado.", "04")
+            Else
+                EventLogger.Debug = True
+                responsestring = ColoredText("Registro de eventos debug activado.", "04")
+            End If
+            Return New IRCMessage(source, responsestring)
+        End Function
+
         Private Function SetOp(ByVal message As String, source As String, realname As String) As IRCMessage
             Dim responsestring As String = String.Empty
             Dim param As String = message.Split(CType(" ", Char()))(4)
@@ -233,8 +251,7 @@ Namespace IRC
             Else
                 responsestring = "Parámetro mal ingresado."
             End If
-            Dim mes As New IRCMessage(source, responsestring)
-            Return mes
+            Return New IRCMessage(source, responsestring)
         End Function
 
 
@@ -253,8 +270,7 @@ Namespace IRC
             Else
                 responsestring = "Parámetro mal ingresado."
             End If
-            Dim mes As New IRCMessage(source, responsestring)
-            Return mes
+            Return New IRCMessage(source, responsestring)
         End Function
 
         Private Function CommandInfo(source As String, MainParam As String, realname As String) As IRCMessage
@@ -339,8 +355,8 @@ Namespace IRC
             Else
                 responsestring = String.Format("No se ha encontrado el comando {0}.", ColoredText(MainParam, "04"))
             End If
-            Dim mes As New IRCMessage(source, responsestring)
-            Return mes
+            Return New IRCMessage(source, responsestring)
+
         End Function
 
         Private Function JoinRoom(ByVal source As String, Room As String, user As String) As IRCMessage

@@ -146,11 +146,13 @@ Class LogEngine
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
     Public Function Debug_Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
-        If _Debug Then
-            Task.Run(Sub()
+
+        Task.Run(Sub()
+                     If _Debug Then
                          AddEvent(text, source, user, "DEBUG")
-                     End Sub)
-        End If
+                     End If
+                 End Sub)
+
         Return True
     End Function
 
