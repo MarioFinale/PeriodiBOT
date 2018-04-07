@@ -224,6 +224,7 @@ NotInheritable Class CommFunctions
     Public Shared Function GetTitlesFromQueryText(ByVal sourcestring As String) As String()
         Return TextInBetween(sourcestring, ",""title"":""", """,")
     End Function
+
     ''' <summary>
     ''' Normaliza el texto ASCII con códigos unicodes escapados con el formato \\u(número)
     ''' </summary>
@@ -239,14 +240,18 @@ NotInheritable Class CommFunctions
         temptext = temptext.Replace("\\t", "\t")
         Return temptext
     End Function
+
     ''' <summary>
     ''' Codifica una cadena de texto en URLENCODE.
     ''' </summary>
     ''' <param name="text">Texto a codificar.</param>
     ''' <returns></returns>
     Public Shared Function UrlWebEncode(ByVal text As String) As String
-        Return Net.WebUtility.UrlEncode(text)
+        Dim PreTreatedText As String = Net.WebUtility.UrlEncode(text)
+        Dim TreatedText As String = Regex.Replace(PreTreatedText, "%\w{2}", Function(x) x.Value.ToUpper)
+        Return TreatedText
     End Function
+
     ''' <summary>
     ''' Decodifica una cadena de texto en URLENCODE.
     ''' </summary>
