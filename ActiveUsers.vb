@@ -10,8 +10,6 @@ Namespace WikiBot
             _bot = Workerbot
         End Sub
 
-
-
         Sub CheckUsersActivity(ByVal TemplatePage As Page, ByVal PageToSave As Page)
 
             Dim ActiveUsers As New List(Of WikiUser)
@@ -63,11 +61,8 @@ Namespace WikiBot
 
         End Sub
 
-
-
-
         ''' <summary>
-        ''' Verifica si el usuario que se le pase cumple con los requisitos para archivar su discusión
+        ''' Verifica si el usuario que se le pase cumple con los requisitos para verificar su actividad
         ''' </summary>
         ''' <param name="user">Usuario de Wiki</param>
         ''' <returns></returns>
