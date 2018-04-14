@@ -18,7 +18,7 @@ Module GlobalVars
     Public User_Filepath As String = Exepath & "Users.psv"
     Public Log_Filepath As String = Exepath & "Log.psv"
     Public ConfigFilePath As String = Exepath & "Config.cfg"
-    Public OpFilePath As String = Exepath & "OPs.cfg"
+    Public IrcOpPath As String = Exepath & "OPs.cfg"
 
     Public Const ResumePageName As String = "Usuario:PeriodiBOT/Resumen página"
     Public Const DidYouKnowPageName As String = "PeriodiBOT/Sabias que"

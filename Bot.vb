@@ -1,6 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
-
+Imports System.IO
 Imports System.Net
 Imports System.Text.RegularExpressions
 Imports PeriodiBOT_IRC.CommFunctions
@@ -80,8 +80,8 @@ Namespace WikiBot
 
 #End Region
 
-        Sub New()
-            LoadConfig()
+        Sub New(ByVal ConfigPath As ConfigFile)
+            LoadConfig(ConfigPath)
             Api = New APIHandler(_botUserName, _botPassword, _apiUrl)
             _userName = Api.UserName
         End Sub
@@ -951,7 +951,7 @@ Namespace WikiBot
         ''' Si no existe el archivo, solicita datos al usuario y lo genera.
         ''' </summary>
         ''' <returns></returns>
-        Function LoadConfig() As Boolean
+        Function LoadConfig(ByVal Config_path As ConfigFile) As Boolean
             Dim MainBotName As String = String.Empty
             Dim WPSite As String = String.Empty
             Dim WPAPI As String = String.Empty
@@ -963,10 +963,11 @@ Namespace WikiBot
             Dim MainIRCChannel As String = String.Empty
             Dim ConfigOK As Boolean = False
             Console.WriteLine("==================== PeriodiBOT " & Version & " ====================")
-            EventLogger.Debug_log("PeriodiBOT " & Version, "LOCAL", "Undefined")
-            If System.IO.File.Exists(ConfigFilePath) Then
+            EventLogger.Debug_Log("PeriodiBOT " & Version, "LOCAL", "Undefined")
+
+            If System.IO.File.Exists(Config_path.GetPath) Then
                 EventLogger.Log("Loading config", "LOCAL", "Undefined")
-                Dim Configstr As String = System.IO.File.ReadAllText(ConfigFilePath)
+                Dim Configstr As String = System.IO.File.ReadAllText(Config_path.GetPath)
                 Try
                     MainBotName = TextInBetween(Configstr, "BOTName=""", """")(0)
                     WPBotUserName = TextInBetween(Configstr, "WPUserName=""", """")(0)
@@ -984,7 +985,7 @@ Namespace WikiBot
             Else
                 EventLogger.Log("No config file", "LOCAL", "Undefined")
                 Try
-                    System.IO.File.Create(ConfigFilePath).Close()
+                    System.IO.File.Create(Config_path.ToString).Close()
                 Catch ex As System.IO.IOException
                     EventLogger.Log("Error creating new config file", "LOCAL", "Undefined")
                 End Try
@@ -1025,7 +1026,7 @@ IRCBotPassword=""{7}""
 IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, MainIRCChannel)
 
                 Try
-                    System.IO.File.WriteAllText(ConfigFilePath, configstr)
+                    System.IO.File.WriteAllText(Config_path.GetPath, configstr)
                 Catch ex As System.IO.IOException
                     EventLogger.Log("Error saving config file", "LOCAL", "Undefined")
                 End Try

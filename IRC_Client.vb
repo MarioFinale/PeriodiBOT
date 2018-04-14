@@ -18,6 +18,7 @@ Namespace IRC
         Private _networkStream As NetworkStream = Nothing 'conexion a un network stream.
         Private _streamWriter As StreamWriter = Nothing 'escribir en el stream.
         Private _streamReader As StreamReader = Nothing 'leer desde el stream.
+        Private _opFilePath As ConfigFile
 
         Private Command As New IRC_Comands
 
@@ -26,22 +27,23 @@ Namespace IRC
         Private HasExited As Boolean = False
 
         Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal userName As String)
-            Initialize(server, channel, nickName, port, invisible, pass, realname, userName)
+                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal userName As String, ByVal OpFilePath As ConfigFile)
+            Initialize(server, channel, nickName, port, invisible, pass, realname, userName, OpFilePath)
         End Sub
 
         Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String)
-            Initialize(server, channel, nickName, port, invisible, pass, nickName, nickName)
+                          ByVal invisible As Boolean, ByVal pass As String, ByVal OpFilePath As ConfigFile)
+            Initialize(server, channel, nickName, port, invisible, pass, nickName, nickName, OpFilePath)
         End Sub
 
         Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean)
-            Initialize(server, channel, nickName, port, invisible, String.Empty, nickName, nickName)
+                          ByVal invisible As Boolean, ByVal OpFilePath As ConfigFile)
+            Initialize(server, channel, nickName, port, invisible, String.Empty, nickName, nickName, OpFilePath)
         End Sub
 
         Public Sub Initialize(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal realName As String, ByVal userName As String)
+                          ByVal invisible As Boolean, ByVal pass As String, ByVal realName As String, ByVal userName As String, ByVal OpFilePath As ConfigFile)
+            _opFilePath = OpFilePath
             LoadConfig()
             _sServer = server
             _sChannel = channel
@@ -248,11 +250,10 @@ Namespace IRC
 
         Private OPlist As List(Of String)
         Sub LoadConfig()
-
             OPlist = New List(Of String)
-            If System.IO.File.Exists(OpFilePath) Then
+            If System.IO.File.Exists(_opFilePath.GetPath) Then
                 EventLogger.Log("Loading operators", "LOCAL")
-                Dim opstr As String() = System.IO.File.ReadAllLines(OpFilePath)
+                Dim opstr As String() = System.IO.File.ReadAllLines(_opFilePath.GetPath)
                 Try
                     For Each op As String In opstr
                         OPlist.Add(op)
@@ -263,7 +264,7 @@ Namespace IRC
             Else
                 EventLogger.Log("No Ops file", "LOCAL")
                 Try
-                    System.IO.File.Create(OpFilePath).Close()
+                    System.IO.File.Create(_opFilePath.GetPath).Close()
                 Catch ex As System.IO.IOException
                     EventLogger.Log("Error creating ops file", "LOCAL")
                 End Try
@@ -275,7 +276,7 @@ Namespace IRC
                 Console.WriteLine("IRC OP (Nickname!hostname): ")
                 Dim MainOp As String = Console.ReadLine
                 Try
-                    System.IO.File.WriteAllText(OpFilePath, MainOp)
+                    System.IO.File.WriteAllText(_opFilePath.GetPath, MainOp)
                 Catch ex As System.IO.IOException
                     EventLogger.Log("Error saving ops file", "LOCAL")
                 End Try
@@ -297,7 +298,7 @@ Namespace IRC
                 If IsOp(message, Source, user) Then
                     OPlist.Add(Param)
                     Try
-                        System.IO.File.WriteAllLines(OpFilePath, OPlist.ToArray)
+                        System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
                         EventLogger.Log("Error saving ops file", "LOCAL")
@@ -328,7 +329,7 @@ Namespace IRC
                 If OPlist.Contains(Param) Then
                     OPlist.Remove(Param)
                     Try
-                        System.IO.File.WriteAllLines(OpFilePath, OPlist.ToArray)
+                        System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
                         EventLogger.Log("Error saving ops file", "LOCAL")

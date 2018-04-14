@@ -10,16 +10,25 @@ Imports PeriodiBOT_IRC.CommFunctions
 
 Module MainModule
 
-
-
     Sub Main()
 
         Uptime = DateTime.Now
         EventLogger.Log("Starting...", "LOCAL")
-        ESWikiBOT = New Bot()
+        ESWikiBOT = New Bot(New ConfigFile(ConfigFilePath))
 
-        BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword)
+        BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
         BotIRC.Start()
+
+
+        'Tarea para actualizar plantilla de usuario conectado
+        Dim UserStatusFunc As New Func(Of IRCMessage())(Function()
+                                                            Dim p As Page = ESWikiBOT.Getpage("Plantilla:Estado usuario")
+                                                            Dim actus As New ActiveUsers(ESWikiBOT)
+                                                            actus.CheckUsersActivity(p, p)
+                                                            Return {New IRCMessage(ESWikiBOT.IrcNickName, "")}
+                                                        End Function)
+        Dim UserStatusTask As New IRCTask(BotIRC, 300000, True, UserStatusFunc, "UserStatus")
+        UserStatusTask.Run()
 
         'Tarea para avisar inactividad de usuario en IRC
         Dim CheckUsersFunc As New Func(Of IRCMessage())(AddressOf CheckUsers)

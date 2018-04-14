@@ -144,6 +144,7 @@ Namespace WikiBot
                     Dim registrationString As String = TextInBetween(queryresponse, """registration"":""", """")(0).Replace("-"c, "").Replace("T"c, "").Replace("Z"c, "").Replace(":"c, "")
                     _registration = Date.ParseExact(registrationString, "yyyyMMddHHmmss", CultureInfo.InvariantCulture)
                 Catch ex As IndexOutOfRangeException
+                    'En caso de usuarios tan antiguos que la API no regresa la fecha de ingreso.
                     _registration = New Date(2004, 1, 1, 0, 0, 0)
                 End Try
 

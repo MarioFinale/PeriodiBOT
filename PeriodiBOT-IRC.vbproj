@@ -76,9 +76,11 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActiveUsers.vb" />
     <Compile Include="AddTopic.vb" />
     <Compile Include="APIHandler.vb" />
     <Compile Include="Bot.vb" />
+    <Compile Include="FilePath.vb" />
     <Compile Include="PeriodiBOT_Tasks.vb" />
     <Compile Include="CommFunctions.vb" />
     <Compile Include="GlobalVars.vb" />
