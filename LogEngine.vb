@@ -13,6 +13,7 @@ Class LogEngine
     Private _logging As Boolean
     Private _defaultUser As String
     Private _Debug As Boolean
+    Private _maxLogLenght As Integer = 10000
 #End Region
 
 #Region "Properties"
@@ -280,6 +281,11 @@ Class LogEngine
                 AppendLinesToText(filepath, SafeDequeue(_queue))
                 System.Threading.Thread.Sleep(10)
             Loop
+
+            Dim totallines As String() = IO.File.ReadAllLines(filepath)
+            If totallines.Count > _maxLogLenght Then
+                IO.File.WriteAllLines(filepath, SplitStringArrayIntoChunks(totallines, _maxLogLenght).Last.ToArray)
+            End If
             Return True
         Catch ex As Exception
             EX_Log(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, _defaultUser)

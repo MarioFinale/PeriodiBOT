@@ -19,7 +19,6 @@ Module MainModule
         BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
         BotIRC.Start()
 
-        'CheckInformalMediation()
         'Tarea para revisar si hay solicitudes en mediacion informal
         Dim InfMedFunc As New Func(Of IRCMessage())(Function()
                                                         Dim p As Page = ESWikiBOT.Getpage("Plantilla:Estado usuario")
