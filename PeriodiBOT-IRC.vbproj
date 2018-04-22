@@ -107,6 +107,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Page.vb" />
+    <Compile Include="Settings.vb" />
     <Compile Include="Template.vb" />
     <Compile Include="WikiUser.vb" />
   </ItemGroup>

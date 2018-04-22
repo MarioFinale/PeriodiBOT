@@ -14,6 +14,8 @@ Namespace WikiBot
         Private _registration As Date
         Private _groups As New List(Of String)
         Private _gender As String
+        Private _talkPage As Page
+        Private _userPage As Page
 
         Private _blocked As Boolean
         Private _blockID As Integer
@@ -116,6 +118,18 @@ Namespace WikiBot
                 Return _gender
             End Get
         End Property
+
+        Public ReadOnly Property TalkPage As Page
+            Get
+                Return _talkPage
+            End Get
+        End Property
+
+        Public ReadOnly Property UserPage As Page
+            Get
+                Return _userPage
+            End Get
+        End Property
 #End Region
 
 
@@ -138,6 +152,8 @@ Namespace WikiBot
                     _exists = True
                 End If
 
+                _talkPage = _bot.Getpage("Usuario discusión:" & _userName)
+                _userPage = _bot.Getpage("Usuario:" & _userName)
                 _userId = Integer.Parse(TextInBetween(queryresponse, """userid"":", ",")(0))
                 _editCount = Integer.Parse(TextInBetween(queryresponse, """editcount"":", ",")(0))
                 Try

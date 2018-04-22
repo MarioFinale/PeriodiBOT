@@ -323,4 +323,47 @@ Public Module PeriodiBOT_Tasks
     End Function
 
 
+    Function CheckInformalMediation() As Boolean
+        Dim newThreads As Boolean = False
+        Dim membPage As Page = ESWikiBOT.Getpage(InformalMediationMembers)
+        Dim MedPage As Page = ESWikiBOT.Getpage(InfMedPage)
+        Dim subthreads As String() = ESWikiBOT.GetSubThreads(membPage.Text)
+        Dim uTempList As List(Of Template) = GetTemplates(Subthreads(0))
+        Dim userList As New List(Of String)
+        For Each temp As Template In UTempList
+            If temp.Name = "u" Then
+                Userlist.Add(temp.Parameters(0).Item2)
+            End If
+        Next
+
+        Dim currentThreads As Integer = ESWikiBOT.GetPageThreads(MedPage).Count
+
+        If BotSettings.Contains("InformalMediationLastThreadCount") Then
+            If BotSettings.Get("InformalMediationLastThreadCount").GetType Is GetType(Integer) Then
+                Dim lastthreadcount As Integer = Integer.Parse(BotSettings.Get("InformalMediationLastThreadCount").ToString)
+                If currentThreads > lastthreadcount Then
+                    BotSettings.Set("InformalMediationLastThreadCount", currentThreads)
+                    newThreads = True
+                Else
+                    BotSettings.Set("InformalMediationLastThreadCount", currentThreads) 'Si disminuye la cantidad de hilos entonces lo guarda
+                End If
+            End If
+        Else
+            BotSettings.NewVal("InformalMediationLastThreadCount", CurrentThreads)
+        End If
+
+        If newThreads Then
+            For Each u As String In userList
+                Dim user As New WikiUser(ESWikiBOT, u)
+                If user.Exists Then
+                    Dim userTalkPage As Page = user.TalkPage
+                    userTalkPage.AddSection("Atención en [[Wikipedia:Mediación informal/Solicitudes|Mediación informal]]", InfMedMessage, "Bot: Aviso automático de nueva solicitud.", False)
+                End If
+            Next
+        End If
+        Return True
+    End Function
+
+
+
 End Module

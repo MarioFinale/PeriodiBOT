@@ -346,6 +346,7 @@ NotInheritable Class CommFunctions
 #End Region
 
     Public Shared EventLogger As New LogEngine(Log_Filepath, User_Filepath, BotCodename)
+    Public Shared BotSettings As New Settings(SettingsPath)
 
     ''' <summary>
     ''' Finaliza el programa correctamente.
@@ -506,7 +507,7 @@ NotInheritable Class CommFunctions
     End Function
 
     ''' <summary>
-    ''' Retorna todas las plantillas que encuentre en una pagina, de no haber entregará una list vacia.
+    ''' Retorna todas las plantillas que encuentre en una pagina, de no haber entregará una lista vacia.
     ''' </summary>
     ''' <param name="WikiPage"></param>
     ''' <returns></returns>
@@ -516,6 +517,24 @@ NotInheritable Class CommFunctions
         End If
         Dim TemplateList As New List(Of Template)
         Dim temps As List(Of String) = GetTemplateTextArray(wikiPage.Text)
+
+        For Each t As String In temps
+            TemplateList.Add(New Template(t, False))
+        Next
+        Return TemplateList
+    End Function
+
+    ''' <summary>
+    ''' Retorna todas las plantillas que encuentre en un texto, de no haber entregará una lista vacia.
+    ''' </summary>
+    ''' <param name="text">Texto a evaluar</param>
+    ''' <returns></returns>
+    Public Shared Function GetTemplates(ByVal text As String) As List(Of Template)
+        If String.IsNullOrWhiteSpace(text) Then
+            Return New List(Of Template)
+        End If
+        Dim TemplateList As New List(Of Template)
+        Dim temps As List(Of String) = GetTemplateTextArray(text)
 
         For Each t As String In temps
             TemplateList.Add(New Template(t, False))
