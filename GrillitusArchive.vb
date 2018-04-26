@@ -135,6 +135,8 @@ Namespace WikiBot
 
             'Verificar si es una discusión de usuario.
             If PageToArchive.PageNamespace = 3 Then
+
+
                 Dim Username As String = PageToArchive.Title.Split(":"c)(1)
                 'si es una subpágina
                 If Username.Contains("/") Then
@@ -149,6 +151,9 @@ Namespace WikiBot
                 End If
                 'Validar que destino de archivado sea una subpágina del usuario.
                 If Not ArchiveCfg(0).StartsWith(PageToArchive.Title) Then
+
+
+
                     EventLogger.Log("Archive: The page" & ArchiveCfg(0) & " isn't a subpage of the same user.", "LOCAL")
                     Return False
                 End If
@@ -490,8 +495,8 @@ Namespace WikiBot
                     Destination = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim()
                     If Destination.Contains(":") Then
                         Dim destNamespace As String = Destination.Split(":"c)(0)
-                        Dim destParsedNamespace As String = UppercaseFirstCharacter(Destination.ToLower)
-                        ReplaceFirst(Destination, destNamespace, destParsedNamespace)
+                        Dim destParsedNamespace As String = UppercaseFirstCharacter(destNamespace.ToLower)
+                        Destination = ReplaceFirst(Destination, destNamespace, destParsedNamespace)
                     End If
                 End If
                 If tup.Item1 = "Días a mantener" Then
