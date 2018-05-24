@@ -323,20 +323,20 @@ Public Module PeriodiBOT_Tasks
     End Function
 
 
-    Function CheckInformalMediation() As Boolean
+    Function CheckInformalMediation(ByVal Workerbot As Bot) As Boolean
         Dim newThreads As Boolean = False
-        Dim membPage As Page = ESWikiBOT.Getpage(InformalMediationMembers)
-        Dim MedPage As Page = ESWikiBOT.Getpage(InfMedPage)
-        Dim subthreads As String() = ESWikiBOT.GetSubThreads(membPage.Text)
-        Dim uTempList As List(Of Template) = GetTemplates(Subthreads(0))
+        Dim membPage As Page = Workerbot.Getpage(InformalMediationMembers)
+        Dim MedPage As Page = Workerbot.Getpage(InfMedPage)
+        Dim subthreads As String() = Workerbot.GetSubThreads(membPage.Text)
+        Dim uTempList As List(Of Template) = GetTemplates(subthreads(0))
         Dim userList As New List(Of String)
-        For Each temp As Template In UTempList
+        For Each temp As Template In uTempList
             If temp.Name = "u" Then
-                Userlist.Add(temp.Parameters(0).Item2)
+                userList.Add(temp.Parameters(0).Item2)
             End If
         Next
 
-        Dim currentThreads As Integer = ESWikiBOT.GetPageThreads(MedPage).Count
+        Dim currentThreads As Integer = Workerbot.GetPageThreads(MedPage).Count
 
         If BotSettings.Contains("InformalMediationLastThreadCount") Then
             If BotSettings.Get("InformalMediationLastThreadCount").GetType Is GetType(Integer) Then
@@ -349,12 +349,12 @@ Public Module PeriodiBOT_Tasks
                 End If
             End If
         Else
-            BotSettings.NewVal("InformalMediationLastThreadCount", CurrentThreads)
+            BotSettings.NewVal("InformalMediationLastThreadCount", currentThreads)
         End If
 
         If newThreads Then
             For Each u As String In userList
-                Dim user As New WikiUser(ESWikiBOT, u)
+                Dim user As New WikiUser(Workerbot, u)
                 If user.Exists Then
                     Dim userTalkPage As Page = user.TalkPage
                     userTalkPage.AddSection("Atención en [[Wikipedia:Mediación informal/Solicitudes|Mediación informal]]", InfMedMessage, "Bot: Aviso automático de nueva solicitud.", False)

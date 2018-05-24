@@ -21,9 +21,7 @@ Module MainModule
 
         'Tarea para revisar si hay solicitudes en mediacion informal
         Dim InfMedFunc As New Func(Of IRCMessage())(Function()
-                                                        Dim p As Page = ESWikiBOT.Getpage("Plantilla:Estado usuario")
-                                                        Dim actus As New ActiveUsers(ESWikiBOT)
-                                                        actus.CheckUsersActivity(p, p)
+                                                        CheckInformalMediation(ESWikiBOT)
                                                         Return {New IRCMessage(ESWikiBOT.IrcNickName, "")}
                                                     End Function)
         Dim InfMedTask As New IRCTask(BotIRC, 300000, True, InfMedFunc, "InfMedFunc")

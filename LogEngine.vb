@@ -132,10 +132,8 @@ Class LogEngine
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
     Public Function Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
-        Task.Run(Sub()
-                     AddEvent(text, source, user, "LOG")
-                     WriteLine("LOG", source, user & ": " & text)
-                 End Sub)
+        AddEvent(text, source, user, "LOG")
+        WriteLine("LOG", source, user & ": " & text)
         Return True
     End Function
 
@@ -147,13 +145,9 @@ Class LogEngine
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
     Public Function Debug_Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
-
-        Task.Run(Sub()
-                     If _Debug Then
-                         AddEvent(text, source, user, "DEBUG")
-                     End If
-                 End Sub)
-
+        If _Debug Then
+            AddEvent(text, source, user, "DEBUG")
+        End If
         Return True
     End Function
 
@@ -165,9 +159,7 @@ Class LogEngine
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
     Public Function EX_Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
-        Task.Run(Sub()
-                     AddEvent(text, source, user, "EX")
-                 End Sub)
+        AddEvent(text, source, user, "EX")
         WriteLine("EX", source, user & ": " & text)
         Return True
     End Function
