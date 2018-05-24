@@ -24,7 +24,7 @@ Module MainModule
                                                         CheckInformalMediation(ESWikiBOT)
                                                         Return {New IRCMessage(ESWikiBOT.IrcNickName, "")}
                                                     End Function)
-        Dim InfMedTask As New IRCTask(BotIRC, 300000, True, InfMedFunc, "InfMedFunc")
+        Dim InfMedTask As New IRCTask(BotIRC, 600000, True, InfMedFunc, "InfMedFunc")
         InfMedTask.Run()
 
         'Tarea para actualizar plantilla de usuario conectado
@@ -34,12 +34,12 @@ Module MainModule
                                                             actus.CheckUsersActivity(p, p)
                                                             Return {New IRCMessage(ESWikiBOT.IrcNickName, "")}
                                                         End Function)
-        Dim UserStatusTask As New IRCTask(BotIRC, 300000, True, UserStatusFunc, "UserStatus")
+        Dim UserStatusTask As New IRCTask(BotIRC, 600000, True, UserStatusFunc, "UserStatus")
         UserStatusTask.Run()
 
         'Tarea para avisar inactividad de usuario en IRC
         Dim CheckUsersFunc As New Func(Of IRCMessage())(AddressOf CheckUsers)
-        Dim CheckUsersIRCTask As New IRCTask(BotIRC, 300000, True, CheckUsersFunc, "CheckUsers")
+        Dim CheckUsersIRCTask As New IRCTask(BotIRC, 600000, True, CheckUsersFunc, "CheckUsers")
         CheckUsersIRCTask.Run()
 
         'Tarea para actualizar el café temático
