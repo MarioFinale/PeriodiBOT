@@ -11,7 +11,6 @@ Imports PeriodiBOT_IRC.CommFunctions
 Module MainModule
 
     Sub Main()
-
         Uptime = DateTime.Now
         EventLogger.Log("Starting...", "LOCAL")
         ESWikiBOT = New Bot(New ConfigFile(ConfigFilePath))

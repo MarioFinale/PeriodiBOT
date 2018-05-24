@@ -6,13 +6,10 @@ Imports PeriodiBOT_IRC.CommFunctions
 Namespace IRC
 
     Public Class IRCTask
-        Implements IDisposable
-
         Dim _client As IRC_Client
         Dim _interval As Integer
         Dim _infinite As Boolean
 
-        Dim disposed As Boolean = False
         Dim _nFunc As Func(Of IRCMessage())
         Dim Thread As Thread
         Dim _source As String
@@ -66,27 +63,14 @@ Namespace IRC
             Thread.Start()
 
         End Sub
-
-        ''' <summary>
-        ''' Detiene la tarea de forma segura (si es infinita).
-        ''' </summary>
-        Public Sub Dispose() Implements IDisposable.Dispose
-            Dispose(True)
-            GC.SuppressFinalize(Me)
-        End Sub
-
         ''' <summary>
         ''' Detiene la tarea.
         ''' </summary>
         ''' <param name="disposing"></param>
-        Protected Overridable Sub Dispose(disposing As Boolean)
+        Protected Overridable Sub EndTask(disposing As Boolean)
             EventLogger.Debug_Log("End task func", "LOCAL")
             _infinite = False
-            If disposed Then Return
-            If disposing Then
-                Thread.Abort()
-            End If
-            disposed = True
+            Thread.Abort()
         End Sub
 
     End Class

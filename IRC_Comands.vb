@@ -9,6 +9,7 @@ Namespace IRC
         Private _IrcNickName As String
         Private Client As IRC_Client
         Private _bot As Bot
+        Private CommandPrefixes As String() = {"%", "pb%", "pepino%"}
 
 
         Public Function ResolveCommand(ByVal imputline As String, ByRef HasExited As Boolean, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client, WorkerBot As Bot) As IRCMessage
@@ -71,27 +72,29 @@ Namespace IRC
                             Totalparam = Username
                         End If
 
-                        Dim Ultima As String() = {"%última", "%ultima", "%ult", "%last"}
-                        Dim Usuario As String() = {"%usuario", "%usuarios", "%users", "%usr", "%usrs"}
-                        Dim Programar As String() = {"%programar", "%programa", "%prog", "%progr", "%prg", "%avisa"}
-                        Dim Quitar As String() = {"%quitar", "%quita", "%saca", "%sacar"}
-                        Dim Ordenes As String() = {"%ord", "%ordenes", "%órdenes"}
-                        Dim Info As String() = {"%??"}
-                        Dim Ayuda As String() = {"%?", "%h", "%help", "%ayuda"}
-                        Dim Resumen As String() = {"%resumen", "%res", "%entrada", "%entradilla"}
-                        Dim InfoPagina As String() = {"%info", "%pag", "%pageinfo", "%infopagina"}
-                        Dim ArchivaTodo As String() = {"%archiveall"}
-                        Dim Entra As String() = {"%join"}
-                        Dim Sal As String() = {"%leave", "%part"}
-                        Dim Apagar As String() = {"%q", "%quit"}
-                        Dim AgregarOP As String() = {"%op"}
-                        Dim QuitarOP As String() = {"%deop"}
-                        Dim ActualizarExtractos As String() = {"%updateExtracts", "%update", "%upex", "%updex", "%updext"}
-                        Dim Archivar As String() = {"%archive"}
-                        Dim Divide0 As String() = {"%div0"}
-                        Dim Debug As String() = {"%debug", "%dbg"}
+                        Dim Ultima As String() = {"última", "ultima", "ult", "last"}
+                        Dim Usuario As String() = {"usuario", "usuarios", "users", "usr", "usrs"}
+                        Dim Programar As String() = {"programar", "programa", "prog", "progr", "prg", "avisa"}
+                        Dim Quitar As String() = {"quitar", "quita", "saca", "sacar"}
+                        Dim Ordenes As String() = {"ord", "ordenes", "órdenes"}
+                        Dim Info As String() = {"??"}
+                        Dim Ayuda As String() = {"?", "h", "help", "ayuda"}
+                        Dim Resumen As String() = {"resumen", "res", "entrada", "entradilla"}
+                        Dim InfoPagina As String() = {"info", "pag", "pageinfo", "infopagina"}
+                        Dim ArchivaTodo As String() = {"archiveall"}
+                        Dim Entra As String() = {"join"}
+                        Dim Sal As String() = {"leave", "part"}
+                        Dim Apagar As String() = {"q", "quit"}
+                        Dim AgregarOP As String() = {"op"}
+                        Dim QuitarOP As String() = {"deop"}
+                        Dim ActualizarExtractos As String() = {"updateextracts", "update", "upex", "updex", "updext"}
+                        Dim Archivar As String() = {"archive"}
+                        Dim Divide0 As String() = {"div0"}
+                        Dim Debug As String() = {"debug", "dbg"}
+                        Dim CMPrefixess As String() = {"prefix", "prefixes"}
 
-
+                        If Not BeginsWithPrefix(CommandPrefixes, MainParam) Then Return Nothing
+                        MainParam = RemovePrefixes(CommandPrefixes, MainParam)
                         If Params.Count >= 1 Then
 
                             Select Case True
@@ -200,6 +203,11 @@ Namespace IRC
                                         CommandResponse = SetDebug(Source, MainParam, Realname)
                                     End If
 
+                                Case CMPrefixess.Contains(MainParam)
+                                    If Client.IsOp(imputline, Source, Realname) Then
+                                        CommandResponse = GetPrefixes(Source, CommandPrefixes)
+                                    End If
+
                                 Case Else
                                     If param.ToLower.Contains(_IrcNickName.ToLower) And Not param.ToLower.Contains("*") And Not imputline.Contains(".freenode.net ") Then
                                         CommandResponse = Commands(Source, Realname)
@@ -223,6 +231,44 @@ Namespace IRC
                 Return Nothing
             End Try
         End Function
+
+        ''' <summary>
+        ''' Verifica si un comando comienza por uno de los prefijos pasados como parámetro
+        ''' </summary>
+        ''' <param name="Prefixes">Prefijos.</param>
+        ''' <param name="Commandline">Línea a analizar.</param>
+        ''' <returns></returns>
+        Private Function BeginsWithPrefix(ByVal Prefixes As String(), ByVal Commandline As String) As Boolean
+            For Each prefix As String In Prefixes
+                If Commandline.ToLower.StartsWith(prefix) Then
+                    Return True
+                End If
+            Next
+            Return False
+        End Function
+
+        Private Function RemovePrefixes(ByVal Prefixes As String(), ByVal Commandline As String) As String
+            Dim line As String = Commandline
+            For Each prefix As String In Prefixes
+                If line.StartsWith(prefix) Then
+                    line = ReplaceFirst(Commandline, prefix, "")
+                    If Not line = Commandline Then
+                        Exit For
+                    End If
+                End If
+            Next
+            Return line
+        End Function
+
+        Private Function GetPrefixes(ByVal source As String, ByVal prefixes As String()) As IRCMessage
+            Dim responsestring As String = String.Empty
+            responsestring = ColoredText("Prefijos: ", "04")
+            For Each prefix As String In prefixes
+                responsestring = responsestring & ColoredText(prefix & " ", "04")
+            Next
+            Return New IRCMessage(source, responsestring)
+        End Function
+
 
         Private Function SetDebug(ByVal Message As String, ByVal source As String, user As String) As IRCMessage
             Dim responsestring As String = String.Empty

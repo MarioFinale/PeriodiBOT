@@ -6,8 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B5915676-AE07-4379-8F0A-D1DB6C584903}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <StartupObject>
-    </StartupObject>
+    <StartupObject>Sub Main</StartupObject>
     <RootNamespace>PeriodiBOT_IRC</RootNamespace>
     <AssemblyName>PeriodiBOT-IRC</AssemblyName>
     <FileAlignment>512</FileAlignment>

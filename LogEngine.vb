@@ -355,12 +355,11 @@ Class LogEngine
     End Function
 
     ''' <summary>
-    ''' Obtiene los usuarios desde el el archivo y los regresa como lista de string()
+    ''' Obtiene los usuarios desde el el archivo y los regresa como string()
     ''' </summary>
     ''' <returns></returns>
     Private Function GetUsersFromFile() As List(Of String())
         Dim UserList As New List(Of String())
-
         If Not System.IO.File.Exists(User_Filepath) Then
             System.IO.File.Create(User_Filepath).Close()
             Return UserList

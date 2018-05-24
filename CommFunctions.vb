@@ -67,7 +67,7 @@ NotInheritable Class CommFunctions
         Return UppercaseFirstCharacter(s)
     End Function
     ''' <summary>
-    ''' verifica si una cadena de texto es numérica.
+    ''' Verifica si una cadena de texto es numérica.
     ''' </summary>
     ''' <param name="number">Texto a evaluar.</param>
     ''' <returns></returns>
