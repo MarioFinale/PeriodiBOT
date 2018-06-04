@@ -119,7 +119,7 @@ Public Module PeriodiBOT_Tasks
     End Function
 
     ''' <summary>
-    ''' Compara las páginas que llaman a la plantilla y retorna retorna un sortedlist
+    ''' Compara las páginas que llaman a la plantilla y retorna retorna un sortedlist.
     ''' La Key es el nombre de la página en la plantilla y el valor asociado es un array donde el primer elemento es
     ''' el último usuario que la editó y el segundo el título real de la página.
     ''' Solo contiene las páginas que no existen en la plantilla.
@@ -210,8 +210,8 @@ Public Module PeriodiBOT_Tasks
         For Each s As String In p.ToArray
             ' Adding Old resumes to list
             Try
-                Dim cont As String = TextInBetween(ResumePageText, "|" & s & "=", "Leer más...]]'''|")(0)
-                OldResumes.Add(s, ("|" & s & "=" & cont & "Leer más...]]'''|" & Environment.NewLine))
+                Dim cont As String = TextInBetween(ResumePageText, "|" & s & "=", "Leer más...]]'''")(0)
+                OldResumes.Add(s, ("|" & s & "=" & cont & "Leer más...]]'''" & Environment.NewLine))
             Catch ex As IndexOutOfRangeException
                 EventLogger.Debug_Log("UpdatePageExtracts: No old resume of " & s, "LOCAL")
             End Try
@@ -232,12 +232,12 @@ Public Module PeriodiBOT_Tasks
                 NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
                            & "[[File:" & Page_Image_pair(Page) & "|thumb|x120px]]" & Environment.NewLine _
                            & Page_Resume_pair.Item(Page) & Environment.NewLine _
-                           & ":'''[[" & Page & "|Leer más...]]'''|" & Environment.NewLine)
+                           & ":'''[[" & Page & "|Leer más...]]'''" & Environment.NewLine)
             Else
                 'If the page doesn't contain a image
                 NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
                           & Page_Resume_pair.Item(Page) & Environment.NewLine _
-                          & ":'''[[" & Page & "|Leer más...]]'''|" & Environment.NewLine)
+                          & ":'''[[" & Page & "|Leer más...]]'''" & Environment.NewLine)
             End If
         Next
 
@@ -276,7 +276,7 @@ Public Module PeriodiBOT_Tasks
         '==========================================================================================
 
         EventLogger.Debug_Log("UpdatePageExtracts: Concatenating text", "LOCAL")
-        NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & "<!-- MARK -->" & Environment.NewLine & "|}}"
+        NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & Environment.NewLine & "}}"
         EventLogger.Debug_Log("UpdatePageExtracts: Done, trying to save", "LOCAL")
 
         Try
