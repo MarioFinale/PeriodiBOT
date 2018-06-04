@@ -251,10 +251,8 @@ Public Module PeriodiBOT_Tasks
         EventLogger.Debug_Log("UpdatePageExtracts: Recreating text", "LOCAL")
         For Each s As String In p.ToArray
             Try
-                If (EditScoreList(IDLIST(s))(0) > 20) And
-      (CountCharacter(NewResumes(s), CType("[", Char)) =
-      CountCharacter(NewResumes(s), CType("]", Char))) Then
-                    'Is a safe edit
+                If (EditScoreList(IDLIST(s))(0) > 20) And (CountCharacter(NewResumes(s), CType("[", Char)) = CountCharacter(NewResumes(s), CType("]", Char))) Then
+                    'Safe edit
                     FinalList.Add(NewResumes(s))
                     Safepages += 1
                 Else
@@ -276,7 +274,7 @@ Public Module PeriodiBOT_Tasks
         '==========================================================================================
 
         EventLogger.Debug_Log("UpdatePageExtracts: Concatenating text", "LOCAL")
-        NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & Environment.NewLine & "}}"
+        NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & "}}" & Environment.NewLine & "<noinclude>{{documentación}}</noinclude>"
         EventLogger.Debug_Log("UpdatePageExtracts: Done, trying to save", "LOCAL")
 
         Try
@@ -286,7 +284,6 @@ Public Module PeriodiBOT_Tasks
                 Else
                     ResumePage.Save(NewResumePageText, "(Bot) : Actualizando " & Safepages.ToString & " resúmenes. Se han añadido " & NewPages.ToString & " resúmenes nuevos", False)
                 End If
-
             Else
 
                 Dim NumbText As String = " Resumen inseguro fue omitido. "
