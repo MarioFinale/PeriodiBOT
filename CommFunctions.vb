@@ -337,8 +337,6 @@ NotInheritable Class CommFunctions
 
         Dim Flag1 As Boolean = False
         Dim Flag2 As Boolean = False
-        Dim Flag3 As Boolean = False
-        Dim Flag4 As Boolean = False
 
         Dim beginindex As Integer = 0
 
@@ -356,14 +354,20 @@ NotInheritable Class CommFunctions
             End If
 
             If CharArr(i) = "}" Then
-                If Flag3 Then
-                    Flag3 = False
+                If Flag2 Then
+                    Flag2 = False
+                    If CharArr.Count > i Then
+                        If CharArr(i + 1) = "}" Then
+                            Flag2 = True
+                            CloseTemplateCount2 += -1
+                        End If
+                    End If
                     CloseTemplateCount2 += 1
                 Else
-                    Flag3 = True
+                    Flag2 = True
                 End If
             Else
-                Flag3 = False
+                Flag2 = False
             End If
 
             If OpenTemplateCount2 > 0 Then
@@ -373,12 +377,10 @@ NotInheritable Class CommFunctions
                     Dim Textbefore As String = temptext.Substring(0, BeginPos)
                     Dim Lenght As Integer = temptext.Length - (Textbefore.Length)
                     Dim TemplateText As String = temptext.Substring(BeginPos, Lenght)
-
                     temptext = ""
                     beginindex = i + 1
                     OpenTemplateCount2 = 0
                     CloseTemplateCount2 = 0
-
                     templist.Add(TemplateText)
                 End If
             End If
