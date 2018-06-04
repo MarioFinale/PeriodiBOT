@@ -307,6 +307,20 @@ NotInheritable Class CommFunctions
         End If
     End Function
 
+
+
+    Public Shared Function CountOccurrences(ByVal StToSerach As String, StToLookFor As String) As Integer
+        Dim txtlen As Integer = StToSerach.Length
+        Dim strlen As Integer = StToLookFor.Length
+        Dim newstring As String = StToSerach.Replace(StToLookFor, String.Empty)
+        Dim newtxtlen As Integer = newstring.Length
+        Dim lenghtdiff As Integer = txtlen - newtxtlen
+        Dim occurences As Integer = CInt(lenghtdiff / strlen)
+        Return occurences
+    End Function
+
+
+
     ''' <summary>
     ''' Retorna un array de string con todas las plantillas contenidas en un texto.
     ''' Pueden repetirse si hay plantillas que contienen otras en su interior.
@@ -316,19 +330,55 @@ NotInheritable Class CommFunctions
     Public Shared Function GetTemplateTextArray(ByVal text As String) As List(Of String)
         Dim temptext As String = String.Empty
         Dim templist As New List(Of String)
-        For i As Integer = 0 To text.Length - 1
-            temptext = temptext & text(i)
-            Dim OpenTemplate As MatchCollection = Regex.Matches(temptext, "{{")
-            Dim CloseTemplate As MatchCollection = Regex.Matches(temptext, "}}")
-            If OpenTemplate.Count > 0 Then
+        Dim CharArr As Char() = text.ToArray
 
-                If OpenTemplate.Count = CloseTemplate.Count Then
+        Dim OpenTemplateCount2 As Integer = 0
+        Dim CloseTemplateCount2 As Integer = 0
 
-                    Dim BeginPos As Integer = OpenTemplate(0).Index
+        Dim Flag1 As Boolean = False
+        Dim Flag2 As Boolean = False
+        Dim Flag3 As Boolean = False
+        Dim Flag4 As Boolean = False
+
+        Dim beginindex As Integer = 0
+
+        For i As Integer = 0 To CharArr.Length - 1
+
+            If CharArr(i) = "{" Then
+                If Flag1 Then
+                    Flag1 = False
+                    OpenTemplateCount2 += 1
+                Else
+                    Flag1 = True
+                End If
+            Else
+                Flag1 = False
+            End If
+
+            If CharArr(i) = "}" Then
+                If Flag3 Then
+                    Flag3 = False
+                    CloseTemplateCount2 += 1
+                Else
+                    Flag3 = True
+                End If
+            Else
+                Flag3 = False
+            End If
+
+            If OpenTemplateCount2 > 0 Then
+                If OpenTemplateCount2 = CloseTemplateCount2 Then
+                    temptext = text.Substring(beginindex, (i - beginindex) + 1)
+                    Dim BeginPos As Integer = temptext.IndexOf("{{")
                     Dim Textbefore As String = temptext.Substring(0, BeginPos)
                     Dim Lenght As Integer = temptext.Length - (Textbefore.Length)
                     Dim TemplateText As String = temptext.Substring(BeginPos, Lenght)
+
                     temptext = ""
+                    beginindex = i + 1
+                    OpenTemplateCount2 = 0
+                    CloseTemplateCount2 = 0
+
                     templist.Add(TemplateText)
                 End If
             End If
@@ -344,6 +394,7 @@ NotInheritable Class CommFunctions
         Return templist
     End Function
 #End Region
+
 
     Public Shared EventLogger As New LogEngine(Log_Filepath, User_Filepath, BotCodename)
     Public Shared BotSettings As New Settings(SettingsPath)

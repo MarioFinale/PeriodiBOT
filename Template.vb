@@ -8,7 +8,7 @@ Namespace WikiBot
         Private _name As String
         Public Parameters As List(Of Tuple(Of String, String))
         Private _text As String
-
+        Private _newtemplate As Boolean
         ''' <summary>
         ''' Nombre de la plantilla (con el espacio de nombres).
         ''' </summary>
@@ -28,8 +28,12 @@ Namespace WikiBot
         ''' <returns></returns>
         Public ReadOnly Property Text As String
             Get
-                _text = CreateTemplatetext(_name, Parameters, True)
-                Return _text
+                If _newtemplate Then
+                    _text = CreateTemplatetext(_name, Parameters, True)
+                    Return _text
+                Else
+                    Return _text
+                End If
             End Get
         End Property
 
@@ -41,6 +45,7 @@ Namespace WikiBot
         ''' <param name="Text">Texto a evaluar.</param>
         ''' <param name="newTemplate">¿Es una plantilla nueva?</param>
         Sub New(ByVal text As String, ByVal newTemplate As Boolean)
+            _newtemplate = newTemplate
             If newTemplate Then
                 _name = text
                 _text = MakeSimpleTemplateText(text)

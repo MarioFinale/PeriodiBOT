@@ -181,7 +181,7 @@ Public Module PeriodiBOT_Tasks
         EventLogger.Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL")
 
 
-        Dim NewResumePageText As String = "{{#switch:{{{1}}}|" & Environment.NewLine
+        Dim NewResumePageText As String = "{{#switch:{{{1}}}" & Environment.NewLine
         EventLogger.Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL")
 
         Dim Extracttext As String = String.Empty
@@ -190,40 +190,27 @@ Public Module PeriodiBOT_Tasks
         Dim NotSafepages As Integer = 0
         Dim NewPages As Integer = 0
         Dim NotSafePagesAdded As Integer = 0
-        EventLogger.Debug_Log("UpdatePageExtracts: Match list to ListOf", "LOCAL")
-        Dim p As New List(Of String)
 
-        p.AddRange(GetTitlesOfTemplate(ResumePageText))
-
-        For Each item As KeyValuePair(Of String, String()) In GetResumeRequests()
-            If Not p.Contains(item.Key) Then
-                p.Add(item.Key)
-                NewPages += 1
-            End If
-        Next
-
-        EventLogger.Debug_Log("UpdatePageExtracts: Sort of ListOf", "LOCAL")
-        p.Sort()
-        EventLogger.Debug_Log("UpdatePageExtracts: Adding IDS to IDLIST", "LOCAL")
-        Dim IDLIST As SortedList(Of String, Integer) = _bot.GetLastRevIds(p.ToArray)
+        EventLogger.Debug_Log("UpdatePageExtracts: Parsing resume template", "LOCAL")
+        Dim ResumeTemplate As New Template(GetTemplateTextArray(ResumePageText)(0), False)
         EventLogger.Debug_Log("UpdatePageExtracts: Adding Old resumes to list", "LOCAL")
-        For Each s As String In p.ToArray
-            ' Adding Old resumes to list
-            Try
-                Dim cont As String = TextInBetween(ResumePageText, "|" & s & "=", "Leer más...]]'''")(0)
-                OldResumes.Add(s, ("|" & s & "=" & cont & "Leer más...]]'''" & Environment.NewLine))
-            Catch ex As IndexOutOfRangeException
-                EventLogger.Debug_Log("UpdatePageExtracts: No old resume of " & s, "LOCAL")
-            End Try
+        Dim PageNames As New List(Of String)
 
+        For Each PageResume As Tuple(Of String, String) In ResumeTemplate.Parameters
+            PageNames.Add(PageResume.Item1)
+            OldResumes.Add(PageResume.Item1, "|" & PageResume.Item1 & "=" & PageResume.Item2)
         Next
+
+        PageNames.Sort()
+
+        EventLogger.Debug_Log("UpdatePageExtracts: Get last revision ID", "LOCAL")
+        Dim IDLIST As SortedList(Of String, Integer) = _bot.GetLastRevIds(PageNames.ToArray)
 
         EventLogger.Debug_Log("UpdatePageExtracts: Adding New resumes to list", "LOCAL")
-
         '============================================================================================
         ' Adding New resumes to list
-        Dim Page_Resume_pair As SortedList(Of String, String) = _bot.GetPagesExtract(p.ToArray, 660, True)
-        Dim Page_Image_pair As SortedList(Of String, String) = _bot.GetImagesExtract(p.ToArray)
+        Dim Page_Resume_pair As SortedList(Of String, String) = _bot.GetPagesExtract(PageNames.ToArray, 660, True)
+        Dim Page_Image_pair As SortedList(Of String, String) = _bot.GetImagesExtract(PageNames.ToArray)
 
         For Each Page As String In Page_Resume_pair.Keys
 
@@ -249,7 +236,7 @@ Public Module PeriodiBOT_Tasks
         '==========================================================================================
         'Choose between a old resume and a new resume depending if new resume is safe to use
         EventLogger.Debug_Log("UpdatePageExtracts: Recreating text", "LOCAL")
-        For Each s As String In p.ToArray
+        For Each s As String In PageNames.ToArray
             Try
                 If (EditScoreList(IDLIST(s))(0) > 20) And (CountCharacter(NewResumes(s), CType("[", Char)) = CountCharacter(NewResumes(s), CType("]", Char))) Then
                     'Safe edit
