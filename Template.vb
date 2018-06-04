@@ -8,7 +8,7 @@ Namespace WikiBot
         Private _name As String
         Public Parameters As List(Of Tuple(Of String, String))
         Private _text As String
-        Private _newtemplate As Boolean
+        Private _newtemplate As Boolean = True
         ''' <summary>
         ''' Nombre de la plantilla (con el espacio de nombres).
         ''' </summary>
