@@ -200,7 +200,7 @@ Namespace IRC
 
                                 Case Debug.Contains(MainParam)
                                     If Client.IsOp(imputline, Source, Realname) Then
-                                        CommandResponse = SetDebug(Source, MainParam, Realname)
+                                        CommandResponse = SetDebug(Source, Realname)
                                     End If
 
                                 Case CMPrefixess.Contains(MainParam)
@@ -270,14 +270,14 @@ Namespace IRC
         End Function
 
 
-        Private Function SetDebug(ByVal Message As String, ByVal source As String, user As String) As IRCMessage
+        Private Function SetDebug(ByVal source As String, user As String) As IRCMessage
             Dim responsestring As String = String.Empty
             If EventLogger.Debug Then
                 EventLogger.Debug = False
-                responsestring = ColoredText("Registro de eventos debug desactivado.", "04")
+                responsestring = ColoredText("Registro de eventos con el tag ""DEBUG"" desactivado.", "04")
             Else
                 EventLogger.Debug = True
-                responsestring = ColoredText("Registro de eventos debug activado.", "04")
+                responsestring = ColoredText("Registro de eventos con el tag ""DEBUG"" activado.", "04")
             End If
             Return New IRCMessage(source, responsestring)
         End Function

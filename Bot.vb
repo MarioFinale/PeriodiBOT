@@ -269,8 +269,9 @@ Namespace WikiBot
                             EditAndScoreList.Add(EditID, {0, 0})
                         Else
                             Try
-                                Dim DMGScore_str As String = TextInBetween(TextInBetweenInclusive(s, "{""damaging"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
-                                Dim GoodFaithScore_str As String = TextInBetween(TextInBetweenInclusive(s, """goodfaith"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
+                                Dim DMGScore_str As String = TextInBetween(m.Value, """true"": ", "}")(0).Replace(".", DecimalSeparator)
+                                Dim GoodFaithScore_str As String = TextInBetween(m.Value, """true"": ", "}")(1).Replace(".", DecimalSeparator)
+
 
                                 EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, "LOCAL")
 

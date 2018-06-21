@@ -192,13 +192,19 @@ Public Module PeriodiBOT_Tasks
         Dim NotSafePagesAdded As Integer = 0
 
         EventLogger.Debug_Log("UpdatePageExtracts: Parsing resume template", "LOCAL")
-        Dim ResumeTemplate As New Template(GetTemplateTextArray(ResumePageText)(0), False)
+        Dim templatelist As List(Of String) = GetTemplateTextArray(ResumePageText)
+        Dim ResumeTemplate As New Template(templatelist(0), False)
         EventLogger.Debug_Log("UpdatePageExtracts: Adding Old resumes to list", "LOCAL")
         Dim PageNames As New List(Of String)
 
         For Each PageResume As Tuple(Of String, String) In ResumeTemplate.Parameters
             PageNames.Add(PageResume.Item1)
             OldResumes.Add(PageResume.Item1, "|" & PageResume.Item1 & "=" & PageResume.Item2)
+        Next
+
+        For Each p As KeyValuePair(Of String, String()) In GetResumeRequests()
+            PageNames.Add(p.Key)
+            NewPages += 1
         Next
 
         PageNames.Sort()
@@ -238,7 +244,7 @@ Public Module PeriodiBOT_Tasks
         EventLogger.Debug_Log("UpdatePageExtracts: Recreating text", "LOCAL")
         For Each s As String In PageNames.ToArray
             Try
-                If (EditScoreList(IDLIST(s))(0) > 20) And (CountCharacter(NewResumes(s), CType("[", Char)) = CountCharacter(NewResumes(s), CType("]", Char))) Then
+                If (EditScoreList(IDLIST(s))(0) < 20) And (CountCharacter(NewResumes(s), CType("[", Char)) = CountCharacter(NewResumes(s), CType("]", Char))) Then
                     'Safe edit
                     FinalList.Add(NewResumes(s))
                     Safepages += 1

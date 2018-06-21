@@ -168,7 +168,6 @@ Namespace WikiBot
         ''' <param name="wbot">Bot logueado a la wiki</param>
         Public Sub New(ByVal pageTitle As String, ByRef wbot As Bot)
             _bot = wbot
-            EventLogger.Log("Loading page " & pageTitle, "LOCAL", _bot.UserName)
             _username = _bot.UserName
             Loadpage(pageTitle, _bot.WikiUrl)
         End Sub
@@ -176,7 +175,6 @@ Namespace WikiBot
         ''' Inicializa de nuevo la página (al crear una página esta ya está inicializada).
         ''' </summary>
         Public Sub Load()
-            EventLogger.Log("Loading page " & _title, "LOCAL", _username)
             Loadpage(_title, _siteurl)
         End Sub
 
