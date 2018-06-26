@@ -382,7 +382,7 @@ Namespace WikiBot
             Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
             Dim Threadhyear As Integer
 
-            If threaddate.Month < 6 Then
+            If threaddate.Month < 7 Then
                 Threadhyear = 1
             Else
                 Threadhyear = 2
