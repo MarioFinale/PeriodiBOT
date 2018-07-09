@@ -25,6 +25,7 @@ Namespace IRC
         Private lastmessage As New IRCMessage("", {""})
 
         Private HasExited As Boolean = False
+        Public _floodDelay As Integer = 700
 
         Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal userName As String, ByVal OpFilePath As ConfigFile)
@@ -73,12 +74,17 @@ Namespace IRC
             Dim sCommand As String = String.Empty 'linea recibida
             Dim Lastdate As DateTime = DateTime.Now
 
+            Dim MsgQueue As New Queue(Of Tuple(Of String, Boolean, String, IRC_Client, WikiBot.Bot))
+            Dim ResolveMessages As New Func(Of Boolean)(Function()
+                                                            Return SendMessagequeue(MsgQueue)
+                                                        End Function)
+            NewThread("Resolver mensajes en IRC", BotCodename, ResolveMessages, 10, True)
 
             Do Until HasExited
 
                 Try
                     'Start the main connection to the IRC server.
-                    WriteLine("INFO", "IRC", "**Creating Connection**")
+                    EventLogger.Log("Creating Connection", "IRC", BotCodename)
                     _tcpclientConnection = New TcpClient(_sServer, _lPort)
                     With _tcpclientConnection
                         .ReceiveTimeout = 300000
@@ -98,25 +104,26 @@ Namespace IRC
 
                     'Attempt nickserv auth (freenode server pass method)
                     If Not String.IsNullOrEmpty(_sPass) Then
-                        WriteLine("INFO", "IRC", "**Attempting nickserv auth**")
+                        EventLogger.Log("Attempting nickserv auth", "IRC", BotCodename)
                         _streamWriter.WriteLine(String.Format("PASS {0}:{1}", _sNickName, _sPass))
                         _streamWriter.Flush()
                     End If
 
                     'Create nickname.
-                    WriteLine("INFO", "IRC", "**Setting Nickname**")
+                    EventLogger.Log("Setting Nickname", "IRC", BotCodename)
                     _streamWriter.WriteLine(String.Format(String.Format("NICK {0}", _sNickName)))
                     _streamWriter.Flush()
 
                     'Send in information
-                    WriteLine("INFO", "IRC", "**Setting up name**")
+                    EventLogger.Log("Setting up name", "IRC", BotCodename)
                     _streamWriter.WriteLine(String.Format("USER {0} {1} * :{2}", _sUserName, sIsInvisible, _sRealName))
                     _streamWriter.Flush()
 
                     'Connect to a specific room.
-                    WriteLine("INFO", "IRC", "**Joining Room**")
+                    EventLogger.Log("Joining Room """ & _sChannel & """", "IRC", BotCodename)
                     _streamWriter.WriteLine(String.Format("JOIN {0}", _sChannel))
                     _streamWriter.Flush()
+
 
                     Await Task.Run(Sub()
 
@@ -126,11 +133,9 @@ Namespace IRC
                                                sCommand = _streamReader.ReadLine
                                                Dim sCommandParts As String() = sCommand.Split(CType(" ", Char()))
 
-                                               Dim CommandFunc As New Func(Of IRCMessage())(Function()
-                                                                                                Return {Command.ResolveCommand(sCommand, HasExited, _sNickName, Me, ESWikiBOT)}
-                                                                                            End Function)
-                                               Dim IRCResponseTask As New IRCTask(Me, 0, False, CommandFunc, "ResolveCommand")
-                                               IRCResponseTask.Run()
+                                               SyncLock (MsgQueue)
+                                                   MsgQueue.Enqueue(New Tuple(Of String, Boolean, String, IRC_Client, WikiBot.Bot)(sCommand, HasExited, _sNickName, Me, ESWikiBOT))
+                                               End SyncLock
 
                                                If Not _tcpclientConnection.Connected Then
                                                    EventLogger.Debug_log("IRC: DISCONNECTED", "IRC", _sNickName)
@@ -159,7 +164,7 @@ Namespace IRC
                 Catch ex As SocketException
 
                     'No connection, catch and retry
-                    EventLogger.Debug_log("IRC: Error Connecting: " + ex.Message, "IRC", _sNickName)
+                    EventLogger.EX_Log("IRC: Error Connecting: " + ex.Message, "IRC", _sNickName)
 
                     Try
                         'close connections
@@ -173,7 +178,7 @@ Namespace IRC
                 Catch ex As Exception
 
                     'In case of something goes wrong
-                    EventLogger.Debug_log("IRC: Error: " + ex.Message, "IRC", _sNickName)
+                    EventLogger.EX_Log("IRC: Error: " + ex.Message, "IRC", _sNickName)
                     Try
                         _streamWriter.WriteLine("QUIT :FATAL ERROR.")
                         _streamWriter.Flush()
@@ -183,7 +188,7 @@ Namespace IRC
                         _networkStream.Dispose()
                     Catch ex2 As Exception
                         'In case of something really bad happens
-                        EventLogger.Debug_log("IRC: Error ex2: " + ex2.Message, "IRC", _sNickName)
+                        EventLogger.EX_Log("IRC: Error ex2: " + ex2.Message, "IRC", _sNickName)
                     End Try
 
                 End Try
@@ -196,7 +201,6 @@ Namespace IRC
             Loop
 
         End Sub
-
 
         Function Sendmessage(ByVal message As String, ByVal channel As String) As Boolean
             _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", channel, message))
@@ -216,20 +220,30 @@ Namespace IRC
 
         Function Sendmessage(ByVal message As IRCMessage) As Boolean
             If message Is Nothing Then
-                Throw New ArgumentException("message")
+                Throw New ArgumentException("No message")
             End If
             SyncLock (lastmessage)
                 If message.Text(0) = lastmessage.Text(0) Then
                     Return False
                 End If
             End SyncLock
-
             For Each s As String In message.Text
                 _streamWriter.WriteLine(String.Format("{2} {0} : {1}", message.Source, s, message.Command))
                 _streamWriter.Flush()
                 WriteLine("MSG", "IRC", message.Source & " " & _sNickName & ": " & s)
+                Threading.Thread.Sleep(_floodDelay) 'Prevent flooding
             Next
             lastmessage = message
+            Return True
+        End Function
+
+        Function Sendmessage(ByVal message As IRCMessage()) As Boolean
+            For Each s As IRCMessage In message
+                If Not String.IsNullOrEmpty(s.Text(0)) Then
+                    Sendmessage(s)
+                    Threading.Thread.Sleep(_floodDelay) 'Prevent flooding
+                End If
+            Next
             Return True
         End Function
 

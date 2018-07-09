@@ -12,7 +12,7 @@ Namespace WikiBot
         Private _botusername As String = String.Empty
         Private _botpass As String = String.Empty
         Private _apiURL As String = String.Empty
-        Private _userAgent As String = "PeriodiBOT (Http: //es.wikipedia.org/wiki/Usuario_discusión:MarioFinale)"
+        Private _userAgent As String = "PeriodiBOT/" & Version & " (http://es.wikipedia.org/wiki/Usuario_discusión:MarioFinale) .NET/MONO"
 
 #Region "Properties"
         Public ReadOnly Property UserName As String

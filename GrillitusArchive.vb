@@ -539,7 +539,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function ArchiveAllInclusions(ByVal IRC As Boolean) As Boolean
             If IRC Then
-                BotIRC.Sendmessage(ColoredText("Archivando todas las páginas.", "04"))
+                BotIRC.Sendmessage(ColoredText("Archivando todas las páginas.", 4))
             End If
             Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Archivado automático")
             For Each pa As String In includedpages
@@ -556,7 +556,7 @@ Namespace WikiBot
                 End If
             Next
             If IRC Then
-                BotIRC.Sendmessage(ColoredText("¡Archivado completo!", "04"))
+                BotIRC.Sendmessage(ColoredText("¡Archivado completo!", 4))
             End If
             Return True
         End Function

@@ -2,6 +2,7 @@
 Option Explicit On
 Imports System.Runtime.Serialization
 Imports System.Text.RegularExpressions
+Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.WikiBot
 
 NotInheritable Class CommFunctions
@@ -299,11 +300,13 @@ NotInheritable Class CommFunctions
     ''' </summary>
     ''' <param name="ForegroundColor">Color del texto</param>
     ''' <param name="BackgroundColor">Color del fondo, i se omite se usa el color por defecto del cliente irc</param>
-    Public Shared Function ColoredText(ByVal text As String, ForegroundColor As String, Optional BackgroundColor As String = "99") As String
-        If BackgroundColor = "99" Then
-            Return Chr(3) & ForegroundColor & text & Chr(3) & Chr(15)
+    Public Shared Function ColoredText(ByVal text As String, ForegroundColor As Integer, Optional BackgroundColor As Integer = 99) As String
+        Dim _foregroundColor As String = ForegroundColor.ToString("00")
+        Dim _backgroundColor As String = BackgroundColor.ToString("00")
+        If _backgroundColor = "99" Then
+            Return Chr(3) & _foregroundColor & text & Chr(3) & Chr(15)
         Else
-            Return Chr(3) & ForegroundColor & "," & BackgroundColor & text & Chr(3) & Chr(15)
+            Return Chr(3) & _foregroundColor & "," & _backgroundColor & text & Chr(3) & Chr(15)
         End If
     End Function
 
@@ -319,6 +322,27 @@ NotInheritable Class CommFunctions
         Return occurences
     End Function
 
+
+    Public Shared Function SendMessagequeue(ByRef queuedat As Queue(Of Tuple(Of String, Boolean, String, IRC_Client, WikiBot.Bot))) As Boolean
+        If queuedat.Count >= 1 Then
+            SyncLock queuedat
+                Try
+                    Dim queuedmsg As Tuple(Of String, Boolean, String, IRC_Client, WikiBot.Bot) = queuedat.Dequeue()
+                    Dim Commands As New IRC_Comands
+                    Dim MsgResponse As IRCMessage = Commands.ResolveCommand(queuedmsg.Item1, queuedmsg.Item2, queuedmsg.Item3, queuedmsg.Item4, queuedmsg.Item5)
+                    If Not MsgResponse Is Nothing Then
+                        queuedmsg.Item4.Sendmessage(MsgResponse)
+                    End If
+                Catch ex As Exception
+                    EventLogger.EX_Log(ex.Message, "SendMessagequeue", BotCodename)
+                    Return False
+                End Try
+            End SyncLock
+            Return True
+        Else
+            Return False
+        End If
+    End Function
 
 
     ''' <summary>

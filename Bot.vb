@@ -643,7 +643,7 @@ Namespace WikiBot
             Dim CommentsList As New List(Of String)
             For i As Integer = 0 To commentMatch.Count - 1
                 CommentsList.Add(commentMatch(i).Value)
-                temptext = temptext.Replace(commentMatch(i).Value, ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, "04"))
+                temptext = temptext.Replace(commentMatch(i).Value, ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4))
             Next
 
             Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((===(?!=)).+?(===(?!=)))")
@@ -680,7 +680,7 @@ Namespace WikiBot
             For Each t As String In threadlist
                 Dim nthreadtext As String = t
                 For i As Integer = 0 To commentMatch.Count - 1
-                    Dim commenttext As String = ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, "04")
+                    Dim commenttext As String = ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4)
                     nthreadtext = nthreadtext.Replace(commenttext, CommentsList(i))
                 Next
                 EndThreadList.Add(nthreadtext)
@@ -713,7 +713,7 @@ Namespace WikiBot
             Dim CommentsList As New List(Of String)
             For i As Integer = 0 To commentMatch.Count - 1
                 CommentsList.Add(commentMatch(i).Value)
-                temptext = temptext.Replace(commentMatch(i).Value, ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, "04"))
+                temptext = temptext.Replace(commentMatch(i).Value, ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4))
             Next
 
             Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((==(?!=)).+?(==(?!=)))")
@@ -750,7 +750,7 @@ Namespace WikiBot
             For Each t As String In threadlist
                 Dim nthreadtext As String = t
                 For i As Integer = 0 To commentMatch.Count - 1
-                    Dim commenttext As String = ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, "04")
+                    Dim commenttext As String = ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4)
                     nthreadtext = nthreadtext.Replace(commenttext, CommentsList(i))
                 Next
                 EndThreadList.Add(nthreadtext)
@@ -907,7 +907,6 @@ Namespace WikiBot
 
         End Function
 
-
         ''' <summary>
         ''' Entrega como DateTime la fecha más reciente en el texto dado (en formato de firma wikipedia).
         ''' </summary>
@@ -978,6 +977,68 @@ Namespace WikiBot
         End Function
 
         ''' <summary>
+        ''' Obtiene las diferencias de la última edición de la página.
+        ''' </summary>
+        ''' <param name="thepage">Página a revisar.</param>
+        ''' <returns></returns>
+        Function GetLastDiff(ByVal thepage As Page) As List(Of Tuple(Of String, String))
+            If Not thepage.Exists Then
+                Return Nothing
+            End If
+            Dim toid As Integer = thepage.CurrentRevId
+            Dim fromid As Integer = thepage.ParentRevID
+            If fromid = -1 Then
+                Return Nothing
+            End If
+            Return GetDiff(fromid, toid)
+        End Function
+
+        ''' <summary>
+        ''' Obtiene las diferencias entre dos rev id.
+        ''' </summary>
+        ''' <param name="fromid">Id base en la comparación.</param>
+        ''' <param name="toid">Id a compara.r</param>
+        ''' <returns></returns>
+        Function GetDiff(ByVal fromid As Integer, ByVal toid As Integer) As List(Of Tuple(Of String, String))
+            Dim Changedlist As New List(Of Tuple(Of String, String))
+            Dim page1 As Page = Getpage(fromid)
+            Dim page2 As Page = Getpage(toid)
+            If Not (page1.Exists And page2.Exists) Then
+                Return Changedlist
+            End If
+            Dim querydata As String = "format=json&action=compare&fromrev=" & fromid.ToString & "&torev=" & toid.ToString
+            Dim querytext As String = POSTQUERY(querydata)
+            Dim difftext As String = String.Empty
+            Try
+                difftext = NormalizeUnicodetext(TextInBetween(querytext, ",""*"":""", "\n""}}")(0))
+            Catch ex As Exception
+                Return Changedlist
+            End Try
+            Dim Rows As String() = TextInBetween(difftext, "<tr>", "</tr>")
+            Dim Diffs As New List(Of Tuple(Of String, String))
+            For Each row As String In Rows
+                Dim matches As MatchCollection = Regex.Matches(row, "<td class=""diff-(addedline|deletedline|context)"">[\S\s]*?<\/td>")
+                If matches.Count >= 1 Then
+                    Dim cells As New List(Of String)
+                    For Each cell As Match In matches
+                        Dim TreatedString As String = Regex.Replace(cell.Value, "<td class=""diff-(addedline|deletedline|context)"">", "")
+                        TreatedString = Regex.Replace(TreatedString, "(<del class=""diffchange diffchange-inline"">|<div>|</div>|<\/td>|<\/del>|<ins class=""diffchange diffchange-inline"">|<\/ins>)", "")
+                        cells.Add(TreatedString)
+                    Next
+                    If cells.Count = 1 Then
+                        Diffs.Add(New Tuple(Of String, String)(String.Empty, cells(0)))
+                    ElseIf cells.Count >= 2 Then
+                        If Not (cells(0) = cells(1)) Then
+                            Diffs.Add(New Tuple(Of String, String)(cells(0), cells(1)))
+                        End If
+                        Continue For
+                    End If
+                End If
+            Next
+            Return Diffs
+        End Function
+
+        ''' <summary>
         ''' Retorna un array de tipo string con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
         ''' </summary>
         ''' <param name="ThePage">Página que se llama.</param>
@@ -1012,6 +1073,14 @@ Namespace WikiBot
         ''' <param name="pageName">Nombre exacto de la página</param>
         Function Getpage(ByVal pageName As String) As Page
             Return New Page(pageName, Me)
+        End Function
+
+        ''' <summary>
+        ''' Retorna un elemento Page coincidente al nombre entregado como parámetro.
+        ''' </summary>
+        ''' <param name="revID">ID de la revisión.</param>
+        Function Getpage(ByVal revID As Integer) As Page
+            Return New Page(revID, Me)
         End Function
 
 

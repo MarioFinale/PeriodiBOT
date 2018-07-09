@@ -13,6 +13,7 @@ Namespace WikiBot
         Private _ID As Integer
         Private _siteurl As String
         Private _currentRevID As Integer
+        Private _parentRevID As Integer
         Private _ORESScores As Double()
         Private _timestamp As String
         Private _sections As String()
@@ -150,6 +151,16 @@ Namespace WikiBot
         End Property
 
         ''' <summary>
+        ''' Obtiene el revid de la edición anterior de la página (si existe)
+        ''' </summary>
+        ''' <returns></returns>
+        Public ReadOnly Property ParentRevID As Integer
+            Get
+                Return _parentRevID
+            End Get
+        End Property
+
+        ''' <summary>
         ''' ¿La página existe?
         ''' </summary>
         ''' <returns></returns>
@@ -172,6 +183,17 @@ Namespace WikiBot
             Loadpage(pageTitle, _bot.WikiUrl)
         End Sub
         ''' <summary>
+        ''' Inicializa una nueva página, por lo general no se llama de forma directa. Se puede obtener una página creandola con Bot.Getpage.
+        ''' </summary>
+        ''' <param name="revid">Revision ID.</param>/param>
+        ''' <param name="wbot">Bot logueado a la wiki</param>
+        Public Sub New(ByVal revid As Integer, ByRef wbot As Bot)
+            _bot = wbot
+            _username = _bot.UserName
+            Loadpage(revid, _bot.WikiUrl)
+        End Sub
+
+        ''' <summary>
         ''' Inicializa de nuevo la página (al crear una página esta ya está inicializada).
         ''' </summary>
         Public Sub Load()
@@ -184,7 +206,7 @@ Namespace WikiBot
         ''' <param name="PageTitle">Título exacto de la página</param>
         ''' <param name="site">Sitio de la página</param>
         ''' <returns></returns>
-        Private Function Loadpage(ByVal PageTitle As String, ByVal site As String) As Boolean
+        Private Overloads Function Loadpage(ByVal PageTitle As String, ByVal site As String) As Boolean
             EventLogger.Log("Loading page " & PageTitle, "LOCAL", _username)
             If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
                 Throw New ArgumentNullException("Empty parameter", "PageTitle")
@@ -195,6 +217,26 @@ Namespace WikiBot
             _ORESScores = GetORESScores(_currentRevID)
             _pageViews = GetPageViewsAvg(_title)
             EventLogger.Log("Page " & PageTitle & " loaded", "LOCAL", _username)
+            Return True
+        End Function
+
+        ''' <summary>
+        ''' Inicializa la página, esta función no se llama de forma directa
+        ''' </summary>
+        ''' <param name="Revid">ID de revisión.</param>
+        ''' <param name="site">Sitio de la página.</param>
+        ''' <returns></returns>
+        Private Overloads Function Loadpage(ByVal Revid As Integer, ByVal site As String) As Boolean
+            EventLogger.Log("Loading revision id " & Revid.ToString, "LOCAL", _username)
+            If String.IsNullOrEmpty(Revid.ToString) Or String.IsNullOrEmpty(site) Then
+                Throw New ArgumentNullException("Empty parameter", "PageTitle")
+            End If
+            _siteurl = site
+            PageInfoData(Revid)
+            _sections = GetPageThreads(_text)
+            _ORESScores = GetORESScores(_currentRevID)
+            _pageViews = GetPageViewsAvg(_title)
+            EventLogger.Log("Page revid " & Revid.ToString & " loaded", "LOCAL", _username)
             Return True
         End Function
 
@@ -488,6 +530,7 @@ Namespace WikiBot
 
             Return "True"
         End Function
+
         ''' <summary>
         ''' Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
         ''' </summary>
@@ -499,6 +542,7 @@ Namespace WikiBot
         Overloads Function AddSection(ByVal sectionTitle As String, ByVal text As String, ByVal editSummary As String, ByVal isMinor As Boolean) As String
             Return AddSectionPage(sectionTitle, text, editSummary, isMinor)
         End Function
+
         ''' <summary>
         ''' Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
         ''' </summary>
@@ -509,6 +553,7 @@ Namespace WikiBot
         Overloads Function AddSection(ByVal sectionTitle As String, ByVal text As String, ByVal editSummary As String) As String
             Return AddSectionPage(sectionTitle, text, editSummary, False)
         End Function
+
         ''' <summary>
         ''' Añade una sección nueva a una página dada. Útil en casos como messagedelivery.
         ''' </summary>
@@ -553,10 +598,78 @@ Namespace WikiBot
         ''' {Título de la página, ID de la página, Ultimo usuario que la editó,Fecha de última edición,Wikitexto de la página,tamaño de la página (en bytes)}
         ''' </summary>
         ''' <param name="Pagename">Título exacto de la página</param>
-        Private Sub PageInfoData(ByVal pageName As String)
+        Private Overloads Sub PageInfoData(ByVal pageName As String)
 
             Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions" & UrlWebEncode("|") & "pageimages" & UrlWebEncode("|") & "categories" & UrlWebEncode("|") & "extracts" & "&rvprop=user" &
             UrlWebEncode("|") & "timestamp" & UrlWebEncode("|") & "size" & UrlWebEncode("|") & "content" & UrlWebEncode("|") & "ids" & "&exlimit=1&explaintext&exintro&titles=" & UrlWebEncode(pageName)
+            'Fix temporal, un BUG en la api de Mediawiki provoca que los extractos en solicitudes POST sean distintos a los de GET
+            Dim QueryText As String = _bot.GETQUERY(querystring)
+
+            Dim PageID As String = "-1"
+            Dim PRevID As String = "-1"
+            Dim PaRevID As String = "-1"
+            Dim User As String = ""
+            Dim PTitle As String = NormalizeUnicodetext(TextInBetween(QueryText, """title"":""", """,")(0))
+            Dim Timestamp As String = ""
+            Dim Wikitext As String = ""
+            Dim Size As String = "0"
+            Dim WNamespace As String = TextInBetween(QueryText, """ns"":", ",")(0)
+            Dim PCategories As New List(Of String)
+            Dim PageImage As String = ""
+            Dim PExtract As String = ""
+            Dim Rootp As String = ""
+            Try
+                PageID = TextInBetween(QueryText, "{""pageid"":", ",""ns")(0)
+                User = NormalizeUnicodetext(TextInBetween(QueryText, """user"":""", """,")(0))
+                Timestamp = TextInBetween(QueryText, """timestamp"":""", """,")(0)
+                Wikitext = NormalizeUnicodetext(TextInBetween(QueryText, """wikitext"",""*"":""", """}]")(0))
+                Size = NormalizeUnicodetext(TextInBetween(QueryText, ",""size"":", ",""")(0))
+                PRevID = TextInBetween(QueryText, """revid"":", ",""")(0)
+                PExtract = NormalizeUnicodetext(TextInBetween(QueryText, """extract"":""", """}")(0))
+                PaRevID = TextInBetween(QueryText, """parentid"":", ",""")(0)
+            Catch ex As IndexOutOfRangeException
+                EventLogger.Log("Warning: The page '" & pageName & "' doesn't exist yet!", "LOCAL", _username)
+            End Try
+
+            If TextInBetween(QueryText, """pageimage"":""", """").Count >= 1 Then
+                PageImage = TextInBetween(QueryText, """pageimage"":""", """")(0)
+            Else
+                EventLogger.Debug_Log("The page '" & pageName & "' doesn't have any thumbnail", "LOCAL", _username)
+            End If
+
+            For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")
+                PCategories.Add(NormalizeUnicodetext(m.Value.Replace("title"":""", "")))
+            Next
+
+            If Regex.Match(PTitle, "\/.+").Success Then
+                Rootp = PTitle.Split("/"c)(0)
+            Else
+                Rootp = PTitle
+            End If
+
+            _rootPage = Rootp
+            _title = PTitle
+            _ID = Integer.Parse(PageID)
+            _lastuser = User
+            _timestamp = Timestamp
+            _text = Wikitext
+            _size = Integer.Parse(Size)
+            _Namespace = Integer.Parse(WNamespace)
+            _categories = PCategories.ToArray
+            _currentRevID = Integer.Parse(PRevID)
+            _parentRevID = Integer.Parse(PaRevID)
+            _extract = PExtract
+            _thumbnail = PageImage
+        End Sub
+
+        ''' <summary>
+        ''' Hace una solicitud a la API respecto a una página y retorna un array con valores sobre ésta.
+        ''' {Título de la página, ID de la página, Ultimo usuario que la editó,Fecha de última edición,Wikitexto de la página,tamaño de la página (en bytes)}
+        ''' </summary>
+        ''' <param name="Revid">Revision ID de la página</param>
+        Private Overloads Sub PageInfoData(ByVal Revid As Integer)
+            Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions" & UrlWebEncode("|") & "pageimages" & UrlWebEncode("|") & "categories" & UrlWebEncode("|") & "extracts" & "&rvprop=user" &
+            UrlWebEncode("|") & "timestamp" & UrlWebEncode("|") & "size" & UrlWebEncode("|") & "content" & UrlWebEncode("|") & "ids" & "&exlimit=1&explaintext&exintro&revids=" & Revid.ToString
             'Fix temporal, un BUG en la api de Mediawiki provoca que los extractos en solicitudes POST sean distintos a los de GET
             Dim QueryText As String = _bot.GETQUERY(querystring)
 
@@ -581,13 +694,13 @@ Namespace WikiBot
                 PRevID = TextInBetween(QueryText, """revid"":", ",""")(0)
                 PExtract = NormalizeUnicodetext(TextInBetween(QueryText, """extract"":""", """}")(0))
             Catch ex As IndexOutOfRangeException
-                EventLogger.Log("Warning: The page '" & pageName & "' doesn't exist yet!", "LOCAL", _username)
+                EventLogger.Log("Warning: The page '" & PTitle & "' doesn't exist yet!", "LOCAL", _username)
             End Try
 
             If TextInBetween(QueryText, """pageimage"":""", """").Count >= 1 Then
                 PageImage = TextInBetween(QueryText, """pageimage"":""", """")(0)
             Else
-                EventLogger.Debug_log("The page '" & pageName & "' doesn't have any thumbnail", "LOCAL", _username)
+                EventLogger.Debug_Log("The page '" & PTitle & "' doesn't have any thumbnail", "LOCAL", _username)
             End If
 
             For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")
@@ -612,7 +725,6 @@ Namespace WikiBot
             _currentRevID = Integer.Parse(PRevID)
             _extract = PExtract
             _thumbnail = PageImage
-
         End Sub
 
         ''' <summary>

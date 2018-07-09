@@ -75,17 +75,16 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActiveUsers.vb" />
     <Compile Include="AddTopic.vb" />
     <Compile Include="APIHandler.vb" />
     <Compile Include="Bot.vb" />
     <Compile Include="FilePath.vb" />
+    <Compile Include="Initializer.vb" />
     <Compile Include="PeriodiBOT_Tasks.vb" />
     <Compile Include="CommFunctions.vb" />
     <Compile Include="GlobalVars.vb" />
     <Compile Include="GrillitusArchive.vb" />
     <Compile Include="IRCMessage.vb" />
-    <Compile Include="IRCTask.vb" />
     <Compile Include="IRC_Client.vb" />
     <Compile Include="IRC_Comands.vb" />
     <Compile Include="LogEngine.vb" />
@@ -108,6 +107,8 @@
     <Compile Include="Page.vb" />
     <Compile Include="Settings.vb" />
     <Compile Include="Template.vb" />
+    <Compile Include="ThreadInfo.vb" />
+    <Compile Include="ThreadPoolAdmin.vb" />
     <Compile Include="WikiUser.vb" />
   </ItemGroup>
   <ItemGroup>
