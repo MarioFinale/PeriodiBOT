@@ -6,6 +6,14 @@ Imports PeriodiBOT_IRC.CommFunctions
 Public Module ThreadPoolAdmin
     Public ThreadList As New List(Of ThreadInfo)
 
+    Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), interval As Integer, infinite As Boolean)
+        NewThread(name, author, task, interval, infinite, False)
+    End Sub
+
+    Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), scheduledTime As TimeSpan, infinite As Boolean)
+        NewThread(name, author, task, scheduledTime, infinite, False)
+    End Sub
+
     Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), interval As Integer, infinite As Boolean, critical As Boolean)
         Dim Tinfo As New ThreadInfo With {
             .author = author,
