@@ -261,6 +261,14 @@ Namespace IRC
             End Try
         End Function
 
+
+        Sub CommandInit()
+            Dim flood As New IRCCommand("GetFloodDelay", {"flood"}, AddressOf GetFloodDelay, "Obtiene el delay de flood", Client)
+
+
+
+        End Sub
+
         ''' <summary>
         ''' Verifica si un comando comienza por uno de los prefijos pasados como parámetro
         ''' </summary>

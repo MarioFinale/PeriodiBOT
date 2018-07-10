@@ -4,44 +4,47 @@ Imports PeriodiBOT_IRC.CommFunctions
 Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.WikiBot
 
-Public Class IRCCommands
+Public Module IRCCommands
 
 
 
-    Sub CommandInit()
-        Dim command1 As New IRCCommand("GetFloodDelay", {"flood"}, AddressOf GetFloodDelay, "Obtiene el delay de flood", BotIRC)
-
-
-
-    End Sub
-
-    Private Function GetFloodDelay(ByVal Args As CommandParams) As IRCMessage
+    Function GetFloodDelay(ByVal Args As CommandParams) As IRCMessage
         Dim Params As String = Args.TotalParam
         Dim Client As IRC_Client = Args.Client
         Dim source As String = Args.Source
-        Dim responsestring As String = String.Empty
-        responsestring = "Tiempo de espera entre líneas: " & ColoredText(Client._floodDelay.ToString, 4) & " milisegundos."
-        Return New IRCMessage(source, responsestring.ToArray)
+        If Args.OpRequest Then
+            Dim responsestring As String = String.Empty
+            responsestring = "Tiempo de espera entre líneas: " & ColoredText(Client._floodDelay.ToString, 4) & " milisegundos."
+            Return New IRCMessage(source, responsestring.ToArray)
+        Else
+            Return New IRCMessage(source, "No autorizado.")
+        End If
     End Function
 
-    Private Function SetFloodDelay(ByVal Args As CommandParams) As IRCMessage
+    Function SetFloodDelay(ByVal Args As CommandParams) As IRCMessage
         Dim value As String = Args.TotalParam
         Dim source As String = Args.Source
         Dim client As IRC_Client = Args.Client
-        Dim responsestring As String = String.Empty
-        If Not IsNumeric(value) Then
-            Return New IRCMessage(source, "Ingrese un número válido.")
+        If Args.OpRequest Then
+            Dim responsestring As String = String.Empty
+            If Not IsNumeric(value) Then
+                Return New IRCMessage(source, "Ingrese un número válido.")
+            End If
+            Dim resdelay As Integer = Integer.Parse(value)
+            If resdelay <= 0 Then
+                Return New IRCMessage(source, "El valor debe ser mayor a 0.")
+            End If
+            client._floodDelay = resdelay
+            responsestring = "Tiempo de espera entre líneas establecido a: " & ColoredText(value, 4) & " milisegundos."
+            Return New IRCMessage(source, responsestring.ToArray)
+        Else
+            Return New IRCMessage(source, "No autorizado.")
         End If
-        Dim resdelay As Integer = Integer.Parse(value)
-        If resdelay <= 0 Then
-            Return New IRCMessage(source, "El valor debe ser mayor a 0.")
-        End If
-        Client._floodDelay = resdelay
-        responsestring = "Tiempo de espera entre líneas establecido a: " & ColoredText(value, 4) & " milisegundos."
-        Return New IRCMessage(source, responsestring.ToArray)
     End Function
 
-    Private Function GetPrefixes(ByVal source As String, ByVal prefixes As String()) As IRCMessage
+    Function GetPrefixes(ByVal Args As CommandParams) As IRCMessage
+        Dim prefixes As String() = Args.Prefixes
+        Dim source As String = Args.Source
         Dim responsestring As String = String.Empty
         responsestring = ColoredText("Prefijos: ", 4)
         For Each prefix As String In prefixes
@@ -50,7 +53,8 @@ Public Class IRCCommands
         Return New IRCMessage(source, responsestring)
     End Function
 
-    Private Function GetTasks(ByVal source As String, user As String) As IRCMessage
+    Function GetTasks(ByVal Args As CommandParams) As IRCMessage
+        Dim source As String = Args.Source
         Dim responsestring As New List(Of String)
         If Not ThreadList.Count >= 1 Then
             Return New IRCMessage(source, "No hay tareas ejecutándose.")
@@ -66,7 +70,9 @@ Public Class IRCCommands
         Return New IRCMessage(source, responsestring.ToArray)
     End Function
 
-    Private Function TaskInfo(ByVal source As String, taskindex As String, user As String) As IRCMessage
+    Function TaskInfo(ByVal Args As CommandParams) As IRCMessage
+        Dim taskindex As String = Args.TotalParam
+        Dim source As String = Args.Source
         Dim responsestring As New List(Of String)
         If Not IsNumeric(taskindex) Then
             Return New IRCMessage(source, "Ingrese el número de la tarea.")
@@ -109,7 +115,11 @@ Public Class IRCCommands
         Return New IRCMessage(source, responsestring.ToArray)
     End Function
 
-    Private Function PauseTask(ByVal source As String, taskindex As String, user As String) As IRCMessage
+    Function PauseTask(ByVal Args As CommandParams) As IRCMessage
+        Dim taskindex As String = Args.TotalParam
+        Dim source As String = Args.Source
+        Dim user As String = Args.Realname
+
         Dim responsestring As New List(Of String)
         If Not IsNumeric(taskindex) Then
             Return New IRCMessage(source, "Ingrese el número de la tarea.")
@@ -144,13 +154,16 @@ Public Class IRCCommands
 
     End Function
 
-    Private Function GetTime(ByVal source As String, user As String) As IRCMessage
+    Function GetTime(ByVal Args As CommandParams) As IRCMessage
+        Dim source As String = Args.Source
         Dim responsestring As String = String.Empty
         responsestring = "La hora del sistema es " & ColoredText(Date.Now.TimeOfDay.ToString("hh\:mm\:ss"), 4) & " (" & ColoredText(Date.UtcNow.TimeOfDay.ToString("hh\:mm\:ss"), 4) & " UTC)."
         Return New IRCMessage(source, responsestring)
     End Function
 
-    Private Function SetDebug(ByVal source As String, user As String) As IRCMessage
+    Private Function SetDebug(ByVal Args As CommandParams) As IRCMessage
+        Dim source As String = Args.Source
+
         Dim responsestring As String = String.Empty
         If EventLogger.Debug Then
             EventLogger.Debug = False
@@ -162,7 +175,11 @@ Public Class IRCCommands
         Return New IRCMessage(source, responsestring)
     End Function
 
-    Private Function SetOp(ByVal message As String, source As String, realname As String) As IRCMessage
+    Function SetOp(ByVal Args As CommandParams) As IRCMessage
+        Dim message As String = Args.Imputline
+        Dim Client As IRC_Client = Args.Client
+        Dim source As String = Args.Source
+        Dim realname As String = Args.Realname
         Dim responsestring As String = String.Empty
         Dim param As String = message.Split(CType(" ", Char()))(4)
 
@@ -181,7 +198,11 @@ Public Class IRCCommands
     End Function
 
 
-    Private Function DeOp(ByVal message As String, source As String, realname As String) As IRCMessage
+    Function DeOp(ByVal Args As CommandParams) As IRCMessage
+        Dim message As String = Args.Imputline
+        Dim Client As IRC_Client = Args.Client
+        Dim source As String = Args.Source
+        Dim realname As String = Args.Realname
         Dim responsestring As String = String.Empty
         Dim param As String = message.Split(CType(" ", Char()))(4)
 
@@ -199,7 +220,7 @@ Public Class IRCCommands
         Return New IRCMessage(source, responsestring)
     End Function
 
-    Private Function CommandInfo(source As String, MainParam As String, realname As String) As IRCMessage
+    Function CommandInfo(source As String, MainParam As String, realname As String) As IRCMessage
         Dim responsestring As String = String.Empty
         MainParam = MainParam.ToLower
         If MainParam(0) = "%"c Then
@@ -656,4 +677,4 @@ Public Class IRCCommands
 
 
 
-End Class
+End Module
