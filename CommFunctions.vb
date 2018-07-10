@@ -328,7 +328,7 @@ NotInheritable Class CommFunctions
             SyncLock queuedat
                 Try
                     Dim queuedmsg As Tuple(Of String, Boolean, String, IRC_Client, WikiBot.Bot) = queuedat.Dequeue()
-                    Dim Commands As New IRC_Comands
+                    Dim Commands As New IRCCommandResolver
                     Dim MsgResponse As IRCMessage = Commands.ResolveCommand(queuedmsg.Item1, queuedmsg.Item2, queuedmsg.Item3, queuedmsg.Item4, queuedmsg.Item5)
                     If Not MsgResponse Is Nothing Then
                         queuedmsg.Item4.Sendmessage(MsgResponse)

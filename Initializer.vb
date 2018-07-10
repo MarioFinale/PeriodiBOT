@@ -15,12 +15,8 @@ Public Class Initializer
         Uptime = DateTime.Now
         EventLogger.Log("Starting...", "LOCAL")
         ESWikiBOT = New Bot(New ConfigFile(ConfigFilePath))
-
-        Dim testp As Page = ESWikiBOT.Getpage("Usuario discusión:MarioFinale")
-
-        Dim diff As List(Of Tuple(Of String, String)) = ESWikiBOT.GetLastDiff(testp)
-        Dim a As Integer = 1
-
+        BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
+        BotIRC.Start()
 
         'Tarea para revisar si hay solicitudes en mediacion informal
         Dim InfMedFunc As New Func(Of Boolean)(Function() CheckInformalMediation(ESWikiBOT))
@@ -39,7 +35,7 @@ Public Class Initializer
                                                        BotIRC.Sendmessage(CheckUsers)
                                                        Return True
                                                    End Function)
-        NewThread("Avisar inactividad de usuario en IRC", BotCodename, CheckUsersFunc, 6000, True)
+        NewThread("Avisar inactividad de usuario en IRC", BotCodename, CheckUsersFunc, 600000, True)
 
 
         'Tarea para actualizar el café temático

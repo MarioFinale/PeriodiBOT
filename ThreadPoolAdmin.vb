@@ -52,7 +52,11 @@ Public Module ThreadPoolAdmin
         Try
             Do
                 If tinfo.cancelled Then
-                    Exit Do
+                    If Not tinfo.critical Then
+                        Exit Do
+                    Else
+                        EventLogger.Log("CANNOT END TASK """ & tinfo.name & """: CRITICAL TASK", "THREAD", tinfo.author)
+                    End If
                 End If
                 If Not tinfo.paused Then
                     tinfo.running = True
@@ -66,8 +70,13 @@ Public Module ThreadPoolAdmin
                     tinfo.status = "Waiting"
                     Thread.Sleep(tinfo.interval)
                 Else
-                    tinfo.status = "Paused"
-                    Thread.Sleep(1000)
+                    If Not tinfo.critical Then
+                        tinfo.status = "Paused"
+                        Thread.Sleep(1000)
+                    Else
+                        EventLogger.Log("CANNOT PAUSE TASK """ & tinfo.name & """: CRITICAL TASK", "THREAD", tinfo.author)
+                        tinfo.paused = False
+                    End If
                 End If
             Loop
         Catch ex As Exception
@@ -82,7 +91,11 @@ Public Module ThreadPoolAdmin
         Try
             Do
                 If tinfo.cancelled Then
-                    Exit Do
+                    If Not tinfo.critical Then
+                        Exit Do
+                    Else
+                        EventLogger.Log("CANNOT END TASK """ & tinfo.name & """: CRITICAL TASK", "THREAD", tinfo.author)
+                    End If
                 End If
                 If Not tinfo.paused Then
                     tinfo.running = True
@@ -99,8 +112,14 @@ Public Module ThreadPoolAdmin
                     End If
                     Thread.Sleep(100)
                 Else
-                    tinfo.status = "Paused"
-                    Thread.Sleep(1000)
+                    If Not tinfo.critical Then
+                        tinfo.status = "Paused"
+                        Thread.Sleep(1000)
+                    Else
+                        EventLogger.Log("CANNOT PAUSE TASK """ & tinfo.name & """: CRITICAL TASK", "THREAD", tinfo.author)
+                        tinfo.paused = False
+                    End If
+
                 End If
             Loop
         Catch ex As Exception

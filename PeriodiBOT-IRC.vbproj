@@ -80,13 +80,15 @@
     <Compile Include="Bot.vb" />
     <Compile Include="FilePath.vb" />
     <Compile Include="Initializer.vb" />
+    <Compile Include="IRCCommand.vb" />
+    <Compile Include="IRCCommands.vb" />
     <Compile Include="PeriodiBOT_Tasks.vb" />
     <Compile Include="CommFunctions.vb" />
     <Compile Include="GlobalVars.vb" />
     <Compile Include="GrillitusArchive.vb" />
     <Compile Include="IRCMessage.vb" />
     <Compile Include="IRC_Client.vb" />
-    <Compile Include="IRC_Comands.vb" />
+    <Compile Include="IRCCommandResolver.vb" />
     <Compile Include="LogEngine.vb" />
     <Compile Include="MainModule.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
