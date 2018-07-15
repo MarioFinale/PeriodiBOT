@@ -24,8 +24,24 @@ Namespace IRC
 
         Private lastmessage As New IRCMessage("", {""})
 
-        Private HasExited As Boolean = False
+        Public HasExited As Boolean = False
         Public _floodDelay As Integer = 700
+
+#Region "Properties"
+        Public ReadOnly Property NickName As String
+            Get
+                Return _sNickName
+            End Get
+        End Property
+
+        Public ReadOnly Property Server As String
+            Get
+                Return _sServer
+            End Get
+        End Property
+#End Region
+
+
 
         Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal userName As String, ByVal OpFilePath As ConfigFile)
@@ -263,6 +279,7 @@ Namespace IRC
 
 
         Private OPlist As List(Of String)
+
         Sub LoadConfig()
             OPlist = New List(Of String)
             If System.IO.File.Exists(_opFilePath.GetPath) Then
@@ -382,6 +399,24 @@ Namespace IRC
                 EventLogger.Log("EX Checking if user is OP : " & ex.Message, Source, user)
                 Return False
             End Try
+        End Function
+
+        Private Function GetParamString(ByVal message As String) As String
+            If message.Contains(":") Then
+                Try
+                    Dim StringToRemove As String = TextInBetweenInclusive(message, ":", " :")(0)
+                    Dim Paramstring As String = message.Replace(StringToRemove, String.Empty)
+                    Return Paramstring
+                Catch ex As IndexOutOfRangeException
+                    Return String.Empty
+                Catch ex2 As Exception
+                    EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex2.Message, "IRC", _sNickName)
+                    Return String.Empty
+                End Try
+            Else
+                Return String.Empty
+            End If
+
         End Function
 
     End Class

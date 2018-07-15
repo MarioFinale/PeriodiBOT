@@ -1,4 +1,5 @@
 ﻿Imports PeriodiBOT_IRC.IRC
+Imports PeriodiBOT_IRC.WikiBot
 
 Public Class IRCCommand
     Public ReadOnly Property Name As String
@@ -33,6 +34,7 @@ Public Class CommandParams
     Private _client As IRC_Client
     Private _prefixes As String()
     Private _imputline As String
+    Private _workerbot As Bot
 
 #Region "Properties"
     Public ReadOnly Property Source As String
@@ -84,15 +86,25 @@ Public Class CommandParams
         End Get
     End Property
 
+    Public Property Workerbot As Bot
+        Get
+            Return _workerbot
+        End Get
+        Set(value As Bot)
+            _workerbot = value
+        End Set
+    End Property
+
 #End Region
 
-    Sub New(ByVal CommandSource As String, CommandRealName As String, CommandParams As String, CommandPrefixes As String(), line As String, CommandResolver As IRC_Client)
+    Sub New(ByVal CommandSource As String, CommandRealName As String, CommandParams As String, CommandPrefixes As String(), line As String, CommandResolver As IRC_Client, Workerbot As Bot)
         _source = CommandSource
         _realname = CommandRealName
         _totalParam = CommandParams
         _client = CommandResolver
         _prefixes = CommandPrefixes
         _imputline = line
+        _workerbot = Workerbot
     End Sub
 
 
