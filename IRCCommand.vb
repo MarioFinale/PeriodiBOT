@@ -1,4 +1,6 @@
-﻿Imports PeriodiBOT_IRC.IRC
+﻿Option Strict On
+Option Explicit On
+Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.CommFunctions
 
@@ -6,15 +8,17 @@ Public Class IRCCommand
     Public ReadOnly Property Name As String
     Public ReadOnly Property Aliases As String()
     Public ReadOnly Property Description As String
+    Public ReadOnly Property Usage As String
     Friend ComFunc As Func(Of CommandParams, IRCMessage)
     Private Client As IRC_Client
 
-    Public Sub New(ByVal CommandName As String, ByVal CommandAliases As String(), ByRef CommandFunc As Func(Of CommandParams, IRCMessage), ByVal CommandDescription As String, ByVal ClientResolver As IRC_Client)
+    Public Sub New(ByVal CommandName As String, ByVal CommandAliases As String(), ByRef CommandFunc As Func(Of CommandParams, IRCMessage), ByVal CommandDescription As String, ByVal CommandUsage As String, ByVal ClientResolver As IRC_Client)
         Name = CommandName
         Aliases = CommandAliases
         ComFunc = CommandFunc
         Description = CommandDescription
         Client = ClientResolver
+        Usage = CommandUsage
     End Sub
 
     Public Function Contains(ByVal CommandAlias As String) As Boolean
@@ -35,6 +39,8 @@ Public Class CommandParams
     Private _client As IRC_Client
     Private _imputline As String
     Private _workerbot As Bot
+    Private _commandName As String
+    Private _messageLine As String
 
 #Region "Properties"
     Public ReadOnly Property Source As String
@@ -61,16 +67,13 @@ Public Class CommandParams
         End Get
     End Property
 
-    Public Property Imputline As String
+    Public ReadOnly Property Imputline As String
         Get
             Return _imputline
         End Get
-        Set(value As String)
-            _imputline = value
-        End Set
     End Property
 
-    Public ReadOnly Property OpRequest As Boolean
+    Public ReadOnly Property IsOp As Boolean
         Get
             Return _client.IsOp(_imputline, _source, _realname)
         End Get
@@ -82,6 +85,18 @@ Public Class CommandParams
         End Get
     End Property
 
+    Public ReadOnly Property CommandName As String
+        Get
+            Return _commandName
+        End Get
+    End Property
+
+    Public ReadOnly Property MessageLine As String
+        Get
+            Return _messageLine
+        End Get
+    End Property
+
 #End Region
 
     Sub New(ByVal cimputline As String, CommandResolver As IRC_Client, RWorkerbot As Bot)
@@ -89,6 +104,9 @@ Public Class CommandParams
         _source = String.Empty
         _realname = String.Empty
         _cParam = String.Empty
+        _commandName = String.Empty
+        _messageLine = String.Empty
+
         _client = CommandResolver
         _imputline = cimputline
         _workerbot = RWorkerbot
@@ -111,7 +129,6 @@ Public Class CommandParams
         Next
         Dim sParams As String() = GetParams(sParam)
         Dim MainParam As String = sParams(0).ToLower
-
         Dim commandParam As String = String.Empty
         If Not MainParam = String.Empty Then
             Dim usrarr As String() = sParam.Split(CType(" ", Char()))
@@ -126,8 +143,11 @@ Public Class CommandParams
         _source = sSource
         _realname = sRealname
         _cParam = commandParam
-    End Sub
+        _commandName = MainParam
+        _messageLine = sParam
 
+
+    End Sub
 
     Private Function GetParams(ByVal Param As String) As String()
         Return Param.Split(CType(" ", Char()))

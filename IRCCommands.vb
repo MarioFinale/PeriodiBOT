@@ -10,7 +10,7 @@ Public Class IRCCommands
         Dim Params As String = Args.CParam
         Dim Client As IRC_Client = Args.Client
         Dim source As String = Args.Source
-        If Args.OpRequest Then
+        If Args.IsOp Then
             Dim responsestring As String = String.Empty
             responsestring = "Tiempo de espera entre líneas: " & ColoredText(Client._floodDelay.ToString, 4) & " milisegundos."
             Return New IRCMessage(source, responsestring.ToArray)
@@ -23,7 +23,7 @@ Public Class IRCCommands
         Dim value As String = Args.CParam
         Dim source As String = Args.Source
         Dim client As IRC_Client = Args.Client
-        If Args.OpRequest Then
+        If Args.IsOp Then
             Dim responsestring As String = String.Empty
             If Not IsNumeric(value) Then
                 Return New IRCMessage(source, "Ingrese un número válido.")
@@ -103,42 +103,45 @@ Public Class IRCCommands
     End Function
 
     Function PauseTask(ByVal Args As CommandParams) As IRCMessage
-        Dim taskindex As String = Args.CParam
-        Dim source As String = Args.Source
-        Dim user As String = Args.Realname
+        If Args.IsOp Then
+            Dim taskindex As String = Args.CParam
+            Dim source As String = Args.Source
+            Dim user As String = Args.Realname
 
-        Dim responsestring As New List(Of String)
-        If Not IsNumeric(taskindex) Then
-            Return New IRCMessage(source, "Ingrese el número de la tarea.")
-        End If
-        If Not ThreadList.Count >= 1 Then
-            Return New IRCMessage(source, "No hay tareas ejecutándose.")
-        End If
-        If taskindex.Length > 5 Then
-            Return New IRCMessage(source, "El valor es demasiado grande.")
-        End If
-        Dim tindex As Integer = Integer.Parse(taskindex)
-        If Not tindex > 0 Then
-            Return New IRCMessage(source, "El valor debe ser mayor a 0.")
-        End If
-        If tindex > ThreadList.Count Then
-            Return New IRCMessage(source, "La tarea no existe.")
-        End If
-        Dim tinfo As ThreadInfo = ThreadList(tindex - 1)
-        If Not tinfo.critical Then
-            If tinfo.paused Then
-                tinfo.paused = False
-                EventLogger.Log("Task """ & tinfo.name & """ unpaused.", "IRC", user)
-                Return New IRCMessage(source, "Se ha renaudado la tarea.")
+            Dim responsestring As New List(Of String)
+            If Not IsNumeric(taskindex) Then
+                Return New IRCMessage(source, "Ingrese el número de la tarea.")
+            End If
+            If Not ThreadList.Count >= 1 Then
+                Return New IRCMessage(source, "No hay tareas ejecutándose.")
+            End If
+            If taskindex.Length > 5 Then
+                Return New IRCMessage(source, "El valor es demasiado grande.")
+            End If
+            Dim tindex As Integer = Integer.Parse(taskindex)
+            If Not tindex > 0 Then
+                Return New IRCMessage(source, "El valor debe ser mayor a 0.")
+            End If
+            If tindex > ThreadList.Count Then
+                Return New IRCMessage(source, "La tarea no existe.")
+            End If
+            Dim tinfo As ThreadInfo = ThreadList(tindex - 1)
+            If Not tinfo.critical Then
+                If tinfo.paused Then
+                    tinfo.paused = False
+                    EventLogger.Log("Task """ & tinfo.name & """ unpaused.", "IRC", user)
+                    Return New IRCMessage(source, "Se ha renaudado la tarea.")
+                Else
+                    tinfo.paused = True
+                    EventLogger.Log("Task """ & tinfo.name & """ paused.", "IRC", user)
+                    Return New IRCMessage(source, "Se ha pausado la tarea.")
+                End If
             Else
-                tinfo.paused = True
-                EventLogger.Log("Task """ & tinfo.name & """ paused.", "IRC", user)
-                Return New IRCMessage(source, "Se ha pausado la tarea.")
+                Return New IRCMessage(source, "No se puede pausar una tarea crítica.")
             End If
         Else
-            Return New IRCMessage(source, "No se puede pausar una tarea crítica.")
+            Return Nothing
         End If
-
     End Function
 
     Function GetTime(ByVal Args As CommandParams) As IRCMessage
@@ -163,169 +166,113 @@ Public Class IRCCommands
     End Function
 
     Function SetOp(ByVal Args As CommandParams) As IRCMessage
-        Dim message As String = Args.Imputline
-        Dim Client As IRC_Client = Args.Client
-        Dim source As String = Args.Source
-        Dim realname As String = Args.Realname
-        Dim responsestring As String = String.Empty
-        Dim param As String = message.Split(CType(" ", Char()))(4)
+        If Args.IsOp Then
+            Dim message As String = Args.Imputline
+            Dim Client As IRC_Client = Args.Client
+            Dim source As String = Args.Source
+            Dim realname As String = Args.Realname
+            Dim responsestring As String = String.Empty
+            Dim param As String = message.Split(CType(" ", Char()))(4)
 
-        If CountCharacter(param, CChar("!")) = 1 Then
-            Dim requestedop As String = param.Split(CType("!", Char()))(0)
-            If Client.AddOP(message, source, realname) Then
-                responsestring = "El usuario " & requestedop & " se añadió como operador"
+            If CountCharacter(param, CChar("!")) = 1 Then
+                Dim requestedop As String = param.Split(CType("!", Char()))(0)
+                If Client.AddOP(message, source, realname) Then
+                    responsestring = "El usuario " & requestedop & " se añadió como operador"
 
+                Else
+                    responsestring = "El usuario " & requestedop & " no se añadió como operador"
+                End If
             Else
-                responsestring = "El usuario " & requestedop & " no se añadió como operador"
+                responsestring = "Parámetro mal ingresado."
             End If
+            Return New IRCMessage(source, responsestring)
         Else
-            responsestring = "Parámetro mal ingresado."
+            Return Nothing
         End If
-        Return New IRCMessage(source, responsestring)
     End Function
 
 
     Function DeOp(ByVal Args As CommandParams) As IRCMessage
-        Dim message As String = Args.Imputline
-        Dim Client As IRC_Client = Args.Client
-        Dim source As String = Args.Source
-        Dim realname As String = Args.Realname
-        Dim responsestring As String = String.Empty
-        Dim param As String = message.Split(CType(" ", Char()))(4)
+        If Args.IsOp Then
+            Dim message As String = Args.Imputline
+            Dim Client As IRC_Client = Args.Client
+            Dim source As String = Args.Source
+            Dim realname As String = Args.Realname
+            Dim responsestring As String = String.Empty
+            Dim param As String = message.Split(CType(" ", Char()))(4)
 
-        If CountCharacter(param, CChar("!")) = 1 Then
+            If CountCharacter(param, CChar("!")) = 1 Then
 
-            Dim requestedop As String = param.Split(CType("!", Char()))(0)
-            If Client.DelOP(message, source, realname) Then
-                responsestring = "El usuario " & requestedop & " se ha eliminado como operador"
+                Dim requestedop As String = param.Split(CType("!", Char()))(0)
+                If Client.DelOP(message, source, realname) Then
+                    responsestring = "El usuario " & requestedop & " se ha eliminado como operador"
+                Else
+                    responsestring = "El usuario " & requestedop & " no se ha eliminado como operador"
+                End If
             Else
-                responsestring = "El usuario " & requestedop & " no se ha eliminado como operador"
+                responsestring = "Parámetro mal ingresado."
             End If
+            Return New IRCMessage(source, responsestring)
         Else
-            responsestring = "Parámetro mal ingresado."
+            Return Nothing
         End If
-        Return New IRCMessage(source, responsestring)
     End Function
 
-    Function CommandInfo(source As String, MainParam As String, realname As String) As IRCMessage
-        Dim responsestring As String = String.Empty
-        MainParam = MainParam.ToLower
-        If MainParam(0) = "%"c Then
-            MainParam = MainParam.Replace("%"c, "")
-        End If
-
-        EventLogger.Log("Commandinfo: " & MainParam, "IRC", realname)
-        If MainParam = ("última") Or MainParam = ("ultima") Or MainParam = ("ult") Or MainParam = ("last") Then
-
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%última/%ultima/%ult/%last", 3), "Entrega el tiempo (Aproximado) que ha pasado desde la ultima edicion del usuario.", "%Ultima <usuario>")
-
-        ElseIf MainParam = ("usuario") Or MainParam = ("usuarios") Or MainParam = ("users") Or MainParam = ("usr") Or
-                       MainParam = ("usrs") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%usuario/%usuarios/%users/%usr/%usrs", 3), "Entrega una lista de los usuarios programados en tu lista (Más info: %? %programar).", "%Usuarios")
-
-        ElseIf MainParam = ("programar") Or MainParam = ("programa") Or MainParam = ("prog") Or MainParam = ("progr") Or
-                       MainParam = ("prg") Or MainParam = ("avisa") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%programar/%programa/%prog/%progr/%prg/%avisa", 3), "Programa un aviso en caso de que un usuario no edite en un tiempo específico.", "%Programar Usuario/Dias/Horas/Minutos")
-
-        ElseIf MainParam = ("quitar") Or MainParam = ("quita") Or
-                       MainParam = ("saca") Or MainParam = ("sacar") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%quitar/%quita/%saca/%sacar", 3), "Quita un usuario de tu lista programada (Más info: %? %programar).", "%Quita <usuario>")
-
-        ElseIf MainParam = ("ord") Or MainParam = ("ordenes") Or
-                       MainParam = ("órdenes") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%ord/%ordenes", 3), "Entrega una lista de las principales ordenes (Más info: %? <orden>).", "%Ordenes")
-
-        ElseIf MainParam = "??" Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%??", 3), "Entrega información técnica sobre el bot (limitado según el usuario).", "%??")
-
-        ElseIf MainParam = "?" Or MainParam = "h" Or MainParam = "help" Or MainParam = "ayuda" Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%?/%h/%help/%ayuda", 3), "Entrega información sobre un comando.", "%? <orden>")
-
-        ElseIf MainParam = ("lastlog") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%lastlog", 3), "SOLO OPS: Ultimo log del bot (TOTAL).", "%lastlog")
-
-        ElseIf MainParam = ("resumen") Or MainParam = ("res") Or
-                       MainParam = ("entrada") Or MainParam = ("entradilla") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%resumen/%res/%entrada/%entradilla", 3), "Entrega la entradilla de un artículo en Wikipedia.", "%entradilla <Artículo>")
-
-        ElseIf MainParam = ("info") Or MainParam = ("pag") Or
-                       MainParam = ("pageinfo") Or MainParam = ("infopagina") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%info/%pag/%pageinfo/%infopagina", 3), "Entrega datos sobre un artículo en Wikipedia.", "%Info <Artículo>")
-
-        ElseIf MainParam = ("updateExtracts") Or MainParam = ("update") Or
-                    MainParam = ("upex") Or MainParam = ("updex") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%updateExtracts/%update/%upex/%updex", 3), "SOLO OPS, Actualiza los extractos de articulos en Wikipedia.", "%upex")
-
-        ElseIf MainParam = ("q") Or MainParam = ("quit") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%q", 3), "SOLO OP, Solicita al bot cesar todas sus operaciones.", "%q")
-        ElseIf MainParam = ("op") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%op", 3), "SOLO OP, Añade un operador.", "%op nickname!hostname")
-        ElseIf MainParam = ("deop") Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText(MainParam, 4), ColoredText("%deop", 3), "SOLO OP, Elimina un operador.", "%deop nickname!hostname")
-        ElseIf MainParam = ("archive") Then
-            responsestring = String.Format("Comando: {0}; Función:{1}; Uso:{2}",
-       ColoredText(MainParam, 4), "SOLO OP, Archiva una página inmediatamente.", "%archive [página]")
-        ElseIf MainParam = ("archiveall") Then
-            responsestring = String.Format("Comando: {0}; Función:{1}; Uso:{2}",
-       ColoredText(MainParam, 4), "SOLO OP, Archiva todas las páginas inmediatamente.", "%archiveall")
-        ElseIf String.IsNullOrEmpty(MainParam) Then
-            responsestring = String.Format("Comando: {0}; Aliases:{1}; Función:{2}; Uso:{3}",
-        ColoredText("%?", 4), ColoredText("%?/%h/%help/%ayuda", 3), "Entrega información sobre un comando.", "%? <orden>")
-
+    Function UpdateExtracts(ByVal Args As CommandParams) As IRCMessage
+        If Args.IsOp Then
+            Dim Upexfcn As New Func(Of Boolean)(Function() UpdatePageExtracts(True))
+            NewThread("Actualizar extractos a solicitud", Args.Realname, Upexfcn, 1, False)
+            Return New IRCMessage(Args.Source, Args.Realname & ": Se ha creado la tarea.")
         Else
-            responsestring = String.Format("No se ha encontrado el comando {0}.", ColoredText(MainParam, 4))
+            Return Nothing
         End If
-        Return New IRCMessage(source, responsestring)
-
     End Function
 
     Function JoinRoom(ByVal Args As CommandParams) As IRCMessage
-        Dim command As String = String.Format("JOIN {0}", Args.CParam)
-        Args.Client.SendText(command)
-        Dim responsestring As String = ColoredText("Entrando a sala solicitada", 4)
-        Dim mes As New IRCMessage(Args.Source, responsestring)
-        EventLogger.Log("Joined room " & Args.CParam, "IRC", Args.Realname)
-        Return mes
+        If Args.IsOp Then
+            Dim command As String = String.Format("JOIN {0}", Args.CParam)
+            Args.Client.SendText(command)
+            Dim responsestring As String = ColoredText("Entrando a sala solicitada", 4)
+            Dim mes As New IRCMessage(Args.Source, responsestring)
+            EventLogger.Log("Joined room " & Args.CParam, "IRC", Args.Realname)
+            Return mes
+        Else
+            Return Nothing
+        End If
     End Function
 
     Function LeaveRoom(ByVal Args As CommandParams) As IRCMessage
-        Dim responsestring As String = ColoredText("Saliendo de la sala solicitada", 4)
-        Dim command As String = String.Format("PART {0}", Args.CParam)
-        Args.Client.SendText(command)
-        Dim mes As New IRCMessage(Args.Source, responsestring)
-        EventLogger.Log("Joined room " & Args.CParam, "IRC", Args.Realname)
-        Return mes
+        If Args.IsOp Then
+            Dim responsestring As String = ColoredText("Saliendo de la sala solicitada", 4)
+            Dim command As String = String.Format("PART {0}", Args.CParam)
+            Args.Client.SendText(command)
+            Dim mes As New IRCMessage(Args.Source, responsestring)
+            EventLogger.Log("Joined room " & Args.CParam, "IRC", Args.Realname)
+            Return mes
+        Else
+            Return Nothing
+        End If
     End Function
 
     Function Quit(ByVal Args As CommandParams) As IRCMessage
-        Dim responsestring As String = ColoredText("OK, voy saliendo...", 4)
-        Dim mes As New IRCMessage(Args.Source, responsestring)
-        Args.Client.Sendmessage(mes)
-        Dim command As String = "Solicitado por un operador."
-        Args.Client.HasExited = True
-        Args.Client.Quit(command)
-        EventLogger.Log("QUIT", "IRC", Args.Realname)
-        Return mes
+        If Args.IsOp Then
+            Dim responsestring As String = ColoredText("OK, voy saliendo...", 4)
+            Dim mes As New IRCMessage(Args.Source, responsestring)
+            Args.Client.Sendmessage(mes)
+            Dim command As String = "Solicitado por un operador."
+            Args.Client.HasExited = True
+            Args.Client.Quit(command)
+            EventLogger.Log("QUIT", "IRC", Args.Realname)
+            Return mes
+        Else
+            Return Nothing
+        End If
     End Function
 
     Function Div0(ByVal Args As CommandParams) As IRCMessage
         EventLogger.Log("Div0 requested", Args.Source, Args.Realname)
-        Dim responsetext As String = IrcStringBuilder(Args.Source, "OK, dividiendo 1 por 0...")
-        Args.Client.SendText(responsetext)
+        Dim mes1 As New IRCMessage(Args.Source, "OK, dividiendo 1 por 0...")
+        Args.Client.Sendmessage(mes1)
         Dim i As Double = (1 / 0)
         Dim res As String = "Al parecer el resultado es """ & i.ToString & """"
         Dim mes As New IRCMessage(Args.Source, res)
@@ -333,22 +280,32 @@ Public Class IRCCommands
         Return mes
     End Function
 
+    Function ArchiveAll(ByVal Args As CommandParams) As IRCMessage
+        If Args.IsOp Then
+            NewThread("Archivado a solicitud", Args.Realname, New Func(Of Boolean)(Function() ArchiveAllInclusions(True)), 1, False)
+            Return New IRCMessage(Args.Source, "Se realizarará el archivado en todas las páginas.")
+        Else
+            Return Nothing
+        End If
+    End Function
+
     Function ArchivePage(ByVal Args As CommandParams) As IRCMessage
         EventLogger.Log("ArchivePage requested", Args.Source, Args.Realname)
         Dim PageName As String = Args.Workerbot.TitleFirstGuess(Args.CParam)
         Dim responsestring As String = ColoredText("Archivando ", 4) & """" & PageName & """"
-        Task.Run(Sub()
-                     Dim p As Page = ESWikiBOT.Getpage(PageName)
-                     If ESWikiBOT.Archive(p) Then
-                         EventLogger.Log("ArchivePage completed", Args.Source, Args.Realname)
-                         Dim completedResponse As String = ColoredText("Archivado de  ", 4) & """" & PageName & """ " & ColoredText("completo", 4)
-                         Args.Client.Sendmessage(New IRCMessage(Args.Source, completedResponse))
-                     Else
-                         Dim completedResponse As String = ColoredText("No se ha archivado ", 4) & """" & PageName & """. " & ColoredText("Verifica si hay hilos que cumplan los requisitos de archivado, o contacta a un Operador.", 4)
-                         Args.Client.Sendmessage(New IRCMessage(Args.Source, completedResponse))
-                     End If
-
-                 End Sub)
+        Dim archf As New Func(Of Boolean)(Function()
+                                              Dim p As Page = ESWikiBOT.Getpage(PageName)
+                                              If ESWikiBOT.Archive(p) Then
+                                                  EventLogger.Log("ArchivePage completed", Args.Source, Args.Realname)
+                                                  Dim completedResponse As String = ColoredText("Archivado de  ", 4) & """" & PageName & """ " & ColoredText("completo", 4)
+                                                  Args.Client.Sendmessage(New IRCMessage(Args.Source, completedResponse))
+                                              Else
+                                                  Dim completedResponse As String = ColoredText("No se ha archivado ", 4) & """" & PageName & """. " & ColoredText("Verifica si hay hilos que cumplan los requisitos de archivado, o contacta a un Operador.", 4)
+                                                  Args.Client.Sendmessage(New IRCMessage(Args.Source, completedResponse))
+                                              End If
+                                              Return True
+                                          End Function)
+        NewThread("Archivado a solicitud", Args.Realname, archf, 1, False)
         Dim mes As New IRCMessage(Args.Source, responsestring)
         Return mes
     End Function
@@ -366,7 +323,6 @@ Public Class IRCCommands
     Function GetResume(ByVal Args As CommandParams) As IRCMessage
         Dim PageName As String = Args.Workerbot.TitleFirstGuess(Args.CParam)
         EventLogger.Log("IRC: GetResume of " & Args.CParam, "IRC", Args.Realname)
-
         If Not PageName = String.Empty Then
             Dim pretext As String = "Entradilla de " & ColoredText(PageName, 3) & " en Wikipedia: " & Args.Workerbot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
             Dim endtext As String = "Enlace al artículo: " & ColoredText(" " & Args.Workerbot.WikiUrl & "wiki/" & PageName.Replace(" ", "_") & " ", 10)
@@ -380,13 +336,15 @@ Public Class IRCCommands
     End Function
 
     Function LastLogComm(ByVal Args As CommandParams) As IRCMessage
-        Dim responsestring As String = String.Empty
-        If Args.Client.IsOp(Args.Imputline, Args.Source, Args.Realname) Then
+        If Args.IsOp Then
+            Dim responsestring As String = String.Empty
             Dim lastlogdata As String() = EventLogger.Lastlog("IRC", Args.Realname)
             responsestring = String.Format("Ultimo registro de: {3} via {2} a las {0}/ Tipo: {4}/ Accion: {1}", ColoredText(lastlogdata(0), 4), lastlogdata(1), lastlogdata(2), lastlogdata(3), lastlogdata(4))
+            Dim mes As New IRCMessage(Args.Realname, responsestring)
+            Return mes
+        Else
+            Return Nothing
         End If
-        Dim mes As New IRCMessage(Args.Realname, responsestring)
-        Return mes
     End Function
 
     ''' <summary>
@@ -411,23 +369,6 @@ Public Class IRCCommands
             responsestring = String.Format("{1} Versión: {0}. Ordenes: %ord", ColoredText(Version, 3), Args.Client.NickName)
             EventLogger.Log("IRC: Requested info (%??)", "IRC", Args.Realname)
         End If
-        Dim mes As New IRCMessage(Args.Source, responsestring)
-        Return mes
-    End Function
-
-    Function Commands(ByVal Args As CommandParams) As IRCMessage
-        If Args.Realname.ToLower.EndsWith("bot") Or Args.Realname.ToLower.StartsWith("bot") Then
-            Return Nothing
-        End If
-        Dim responsestring As String = String.Format("Hola {0}, Soy {1}, bot multipropósito de apoyo en IRC. Ordenes: '%Ord' | Ayuda con un comando %? <orden> | Más sobre mí: '%??'", ColoredText(Args.Realname, 4), ColoredText(Args.Client.NickName, 3))
-        EventLogger.Log(String.Format("IRC: {0} was mentioned, returning info", Args.Client.NickName), "IRC", Args.Realname)
-        Dim mes As New IRCMessage(Args.Source, responsestring)
-        Return mes
-    End Function
-
-    Function Orders(ByVal Args As CommandParams) As IRCMessage
-        Dim responsestring As String = String.Format("Ordenes: %programa, %quita, %ultima, %usuarios, %info, %resumen, %??, Detalles del comando %? <orden>.")
-        EventLogger.Log("IRC: Requested orders (%ord)", "IRC", Args.Realname)
         Dim mes As New IRCMessage(Args.Source, responsestring)
         Return mes
     End Function
@@ -467,14 +408,6 @@ Public Class IRCCommands
         Dim mes As New IRCMessage(Args.Source, responsestring)
         Return mes
 
-    End Function
-
-    Private Function IrcStringBuilder(ByVal Destiny As String, message As String) As String
-        Return String.Format("PRIVMSG {0} :{1}", Destiny, message)
-    End Function
-
-    Private Function IrcNoticeStringBuilder(ByVal Destiny As String, message As String) As String
-        Return String.Format("NOTICE {0} :{1}", Destiny, message)
     End Function
 
     Function ProgramNewUser(ByVal Args As CommandParams) As IRCMessage

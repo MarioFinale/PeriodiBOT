@@ -80,6 +80,20 @@ NotInheritable Class CommFunctions
         End If
     End Function
     ''' <summary>
+    ''' Une un array de texto usando el separador indicado
+    ''' </summary>
+    ''' <param name="arr">Array de texto a unir</param>
+    ''' <param name="separator">Separador entre cada elemento del array</param>
+    ''' <returns></returns>
+    Public Shared Function JoinTextArray(ByVal arr As String(), separator As Char) As String
+        Dim responsestring As String = String.Empty
+        For Each s As String In arr
+            responsestring = responsestring & s & separator
+        Next
+        Return responsestring.TrimEnd(separator)
+    End Function
+
+    ''' <summary>
     ''' Realiza los escapes para usar una cadena de texto dentro de una expresión regular.
     ''' </summary>
     ''' <param name="s">Texto a evaluar.</param>
@@ -650,10 +664,6 @@ NotInheritable Class CommFunctions
 
     End Function
 
-
-    Public Shared Sub RunDailyTask()
-        ArchiveAllInclusions(True)
-    End Sub
 
     Public Shared Sub WriteLine(ByVal type As String, ByVal source As String, message As String)
         Dim msgstr As String = "[" & DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & "]" & " [" & source & " " & type & "] " & message
