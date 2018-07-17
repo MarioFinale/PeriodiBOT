@@ -1,5 +1,6 @@
 ﻿Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.WikiBot
+Imports PeriodiBOT_IRC.CommFunctions
 
 Public Class IRCCommand
     Public ReadOnly Property Name As String
@@ -30,9 +31,8 @@ Public Class CommandParams
 
     Private _source As String
     Private _realname As String
-    Private _totalParam As String
+    Private _cParam As String
     Private _client As IRC_Client
-    Private _prefixes As String()
     Private _imputline As String
     Private _workerbot As Bot
 
@@ -49,9 +49,9 @@ Public Class CommandParams
         End Get
     End Property
 
-    Public ReadOnly Property TotalParam As String
+    Public ReadOnly Property CParam As String
         Get
-            Return _totalParam
+            Return _cParam
         End Get
     End Property
 
@@ -59,15 +59,6 @@ Public Class CommandParams
         Get
             Return _client
         End Get
-    End Property
-
-    Public Property Prefixes As String()
-        Get
-            Return _prefixes
-        End Get
-        Set(value As String())
-            _prefixes = value
-        End Set
     End Property
 
     Public Property Imputline As String
@@ -79,34 +70,84 @@ Public Class CommandParams
         End Set
     End Property
 
-
     Public ReadOnly Property OpRequest As Boolean
         Get
             Return _client.IsOp(_imputline, _source, _realname)
         End Get
     End Property
 
-    Public Property Workerbot As Bot
+    Public ReadOnly Property Workerbot As Bot
         Get
             Return _workerbot
         End Get
-        Set(value As Bot)
-            _workerbot = value
-        End Set
     End Property
 
 #End Region
 
-    Sub New(ByVal CommandSource As String, CommandRealName As String, CommandParams As String, CommandPrefixes As String(), line As String, CommandResolver As IRC_Client, Workerbot As Bot)
-        _source = CommandSource
-        _realname = CommandRealName
-        _totalParam = CommandParams
+    Sub New(ByVal cimputline As String, CommandResolver As IRC_Client, RWorkerbot As Bot)
+
+        _source = String.Empty
+        _realname = String.Empty
+        _cParam = String.Empty
         _client = CommandResolver
-        _prefixes = CommandPrefixes
-        _imputline = line
-        _workerbot = Workerbot
+        _imputline = cimputline
+        _workerbot = RWorkerbot
+
+        Dim sCommandParts As String() = Imputline.Split(CType(" ", Char()))
+        If sCommandParts.Length < 4 Then Exit Sub
+        Dim sPrefix As String = sCommandParts(0)
+        Dim sCommand As String = sCommandParts(1)
+        Dim sSource As String = sCommandParts(2)
+        Dim sParam As String = GetParamString(Imputline)
+
+        Dim sRealname As String = GetUserFromChatresponse(sPrefix)
+        If Source.ToLower = CommandResolver.NickName.ToLower Then
+            sSource = sRealname
+        End If
+
+        Dim sCommandText As String = String.Empty
+        For i As Integer = 3 To sCommandParts.Length - 1
+            sCommandText = sCommandText & " " & sCommandParts(i)
+        Next
+        Dim sParams As String() = GetParams(sParam)
+        Dim MainParam As String = sParams(0).ToLower
+
+        Dim commandParam As String = String.Empty
+        If Not MainParam = String.Empty Then
+            Dim usrarr As String() = sParam.Split(CType(" ", Char()))
+            For i As Integer = 0 To usrarr.Count - 1
+                If i = 0 Then
+                Else
+                    commandParam = commandParam & " " & usrarr(i)
+                End If
+            Next
+            commandParam = commandParam.Trim(CType(" ", Char()))
+        End If
+        _source = sSource
+        _realname = sRealname
+        _cParam = commandParam
     End Sub
 
 
+    Private Function GetParams(ByVal Param As String) As String()
+        Return Param.Split(CType(" ", Char()))
+    End Function
+
+    Private Function GetParamString(ByVal message As String) As String
+        If message.Contains(":") Then
+            Try
+                Dim StringToRemove As String = TextInBetweenInclusive(message, ":", " :")(0)
+                Dim Paramstring As String = message.Replace(StringToRemove, String.Empty)
+                Return Paramstring
+            Catch ex As IndexOutOfRangeException
+                Return String.Empty
+            Catch ex2 As Exception
+                EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex2.Message, "IRC", _client.NickName)
+                Return String.Empty
+            End Try
+        Else
+            Return String.Empty
+        End If
+    End Function
 
 End Class

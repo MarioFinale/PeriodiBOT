@@ -401,24 +401,6 @@ Namespace IRC
             End Try
         End Function
 
-        Private Function GetParamString(ByVal message As String) As String
-            If message.Contains(":") Then
-                Try
-                    Dim StringToRemove As String = TextInBetweenInclusive(message, ":", " :")(0)
-                    Dim Paramstring As String = message.Replace(StringToRemove, String.Empty)
-                    Return Paramstring
-                Catch ex As IndexOutOfRangeException
-                    Return String.Empty
-                Catch ex2 As Exception
-                    EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex2.Message, "IRC", _sNickName)
-                    Return String.Empty
-                End Try
-            Else
-                Return String.Empty
-            End If
-
-        End Function
-
     End Class
 
 

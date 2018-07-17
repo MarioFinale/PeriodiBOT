@@ -4,12 +4,10 @@ Imports PeriodiBOT_IRC.CommFunctions
 Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.WikiBot
 
-Public Module IRCCommands
-
-
+Public Class IRCCommands
 
     Function GetFloodDelay(ByVal Args As CommandParams) As IRCMessage
-        Dim Params As String = Args.TotalParam
+        Dim Params As String = Args.CParam
         Dim Client As IRC_Client = Args.Client
         Dim source As String = Args.Source
         If Args.OpRequest Then
@@ -22,7 +20,7 @@ Public Module IRCCommands
     End Function
 
     Function SetFloodDelay(ByVal Args As CommandParams) As IRCMessage
-        Dim value As String = Args.TotalParam
+        Dim value As String = Args.CParam
         Dim source As String = Args.Source
         Dim client As IRC_Client = Args.Client
         If Args.OpRequest Then
@@ -40,17 +38,6 @@ Public Module IRCCommands
         Else
             Return New IRCMessage(source, "No autorizado.")
         End If
-    End Function
-
-    Function GetPrefixes(ByVal Args As CommandParams) As IRCMessage
-        Dim prefixes As String() = Args.Prefixes
-        Dim source As String = Args.Source
-        Dim responsestring As String = String.Empty
-        responsestring = ColoredText("Prefijos: ", 4)
-        For Each prefix As String In prefixes
-            responsestring = responsestring & ColoredText(prefix & " ", 4)
-        Next
-        Return New IRCMessage(source, responsestring)
     End Function
 
     Function GetTasks(ByVal Args As CommandParams) As IRCMessage
@@ -71,7 +58,7 @@ Public Module IRCCommands
     End Function
 
     Function TaskInfo(ByVal Args As CommandParams) As IRCMessage
-        Dim taskindex As String = Args.TotalParam
+        Dim taskindex As String = Args.CParam
         Dim source As String = Args.Source
         Dim responsestring As New List(Of String)
         If Not IsNumeric(taskindex) Then
@@ -116,7 +103,7 @@ Public Module IRCCommands
     End Function
 
     Function PauseTask(ByVal Args As CommandParams) As IRCMessage
-        Dim taskindex As String = Args.TotalParam
+        Dim taskindex As String = Args.CParam
         Dim source As String = Args.Source
         Dim user As String = Args.Realname
 
@@ -161,7 +148,7 @@ Public Module IRCCommands
         Return New IRCMessage(source, responsestring)
     End Function
 
-    Private Function SetDebug(ByVal Args As CommandParams) As IRCMessage
+    Function SetDebug(ByVal Args As CommandParams) As IRCMessage
         Dim source As String = Args.Source
 
         Dim responsestring As String = String.Empty
@@ -306,25 +293,25 @@ Public Module IRCCommands
 
     End Function
 
-    Private Function JoinRoom(ByVal Args As CommandParams) As IRCMessage
-        Dim command As String = String.Format("JOIN {0}", Args.TotalParam)
+    Function JoinRoom(ByVal Args As CommandParams) As IRCMessage
+        Dim command As String = String.Format("JOIN {0}", Args.CParam)
         Args.Client.SendText(command)
         Dim responsestring As String = ColoredText("Entrando a sala solicitada", 4)
         Dim mes As New IRCMessage(Args.Source, responsestring)
-        EventLogger.Log("Joined room " & Args.TotalParam, "IRC", Args.Realname)
+        EventLogger.Log("Joined room " & Args.CParam, "IRC", Args.Realname)
         Return mes
     End Function
 
-    Private Function LeaveRoom(ByVal Args As CommandParams) As IRCMessage
+    Function LeaveRoom(ByVal Args As CommandParams) As IRCMessage
         Dim responsestring As String = ColoredText("Saliendo de la sala solicitada", 4)
-        Dim command As String = String.Format("PART {0}", Args.TotalParam)
+        Dim command As String = String.Format("PART {0}", Args.CParam)
         Args.Client.SendText(command)
         Dim mes As New IRCMessage(Args.Source, responsestring)
-        EventLogger.Log("Joined room " & Args.TotalParam, "IRC", Args.Realname)
+        EventLogger.Log("Joined room " & Args.CParam, "IRC", Args.Realname)
         Return mes
     End Function
 
-    Private Function Quit(ByVal Args As CommandParams) As IRCMessage
+    Function Quit(ByVal Args As CommandParams) As IRCMessage
         Dim responsestring As String = ColoredText("OK, voy saliendo...", 4)
         Dim mes As New IRCMessage(Args.Source, responsestring)
         Args.Client.Sendmessage(mes)
@@ -335,7 +322,7 @@ Public Module IRCCommands
         Return mes
     End Function
 
-    Private Function Div0(ByVal Args As CommandParams) As IRCMessage
+    Function Div0(ByVal Args As CommandParams) As IRCMessage
         EventLogger.Log("Div0 requested", Args.Source, Args.Realname)
         Dim responsetext As String = IrcStringBuilder(Args.Source, "OK, dividiendo 1 por 0...")
         Args.Client.SendText(responsetext)
@@ -346,9 +333,9 @@ Public Module IRCCommands
         Return mes
     End Function
 
-    Private Function ArchivePage(ByVal Args As CommandParams) As IRCMessage
+    Function ArchivePage(ByVal Args As CommandParams) As IRCMessage
         EventLogger.Log("ArchivePage requested", Args.Source, Args.Realname)
-        Dim PageName As String = Args.Workerbot.TitleFirstGuess(Args.TotalParam)
+        Dim PageName As String = Args.Workerbot.TitleFirstGuess(Args.CParam)
         Dim responsestring As String = ColoredText("Archivando ", 4) & """" & PageName & """"
         Task.Run(Sub()
                      Dim p As Page = ESWikiBOT.Getpage(PageName)
@@ -366,7 +353,6 @@ Public Module IRCCommands
         Return mes
     End Function
 
-
     Private Function GetUserTime(ByVal user As String) As String()
         Dim Usertime As String = String.Empty
         For Each line As String() In EventLogger.LogUserData
@@ -378,8 +364,8 @@ Public Module IRCCommands
     End Function
 
     Function GetResume(ByVal Args As CommandParams) As IRCMessage
-        Dim PageName As String = Args.Workerbot.TitleFirstGuess(Args.TotalParam)
-        EventLogger.Log("IRC: GetResume of " & Args.TotalParam, "IRC", Args.Realname)
+        Dim PageName As String = Args.Workerbot.TitleFirstGuess(Args.CParam)
+        EventLogger.Log("IRC: GetResume of " & Args.CParam, "IRC", Args.Realname)
 
         If Not PageName = String.Empty Then
             Dim pretext As String = "Entradilla de " & ColoredText(PageName, 3) & " en Wikipedia: " & Args.Workerbot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
@@ -387,13 +373,13 @@ Public Module IRCCommands
             Dim mes As New IRCMessage(Args.Source, {pretext, endtext})
             Return mes
         Else
-            Dim nopage As String = "No se ha encontrado ninguna página llamada """ & ColoredText(Page, 3) & """ o similar."
+            Dim nopage As String = "No se ha encontrado ninguna página llamada """ & ColoredText(Args.CParam, 3) & """ o similar."
             Dim mes As New IRCMessage(Args.Source, nopage)
             Return mes
         End If
     End Function
 
-    Private Function LastLogComm(ByVal Args As CommandParams) As IRCMessage
+    Function LastLogComm(ByVal Args As CommandParams) As IRCMessage
         Dim responsestring As String = String.Empty
         If Args.Client.IsOp(Args.Imputline, Args.Source, Args.Realname) Then
             Dim lastlogdata As String() = EventLogger.Lastlog("IRC", Args.Realname)
@@ -407,7 +393,7 @@ Public Module IRCCommands
     ''' Retorna informacion sobre el estado del bot dependiendo si el solicitante es OP.
     ''' </summary>
     ''' <returns></returns>
-    Private Function About(ByVal Args As CommandParams) As IRCMessage
+    Function About(ByVal Args As CommandParams) As IRCMessage
         Dim elapsedtime As TimeSpan = Uptime.Subtract(DateTime.Now)
         Dim uptimestr As String = elapsedtime.ToString("d\.hh\:mm")
         Dim responsestring As String
@@ -429,7 +415,7 @@ Public Module IRCCommands
         Return mes
     End Function
 
-    Private Function Commands(ByVal Args As CommandParams) As IRCMessage
+    Function Commands(ByVal Args As CommandParams) As IRCMessage
         If Args.Realname.ToLower.EndsWith("bot") Or Args.Realname.ToLower.StartsWith("bot") Then
             Return Nothing
         End If
@@ -439,20 +425,20 @@ Public Module IRCCommands
         Return mes
     End Function
 
-    Private Function Orders(ByVal Args As CommandParams) As IRCMessage
+    Function Orders(ByVal Args As CommandParams) As IRCMessage
         Dim responsestring As String = String.Format("Ordenes: %programa, %quita, %ultima, %usuarios, %info, %resumen, %??, Detalles del comando %? <orden>.")
         EventLogger.Log("IRC: Requested orders (%ord)", "IRC", Args.Realname)
         Dim mes As New IRCMessage(Args.Source, responsestring)
         Return mes
     End Function
 
-    Private Function RemoveUser(ByVal Args As CommandParams) As IRCMessage
+    Function RemoveUser(ByVal Args As CommandParams) As IRCMessage
         Dim responsestring As String = String.Empty
         Dim UsersOfOP As New List(Of String)
         Dim UsersOfOPIndex As New List(Of Integer)
 
         Try
-            If Args.TotalParam = String.Empty Then
+            If Args.CParam = String.Empty Then
                 responsestring = "Uso del comando: %quita <usuario>. Quita a un usuario de tu lista programada"
             Else
                 For Each Line As String() In EventLogger.LogUserData
@@ -461,21 +447,21 @@ Public Module IRCCommands
                         UsersOfOPIndex.Add(EventLogger.LogUserData.IndexOf(Line))
                     End If
                 Next
-                If UsersOfOP.Contains(Args.TotalParam) Then
-                    Dim UserIndex As Integer = UsersOfOP.IndexOf(Args.TotalParam)
+                If UsersOfOP.Contains(Args.CParam) Then
+                    Dim UserIndex As Integer = UsersOfOP.IndexOf(Args.CParam)
                     Dim UserIndexInUserdata As Integer = UsersOfOPIndex(UserIndex)
                     EventLogger.LogUserData.RemoveAt(UserIndexInUserdata)
-                    responsestring = String.Format("Se ha quitado a '{0}' de tu lista", ColoredText(Args.TotalParam, 4))
-                    EventLogger.Log(String.Format("IRC: Removed user {0} from list of {1} (%quita)", Args.TotalParam, Args.Realname), "IRC", Args.Realname)
+                    responsestring = String.Format("Se ha quitado a '{0}' de tu lista", ColoredText(Args.CParam, 4))
+                    EventLogger.Log(String.Format("IRC: Removed user {0} from list of {1} (%quita)", Args.CParam, Args.Realname), "IRC", Args.Realname)
                     EventLogger.SaveUsersToFile()
                 Else
-                    responsestring = String.Format("El usuario '{0}' no esta en tu lista", ColoredText(Args.TotalParam, 4))
+                    responsestring = String.Format("El usuario '{0}' no esta en tu lista", ColoredText(Args.CParam, 4))
                 End If
 
             End If
         Catch ex As Exception
             EventLogger.Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", Args.Client.NickName)
-            responsestring = String.Format("Se ha producido un error al quitar a '{0}' de tu lista", ColoredText(Args.TotalParam, 4))
+            responsestring = String.Format("Se ha producido un error al quitar a '{0}' de tu lista", ColoredText(Args.CParam, 4))
         End Try
 
         Dim mes As New IRCMessage(Args.Source, responsestring)
@@ -491,9 +477,9 @@ Public Module IRCCommands
         Return String.Format("NOTICE {0} :{1}", Destiny, message)
     End Function
 
-    Private Function ProgramNewUser(ByVal Args As CommandParams) As IRCMessage
+    Function ProgramNewUser(ByVal Args As CommandParams) As IRCMessage
         Dim ResponseString As String = String.Empty
-        Dim UserAndTime As String = Args.TotalParam
+        Dim UserAndTime As String = Args.CParam
         UserAndTime = UserAndTime.Trim(CType(" ", Char))
 
         Try
@@ -540,7 +526,7 @@ Public Module IRCCommands
         Return mes
     End Function
 
-    Private Function GetProgrammedUsers(ByVal Args As CommandParams) As IRCMessage
+    Function GetProgrammedUsers(ByVal Args As CommandParams) As IRCMessage
         Dim UserList As New List(Of String)
         Dim UserString As String = String.Empty
 
@@ -568,17 +554,14 @@ Public Module IRCCommands
         Return mes
     End Function
 
-    Private Function GetParams(ByVal Param As String) As String()
-        Return Param.Split(CType(" ", Char()))
-    End Function
 
-    Private Function LastEdit(ByVal Args As CommandParams) As IRCMessage
-        Dim wuser As New WikiUser(Args.Workerbot, Args.TotalParam)
+    Function LastEdit(ByVal Args As CommandParams) As IRCMessage
+        Dim wuser As New WikiUser(Args.Workerbot, Args.CParam)
         Dim responsestring As String = String.Empty
-        EventLogger.Log(String.Format("IRC: Requested lastedit of {0} to list (%ultima)", Args.TotalParam), "IRC", Args.Realname)
+        EventLogger.Log(String.Format("IRC: Requested lastedit of {0} to list (%ultima)", Args.CParam), "IRC", Args.Realname)
 
         If Not wuser.Exists Then
-            responsestring = String.Format("El usuario {0} no tiene ninguna edición en el proyecto eswiki", ColoredText(Args.TotalParam, 4))
+            responsestring = String.Format("El usuario {0} no tiene ninguna edición en el proyecto eswiki", ColoredText(Args.CParam, 4))
         Else
             Dim edittime As DateTime = wuser.LastEdit
             Dim actualtime As DateTime = DateTime.UtcNow
@@ -592,21 +575,21 @@ Public Module IRCCommands
             Dim TimediffToDays As Integer = CInt(Math.Truncate(Timediff / 86400))
 
             If TimediffToMinutes <= 1 Then
-                responsestring = String.Format("¡{0} editó recién!", Args.TotalParam)
+                responsestring = String.Format("¡{0} editó recién!", Args.CParam)
             Else
                 If TimediffToMinutes < 60 Then
-                    responsestring = String.Format("La última edición de {0} fue hace {1} minutos", ColoredText(Args.TotalParam, 4), ColoredText(TimediffToMinutes.ToString, 9))
+                    responsestring = String.Format("La última edición de {0} fue hace {1} minutos", ColoredText(Args.CParam, 4), ColoredText(TimediffToMinutes.ToString, 9))
                 Else
                     If TimediffToMinutes < 120 Then
-                        responsestring = String.Format("La última edición de {0} fue hace más de {1} hora", ColoredText(Args.TotalParam, 4), ColoredText(TimediffToHours.ToString, 9))
+                        responsestring = String.Format("La última edición de {0} fue hace más de {1} hora", ColoredText(Args.CParam, 4), ColoredText(TimediffToHours.ToString, 9))
                     Else
                         If TimediffToMinutes < 1440 Then
-                            responsestring = String.Format("La última edición de {0} fue hace más de {1} horas", ColoredText(Args.TotalParam, 4), ColoredText(TimediffToHours.ToString, 9))
+                            responsestring = String.Format("La última edición de {0} fue hace más de {1} horas", ColoredText(Args.CParam, 4), ColoredText(TimediffToHours.ToString, 9))
                         Else
                             If TimediffToMinutes < 2880 Then
-                                responsestring = String.Format("La última edición de {0} fue hace {1} día", ColoredText(Args.TotalParam, 4), ColoredText(TimediffToDays.ToString, 9))
+                                responsestring = String.Format("La última edición de {0} fue hace {1} día", ColoredText(Args.CParam, 4), ColoredText(TimediffToDays.ToString, 9))
                             Else
-                                responsestring = String.Format("La última edición de {0} fue hace más de {1} días", ColoredText(Args.TotalParam, 4), ColoredText(TimediffToDays.ToString, 9))
+                                responsestring = String.Format("La última edición de {0} fue hace más de {1} días", ColoredText(Args.CParam, 4), ColoredText(TimediffToDays.ToString, 9))
                             End If
                         End If
                     End If
@@ -618,12 +601,12 @@ Public Module IRCCommands
         Return mes
     End Function
 
-    Private Function PageInfo(ByVal Args As CommandParams) As IRCMessage
-        Dim PageName As String = _bot.TitleFirstGuess(Page)
-        EventLogger.Log("IRC: Get PageInfo of " & Page, "IRC", Username)
+    Function PageInfo(ByVal Args As CommandParams) As IRCMessage
+        Dim PageName As String = Args.Workerbot.TitleFirstGuess(Args.CParam)
+        EventLogger.Log("IRC: Get PageInfo of " & Args.CParam, "IRC", Args.Realname)
 
         If Not PageName = String.Empty Then
-            Dim pag As Page = _bot.Getpage(PageName)
+            Dim pag As Page = Args.Workerbot.Getpage(PageName)
             Dim CatString As String = String.Empty
             If pag.Categories.Count = 10 Then
                 CatString = "10+"
@@ -634,13 +617,13 @@ Public Module IRCCommands
                                        ColoredText(PageName, 3), ColoredText(pag.Lastuser, 3), ColoredText(CatString, 6), ColoredText(pag.PageViews.ToString, 13),
                                        "Dañina: " & ColoredText(pag.ORESScores(0).ToString, 4) & " Buena fé: " & ColoredText(pag.ORESScores(1).ToString, 3), ColoredText(pag.Size.ToString, 3))
 
-            Dim endmessage As String = "Enlace al artículo: " & ColoredText(" " & _bot.WikiUrl & "wiki/" & PageName.Replace(" ", "_") & " ", 10)
+            Dim endmessage As String = "Enlace al artículo: " & ColoredText(" " & Args.Workerbot.WikiUrl & "wiki/" & PageName.Replace(" ", "_") & " ", 10)
 
-            Dim mes As New IRCMessage(source, {beginmessage, endmessage})
+            Dim mes As New IRCMessage(Args.Source, {beginmessage, endmessage})
             Return mes
         Else
-            Dim notfound As String = "No se ha encontrado ninguna página llamada """ & ColoredText(Page, 3) & """ o similar."
-            Dim mes As New IRCMessage(source, notfound)
+            Dim notfound As String = "No se ha encontrado ninguna página llamada """ & ColoredText(Args.CParam, 3) & """ o similar."
+            Dim mes As New IRCMessage(Args.Source, notfound)
             Return mes
         End If
 
@@ -648,4 +631,4 @@ Public Module IRCCommands
 
 
 
-End Module
+End Class

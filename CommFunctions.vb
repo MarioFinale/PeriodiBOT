@@ -270,6 +270,7 @@ NotInheritable Class CommFunctions
     Public Shared Function GetUserFromChatresponse(ByVal response As String) As String
         Return response.Split("!"c)(0).Replace(":", "")
     End Function
+
     ''' <summary>
     ''' Elimina todas las letras dejando únicamente números
     ''' </summary>
