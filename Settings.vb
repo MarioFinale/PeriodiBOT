@@ -9,17 +9,15 @@ Public Class Settings
     Private IntSettings As New Dictionary(Of String, Integer)
     Private SettingsIndex As New HashSet(Of String)
     Private _filePath As String
-    Private Init As Boolean = False
 
-    Public Sub New(ByVal Filepath As String)
-        Init = True
-        _filePath = Filepath
+    Public Sub New(ByVal filepath As String)
+        _filePath = filepath
 
-        If Not File.Exists(Filepath) Then
-            File.Create(Filepath).Close()
+        If Not File.Exists(filepath) Then
+            File.Create(filepath).Close()
         End If
 
-        For Each l As String In File.ReadLines(Filepath)
+        For Each l As String In File.ReadLines(filepath)
             Dim vars As String() = l.Split("|"c)
             If vars.Count = 2 Then
                 If Not SettingsIndex.Contains(vars(0)) Then

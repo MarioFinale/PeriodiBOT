@@ -5,8 +5,6 @@ Imports PeriodiBOT_IRC.CommFunctions
 
 Namespace IRC
     Class IRCCommandResolver
-        Private LastMessage As IRCMessage
-        Private _IrcNickName As String
         Private Client As IRC_Client
         Private _bot As Bot
         Private Clist As List(Of IRCCommand)
@@ -16,11 +14,11 @@ Namespace IRC
             Clist = CommandList()
         End Sub
 
-        Function ResolveCommand(ByVal imputline As String, ByRef HasExited As Boolean, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client, WorkerBot As Bot) As IRCMessage
+        Function ResolveCommand(ByVal imputline As String, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client, WorkerBot As Bot) As IRCMessage
             Client = IRCCLient
             _bot = WorkerBot
-            _IrcNickName = BOTIRCNickName
             Dim arg As New CommandParams(imputline, Client, _bot)
+            If Not BeginsWithPrefix(CommandPrefixes, arg.MessageLine) Then Return Nothing
             Dim requestedCommand As String = RemovePrefix(arg.CommandName)
             For Each Command As IRCCommand In Clist
                 If Command.Aliases.Contains(requestedCommand) Then
@@ -32,17 +30,6 @@ Namespace IRC
                 Return Greetings(arg)
             End If
             Return Nothing
-        End Function
-
-        Private Function RemovePrefix(ByVal command As String) As String
-            Dim requestedCommand As String = command
-            For Each prfx As String In CommandPrefixes
-                If requestedCommand.StartsWith(prfx) Then
-                    requestedCommand = ReplaceFirst(requestedCommand, prfx, "")
-                    Exit For
-                End If
-            Next
-            Return requestedCommand
         End Function
 
         Private Function CommandList() As List(Of IRCCommand)
@@ -67,7 +54,6 @@ Namespace IRC
             Dim Archivar As String() = {"archive", "arch"}
             Dim Divide0 As String() = {"div0"}
             Dim Debug As String() = {"debug", "dbg"}
-            Dim CMPrefixess As String() = {"prefix", "prefixes"}
             Dim Tasks As String() = {"taskl", "tasks"}
             Dim TaskInf As String() = {"taskinf", "task", "taskinfo"}
             Dim GetLocalTime As String() = {"time", "localtime", "hora", "horalocal"}
@@ -179,20 +165,16 @@ Namespace IRC
             Return False
         End Function
 
-        Private Function RemovePrefixes(ByVal Prefixes As String(), ByVal Commandline As String) As String
-            Dim line As String = Commandline
-            For Each prefix As String In Prefixes
-                If line.StartsWith(prefix) Then
-                    line = ReplaceFirst(Commandline, prefix, "")
-                    If Not line = Commandline Then
-                        Exit For
-                    End If
+        Private Function RemovePrefix(ByVal command As String) As String
+            Dim requestedCommand As String = command
+            For Each prfx As String In CommandPrefixes
+                If requestedCommand.StartsWith(prfx) Then
+                    requestedCommand = ReplaceFirst(requestedCommand, prfx, "")
+                    Exit For
                 End If
             Next
-            Return line
+            Return requestedCommand
         End Function
-
-
     End Class
 
 End Namespace

@@ -82,7 +82,7 @@
     <Compile Include="Initializer.vb" />
     <Compile Include="IRCCommand.vb" />
     <Compile Include="IRCCommands.vb" />
-    <Compile Include="PeriodiBOT_Tasks.vb" />
+    <Compile Include="BOT_Tasks.vb" />
     <Compile Include="CommFunctions.vb" />
     <Compile Include="GlobalVars.vb" />
     <Compile Include="GrillitusArchive.vb" />
@@ -109,7 +109,6 @@
     <Compile Include="Page.vb" />
     <Compile Include="Settings.vb" />
     <Compile Include="Template.vb" />
-    <Compile Include="ThreadInfo.vb" />
     <Compile Include="ThreadPoolAdmin.vb" />
     <Compile Include="WikiUser.vb" />
   </ItemGroup>

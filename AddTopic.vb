@@ -83,7 +83,8 @@ Namespace WikiBot
 
         Function GetTopicGroups() As SortedDictionary(Of String, List(Of String))
             Dim GroupsPage As Page = _bot.Getpage(TopicGroupsPage) 'Inicializar página de grupos
-            Dim Threads As String() = _bot.GetPageThreads(GroupsPage.Text) 'Obtener hilos de la página
+            Dim Threads As String() = GetPageThreads(GroupsPage.Text) 'Obtener hilos de la página
+
             Dim Groups As New SortedDictionary(Of String, List(Of String))
             For Each t As String In Threads 'Por cada hilo...
                 Dim threadTitle As String = Regex.Match(t, "(\n|^)(==.+==)").Value.Trim.Trim("="c).Trim 'Obtiene el título del hilo 
@@ -101,9 +102,12 @@ Namespace WikiBot
             Return Groups
         End Function
 
+        Function GetTopicsText() As SortedDictionary(Of String, List(Of String))
+            Return GetTopicsText(0)
+        End Function
 
-        Function GetTopicsText(Optional ByRef Inclusions As Integer = 0) As SortedDictionary(Of String, List(Of String))
-            Dim TopicThreads As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) = GetAllTopicThreads(Inclusions) 'Obtener los temas y la información
+        Function GetTopicsText(ByRef inclusions As Integer) As SortedDictionary(Of String, List(Of String))
+            Dim TopicThreads As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) = GetAllTopicThreads(inclusions) 'Obtener los temas y la información
             Dim TopicList As New SortedDictionary(Of String, List(Of String)) 'Inicializar la lista con el texto
 
             For Each topic As String In TopicThreads.Keys 'Por cada tema...
@@ -130,26 +134,29 @@ Namespace WikiBot
             Return TopicList
         End Function
 
+        Function GetAllTopicThreads() As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))
+            Return GetAllTopicThreads(0)
+        End Function
 
-        Function GetAllTopicThreads(Optional ByRef Inclusions As Integer = 0) As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))
+        Function GetAllTopicThreads(ByRef inclusions As Integer) As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))
             Dim TopicAndTitleList As New SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) 'Inicializar diccionario que contiene temas e hilos
             Dim pages As String() = _bot.GetallInclusions(TopicTemplate) 'Paginas que incluyen la plantilla de tema.
             For Each p As String In pages 'Por cada página que incluya la plantilla tema, no se llama a GetallInclusionsPages por temas de memoria.
                 TopicAndTitleList = GetTopicsOfpage(_bot.Getpage(p), TopicAndTitleList) 'Añadir nuevos hilos al diccionario
             Next
-            Inclusions = pages.Length 'Cuantas páginas se revisaron
+            inclusions = pages.Length 'Cuantas páginas se revisaron
             Return TopicAndTitleList 'Retorna el diccionario
         End Function
 
-        Function GetTopicsOfpage(ByVal SourcePage As Page, ByVal TopicAndTitleList As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))) As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))
-            Dim Text As String = SourcePage.Text 'Texto de la página
-            Dim PageTitle As String = SourcePage.Title 'Título de la página (con el espacio de nombres).
+        Function GetTopicsOfpage(ByVal sourcePage As Page, ByVal topicAndTitleList As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))) As SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer)))
+            Dim Text As String = sourcePage.Text 'Texto de la página
+            Dim PageTitle As String = sourcePage.Title 'Título de la página (con el espacio de nombres).
 
-            If TopicAndTitleList Is Nothing Then 'Si no está inicializado correctamente...
-                TopicAndTitleList = New SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) 'Diccionario: Tema,(titulo, resumen, enlace, ubicación, fecha, bytes)
+            If topicAndTitleList Is Nothing Then 'Si no está inicializado correctamente...
+                topicAndTitleList = New SortedDictionary(Of String, List(Of Tuple(Of String, String, String, String, Date, Integer))) 'Diccionario: Tema,(titulo, resumen, enlace, ubicación, fecha, bytes)
             End If
 
-            For Each t As String In _bot.GetPageThreads(Text) 'Por cada hilo en el texto....
+            For Each t As String In GetPageThreads(Text) 'Por cada hilo en el texto....
 
                 Dim TopicMatch As Match = Regex.Match(t, "({{ *[Tt]ema *\|.+?}})") 'Regex para plantilla de tema
                 'Si la plantilla de tema se encuentra en el hilo:
@@ -176,7 +183,7 @@ Namespace WikiBot
                     threadTitle = Regex.Replace(threadTitle, "\{{1,2}|\}{1,2}", "") 'Quitar plantillas
                     Dim threadResume As String = String.Empty 'Inicializa el resumen del hilo
                     Dim threadBytes As Integer = Encoding.Unicode.GetByteCount(t) 'Bytes del hilo 
-                    Dim lastsignature As Date = _bot.FirstDate(t) 'Firma más antigua del hilo
+                    Dim lastsignature As Date = FirstDate(t) 'Firma más antigua del hilo
                     If lastsignature.Year = 9999 Then 'Hilo con plantilla pero sin firma
                         Continue For 'No añadir hilo
                     End If
@@ -196,21 +203,21 @@ Namespace WikiBot
                     Next
                     'Añadir temas a diccionario
                     For Each topic As String In Topics
-                        If Not TopicAndTitleList.Keys.Contains(topic) Then
+                        If Not topicAndTitleList.Keys.Contains(topic) Then
                             'si no existe el tema en el diccionario, lo inicializa y añade el hilo
-                            TopicAndTitleList.Add(topic, New List(Of Tuple(Of String, String, String, String, Date, Integer)))
-                            TopicAndTitleList.Item(topic).Add(New Tuple(Of String, String, String, String, Date, Integer)(threadTitle, threadResume, ThreadLink, Subsection, lastsignature, threadBytes))
-                            TopicAndTitleList.Item(topic) = TopicAndTitleList.Item(topic).OrderBy(Function(x) x.Item5).ToList
+                            topicAndTitleList.Add(topic, New List(Of Tuple(Of String, String, String, String, Date, Integer)))
+                            topicAndTitleList.Item(topic).Add(New Tuple(Of String, String, String, String, Date, Integer)(threadTitle, threadResume, threadLink, Subsection, lastsignature, threadBytes))
+                            topicAndTitleList.Item(topic) = topicAndTitleList.Item(topic).OrderBy(Function(x) x.Item5).ToList
                         Else
                             'si existe solo añade el hilo
-                            TopicAndTitleList.Item(topic).Add(New Tuple(Of String, String, String, String, Date, Integer)(threadTitle, threadResume, ThreadLink, Subsection, lastsignature, threadBytes))
-                            TopicAndTitleList.Item(topic) = TopicAndTitleList.Item(topic).OrderBy(Function(x) x.Item5).ToList
+                            topicAndTitleList.Item(topic).Add(New Tuple(Of String, String, String, String, Date, Integer)(threadTitle, threadResume, threadLink, Subsection, lastsignature, threadBytes))
+                            topicAndTitleList.Item(topic) = topicAndTitleList.Item(topic).OrderBy(Function(x) x.Item5).ToList
                         End If
                     Next
 
                 End If
             Next
-            Return TopicAndTitleList 'Retorna el diccionario
+            Return topicAndTitleList 'Retorna el diccionario
         End Function
 
     End Class

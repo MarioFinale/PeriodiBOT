@@ -8,13 +8,11 @@ Imports PeriodiBOT_IRC.CommFunctions
 Namespace WikiBot
     Public Class Bot
         Private _botPassword As String
-        Private _botCookies As CookieContainer
         Private _botUserName As String
         Private _apiUrl As String
         Private _wikiUrl As String
 
         Private Api As APIHandler
-        Private signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4}( \([A-z]{3,4}\))*"
         Private _localName As String
         Private _userName As String
 
@@ -80,8 +78,8 @@ Namespace WikiBot
 
 #End Region
 
-        Sub New(ByVal ConfigPath As ConfigFile)
-            LoadConfig(ConfigPath)
+        Sub New(ByVal configPath As ConfigFile)
+            LoadConfig(configPath)
             Api = New APIHandler(_botUserName, _botPassword, _apiUrl)
             _userName = Api.UserName
         End Sub
@@ -123,6 +121,7 @@ Namespace WikiBot
         End Function
 
         Function GetSpamListregexes(ByVal spamlistPage As Page) As String()
+            If spamlistPage Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             Dim Lines As String() = GetLines(spamlistPage.Text, True) 'Extraer las líneas del texto de la página
             Dim Regexes As New List(Of String) 'Declarar lista con líneas con expresiones regulares
 
@@ -587,55 +586,11 @@ Namespace WikiBot
         End Function
 
         ''' <summary>
-        ''' Elimina una referencia que contenga una cadena exacta.
-        ''' (No usar a menos de que se esté absolutamente seguro de lo que se hace).
-        ''' </summary>
-        ''' <param name="RequestedPage">Página a revisar</param>
-        ''' <param name="RequestedRef">Texto que determina que referencia se elimina</param>
-        ''' <returns></returns>
-        Function RemoveRef(ByVal requestedPage As Page, requestedRef As String) As Boolean
-            If String.IsNullOrWhiteSpace(requestedRef) Then
-                Return False
-            End If
-            If requestedPage Is Nothing Then
-                Return False
-            End If
-            Dim pageregex As String = String.Empty
-            Dim PageText As String = requestedPage.Text
-            For Each c As Char In requestedRef
-                pageregex = pageregex & "[" & c.ToString.ToUpper & c.ToString.ToLower & "]"
-            Next
-
-            If Not (requestedPage.Title.ToLower.Contains("usuario:") Or requestedPage.Title.ToLower.Contains("wikipedia:") Or
-            requestedPage.Title.ToLower.Contains("usuaria:") Or requestedPage.Title.ToLower.Contains("especial:") Or
-             requestedPage.Title.ToLower.Contains("wikiproyecto:") Or requestedPage.Title.ToLower.Contains("discusión:") Or
-              requestedPage.Title.ToLower.Contains("discusion:")) Then
-
-
-                For Each m As Match In Regex.Matches(PageText, "(<[REFref]+>)([^<]+?)" & pageregex & ".+?(<[/REFref]+>)")
-                    PageText = PageText.Replace(m.Value, "")
-                Next
-
-                Try
-                    requestedPage.CheckAndSave(PageText, "(Bot): Removiendo referencias que contengan '" & requestedRef & "' según solicitud", False, True)
-                    Return True
-                Catch ex As Exception
-                    Return False
-                End Try
-
-            Else
-                Return False
-            End If
-
-        End Function
-
-        ''' <summary>
         ''' Evalua texto (wikicódigo) y regresa un array de string con cada uno de los hilos del mismo (los que comienzan con == ejemplo == y terminan en otro comienzo o el final de la página).
         ''' </summary>
         ''' <param name="pagetext">Texto a evaluar</param>
         ''' <returns></returns>
         Function GetSubThreads(ByVal pagetext As String) As String()
-            Dim newline As String = Environment.NewLine
             Dim temptext As String = pagetext
 
             Dim commentMatch As MatchCollection = Regex.Matches(temptext, "(<!--)[\s\S]*?(-->)")
@@ -689,268 +644,6 @@ Namespace WikiBot
             Return EndThreadList.ToArray
         End Function
 
-
-        ''' <summary>
-        ''' Evalua una wikipágina y regresa un array de string con cada uno de los hilos del esta (los que comienzan con == ejemplo == y terminan en otro comienzo o el final de la página).
-        ''' </summary>
-        ''' <param name="ThreadsPage">Página a evaluar</param>
-        ''' <returns></returns>
-        Function GetPageThreads(ByVal ThreadsPage As Page) As String()
-            Return GetPageThreads(ThreadsPage.Text)
-        End Function
-
-        ''' <summary>
-        ''' Evalua texto (wikicódigo) y regresa un array de string con cada uno de los hilos del mismo (los que comienzan con == ejemplo == y terminan en otro comienzo o el final de la página).
-        ''' </summary>
-        ''' <param name="pagetext">Texto a evaluar</param>
-        ''' <returns></returns>
-        Function GetPageThreads(ByVal pagetext As String) As String()
-            Dim newline As String = Environment.NewLine
-            Dim temptext As String = pagetext
-
-            Dim commentMatch As MatchCollection = Regex.Matches(temptext, "(<!--)[\s\S]*?(-->)")
-
-            Dim CommentsList As New List(Of String)
-            For i As Integer = 0 To commentMatch.Count - 1
-                CommentsList.Add(commentMatch(i).Value)
-                temptext = temptext.Replace(commentMatch(i).Value, ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4))
-            Next
-
-            Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((==(?!=)).+?(==(?!=)))")
-
-            Dim threadlist As New List(Of String)
-
-
-            For i As Integer = 0 To mc.Count - 1
-
-                Dim nextmatch As Integer = (i + 1)
-
-                If Not nextmatch = mc.Count Then
-
-                    Dim threadtitle As String = mc(i).Value
-                    Dim nextthreadtitle As String = mc(nextmatch).Value
-                    Dim threadtext As String = String.Empty
-
-                    threadtext = TextInBetween(temptext, threadtitle, nextthreadtitle)(0)
-                    Dim Completethread As String = threadtitle & threadtext
-                    threadlist.Add(Completethread)
-                    temptext = ReplaceFirst(temptext, Completethread, "")
-
-                Else
-                    Dim threadtitle As String = mc(i).Value
-
-                    Dim ThreadPos As Integer = temptext.IndexOf(threadtitle)
-                    Dim threadlenght As Integer = temptext.Length - temptext.Substring(0, ThreadPos).Length
-                    Dim threadtext As String = temptext.Substring(ThreadPos, threadlenght)
-                    threadlist.Add(threadtext)
-
-                End If
-            Next
-            Dim EndThreadList As New List(Of String)
-            For Each t As String In threadlist
-                Dim nthreadtext As String = t
-                For i As Integer = 0 To commentMatch.Count - 1
-                    Dim commenttext As String = ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4)
-                    nthreadtext = nthreadtext.Replace(commenttext, CommentsList(i))
-                Next
-                EndThreadList.Add(nthreadtext)
-            Next
-
-            Return EndThreadList.ToArray
-        End Function
-        ''' <summary>
-        ''' Entrega como DateTime la última fecha (formato firma Wikipedia) en el último parrafo. Si no encuentra firma retorna 31/12/9999.
-        ''' </summary>
-        ''' <param name="text">Texto a evaluar</param>
-        ''' <returns></returns>
-        Function LastParagraphDateTime(ByVal text As String) As DateTime
-            If String.IsNullOrEmpty(text) Then
-                Throw New ArgumentException("Empty var", "text")
-            End If
-            text = text.Trim(CType(vbCrLf, Char())) & " "
-            Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
-            Dim matchc As MatchCollection = Regex.Matches(lastparagraph, signpattern)
-
-            If matchc.Count = 0 And Not (((lastparagraph(0) = ";"c) Or (lastparagraph(0) = ":"c) Or (lastparagraph(0) = "*"c) Or (lastparagraph(0) = "#"c))) Then
-                Dim mlines As MatchCollection = Regex.Matches(text, ".+\n")
-                For i As Integer = mlines.Count - 1 To 0 Step -1
-
-                    If i = (mlines.Count - 1) Then
-                        If Not ((mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c)) Then
-                            If Regex.Match(mlines(i).Value, signpattern).Success Then
-                                lastparagraph = mlines(i).Value
-                                Exit For
-                            End If
-                        Else
-                            Exit For
-                        End If
-                    Else
-                        If Not ((mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c)) Then
-                            If Regex.Match(mlines(i).Value, signpattern).Success Then
-                                lastparagraph = mlines(i).Value
-                                Exit For
-                            End If
-                        Else
-                            Exit For
-                        End If
-                    End If
-                Next
-
-            End If
-
-            Dim TheDate As DateTime = ESWikiDatetime(lastparagraph)
-            EventLogger.Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL")
-            Return TheDate
-        End Function
-
-        ''' <summary>
-        ''' Entrega 
-        ''' </summary>
-        ''' <param name="text">Entrega la ultima fecha, que aparezca en un texto dado (si la fecha tiene formato de firma wikipedia).</param>
-        ''' <returns></returns>
-        Function ESWikiDatetime(ByVal text As String) As DateTime
-            Dim TheDate As DateTime = Nothing
-            Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
-
-            If matchc.Count = 0 Then
-                EventLogger.Debug_Log("No date match", "ESWikiDateTime")
-                Return DateTime.Parse("23:59 31/12/9999")
-            End If
-
-            For Each m As Match In matchc
-                Try
-                    Dim parsedtxt As String = m.Value.Replace(" "c, "/"c)
-                    parsedtxt = parsedtxt.Replace(":"c, "/"c)
-                    parsedtxt = parsedtxt.ToLower.Replace("ene", "01").Replace("feb", "02") _
-                .Replace("mar", "03").Replace("abr", "04").Replace("may", "05") _
-                .Replace("jun", "06").Replace("jul", "07").Replace("ago", "08") _
-                .Replace("sep", "09").Replace("oct", "10").Replace("nov", "11") _
-                .Replace("dic", "12")
-
-                    parsedtxt = Regex.Replace(parsedtxt, "([^0-9/])", "")
-                    Dim dates As New List(Of Integer)
-                    For Each s As String In parsedtxt.Split("/"c)
-                        If Not String.IsNullOrWhiteSpace(s) Then
-                            dates.Add(Integer.Parse(s))
-                        End If
-                    Next
-
-                    Dim dat As New DateTime(dates(4), dates(3), dates(2), dates(0), dates(1), 0)
-                    TheDate = dat
-                    EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
-                Catch ex As System.FormatException
-                    EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
-                End Try
-
-            Next
-            Return TheDate
-
-        End Function
-
-
-        ''' <summary>
-        ''' Entrega como array de DateTime todas las fechas (Formato de firma Wikipedia) en el texto dado.
-        ''' </summary>
-        ''' <param name="text">Texto a evaluar</param>
-        ''' <returns></returns>
-        Function AllDateTimes(ByVal text As String) As DateTime()
-            Dim Datelist As New List(Of DateTime)
-            For Each m As Match In Regex.Matches(text, signpattern)
-                Dim TheDate As DateTime = ESWikiDatetime(m.Value)
-                Datelist.Add(TheDate)
-                EventLogger.Log("AllDateTimes: Adding " & TheDate.ToString, "LOCAL")
-            Next
-            Return Datelist.ToArray
-        End Function
-
-        ''' <summary>
-        ''' Entrega como DateTime la fecha más reciente en el texto dado (en formato de firma wikipedia).
-        ''' </summary>
-        ''' <param name="text"></param>
-        ''' <returns></returns>
-        Function MostRecentDate(ByVal text As String) As DateTime
-            Dim dates As New List(Of DateTime)
-            Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
-
-            If matchc.Count = 0 Then
-                EventLogger.Debug_Log("No date match", "ESWikiDateTime")
-                Return DateTime.Parse("23:59 31/12/9999")
-            End If
-
-            For Each m As Match In matchc
-                Try
-                    Dim parsedtxt As String = m.Value.Replace(" "c, "/"c)
-                    parsedtxt = parsedtxt.Replace(":"c, "/"c)
-                    parsedtxt = parsedtxt.ToLower.Replace("ene", "01").Replace("feb", "02") _
-                .Replace("mar", "03").Replace("abr", "04").Replace("may", "05") _
-                .Replace("jun", "06").Replace("jul", "07").Replace("ago", "08") _
-                .Replace("sep", "09").Replace("oct", "10").Replace("nov", "11") _
-                .Replace("dic", "12")
-
-                    parsedtxt = Regex.Replace(parsedtxt, "([^0-9/])", "")
-                    Dim datesInt As New List(Of Integer)
-                    For Each s As String In parsedtxt.Split("/"c)
-                        If Not String.IsNullOrWhiteSpace(s) Then
-                            datesInt.Add(Integer.Parse(s))
-                        End If
-                    Next
-                    Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
-                    dates.Add(dat)
-                    EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
-                Catch ex As System.FormatException
-                    EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
-                End Try
-
-            Next
-            dates.Sort()
-            Return dates.Last
-
-        End Function
-
-        ''' <summary>
-        ''' Entrega como DateTime la fecha más reciente en el texto dado (en formato de firma wikipedia).
-        ''' </summary>
-        ''' <param name="text"></param>
-        ''' <returns></returns>
-        Function FirstDate(ByVal text As String) As DateTime
-            Dim dates As New List(Of DateTime)
-            Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
-
-            If matchc.Count = 0 Then
-                EventLogger.EX_Log("No date match", "ESWikiDateTime")
-                Return New DateTime(9999, 12, 31, 23, 59, 59)
-            End If
-
-            For Each m As Match In matchc
-                Try
-                    Dim parsedtxt As String = m.Value.Replace(" "c, "/"c)
-                    parsedtxt = parsedtxt.Replace(":"c, "/"c)
-                    parsedtxt = parsedtxt.ToLower.Replace("ene", "01").Replace("feb", "02") _
-                .Replace("mar", "03").Replace("abr", "04").Replace("may", "05") _
-                .Replace("jun", "06").Replace("jul", "07").Replace("ago", "08") _
-                .Replace("sep", "09").Replace("oct", "10").Replace("nov", "11") _
-                .Replace("dic", "12")
-
-                    parsedtxt = Regex.Replace(parsedtxt, "([^0-9/])", "")
-                    Dim datesInt As New List(Of Integer)
-                    For Each s As String In parsedtxt.Split("/"c)
-                        If Not String.IsNullOrWhiteSpace(s) Then
-                            datesInt.Add(Integer.Parse(s))
-                        End If
-                    Next
-                    Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
-                    dates.Add(dat)
-                    EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
-                Catch ex As System.FormatException
-                    EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
-                End Try
-
-            Next
-            dates.Sort()
-            Return dates.First
-
-        End Function
-
         ''' <summary>
         ''' Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo una lógica similar a la de Grillitus.
         ''' </summary>
@@ -982,6 +675,7 @@ Namespace WikiBot
         ''' <param name="thepage">Página a revisar.</param>
         ''' <returns></returns>
         Function GetLastDiff(ByVal thepage As Page) As List(Of Tuple(Of String, String))
+            If thepage Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             If Not thepage.Exists Then
                 Return Nothing
             End If
@@ -1041,9 +735,10 @@ Namespace WikiBot
         ''' <summary>
         ''' Retorna un array de tipo string con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
         ''' </summary>
-        ''' <param name="ThePage">Página que se llama.</param>
-        Function GetallInclusions(ByVal ThePage As Page) As String()
-            Return GetallInclusions(ThePage.Title)
+        ''' <param name="tpage">Página que se llama.</param>
+        Function GetallInclusions(ByVal tpage As Page) As String()
+            If tpage Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
+            Return GetallInclusions(tpage.Title)
         End Function
 
         ''' <summary>
@@ -1062,9 +757,10 @@ Namespace WikiBot
         ''' <summary>
         ''' Retorna un array con todas las páginas donde la página indicada es llamada (no confundir con "lo que enlaza aquí").
         ''' </summary>
-        ''' <param name="ThePage">Página que se llama.</param>
-        Function GetallInclusionsPages(ByVal ThePage As Page) As Page()
-            Return GetallInclusionsPages(ThePage.Title)
+        ''' <param name="tpage">Página que se llama.</param>
+        Function GetallInclusionsPages(ByVal tpage As Page) As Page()
+            If tpage Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
+            Return GetallInclusionsPages(tpage.Title)
         End Function
 
         ''' <summary>
@@ -1078,9 +774,9 @@ Namespace WikiBot
         ''' <summary>
         ''' Retorna un elemento Page coincidente al nombre entregado como parámetro.
         ''' </summary>
-        ''' <param name="revID">ID de la revisión.</param>
-        Function Getpage(ByVal revID As Integer) As Page
-            Return New Page(revID, Me)
+        ''' <param name="revId">ID de la revisión.</param>
+        Function Getpage(ByVal revId As Integer) As Page
+            Return New Page(revId, Me)
         End Function
 
 
@@ -1091,7 +787,8 @@ Namespace WikiBot
         ''' Si no existe el archivo, solicita datos al usuario y lo genera.
         ''' </summary>
         ''' <returns></returns>
-        Function LoadConfig(ByVal Config_path As ConfigFile) As Boolean
+        Function LoadConfig(ByVal path As ConfigFile) As Boolean
+            If path Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             Dim MainBotName As String = String.Empty
             Dim WPSite As String = String.Empty
             Dim WPAPI As String = String.Empty
@@ -1105,9 +802,9 @@ Namespace WikiBot
             Console.WriteLine("==================== PeriodiBOT " & Version & " ====================")
             EventLogger.Debug_Log("PeriodiBOT " & Version, "LOCAL", "Undefined")
 
-            If System.IO.File.Exists(Config_path.GetPath) Then
+            If System.IO.File.Exists(path.GetPath) Then
                 EventLogger.Log("Loading config", "LOCAL", "Undefined")
-                Dim Configstr As String = System.IO.File.ReadAllText(Config_path.GetPath)
+                Dim Configstr As String = System.IO.File.ReadAllText(path.GetPath)
                 Try
                     MainBotName = TextInBetween(Configstr, "BOTName=""", """")(0)
                     WPBotUserName = TextInBetween(Configstr, "WPUserName=""", """")(0)
@@ -1125,7 +822,7 @@ Namespace WikiBot
             Else
                 EventLogger.Log("No config file", "LOCAL", "Undefined")
                 Try
-                    System.IO.File.Create(Config_path.ToString).Close()
+                    System.IO.File.Create(path.ToString).Close()
                 Catch ex As System.IO.IOException
                     EventLogger.Log("Error creating new config file", "LOCAL", "Undefined")
                 End Try
@@ -1166,7 +863,7 @@ IRCBotPassword=""{7}""
 IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, MainIRCChannel)
 
                 Try
-                    System.IO.File.WriteAllText(Config_path.GetPath, configstr)
+                    System.IO.File.WriteAllText(path.GetPath, configstr)
                 Catch ex As System.IO.IOException
                     EventLogger.Log("Error saving config file", "LOCAL", "Undefined")
                 End Try

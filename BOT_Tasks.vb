@@ -4,7 +4,7 @@ Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.CommFunctions
 
-Public Module PeriodiBOT_Tasks
+Public Module BOT_Tasks
     ''' <summary>
     ''' Verifica si un usuario programado no ha editado en el tiempo especificado.
     ''' </summary>
@@ -77,11 +77,12 @@ Public Module PeriodiBOT_Tasks
     End Function
 
 
-    Sub CheckUsersActivity(ByVal TemplatePage As Page, ByVal PageToSave As Page)
+    Sub CheckUsersActivity(ByVal templatePage As Page, ByVal pageToSave As Page)
+        If pageToSave Is Nothing Then Exit Sub
 
         Dim ActiveUsers As New Dictionary(Of String, WikiUser)
         Dim InactiveUsers As New Dictionary(Of String, WikiUser)
-        For Each p As Page In ESWikiBOT.GetallInclusionsPages(TemplatePage)
+        For Each p As Page In ESWikiBOT.GetallInclusionsPages(templatePage)
 
             If (p.PageNamespace = 3) Or (p.PageNamespace = 2) Then
                 Dim Username As String = p.Title.Split(":"c)(1)
@@ -134,7 +135,7 @@ Public Module PeriodiBOT_Tasks
 
         Dim templatetext As String = "{{Noart|1=<div style=""position:absolute; z-index:100; right:10px; top:5px;"" class=""metadata"">" & Environment.NewLine & t.Text
         templatetext = templatetext & Environment.NewLine & "</div>}}" & Environment.NewLine & "<noinclude>" & "{{documentación}}" & "</noinclude>"
-        PageToSave.Save(templatetext, "Bot: Actualizando lista.")
+        pageToSave.Save(templatetext, "Bot: Actualizando lista.")
 
     End Sub
 
@@ -269,8 +270,6 @@ Public Module PeriodiBOT_Tasks
         Dim NewResumePageText As String = "{{#switch:{{{1}}}" & Environment.NewLine
         EventLogger.Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL")
 
-        Dim Extracttext As String = String.Empty
-        Dim ExtractImage As String = String.Empty
         Dim Safepages As Integer = 0
         Dim NotSafepages As Integer = 0
         Dim NewPages As Integer = 0
@@ -398,11 +397,12 @@ Public Module PeriodiBOT_Tasks
     End Function
 
 
-    Function CheckInformalMediation(ByVal Workerbot As Bot) As Boolean
+    Function CheckInformalMediation(ByVal workerbot As Bot) As Boolean
+        If workerbot Is Nothing Then Return False
         Dim newThreads As Boolean = False
-        Dim membPage As Page = Workerbot.Getpage(InformalMediationMembers)
-        Dim MedPage As Page = Workerbot.Getpage(InfMedPage)
-        Dim subthreads As String() = Workerbot.GetSubThreads(membPage.Text)
+        Dim membPage As Page = workerbot.Getpage(InformalMediationMembers)
+        Dim MedPage As Page = workerbot.Getpage(InfMedPage)
+        Dim subthreads As String() = workerbot.GetSubThreads(membPage.Text)
         Dim uTempList As List(Of Template) = GetTemplates(subthreads(0))
         Dim userList As New List(Of String)
         For Each temp As Template In uTempList
@@ -411,7 +411,7 @@ Public Module PeriodiBOT_Tasks
             End If
         Next
 
-        Dim currentThreads As Integer = Workerbot.GetPageThreads(MedPage).Count
+        Dim currentThreads As Integer = GetPageThreads(MedPage).Count
 
         If BotSettings.Contains("InformalMediationLastThreadCount") Then
             If BotSettings.Get("InformalMediationLastThreadCount").GetType Is GetType(Integer) Then
@@ -429,7 +429,7 @@ Public Module PeriodiBOT_Tasks
 
         If newThreads Then
             For Each u As String In userList
-                Dim user As New WikiUser(Workerbot, u)
+                Dim user As New WikiUser(workerbot, u)
                 If user.Exists Then
                     Dim userTalkPage As Page = user.TalkPage
                     userTalkPage.AddSection("Atención en [[Wikipedia:Mediación informal/Solicitudes|Mediación informal]]", InfMedMessage, "Bot: Aviso automático de nueva solicitud.", False)

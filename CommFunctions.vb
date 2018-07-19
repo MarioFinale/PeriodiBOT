@@ -11,6 +11,8 @@ NotInheritable Class CommFunctions
     End Sub
 #End Region
 
+    Public Shared signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4}( \([A-z]{3,4}\))*"
+
 #Region "Text Functions"
     ''' <summary>
     ''' Elimina los tags html de una cadena de texto dada.
@@ -325,8 +327,12 @@ NotInheritable Class CommFunctions
         End If
     End Function
 
-
-
+    ''' <summary>
+    ''' Cuenta las veces que se repite una cadena de texto en otra cadena de texto.
+    ''' </summary>
+    ''' <param name="StToSerach"></param>
+    ''' <param name="StToLookFor"></param>
+    ''' <returns></returns>
     Public Shared Function CountOccurrences(ByVal StToSerach As String, StToLookFor As String) As Integer
         Dim txtlen As Integer = StToSerach.Length
         Dim strlen As Integer = StToLookFor.Length
@@ -336,30 +342,6 @@ NotInheritable Class CommFunctions
         Dim occurences As Integer = CInt(lenghtdiff / strlen)
         Return occurences
     End Function
-
-
-    Public Shared Function SendMessagequeue(ByRef queuedat As Queue(Of Tuple(Of String, Boolean, String, IRC_Client, WikiBot.Bot))) As Boolean
-        If queuedat.Count >= 1 Then
-            SyncLock queuedat
-                Try
-                    Dim queuedmsg As Tuple(Of String, Boolean, String, IRC_Client, WikiBot.Bot) = queuedat.Dequeue()
-                    Dim Commands As New IRCCommandResolver
-                    Dim MsgResponse As IRCMessage = Commands.ResolveCommand(queuedmsg.Item1, queuedmsg.Item2, queuedmsg.Item3, queuedmsg.Item4, queuedmsg.Item5)
-                    If Not MsgResponse Is Nothing Then
-                        queuedmsg.Item4.Sendmessage(MsgResponse)
-                    End If
-                Catch ex As Exception
-                    EventLogger.EX_Log(ex.Message, "SendMessagequeue", BotCodename)
-                    Return False
-                End Try
-            End SyncLock
-            Return True
-        Else
-            Return False
-        End If
-    End Function
-
-
     ''' <summary>
     ''' Retorna un array de string con todas las plantillas contenidas en un texto.
     ''' Pueden repetirse si hay plantillas que contienen otras en su interior.
@@ -683,6 +665,270 @@ NotInheritable Class CommFunctions
         Next
         Return exitloop
     End Function
+
+
+    ''' <summary>
+    ''' Entrega como array de DateTime todas las fechas (Formato de firma Wikipedia) en el texto dado.
+    ''' </summary>
+    ''' <param name="text">Texto a evaluar</param>
+    ''' <returns></returns>
+    Public Shared Function AllDateTimes(ByVal text As String) As DateTime()
+        Dim Datelist As New List(Of DateTime)
+        For Each m As Match In Regex.Matches(text, signpattern)
+            Dim TheDate As DateTime = ESWikiDatetime(m.Value)
+            Datelist.Add(TheDate)
+            EventLogger.Log("AllDateTimes: Adding " & TheDate.ToString, "LOCAL")
+        Next
+        Return Datelist.ToArray
+    End Function
+
+    ''' <summary>
+    ''' Evalua texto (wikicódigo) y regresa un array de string con cada uno de los hilos del mismo (los que comienzan con == ejemplo == y terminan en otro comienzo o el final de la página).
+    ''' </summary>
+    ''' <param name="pagetext">Texto a evaluar</param>
+    ''' <returns></returns>
+    Public Shared Function GetPageThreads(ByVal pagetext As String) As String()
+        Dim temptext As String = pagetext
+        Dim commentMatch As MatchCollection = Regex.Matches(temptext, "(<!--)[\s\S]*?(-->)")
+
+        Dim CommentsList As New List(Of String)
+        For i As Integer = 0 To commentMatch.Count - 1
+            CommentsList.Add(commentMatch(i).Value)
+            temptext = temptext.Replace(commentMatch(i).Value, ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4))
+        Next
+
+        Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((==(?!=)).+?(==(?!=)))")
+
+        Dim threadlist As New List(Of String)
+
+
+        For i As Integer = 0 To mc.Count - 1
+
+            Dim nextmatch As Integer = (i + 1)
+
+            If Not nextmatch = mc.Count Then
+
+                Dim threadtitle As String = mc(i).Value
+                Dim nextthreadtitle As String = mc(nextmatch).Value
+                Dim threadtext As String = String.Empty
+
+                threadtext = TextInBetween(temptext, threadtitle, nextthreadtitle)(0)
+                Dim Completethread As String = threadtitle & threadtext
+                threadlist.Add(Completethread)
+                temptext = ReplaceFirst(temptext, Completethread, "")
+
+            Else
+                Dim threadtitle As String = mc(i).Value
+
+                Dim ThreadPos As Integer = temptext.IndexOf(threadtitle)
+                Dim threadlenght As Integer = temptext.Length - temptext.Substring(0, ThreadPos).Length
+                Dim threadtext As String = temptext.Substring(ThreadPos, threadlenght)
+                threadlist.Add(threadtext)
+
+            End If
+        Next
+        Dim EndThreadList As New List(Of String)
+        For Each t As String In threadlist
+            Dim nthreadtext As String = t
+            For i As Integer = 0 To commentMatch.Count - 1
+                Dim commenttext As String = ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4)
+                nthreadtext = nthreadtext.Replace(commenttext, CommentsList(i))
+            Next
+            EndThreadList.Add(nthreadtext)
+        Next
+
+        Return EndThreadList.ToArray
+    End Function
+    ''' <summary>
+    ''' Entrega como DateTime la última fecha (formato firma Wikipedia) en el último parrafo. Si no encuentra firma retorna 31/12/9999.
+    ''' </summary>
+    ''' <param name="text">Texto a evaluar</param>
+    ''' <returns></returns>
+    Public Shared Function LastParagraphDateTime(ByVal text As String) As DateTime
+        If String.IsNullOrEmpty(text) Then
+            Throw New ArgumentException("Empty var", "text")
+        End If
+        text = text.Trim(CType(vbCrLf, Char())) & " "
+        Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
+        Dim matchc As MatchCollection = Regex.Matches(lastparagraph, signpattern)
+
+        If matchc.Count = 0 And Not (((lastparagraph(0) = ";"c) Or (lastparagraph(0) = ":"c) Or (lastparagraph(0) = "*"c) Or (lastparagraph(0) = "#"c))) Then
+            Dim mlines As MatchCollection = Regex.Matches(text, ".+\n")
+            For i As Integer = mlines.Count - 1 To 0 Step -1
+
+                If i = (mlines.Count - 1) Then
+                    If Not ((mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c)) Then
+                        If Regex.Match(mlines(i).Value, signpattern).Success Then
+                            lastparagraph = mlines(i).Value
+                            Exit For
+                        End If
+                    Else
+                        Exit For
+                    End If
+                Else
+                    If Not ((mlines(i).Value(0) = ";"c) Or (mlines(i).Value(0) = ":"c) Or (mlines(i).Value(0) = "*"c) Or (mlines(i).Value(0) = "#"c)) Then
+                        If Regex.Match(mlines(i).Value, signpattern).Success Then
+                            lastparagraph = mlines(i).Value
+                            Exit For
+                        End If
+                    Else
+                        Exit For
+                    End If
+                End If
+            Next
+
+        End If
+
+        Dim TheDate As DateTime = ESWikiDatetime(lastparagraph)
+        EventLogger.Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL")
+        Return TheDate
+    End Function
+
+    ''' <summary>
+    ''' Entrega 
+    ''' </summary>
+    ''' <param name="text">Entrega la ultima fecha, que aparezca en un texto dado (si la fecha tiene formato de firma wikipedia).</param>
+    ''' <returns></returns>
+    Public Shared Function ESWikiDatetime(ByVal text As String) As DateTime
+        Dim TheDate As DateTime = Nothing
+        Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
+
+        If matchc.Count = 0 Then
+            EventLogger.Debug_Log("No date match", "ESWikiDateTime")
+            Return DateTime.Parse("23:59 31/12/9999")
+        End If
+
+        For Each m As Match In matchc
+            Try
+                Dim parsedtxt As String = m.Value.Replace(" "c, "/"c)
+                parsedtxt = parsedtxt.Replace(":"c, "/"c)
+                parsedtxt = parsedtxt.ToLower.Replace("ene", "01").Replace("feb", "02") _
+            .Replace("mar", "03").Replace("abr", "04").Replace("may", "05") _
+            .Replace("jun", "06").Replace("jul", "07").Replace("ago", "08") _
+            .Replace("sep", "09").Replace("oct", "10").Replace("nov", "11") _
+            .Replace("dic", "12")
+
+                parsedtxt = Regex.Replace(parsedtxt, "([^0-9/])", "")
+                Dim dates As New List(Of Integer)
+                For Each s As String In parsedtxt.Split("/"c)
+                    If Not String.IsNullOrWhiteSpace(s) Then
+                        dates.Add(Integer.Parse(s))
+                    End If
+                Next
+
+                Dim dat As New DateTime(dates(4), dates(3), dates(2), dates(0), dates(1), 0)
+                TheDate = dat
+                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
+            Catch ex As System.FormatException
+                EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
+            End Try
+
+        Next
+        Return TheDate
+
+    End Function
+
+
+    ''' <summary>
+    ''' Entrega como DateTime la fecha más reciente en el texto dado (en formato de firma wikipedia).
+    ''' </summary>
+    ''' <param name="text"></param>
+    ''' <returns></returns>
+    Public Shared Function MostRecentDate(ByVal text As String) As DateTime
+        Dim dates As New List(Of DateTime)
+        Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
+
+        If matchc.Count = 0 Then
+            EventLogger.Debug_Log("No date match", "ESWikiDateTime")
+            Return DateTime.Parse("23:59 31/12/9999")
+        End If
+
+        For Each m As Match In matchc
+            Try
+                Dim parsedtxt As String = m.Value.Replace(" "c, "/"c)
+                parsedtxt = parsedtxt.Replace(":"c, "/"c)
+                parsedtxt = parsedtxt.ToLower.Replace("ene", "01").Replace("feb", "02") _
+            .Replace("mar", "03").Replace("abr", "04").Replace("may", "05") _
+            .Replace("jun", "06").Replace("jul", "07").Replace("ago", "08") _
+            .Replace("sep", "09").Replace("oct", "10").Replace("nov", "11") _
+            .Replace("dic", "12")
+
+                parsedtxt = Regex.Replace(parsedtxt, "([^0-9/])", "")
+                Dim datesInt As New List(Of Integer)
+                For Each s As String In parsedtxt.Split("/"c)
+                    If Not String.IsNullOrWhiteSpace(s) Then
+                        datesInt.Add(Integer.Parse(s))
+                    End If
+                Next
+                Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
+                dates.Add(dat)
+                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
+            Catch ex As System.FormatException
+                EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
+            End Try
+
+        Next
+        dates.Sort()
+        Return dates.Last
+
+    End Function
+
+    ''' <summary>
+    ''' Entrega como DateTime la fecha más reciente en el texto dado (en formato de firma wikipedia).
+    ''' </summary>
+    ''' <param name="text"></param>
+    ''' <returns></returns>
+    Public Shared Function FirstDate(ByVal text As String) As DateTime
+        Dim dates As New List(Of DateTime)
+        Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
+
+        If matchc.Count = 0 Then
+            EventLogger.EX_Log("No date match", "ESWikiDateTime")
+            Return New DateTime(9999, 12, 31, 23, 59, 59)
+        End If
+
+        For Each m As Match In matchc
+            Try
+                Dim parsedtxt As String = m.Value.Replace(" "c, "/"c)
+                parsedtxt = parsedtxt.Replace(":"c, "/"c)
+                parsedtxt = parsedtxt.ToLower.Replace("ene", "01").Replace("feb", "02") _
+            .Replace("mar", "03").Replace("abr", "04").Replace("may", "05") _
+            .Replace("jun", "06").Replace("jul", "07").Replace("ago", "08") _
+            .Replace("sep", "09").Replace("oct", "10").Replace("nov", "11") _
+            .Replace("dic", "12")
+
+                parsedtxt = Regex.Replace(parsedtxt, "([^0-9/])", "")
+                Dim datesInt As New List(Of Integer)
+                For Each s As String In parsedtxt.Split("/"c)
+                    If Not String.IsNullOrWhiteSpace(s) Then
+                        datesInt.Add(Integer.Parse(s))
+                    End If
+                Next
+                Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
+                dates.Add(dat)
+                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
+            Catch ex As System.FormatException
+                EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
+            End Try
+
+        Next
+        dates.Sort()
+        Return dates.First
+
+    End Function
+
+    ''' <summary>
+    ''' Evalua una wikipágina y regresa un array de string con cada uno de los hilos del esta (los que comienzan con == ejemplo == y terminan en otro comienzo o el final de la página).
+    ''' </summary>
+    ''' <param name="tpage">Página a evaluar</param>
+    ''' <returns></returns>
+    Public Shared Function GetPageThreads(ByVal tpage As Page) As String()
+        If tpage Is Nothing Then Return Nothing
+        Return GetPageThreads(tpage.Text)
+    End Function
+
+
+
 
 End Class
 

@@ -20,12 +20,12 @@ Namespace IRC
         Private _streamReader As StreamReader = Nothing 'leer desde el stream.
         Private _opFilePath As ConfigFile
 
-        Private Command As New IRCCommandResolver
+        Private Commands As New IRCCommandResolver
 
         Private lastmessage As New IRCMessage("", {""})
 
         Public HasExited As Boolean = False
-        Public _floodDelay As Integer = 700
+        Public FloodDelay As Integer = 700
 
 #Region "Properties"
         Public ReadOnly Property NickName As String
@@ -40,27 +40,24 @@ Namespace IRC
             End Get
         End Property
 #End Region
-
-
-
         Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal userName As String, ByVal OpFilePath As ConfigFile)
-            Initialize(server, channel, nickName, port, invisible, pass, realname, userName, OpFilePath)
+                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal userName As String, ByVal opFilePath As ConfigFile)
+            Initialize(server, channel, nickName, port, invisible, pass, realname, userName, opFilePath)
         End Sub
 
         Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal OpFilePath As ConfigFile)
-            Initialize(server, channel, nickName, port, invisible, pass, nickName, nickName, OpFilePath)
+                          ByVal invisible As Boolean, ByVal pass As String, ByVal opFilePath As ConfigFile)
+            Initialize(server, channel, nickName, port, invisible, pass, nickName, nickName, opFilePath)
         End Sub
 
         Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal OpFilePath As ConfigFile)
-            Initialize(server, channel, nickName, port, invisible, String.Empty, nickName, nickName, OpFilePath)
+                          ByVal invisible As Boolean, ByVal opFilePath As ConfigFile)
+            Initialize(server, channel, nickName, port, invisible, String.Empty, nickName, nickName, opFilePath)
         End Sub
 
         Public Sub Initialize(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal realName As String, ByVal userName As String, ByVal OpFilePath As ConfigFile)
-            _opFilePath = OpFilePath
+                          ByVal invisible As Boolean, ByVal pass As String, ByVal realName As String, ByVal userName As String, ByVal opFilePath As ConfigFile)
+            _opFilePath = opFilePath
             LoadConfig()
             _sServer = server
             _sChannel = channel
@@ -90,7 +87,7 @@ Namespace IRC
             Dim sCommand As String = String.Empty 'linea recibida
             Dim Lastdate As DateTime = DateTime.Now
 
-            Dim MsgQueue As New Queue(Of Tuple(Of String, Boolean, String, IRC_Client, WikiBot.Bot))
+            Dim MsgQueue As New Queue(Of Tuple(Of String, String, IRC_Client, WikiBot.Bot))
             Dim ResolveMessages As New Func(Of Boolean)(Function()
                                                             Return SendMessagequeue(MsgQueue)
                                                         End Function)
@@ -150,7 +147,7 @@ Namespace IRC
                                                Dim sCommandParts As String() = sCommand.Split(CType(" ", Char()))
 
                                                SyncLock (MsgQueue)
-                                                   MsgQueue.Enqueue(New Tuple(Of String, Boolean, String, IRC_Client, WikiBot.Bot)(sCommand, HasExited, _sNickName, Me, ESWikiBOT))
+                                                   MsgQueue.Enqueue(New Tuple(Of String, String, IRC_Client, WikiBot.Bot)(sCommand, _sNickName, Me, ESWikiBOT))
                                                End SyncLock
 
                                                If Not _tcpclientConnection.Connected Then
@@ -247,17 +244,18 @@ Namespace IRC
                 _streamWriter.WriteLine(String.Format("{2} {0} : {1}", message.Source, s, message.Command))
                 _streamWriter.Flush()
                 WriteLine("MSG", "IRC", message.Source & " " & _sNickName & ": " & s)
-                Threading.Thread.Sleep(_floodDelay) 'Prevent flooding
+                Threading.Thread.Sleep(FloodDelay) 'Prevent flooding
             Next
             lastmessage = message
             Return True
         End Function
 
         Function Sendmessage(ByVal message As IRCMessage()) As Boolean
+            If message Is Nothing Then Return False
             For Each s As IRCMessage In message
                 If Not String.IsNullOrEmpty(s.Text(0)) Then
                     Sendmessage(s)
-                    Threading.Thread.Sleep(_floodDelay) 'Prevent flooding
+                    Threading.Thread.Sleep(FloodDelay) 'Prevent flooding
                 End If
             Next
             Return True
@@ -322,11 +320,12 @@ Namespace IRC
         ''' <param name="Source">Origen del mensaje</param>
         ''' <param name="user">Usuario que crea el evento</param>
         ''' <returns></returns>
-        Function AddOP(ByVal message As String, ByVal Source As String, ByVal user As String) As Boolean
+        Function AddOP(ByVal message As String, ByVal source As String, ByVal user As String) As Boolean
+            If message Is Nothing Then Return False
             Dim CommandParts As String() = message.Split(CType(" ", Char()))
             Dim Param As String = CommandParts(4)
             If Not OPlist.Contains(Param) Then
-                If IsOp(message, Source, user) Then
+                If IsOp(message, source, user) Then
                     OPlist.Add(Param)
                     Try
                         System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
@@ -351,11 +350,11 @@ Namespace IRC
         ''' <param name="Source">Origen del mensaje</param>
         ''' <param name="user">Usuario que crea el evento</param>
         ''' <returns></returns>
-        Function DelOP(ByVal message As String, ByVal Source As String, ByVal user As String) As Boolean
+        Function DelOP(ByVal message As String, ByVal source As String, ByVal user As String) As Boolean
+            If message Is Nothing Then Return False
             Dim CommandParts As String() = message.Split(CType(" ", Char()))
             Dim Param As String = CommandParts(4)
-
-            If IsOp(message, Source, user) Then
+            If IsOp(message, source, user) Then
 
                 If OPlist.Contains(Param) Then
                     OPlist.Remove(Param)
@@ -381,24 +380,46 @@ Namespace IRC
         ''' <param name="Source">Origen del mensaje</param>
         ''' <param name="user">Usuario que crea el evento</param>
         ''' <returns></returns>
-        Function IsOp(ByVal message As String, Source As String, user As String) As Boolean
+        Function IsOp(ByVal message As String, source As String, user As String) As Boolean
+            If message Is Nothing Then Return False
             Try
-                Dim Scommand0 As String = message.Split(CType(" ", Char()))(0)
+                Dim Scommand0 As String = message.Split(" "c)(0)
                 Dim Nickname As String = GetUserFromChatresponse(message)
                 Dim Hostname As String = Scommand0.Split(CType("@", Char()))(1)
-                EventLogger.Log(String.Format("Checking if user {0} on host {1} is OP", Nickname, Hostname), Source, user)
+                EventLogger.Log(String.Format("Checking if user {0} on host {1} is OP", Nickname, Hostname), source, user)
                 Dim OpString As String = Nickname & "!" & Hostname
                 If OPlist.Contains(OpString) Then
-                    EventLogger.Log(String.Format("User {0} on host {1} is OP", Nickname, Hostname), Source, user)
+                    EventLogger.Log(String.Format("User {0} on host {1} is OP", Nickname, Hostname), source, user)
                     Return True
                 Else
-                    EventLogger.Log(String.Format("User {0} on host {1} is not OP", Nickname, Hostname), Source, user)
+                    EventLogger.Log(String.Format("User {0} on host {1} is not OP", Nickname, Hostname), source, user)
                     Return False
                 End If
             Catch ex As IndexOutOfRangeException
-                EventLogger.Log("EX Checking if user is OP : " & ex.Message, Source, user)
+                EventLogger.Log("EX Checking if user is OP : " & ex.Message, source, user)
                 Return False
             End Try
+        End Function
+
+        Function SendMessagequeue(ByRef queuedat As Queue(Of Tuple(Of String, String, IRC_Client, WikiBot.Bot))) As Boolean
+            If queuedat Is Nothing Then Return False
+            If queuedat.Count >= 1 Then
+                SyncLock queuedat
+                    Try
+                        Dim queuedmsg As Tuple(Of String, String, IRC_Client, WikiBot.Bot) = queuedat.Dequeue()
+                        Dim MsgResponse As IRCMessage = Commands.ResolveCommand(queuedmsg.Item1, queuedmsg.Item2, queuedmsg.Item3, queuedmsg.Item4)
+                        If Not MsgResponse Is Nothing Then
+                            queuedmsg.Item3.Sendmessage(MsgResponse)
+                        End If
+                    Catch ex As Exception
+                        EventLogger.EX_Log(ex.Message, "SendMessagequeue", BotCodename)
+                        Return False
+                    End Try
+                End SyncLock
+                Return True
+            Else
+                Return False
+            End If
         End Function
 
     End Class

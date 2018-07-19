@@ -84,7 +84,7 @@ Class LogEngine
     ''' <summary>
     ''' Cierra los eventos de log correctamente.
     ''' </summary>
-    Public Sub Dispose()
+    Public Sub EndLogging()
         EndLog = True
         Do Until _logging = False
             System.Threading.Thread.Sleep(100)
@@ -394,7 +394,7 @@ Class LogEngine
     ''' </summary>
     ''' <param name="QueueToDequeue"></param>
     ''' <returns></returns>
-    Private Function SafeDequeue(ByVal QueueToDequeue As Queue(Of String())) As String()
+    Private Shared Function SafeDequeue(ByVal QueueToDequeue As Queue(Of String())) As String()
         SyncLock (QueueToDequeue)
             Return QueueToDequeue.Dequeue()
         End SyncLock

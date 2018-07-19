@@ -15,6 +15,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyCopyright("GNU General Public License v2.0, MarioFinale 2017")>
 <Assembly: AssemblyTrademark("MarioFinale")>
 <Assembly: ComVisible(False)>
+<Assembly: CLSCompliant(True)>
 
 'El siguiente GUID sirve como id. de typelib si este proyecto se expone a COM.
 <Assembly: Guid("b563e424-83fd-4442-a773-821f9ec01362")>
@@ -30,4 +31,4 @@ Imports System.Runtime.InteropServices
 ' mediante el carácter '*', como se muestra a continuación:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("3.0.*")>
+<Assembly: AssemblyVersion("3.1.*")>

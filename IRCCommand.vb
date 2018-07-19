@@ -10,24 +10,19 @@ Public Class IRCCommand
     Public ReadOnly Property Description As String
     Public ReadOnly Property Usage As String
     Friend ComFunc As Func(Of CommandParams, IRCMessage)
-    Private Client As IRC_Client
 
-    Public Sub New(ByVal CommandName As String, ByVal CommandAliases As String(), ByRef CommandFunc As Func(Of CommandParams, IRCMessage), ByVal CommandDescription As String, ByVal CommandUsage As String, ByVal ClientResolver As IRC_Client)
-        Name = CommandName
-        Aliases = CommandAliases
-        ComFunc = CommandFunc
-        Description = CommandDescription
-        Client = ClientResolver
-        Usage = CommandUsage
+    Public Sub New(ByVal commandName As String, ByVal commandAliases As String(), ByRef commandFunc As Func(Of CommandParams, IRCMessage), ByVal commandDescription As String, ByVal commandUsage As String, ByVal clientResolver As IRC_Client)
+        Name = commandName
+        Aliases = commandAliases
+        ComFunc = commandFunc
+        Description = commandDescription
+        Usage = commandUsage
     End Sub
 
-    Public Function Contains(ByVal CommandAlias As String) As Boolean
-        Return Aliases.Contains(CommandAlias)
+    Public Function Contains(ByVal commandAlias As String) As Boolean
+        Return Aliases.Contains(commandAlias)
     End Function
 
-    Private Sub Resolve(ByRef Commandmethod As Func(Of CommandParams, IRCMessage), ByVal args As CommandParams)
-        Commandmethod.Invoke(args)
-    End Sub
 End Class
 
 
@@ -99,7 +94,9 @@ Public Class CommandParams
 
 #End Region
 
-    Sub New(ByVal cimputline As String, CommandResolver As IRC_Client, RWorkerbot As Bot)
+    Sub New(ByVal cimputline As String, commandResolver As IRC_Client, rWorkerbot As Bot)
+        If commandResolver Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
+        If rWorkerbot Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
 
         _source = String.Empty
         _realname = String.Empty
@@ -107,19 +104,19 @@ Public Class CommandParams
         _commandName = String.Empty
         _messageLine = String.Empty
 
-        _client = CommandResolver
+        _client = commandResolver
         _imputline = cimputline
-        _workerbot = RWorkerbot
+        _workerbot = rWorkerbot
 
         Dim sCommandParts As String() = Imputline.Split(CType(" ", Char()))
         If sCommandParts.Length < 4 Then Exit Sub
         Dim sPrefix As String = sCommandParts(0)
-        Dim sCommand As String = sCommandParts(1)
+        'Dim sCommand As String = sCommandParts(1) //Useless
         Dim sSource As String = sCommandParts(2)
         Dim sParam As String = GetParamString(Imputline)
 
         Dim sRealname As String = GetUserFromChatresponse(sPrefix)
-        If Source.ToLower = CommandResolver.NickName.ToLower Then
+        If Source.ToLower = _client.NickName.ToLower Then
             sSource = sRealname
         End If
 
@@ -149,8 +146,8 @@ Public Class CommandParams
 
     End Sub
 
-    Private Function GetParams(ByVal Param As String) As String()
-        Return Param.Split(CType(" ", Char()))
+    Private Function GetParams(ByVal param As String) As String()
+        Return param.Split(CType(" ", Char()))
     End Function
 
     Private Function GetParamString(ByVal message As String) As String

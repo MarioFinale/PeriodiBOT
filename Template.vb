@@ -6,7 +6,7 @@ Namespace WikiBot
 
     Public Class Template
         Private _name As String
-        Public Parameters As List(Of Tuple(Of String, String))
+        Private _parameters As List(Of Tuple(Of String, String))
         Private _text As String
         Private _newtemplate As Boolean = True
         ''' <summary>
@@ -29,7 +29,7 @@ Namespace WikiBot
         Public ReadOnly Property Text As String
             Get
                 If _newtemplate Then
-                    _text = CreateTemplatetext(_name, Parameters, True)
+                    _text = CreateTemplatetext(_name, _parameters, True)
                     Return _text
                 Else
                     Return _text
@@ -37,6 +37,14 @@ Namespace WikiBot
             End Get
         End Property
 
+        Public Property Parameters As List(Of Tuple(Of String, String))
+            Get
+                Return _parameters
+            End Get
+            Set(value As List(Of Tuple(Of String, String)))
+                _parameters = value
+            End Set
+        End Property
 
         ''' <summary>
         ''' Crea una nueva plantilla. Si es una nueva se considera el texto como el título, de lo contrario se considera como el contenido de la plantilla y se extrae de este los parámetros.
@@ -49,7 +57,7 @@ Namespace WikiBot
             If newTemplate Then
                 _name = text
                 _text = MakeSimpleTemplateText(text)
-                Parameters = New List(Of Tuple(Of String, String))
+                _parameters = New List(Of Tuple(Of String, String))
             Else
                 GetTemplateOfText(text)
             End If
@@ -61,7 +69,7 @@ Namespace WikiBot
         ''' <param name="templateparams">Parámetros de la plantilla.</param>
         Sub New(ByVal templateName As String, ByVal templateParams As List(Of Tuple(Of String, String)))
             _name = templateName
-            Parameters = templateParams
+            _parameters = templateParams
             _text = MakeTemplateText(templateName, templateParams)
         End Sub
         ''' <summary>
@@ -70,7 +78,7 @@ Namespace WikiBot
         Sub New()
             _name = String.Empty
             _text = String.Empty
-            Parameters = New List(Of Tuple(Of String, String))
+            _parameters = New List(Of Tuple(Of String, String))
         End Sub
 
         ''' <summary>
@@ -78,7 +86,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="tempname">Nombre de la plantilla</param>
         ''' <returns></returns>
-        Private Function MakeSimpleTemplateText(ByVal tempname As String) As String
+        Private Shared Function MakeSimpleTemplateText(ByVal tempname As String) As String
             Return "{{" & tempname & "}}"
         End Function
 
@@ -89,7 +97,7 @@ Namespace WikiBot
         ''' <param name="templateparams"></param>
         ''' <param name="newlines"></param>
         ''' <returns></returns>
-        Private Function CreateTemplatetext(ByVal templatename As String, ByVal templateparams As List(Of Tuple(Of String, String)), ByVal newlines As Boolean) As String
+        Private Shared Function CreateTemplatetext(ByVal templatename As String, ByVal templateparams As List(Of Tuple(Of String, String)), ByVal newlines As Boolean) As String
             Dim linechar As String = ""
             If newlines Then linechar = Environment.NewLine
             Dim text As String = "{{" & templatename & linechar
@@ -107,7 +115,7 @@ Namespace WikiBot
         ''' <param name="tempname">Nombre de la plantilla.</param>
         ''' <param name="tempparams">Parámetros de la plantilla.</param>
         ''' <returns></returns>
-        Private Function MakeTemplateText(ByVal tempname As String, ByVal tempparams As List(Of Tuple(Of String, String))) As String
+        Private Shared Function MakeTemplateText(ByVal tempname As String, ByVal tempparams As List(Of Tuple(Of String, String))) As String
             Dim templatetext As String = String.Empty
             Dim opening As String = "{{"
             Dim closing As String = "}}"
@@ -152,7 +160,7 @@ Namespace WikiBot
             End If
 
             _text = templatetext
-            Parameters = New List(Of Tuple(Of String, String))
+            _parameters = New List(Of Tuple(Of String, String))
 
 
             Dim NewText As String = _text
@@ -248,7 +256,7 @@ Namespace WikiBot
 
             Next
             'Agregar parametros locales a parametros de clase
-            Parameters.AddRange(TotalParams)
+            _parameters.AddRange(TotalParams)
 
         End Sub
 
@@ -260,12 +268,12 @@ Namespace WikiBot
         Function OptimizeTemplate() As Boolean
             Dim newParameters As New List(Of Tuple(Of String, String))
 
-            For Each parameter As Tuple(Of String, String) In Parameters
+            For Each parameter As Tuple(Of String, String) In _parameters
                 If Not String.IsNullOrWhiteSpace(parameter.Item2.ToString) Then
                     newParameters.Add(parameter)
                 End If
             Next
-            Parameters = newParameters
+            _parameters = newParameters
             _text = MakeTemplateText(_name, newParameters)
             Return True
         End Function

@@ -164,13 +164,26 @@ Namespace WikiBot
         ''' ¿La página existe?
         ''' </summary>
         ''' <returns></returns>
-        Public Function Exists() As Boolean
-            If _ID = -1 Then
-                Return False
-            Else
-                Return True
-            End If
-        End Function
+        Public ReadOnly Property Exists As Boolean
+            Get
+                If _ID = -1 Then
+                    Return False
+                Else
+                    Return True
+                End If
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Indica si puede ser editada por el bot.
+        ''' </summary>
+        ''' <returns></returns>
+        Public ReadOnly Property BotEditable As Boolean
+            Get
+                Return BotCanEdit(Me.Text, _bot.LocalName)
+            End Get
+        End Property
+
 #End Region
         ''' <summary>
         ''' Inicializa una nueva página, por lo general no se llama de forma directa. Se puede obtener una página creandola con Bot.Getpage.
@@ -178,6 +191,7 @@ Namespace WikiBot
         ''' <param name="PageTitle">Título exacto de la página</param>
         ''' <param name="wbot">Bot logueado a la wiki</param>
         Public Sub New(ByVal pageTitle As String, ByRef wbot As Bot)
+            If wbot Is Nothing Then Throw New ArgumentNullException
             _bot = wbot
             _username = _bot.UserName
             Loadpage(pageTitle, _bot.WikiUrl)
@@ -188,6 +202,7 @@ Namespace WikiBot
         ''' <param name="revid">Revision ID.</param>/param>
         ''' <param name="wbot">Bot logueado a la wiki</param>
         Public Sub New(ByVal revid As Integer, ByRef wbot As Bot)
+            If wbot Is Nothing Then Throw New ArgumentNullException
             _bot = wbot
             _username = _bot.UserName
             Loadpage(revid, _bot.WikiUrl)
@@ -209,7 +224,7 @@ Namespace WikiBot
         Private Overloads Function Loadpage(ByVal PageTitle As String, ByVal site As String) As Boolean
             EventLogger.Log("Loading page " & PageTitle, "LOCAL", _username)
             If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
-                Throw New ArgumentNullException("Empty parameter", "PageTitle")
+                Throw New ArgumentNullException("Loadpage", "Empty parameter")
             End If
             _siteurl = site
             PageInfoData(PageTitle)
@@ -229,7 +244,7 @@ Namespace WikiBot
         Private Overloads Function Loadpage(ByVal Revid As Integer, ByVal site As String) As Boolean
             EventLogger.Log("Loading revision id " & Revid.ToString, "LOCAL", _username)
             If String.IsNullOrEmpty(Revid.ToString) Or String.IsNullOrEmpty(site) Then
-                Throw New ArgumentNullException("Empty parameter", "PageTitle")
+                Throw New ArgumentNullException("Loadpage", "Empty parameter")
             End If
             _siteurl = site
             PageInfoData(Revid)
@@ -274,12 +289,12 @@ Namespace WikiBot
         ''' Guarda la página en la wiki. Si la página no existe, la crea.
         ''' </summary>
         ''' <param name="text">Texto (wikicódigo) de la página</param>
-        ''' <param name="EditSummary">Resumen de la edición</param>
+        ''' <param name="summary">Resumen de la edición</param>
         ''' <param name="IsMinor">¿Marcar como menor?</param>
-        ''' <param name="Spamreplace">¿Reemplazar los link marcados como spam?</param>
+        ''' <param name="spam">¿Reemplazar los link marcados como spam?</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean, ByVal SpamReplace As Boolean) As String
-            Return SavePage(text, EditSummary, IsMinor, IsBot, SpamReplace, 0)
+        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBot As Boolean, ByVal spam As Boolean) As String
+            Return SavePage(text, summary, isMinor, isBot, spam, 0)
         End Function
 
         ''' <summary>
@@ -291,7 +306,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Private Function SavePage(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean, ByVal Spamreplace As Boolean, ByRef RetryCount As Integer) As String
             If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Then
-                Throw New ArgumentNullException("Empty parameter", "Text")
+                Throw New ArgumentNullException("SavePage", "Empty parameter")
             End If
             Dim ntimestamp As String = GetLastTimeStamp(_title)
 
@@ -374,14 +389,14 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="text">Texto (wikicódigo) de la página</param>
         ''' <param name="Summary">Resumen de la edición</param>
-        ''' <param name="IsMinor">¿Marcar como menor?</param>
+        ''' <param name="Minor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBOT As Boolean, ByVal SpamReplace As Boolean) As String
+        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal minor As Boolean, ByVal bot As Boolean, ByVal spam As Boolean) As String
             If Not BotCanEdit(_text, _username) Then
                 EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
                 Return "No Bots"
             End If
-            Return SavePage(text, summary, isMinor, isBOT, False, 0)
+            Return SavePage(text, summary, minor, bot, spam, 0)
         End Function
 
         ''' <summary>
@@ -389,14 +404,14 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="text">Texto (wikicódigo) de la página</param>
         ''' <param name="Summary">Resumen de la edición</param>
-        ''' <param name="IsMinor">¿Marcar como menor?</param>
+        ''' <param name="Minor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBOT As Boolean) As String
+        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal minor As Boolean, ByVal bot As Boolean) As String
             If Not BotCanEdit(_text, _username) Then
                 EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
                 Return "No Bots"
             End If
-            Return SavePage(text, summary, isMinor, isBOT, False, 0)
+            Return SavePage(text, summary, minor, bot, False, 0)
         End Function
 
         ''' <summary>
@@ -446,10 +461,11 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="text">Texto (wikicódigo) de la página</param>
         ''' <param name="Summary">Resumen de la edición</param>
-        ''' <param name="IsMinor">¿Marcar como menor?</param>
+        ''' <param name="Minor">¿Marcar como menor?</param>
+        ''' <param name="bot">¿Marcar como edición de bot?</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBOT As Boolean) As String
-            Return SavePage(text, summary, isMinor, isBOT, False, 0)
+        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal minor As Boolean, ByVal bot As Boolean) As String
+            Return SavePage(text, summary, minor, bot, False, 0)
         End Function
 
 
@@ -457,11 +473,11 @@ Namespace WikiBot
         ''' Guarda la página en la wiki. Si la página no existe, la crea.
         ''' </summary>
         ''' <param name="text">Texto (wikicódigo) de la página</param>
-        ''' <param name="Summary">Resumen de la edición</param>
-        ''' <param name="IsMinor">¿Marcar como menor?</param>
+        ''' <param name="summary">Resumen de la edición</param>
+        ''' <param name="minor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean) As String
-            Return SavePage(text, summary, isMinor, False, False, 0)
+        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal minor As Boolean) As String
+            Return SavePage(text, summary, minor, False, False, 0)
         End Function
 
         ''' <summary>
@@ -494,7 +510,7 @@ Namespace WikiBot
         Private Function AddSectionPage(ByVal sectionTitle As String, ByVal text As String, ByVal editSummary As String, ByVal isMinor As Boolean) As String
             Dim additionalParameters As String = String.Empty
             If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Or String.IsNullOrWhiteSpace(sectionTitle) Then
-                Throw New ArgumentNullException("Text")
+                Throw New ArgumentNullException
             End If
 
             If Not GetLastTimeStamp(_title) = _timestamp Then
@@ -565,12 +581,12 @@ Namespace WikiBot
         End Function
 
         ''' <summary>
-        ''' Función que verifica si la página puede ser editada por bots (se llama desde Save() y es obligatoria)
+        ''' Función que verifica si la página puede ser editada por bots (se llama desde Save())
         ''' </summary>
         ''' <param name="text">Texto de la página</param>
         ''' <param name="user">Usuario que edita</param>
         ''' <returns></returns>
-        Public Function BotCanEdit(ByVal text As String, ByVal user As String) As Boolean
+        Private Shared Function BotCanEdit(ByVal text As String, ByVal user As String) As Boolean
             If String.IsNullOrWhiteSpace(text) Then
                 'Página nueva, por lo tanto pueden editarla bots
                 Return True
@@ -749,7 +765,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="pagetext">Texto a evaluar</param>
         ''' <returns></returns>
-        Function GetPageThreads(ByVal pageText As String) As String()
+        Private Shared Function GetPageThreads(ByVal pageText As String) As String()
             Dim threads As New List(Of String)
             Dim newline As String = Environment.NewLine
             For Each m As Match In Regex.Matches(pageText, "(" & newline & "==(?!=))[\s\S]+?(?=" & newline & "==(?!=)|$)")
@@ -758,6 +774,45 @@ Namespace WikiBot
             Return threads.ToArray
         End Function
 
+        ''' <summary>
+        ''' Elimina una referencia que contenga una cadena exacta.
+        ''' (No usar a menos de que se esté absolutamente seguro de lo que se hace).
+        ''' </summary>
+        ''' <param name="RequestedPage">Página a revisar</param>
+        ''' <param name="RequestedRef">Texto que determina que referencia se elimina</param>
+        ''' <returns></returns>
+        Function RemoveRef(ByVal requestedPage As Page, requestedRef As String) As Boolean
+            If String.IsNullOrWhiteSpace(requestedRef) Then
+                Return False
+            End If
+            If requestedPage Is Nothing Then
+                Return False
+            End If
+            Dim pageregex As String = String.Empty
+            Dim PageText As String = requestedPage.Text
+            For Each c As Char In requestedRef
+                pageregex = pageregex & "[" & c.ToString.ToUpper & c.ToString.ToLower & "]"
+            Next
+
+            If Not (requestedPage.Title.ToLower.Contains("usuario:") Or requestedPage.Title.ToLower.Contains("wikipedia:") Or
+            requestedPage.Title.ToLower.Contains("usuaria:") Or requestedPage.Title.ToLower.Contains("especial:") Or
+             requestedPage.Title.ToLower.Contains("wikiproyecto:") Or requestedPage.Title.ToLower.Contains("discusión:") Or
+              requestedPage.Title.ToLower.Contains("discusion:")) Then
+                For Each m As Match In Regex.Matches(PageText, "(<[REFref]+>)([^<]+?)" & pageregex & ".+?(<[/REFref]+>)")
+                    PageText = PageText.Replace(m.Value, "")
+                Next
+                Try
+                    requestedPage.CheckAndSave(PageText, "(Bot): Removiendo referencias que contengan '" & requestedRef & "' según solicitud", False, True)
+                    Return True
+                Catch ex As Exception
+                    Return False
+                End Try
+
+            Else
+                Return False
+            End If
+
+        End Function
 
         ''' <summary>
         ''' Retorna el promedio de los últimos dos meses de la página entregada (solo para páginas wikimedia)

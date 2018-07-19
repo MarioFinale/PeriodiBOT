@@ -6,7 +6,7 @@ Imports System.Threading
 Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.CommFunctions
-Public Class Initializer
+Public NotInheritable Class Initializer
 
     Private Sub New()
     End Sub

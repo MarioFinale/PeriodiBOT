@@ -123,6 +123,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function Archive(ByVal PageToArchive As Page) As Boolean
             EventLogger.Log("Archive: Page " & PageToArchive.Title, "LOCAL")
+
             Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
             Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
             Dim Newpagetext As String = PageToArchive.Text
@@ -165,7 +166,7 @@ Namespace WikiBot
             Dim Archives As New List(Of Tuple(Of String, String))
 
             EventLogger.Debug_Log("Archive: Get threads of page " & PageToArchive.Title, "LOCAL")
-            Dim threads As String() = _bot.GetPageThreads(PageToArchive.Text)
+            Dim threads As String() = GetPageThreads(PageToArchive.Text)
 
             Dim notify As Boolean
             Dim strategy As String = String.Empty
@@ -193,7 +194,7 @@ Namespace WikiBot
                     '-----------------------------------------------------------------------------------------------
                     'Firma mas reciente en la seccion
                     If strategy = "FirmaMásRecienteEnLaSección" Then
-                        Dim threaddate As DateTime = _bot.MostRecentDate(t)
+                        Dim threaddate As DateTime = MostRecentDate(t)
 
                         Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha *\=")
                         Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
@@ -232,7 +233,7 @@ Namespace WikiBot
                         'Firma en el ultimo parrafo
                         '-----------------------------------------------------------------------------------------------------
                     ElseIf strategy = "FirmaEnÚltimoPárrafo" Then
-                        Dim threaddate As Date = _bot.LastParagraphDateTime(t)
+                        Dim threaddate As Date = LastParagraphDateTime(t)
                         Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
                         Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
 
@@ -294,7 +295,7 @@ Namespace WikiBot
                     Dim isminor As Boolean = Not notify
                     Dim Archivepage As String = k.Key
                     Dim ThreadText As String = Environment.NewLine & k.Value
-                    Dim threadcount As Integer = _bot.GetPageThreads(Environment.NewLine & ThreadText).Count
+                    Dim threadcount As Integer = GetPageThreads(Environment.NewLine & ThreadText).Count
                     Dim ArchPage As Page = _bot.Getpage(Archivepage)
                     Dim ArchivePageText As String = ArchPage.Text
                     ArchivePages.Add(Archivepage)
@@ -419,7 +420,6 @@ Namespace WikiBot
                 Else
                     EventLogger.Debug_Log("UpdateBox: Updating Box", "LOCAL")
                     Dim ArchiveBoxMatch As Match = Regex.Match(Indexpage.Text, "{{[Cc]aja (de)* *archivos[\s\S]+?}}")
-                    Dim Newbox As String = String.Empty
                     If ArchiveBoxMatch.Success Then
                         Dim temptxt As String = ArchiveBoxMatch.Value
                         Dim temp As New Template(ArchiveBoxMatch.Value, False)

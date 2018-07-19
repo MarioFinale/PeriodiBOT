@@ -43,19 +43,19 @@ Namespace WikiBot
         ''' <param name="BotUsername">Nombre de usuario del bot</param>
         ''' <param name="BotPassword">Contraseña del bot (solo botpassword), más información ver https://www.mediawiki.org/wiki/Manual:Bot_passwords </param>
         ''' <param name="ApiURL">Direccion de la API</param>
-        Sub New(ByVal botUserName As String, botPassword As String, ApiURL As String)
+        Sub New(ByVal botUserName As String, botPassword As String, apiUrl As String)
             If String.IsNullOrWhiteSpace(botUserName) Then
                 Throw New ArgumentException("No username")
             End If
             If String.IsNullOrWhiteSpace(botPassword) Then
                 Throw New ArgumentException("No BotPassword")
             End If
-            If String.IsNullOrWhiteSpace(ApiURL) Then
+            If String.IsNullOrWhiteSpace(apiUrl) Then
                 Throw New ArgumentException("No PageURL")
             End If
             _botusername = botUserName
             _botpass = botPassword
-            _apiURL = ApiURL
+            _apiURL = apiUrl
             ApiCookies = New CookieContainer
             LogOn()
             _userName = botUserName.Split("@"c)(0).Trim()
@@ -67,7 +67,7 @@ Namespace WikiBot
         Private Function GetWikiToken() As String
             EventLogger.Log("Obtaining token...", "LOCAL")
             Dim postdata As String = "action=query&meta=tokens&type=login&format=json"
-            Dim postresponse As String = PostDataAndGetResult(_apiURL, postdata, True, ApiCookies)
+            Dim postresponse As String = PostDataAndGetResult(_apiURL, postdata, ApiCookies)
             Dim token As String = TextInBetween(postresponse, """logintoken"":""", """}}}")(0).Replace("\\", "\")
             EventLogger.Log("Token obtained!", "LOCAL")
             Return token
@@ -89,7 +89,7 @@ Namespace WikiBot
                 Try
                     token = GetWikiToken()
                     postdata = "action=login&format=json&lgname=" & _botusername & "&lgpassword=" & _botpass & "&lgdomain=" & "&lgtoken=" & UrlWebEncode(token)
-                    postresponse = PostDataAndGetResult(url, postdata, True, ApiCookies)
+                    postresponse = PostDataAndGetResult(url, postdata, ApiCookies)
                     lresult = TextInBetween(postresponse, "{""result"":""", """,")(0)
                     EventLogger.Log("Login result: " & lresult, "LOCAL")
                     Dim lUserID As String = TextInBetween(postresponse, """lguserid"":", ",")(0)
@@ -133,51 +133,51 @@ Namespace WikiBot
             Return lresult
         End Function
 
-        Public Function POSTQUERY(ByVal postdata As String) As String
-            Dim postresponse As String = PostDataAndGetResult(_apiURL, postdata, True, ApiCookies)
+        Public Function POSTQUERY(ByVal postData As String) As String
+            Dim postresponse As String = PostDataAndGetResult(_apiURL, postData, ApiCookies)
             Return postresponse
         End Function
 
-        Public Function GETQUERY(ByVal getdata As String) As String
-            Dim getresponse As String = GetDataAndResult(_apiURL & "?" & getdata, True, ApiCookies)
+        Public Function GETQUERY(ByVal getData As String) As String
+            Dim getresponse As String = GetDataAndResult(_apiURL & "?" & getData, ApiCookies)
             Return getresponse
         End Function
 
-        Public Overloads Function [GET](ByVal urlstring As String) As String
-            If String.IsNullOrWhiteSpace(urlstring) Then
+        Public Overloads Function [GET](ByVal urlString As String) As String
+            If String.IsNullOrWhiteSpace(urlString) Then
                 Return String.Empty
             End If
-            Dim getresponse As String = GetDataAndResult(urlstring, True, ApiCookies)
+            Dim getresponse As String = GetDataAndResult(urlString, ApiCookies)
             Return getresponse
         End Function
 
-        Public Overloads Function [GET](ByVal url As Uri) As String
-            If String.IsNullOrWhiteSpace(url.ToString) Then
+        Public Overloads Function [GET](ByVal pageUri As Uri) As String
+            If String.IsNullOrWhiteSpace(pageUri.ToString) Then
                 Return String.Empty
             End If
-            Dim getresponse As String = GetDataAndResult(url.ToString, True, ApiCookies)
+            Dim getresponse As String = GetDataAndResult(pageUri.ToString, ApiCookies)
             Return getresponse
         End Function
 
-        Public Overloads Function POST(ByVal urlstring As String, ByVal postdata As String) As String
-            If String.IsNullOrWhiteSpace(urlstring) Then
+        Public Overloads Function POST(ByVal urlString As String, ByVal postData As String) As String
+            If String.IsNullOrWhiteSpace(urlString) Then
                 Return String.Empty
             End If
-            If String.IsNullOrWhiteSpace(postdata) Then
+            If String.IsNullOrWhiteSpace(postData) Then
                 Return String.Empty
             End If
-            Dim postresponse As String = PostDataAndGetResult(urlstring, postdata, True, ApiCookies)
+            Dim postresponse As String = PostDataAndGetResult(urlString, postData, ApiCookies)
             Return postresponse
         End Function
 
-        Public Overloads Function POST(ByVal url As Uri, ByVal postdata As String) As String
-            If String.IsNullOrWhiteSpace(url.ToString) Then
+        Public Overloads Function POST(ByVal pageUri As Uri, ByVal postData As String) As String
+            If String.IsNullOrWhiteSpace(pageUri.ToString) Then
                 Return String.Empty
             End If
-            If String.IsNullOrWhiteSpace(postdata) Then
+            If String.IsNullOrWhiteSpace(postData) Then
                 Return String.Empty
             End If
-            Dim postresponse As String = PostDataAndGetResult(url, postdata, True, ApiCookies)
+            Dim postresponse As String = PostDataAndGetResult(pageUri, postData, ApiCookies)
             Return postresponse
         End Function
 
@@ -194,18 +194,35 @@ Namespace WikiBot
         End Function
 
         ''' <summary>Realiza una solicitud de tipo GET a un recurso web y retorna el texto.</summary>
+        ''' <param name="pageURI">URI absoluta del recurso web.</param>
+        Public Function GetDataAndResult(ByVal pageUri As Uri) As String
+            Return GetDataAndResult(pageUri.ToString, New CookieContainer)
+        End Function
+        ''' <summary>Realiza una solicitud de tipo GET a un recurso web y retorna el texto.</summary>
+        ''' <param name="pageURI">URI absoluta del recurso web.</param>
+        Public Function GetDataAndResult(ByVal pageUri As Uri, ByRef cookies As CookieContainer) As String
+            Return GetDataAndResult(pageUri.ToString, cookies)
+        End Function
+
+        ''' <summary>Realiza una solicitud de tipo GET a un recurso web y retorna el texto.</summary>
         ''' <param name="pageURL">URL absoluta del recurso web.</param>
-        ''' <param name="getCookies">Si es "true" establece los cookies en la variable local "cookies" (como cookiecontainer) </param>
-        Public Function GetDataAndResult(ByVal pageURL As String, getCookies As Boolean, Optional ByRef Cookies As CookieContainer = Nothing) As String
+        Public Function GetDataAndResult(ByVal pageUrl As String) As String
+            Return GetDataAndResult(pageUrl, New CookieContainer)
+        End Function
+
+        ''' <summary>Realiza una solicitud de tipo GET a un recurso web y retorna el texto.</summary>
+        ''' <param name="pageURL">URL absoluta del recurso web.</param>
+        ''' <param name="Cookies">Cookies sobre los que se trabaja.</param>
+        Public Function GetDataAndResult(ByVal pageUrl As String, ByRef cookies As CookieContainer) As String
             Dim tryCount As Integer = 0
 
             Do Until tryCount = MaxRetry
                 Try
-                    If Cookies Is Nothing Then
-                        Cookies = New CookieContainer
+                    If cookies Is Nothing Then
+                        cookies = New CookieContainer
                     End If
-                    Dim tempcookies As CookieContainer = Cookies
-                    Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageURL), HttpWebRequest)
+                    Dim tempcookies As CookieContainer = cookies
+                    Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageUrl), HttpWebRequest)
                     postreq.Method = "GET"
                     postreq.KeepAlive = True
                     postreq.Timeout = 60000
@@ -215,10 +232,8 @@ Namespace WikiBot
                     Dim postresponse As HttpWebResponse
                     postresponse = DirectCast(postreq.GetResponse, HttpWebResponse)
                     tempcookies.Add(postresponse.Cookies)
-                    If getCookies Then
-                        Cookies = tempcookies
-                    End If
                     Dim postreqreader As New StreamReader(postresponse.GetResponseStream())
+                    cookies = tempcookies
                     Return postreqreader.ReadToEnd
                 Catch ex As ProtocolViolationException 'Catch para los headers erróneos que a veces entrega la API de MediaWiki
                     EventLogger.EX_Log(ex.Message, ex.TargetSite.Name)
@@ -232,30 +247,42 @@ Namespace WikiBot
         ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>
         ''' <param name="pageURI">URI absoluta del recurso web.</param>
         ''' <param name="postData">Cadena de texto que se envia en el POST.</param>
-        ''' <param name="getCookies">Si es "true" establece los cookies en la variable local "cookies" (como cookiecontainer) </param>
-        Public Function PostDataAndGetResult(pageURI As Uri, postData As String, getCookies As Boolean, Optional ByRef Cookies As CookieContainer = Nothing) As String
-            Return PostDataAndGetResult(pageURI.ToString, postData, getCookies, Cookies)
+        Public Function PostDataAndGetResult(pageUri As Uri, postData As String) As String
+            Return PostDataAndGetResult(pageUri.ToString, postData, New CookieContainer)
+        End Function
+
+        ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>
+        ''' <param name="pageURI">URI absoluta del recurso web.</param>
+        ''' <param name="postData">Cadena de texto que se envia en el POST.</param>
+        Public Function PostDataAndGetResult(pageUri As Uri, postData As String, ByRef cookies As CookieContainer) As String
+            Return PostDataAndGetResult(pageUri.ToString, postData, cookies)
         End Function
 
         ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>
         ''' <param name="pageURL">URL absoluta del recurso web.</param>
         ''' <param name="postData">Cadena de texto que se envia en el POST.</param>
-        ''' <param name="getCookies">Si es "true" establece los cookies en la variable local "cookies" (como cookiecontainer) </param>
-        Public Function PostDataAndGetResult(pageURL As String, postData As String, getCookies As Boolean, Optional ByRef Cookies As CookieContainer = Nothing) As String
+        Public Function PostDataAndGetResult(pageUrl As String, postData As String) As String
+            Return PostDataAndGetResult(pageUrl, postData, New CookieContainer)
+        End Function
 
-            If String.IsNullOrEmpty(pageURL) Then
-                Throw New ArgumentNullException("pageURL", "No URL specified.")
+        ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>
+        ''' <param name="pageURL">URL absoluta del recurso web.</param>
+        ''' <param name="postData">Cadena de texto que se envia en el POST.</param>
+        Public Function PostDataAndGetResult(pageUrl As String, postData As String, ByRef cookies As CookieContainer) As String
+
+            If String.IsNullOrEmpty(pageUrl) Then
+                Throw New ArgumentNullException("PostDataAndGetResult", "No URL specified.")
             End If
 
-            If Cookies Is Nothing Then
-                Cookies = New CookieContainer
+            If cookies Is Nothing Then
+                cookies = New CookieContainer
             End If
 
-            Dim tempcookies As CookieContainer = Cookies
+            Dim tempcookies As CookieContainer = cookies
 
             Dim encoding As New Text.UTF8Encoding
             Dim byteData As Byte() = encoding.GetBytes(postData)
-            Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageURL), HttpWebRequest)
+            Dim postreq As HttpWebRequest = DirectCast(HttpWebRequest.Create(pageUrl), HttpWebRequest)
 
             postreq.Method = "POST"
             postreq.KeepAlive = True
@@ -271,10 +298,8 @@ Namespace WikiBot
             Dim postresponse As HttpWebResponse
             postresponse = DirectCast(postreq.GetResponse, HttpWebResponse)
             tempcookies.Add(postresponse.Cookies)
-            If getCookies Then
-                Cookies = tempcookies
-            End If
             Dim postreqreader As New StreamReader(postresponse.GetResponseStream())
+            cookies = tempcookies
             Return postreqreader.ReadToEnd
 
 
