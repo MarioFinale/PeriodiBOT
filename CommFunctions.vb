@@ -927,7 +927,7 @@ NotInheritable Class CommFunctions
 
         If matchc.Count = 0 Then
             EventLogger.Debug_Log("No date match", "ESWikiDateTime")
-            Return DateTime.Parse("23:59 31/12/9999")
+            Return New Date(9999, 12, 31, 23, 59, 59)
         End If
 
         For Each m As Match In matchc
@@ -972,7 +972,7 @@ NotInheritable Class CommFunctions
 
         If matchc.Count = 0 Then
             EventLogger.Debug_Log("No date match", "ESWikiDateTime")
-            Return DateTime.Parse("23:59 31/12/9999")
+            Return New DateTime(9999, 12, 31, 23, 59, 59)
         End If
 
         For Each m As Match In matchc
