@@ -64,6 +64,7 @@ Public Module ThreadPoolAdmin
                     Try
                         tinfo.Task.Invoke
                     Catch ex As Exception
+                        tinfo.ExCount += 1
                         EventLogger.EX_Log("UNHANDLED TASK EX: """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
                     End Try
 
