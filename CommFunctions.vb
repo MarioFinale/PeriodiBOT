@@ -160,15 +160,55 @@ NotInheritable Class CommFunctions
     ''' <param name="Arr1">Array base</param>
     ''' <param name="arr2">Array a comparar</param>
     ''' <returns></returns>
-    Public Shared Function GetSecondArrayAddedDiff(ByVal Arr1 As String(), arr2 As String()) As String()
+    Public Shared Function GetSecondArrayAddedDiff(ByVal arr1 As String(), arr2 As String()) As String()
         Dim Difflist As New List(Of String)
         For i As Integer = 0 To arr2.Count - 1
-            If Not Arr1.Contains(arr2(i)) Then
+            If Not arr1.Contains(arr2(i)) Then
                 Difflist.Add(arr2(i))
             End If
         Next
         Return Difflist.ToArray
     End Function
+
+    ''' <summary>
+    ''' Entrega los elementos en el segundo array que no estén presentes en el primero
+    ''' </summary>
+    ''' <param name="threadlist1">Array base</param>
+    ''' <param name="threadlist2">Array a comparar</param>
+    ''' <returns></returns>
+    Public Shared Function GetChangedThreadsTitle(ByVal threadlist1 As String(), threadlist2 As String()) As String()
+        Dim Difflist As New List(Of String)
+        Dim thread1 As List(Of String) = threadlist1.ToList
+        Dim thread2 As List(Of String) = threadlist2.ToList
+        thread1.Sort()
+        thread2.Sort()
+
+        If thread1.Count = thread2.Count Then
+            For i As Integer = 0 To thread1.Count - 1
+                If Not thread1(i) = thread2(i) Then
+                    Difflist.Add(GetTitleFromThread(thread1(i)))
+                End If
+            Next
+        ElseIf thread1.Count > thread2.Count - 1 Then
+            For i As Integer = 0 To thread2.Count - 1
+                If Not thread2(i) = thread1(i) Then
+                    Difflist.Add(GetTitleFromThread(thread2(i)))
+                End If
+            Next
+        Else
+            For i As Integer = 0 To thread1.Count - 1
+                If Not thread1(i) = thread2(i) Then
+                    Difflist.Add(GetTitleFromThread(thread2(i)))
+                End If
+            Next
+            For i As Integer = thread1.Count - 1 To thread2.Count - 1
+                Difflist.Add(GetTitleFromThread(thread2(i)))
+            Next
+        End If
+        Return Difflist.ToArray
+    End Function
+
+
 
     ''' <summary>
     ''' Convierte un array de tipo string numérico a integer. Si uno de los elementos no es numérico retorna 0 en su lugar.
@@ -1018,9 +1058,6 @@ NotInheritable Class CommFunctions
         If tpage Is Nothing Then Return Nothing
         Return GetPageThreads(tpage.Text)
     End Function
-
-
-
 
 End Class
 

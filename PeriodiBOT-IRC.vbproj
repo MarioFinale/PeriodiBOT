@@ -84,7 +84,7 @@
     <Compile Include="IRCCommands.vb" />
     <Compile Include="CommFunctions.vb" />
     <Compile Include="GlobalVars.vb" />
-    <Compile Include="GrillitusArchive.vb" />
+    <Compile Include="OldGrillitusTasks.vb" />
     <Compile Include="IRCMessage.vb" />
     <Compile Include="IRC_Client.vb" />
     <Compile Include="IRCCommandResolver.vb" />

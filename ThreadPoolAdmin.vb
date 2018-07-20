@@ -61,7 +61,12 @@ Public Module ThreadPoolAdmin
                 If Not tinfo.Paused Then
                     tinfo.Running = True
                     tinfo.Status = "Running"
-                    tinfo.Task.Invoke
+                    Try
+                        tinfo.Task.Invoke
+                    Catch ex As Exception
+                        EventLogger.EX_Log("UNHANDLED TASK EX: """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
+                    End Try
+
                     tinfo.Runcount += 1.0F
                     tinfo.Status = "Completed"
                     If Not tinfo.Infinite Then
@@ -81,7 +86,7 @@ Public Module ThreadPoolAdmin
             Loop
         Catch ex As Exception
             tinfo.ExCount += 1
-            EventLogger.EX_Log("TASK """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
+            EventLogger.EX_Log("UNHANDLED THREAD EX: """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
         End Try
         ThreadList.Remove(tinfo)
     End Sub

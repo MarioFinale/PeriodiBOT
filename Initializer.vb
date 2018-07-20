@@ -18,10 +18,6 @@ Public NotInheritable Class Initializer
         BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
         BotIRC.Start()
 
-        Dim testpage As Page = ESWikiBOT.Getpage("Usuario discusión:MarioFinale")
-        ESWikiBOT.AddMissingSignature(testpage)
-        Dim a As Integer = 1
-
         'Tarea para revisar si hay solicitudes en mediacion informal
         Dim InfMedFunc As New Func(Of Boolean)(Function() ESWikiBOT.CheckInformalMediation())
         NewThread("Verificar solicitudes en mediacion informal", BotCodename, InfMedFunc, 600000, True)
@@ -53,6 +49,10 @@ Public NotInheritable Class Initializer
         'Tarea para actualizar extractos
         Dim UpdateExtractFunc As New Func(Of Boolean)(Function() ESWikiBOT.UpdatePageExtracts(True))
         NewThread("Actualizar extractos", BotCodename, UpdateExtractFunc, 3600000, True)
+
+        'Tarea para completar firmas
+        Dim SignAllFunc As New Func(Of Boolean)(Function() ESWikiBOT.SignAllInclusions(True))
+        NewThread("Completar firmas", BotCodename, SignAllFunc, 900000, True)
 
         'Tarea para archivar todo
         Dim ArchiveAllFunc As New Func(Of Boolean)(Function() ESWikiBOT.ArchiveAllInclusions(True))

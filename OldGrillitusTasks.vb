@@ -5,7 +5,7 @@ Imports PeriodiBOT_IRC.CommFunctions
 
 
 Namespace WikiBot
-    Class GrillitusArchive
+    Class OldGrillitusTasks
         Private _bot As Bot
 
         Sub New(ByVal WorkerBot As WikiBot.Bot)
@@ -560,5 +560,62 @@ Namespace WikiBot
             End If
             Return True
         End Function
+
+
+        ''' <summary>
+        ''' Obtiene la primera aparición de la plantilla de firmado en la página pasada como parámetro 
+        ''' </summary>
+        ''' <param name="PageToGet">Pagina de la cual se busca la plantilla de firmado</param>
+        ''' <returns></returns>
+        Function GetSignTemplate(ByVal PageToGet As Page) As Template
+            Dim templist As List(Of Template) = GetTemplates(GetTemplateTextArray(PageToGet.Text))
+            Dim signtemp As New Template
+            For Each t As Template In templist
+                If Regex.Match(t.Name, " *[Ff]irma automática").Success Then
+                    signtemp = t
+                    Exit For
+                End If
+            Next
+            Return signtemp
+        End Function
+
+
+        ''' <summary>
+        ''' Actualiza todas las paginas que incluyan la plantilla de archivado automático.
+        ''' </summary>
+        ''' <returns></returns>
+        Function SignAllInclusions(ByVal IRC As Boolean) As Boolean
+            If IRC Then
+                BotIRC.Sendmessage(ColoredText("Completando firmas.", 4))
+            End If
+            Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Firma_automática")
+            For Each pa As String In includedpages
+                EventLogger.Log("SignAllInclusions: Page " & pa, "LOCAL")
+                Dim _Page As Page = _bot.Getpage(pa)
+                If _Page.Exists Then
+                    If Not ValidNamespace(_Page) Then Continue For
+                    If (Date.UtcNow - _Page.LastEdit) < (New TimeSpan(0, 15, 0)) Then Continue For
+                    Dim SignTemplate As Template = GetSignTemplate(_Page)
+                    Dim minor As Boolean = True
+                    Dim newthreads As Boolean = False
+                    For Each tup As Tuple(Of String, String) In SignTemplate.Parameters
+                        If tup.Item1 = "Avisar al completar firma" Then
+                            minor = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char())).ToLower = "no"
+                        End If
+                        If tup.Item1 = "Estrategia" Then
+                            newthreads = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char())).ToLower = "NuevaSecciónSinFirmar"
+                        End If
+                    Next
+                    _bot.AddMissingSignature(_Page, newthreads, minor)
+                End If
+            Next
+
+            If IRC Then
+                BotIRC.Sendmessage(ColoredText("¡Autofirmado completo!", 4))
+            End If
+
+            Return True
+        End Function
+
     End Class
 End Namespace

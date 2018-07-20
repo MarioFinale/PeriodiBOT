@@ -7,6 +7,7 @@ Imports PeriodiBOT_IRC.CommFunctions
 Imports PeriodiBOT_IRC.IRC
 
 Namespace WikiBot
+
     Public Class Bot
 
 #Region "Properties"
@@ -755,7 +756,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' <param name="pageToArchive">Página a archivar</param>
         ''' <returns></returns>
         Function Archive(ByVal pageToArchive As Page) As Boolean
-            Dim ArchiveFcn As New GrillitusArchive(Me)
+            Dim ArchiveFcn As New OldGrillitusTasks(Me)
             Return ArchiveFcn.Archive(pageToArchive)
         End Function
 
@@ -987,7 +988,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' </summary>
         ''' <returns></returns>
         Function ArchiveAllInclusions(ByVal irc As Boolean) As Boolean
-            Dim Archive As New GrillitusArchive(Me)
+            Dim Archive As New OldGrillitusTasks(Me)
             Return Archive.ArchiveAllInclusions(irc)
         End Function
 
@@ -1251,8 +1252,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Return True
         End Function
 
-
-        Function GetLastUnsignedSection(ByVal tpage As Page) As Tuple(Of String, String, Date)
+        Function GetLastUnsignedSection(ByVal tpage As Page, newthreads As Boolean) As Tuple(Of String, String, Date)
             If tpage Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             Dim oldPage As Page = Getpage(tpage.ParentRevID)
             Dim currentPage As Page = tpage
@@ -1265,32 +1265,44 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
             Dim oldThreadTitles As String() = GetTitlesFromThreads(oldPageThreads)
             Dim currentThreadTitles As String() = GetTitlesFromThreads(currentPageThreads)
+            Dim threaddiffs As String()
 
-            Dim threaddiffs As String() = GetSecondArrayAddedDiff(oldThreadTitles, currentThreadTitles)
+            If newthreads Then
+                threaddiffs = GetSecondArrayAddedDiff(oldThreadTitles, currentThreadTitles)
+            Else
+                threaddiffs = GetChangedThreadsTitle(oldPageThreads, currentPageThreads)
+            End If
 
             If threaddiffs.Count > 0 Then
-                Return New Tuple(Of String, String, Date)(threaddiffs.Last, LastUser, LastEdit)
+                Dim lastsign As Date = LastParagraphDateTime(threaddiffs.Last)
+                If lastsign = DateTime.Parse("23:59 31/12/9999") Then
+                    Return New Tuple(Of String, String, Date)(threaddiffs.Last, LastUser, LastEdit)
+                End If
             End If
+
             Return Nothing
         End Function
 
-        Function AddMissingSignature(ByVal tpage As Page) As Boolean
-            Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection(tpage)
+        Function AddMissingSignature(ByVal tpage As Page, newthreads As Boolean, minor As Boolean) As Boolean
+            Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection(tpage, newthreads)
             If UnsignedSectionInfo Is Nothing Then Return False
             Dim pagetext As String = tpage.Text
             Dim LastNewThread As String = GetLastThreadByTitle(tpage.Threads, UnsignedSectionInfo.Item1)
-            Dim lastsingnature As Date = FirstDate(LastNewThread)
-            If Not lastsingnature = New DateTime(9999, 12, 31, 23, 59, 59) Then
-                Return False
-            End If
             Dim UnsignedThread As String = LastNewThread
             pagetext = pagetext.Replace(UnsignedThread, UnsignedThread & " {{sust:No firmado|" & UnsignedSectionInfo.Item2 & "|" & UnsignedSectionInfo.Item3.ToString("HH:mm d MMM yyyy") & " (UTC)}}")
-            If tpage.Save(pagetext, "Bot: Completando sección sin firmar.", True, True) = EditResults.Edit_successful Then
+            If tpage.Save(pagetext, "Bot: Completando sección sin firmar.", minor, True) = EditResults.Edit_successful Then
                 Return True
             Else
                 Return False
             End If
         End Function
+
+
+
+
+
+
+
 
 #End Region
 
@@ -1359,6 +1371,5 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 #End Region
 
     End Class
-
 
 End Namespace
