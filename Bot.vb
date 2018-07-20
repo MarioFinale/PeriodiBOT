@@ -993,6 +993,15 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         End Function
 
         ''' <summary>
+        ''' Crea una nueva instancia de la clase de archivado y actualiza todas las paginas que incluyan la pseudoplantilla de archivado de grillitus.
+        ''' </summary>
+        ''' <returns></returns>
+        Function SignAllInclusions(ByVal irc As Boolean) As Boolean
+            Dim signtask As New OldGrillitusTasks(Me)
+            Return signtask.SignAllInclusions(irc)
+        End Function
+
+        ''' <summary>
         ''' Crea una nueva instancia de la clase de actualizacion de temas y actualiza el cafe temático.
         ''' </summary>
         ''' <returns></returns>
