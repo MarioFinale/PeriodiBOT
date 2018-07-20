@@ -83,7 +83,7 @@ Namespace WikiBot
         ''' Entrega las secciones de la página
         ''' </summary>
         ''' <returns></returns>
-        Function Sections() As String()
+        Function Threads() As String()
 
             Return _sections
 
@@ -184,6 +184,21 @@ Namespace WikiBot
             End Get
         End Property
 
+        ''' <summary>
+        ''' Entrega la fecha de la última edición en la página
+        ''' </summary>
+        ''' <returns></returns>
+        Public ReadOnly Property LastEdit As Date
+            Get
+                Return GetLastEdit()
+            End Get
+        End Property
+
+        Public ReadOnly Property LastTimeStamp As String
+            Get
+                Return GetLastTimeStamp()
+            End Get
+        End Property
 #End Region
         ''' <summary>
         ''' Inicializa una nueva página, por lo general no se llama de forma directa. Se puede obtener una página creandola con Bot.Getpage.
@@ -293,7 +308,7 @@ Namespace WikiBot
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <param name="spam">¿Reemplazar los link marcados como spam?</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBot As Boolean, ByVal spam As Boolean) As String
+        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean, ByVal isBot As Boolean, ByVal spam As Boolean) As EditResults
             Return SavePage(text, summary, isMinor, isBot, spam, 0)
         End Function
 
@@ -304,15 +319,15 @@ Namespace WikiBot
         ''' <param name="EditSummary">Resumen de la edición</param>
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Private Function SavePage(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean, ByVal Spamreplace As Boolean, ByRef RetryCount As Integer) As String
+        Private Function SavePage(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean, ByVal Spamreplace As Boolean, ByRef RetryCount As Integer) As EditResults
             If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Then
                 Throw New ArgumentNullException("SavePage", "Empty parameter")
             End If
-            Dim ntimestamp As String = GetLastTimeStamp(_title)
+            Dim ntimestamp As String = GetLastTimeStamp()
 
             If Not ntimestamp = _timestamp Then
                 EventLogger.Log("Edit conflict on " & _title, "BOT", _username)
-                Return "Edit conflict"
+                Return EditResults.Edit_conflict
             End If
             Dim minorstr As String = String.Empty
 
@@ -339,18 +354,18 @@ Namespace WikiBot
             End Try
 
             If String.IsNullOrWhiteSpace(postresult) Then
-                Return "POST error"
+                Return EditResults.POST_error
             End If
 
             If postresult.Contains("""result"":""Success""") Then
                 EventLogger.Log("Edit on " & _title & " successful!", "LOCAL", _username)
-                Return "Edit successful!"
+                Return EditResults.Edit_successful
             End If
 
             If postresult.ToLower.Contains("abusefilter") Then
                 EventLogger.Log("AbuseFilter Triggered! on " & _title, "LOCAL", _username)
                 EventLogger.Debug_Log("ABUSEFILTER: " & postresult, "LOCAL", _username)
-                Return "AbuseFilter"
+                Return EditResults.AbuseFilter
             End If
 
             If postresult.ToLower.Contains("spamblacklist") Then
@@ -363,10 +378,10 @@ Namespace WikiBot
                         Return SavePage(newtext, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
                     Else
                         EventLogger.Log("Max retry count saving " & _title, "LOCAL", _username)
-                        Return "Max retry count"
+                        Return EditResults.Max_retry_count
                     End If
                 Else
-                    Return "SpamBlacklist"
+                    Return EditResults.SpamBlacklist
                 End If
             End If
 
@@ -378,10 +393,10 @@ Namespace WikiBot
             Else
                 EventLogger.Log("Max retry count saving " & _title, "LOCAL", _username)
                 EventLogger.Debug_Log("Unexpected result: " & postresult, "SavePage", _username)
-                Return "Max retry count"
+                Return EditResults.Max_retry_count
             End If
 
-            Return "Unexpected result"
+            Return EditResults.Unexpected_Result
         End Function
 
         ''' <summary>
@@ -391,10 +406,10 @@ Namespace WikiBot
         ''' <param name="Summary">Resumen de la edición</param>
         ''' <param name="Minor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal minor As Boolean, ByVal bot As Boolean, ByVal spam As Boolean) As String
+        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal minor As Boolean, ByVal bot As Boolean, ByVal spam As Boolean) As EditResults
             If Not BotCanEdit(_text, _username) Then
                 EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
-                Return "No Bots"
+                Return EditResults.No_bots
             End If
             Return SavePage(text, summary, minor, bot, spam, 0)
         End Function
@@ -406,10 +421,10 @@ Namespace WikiBot
         ''' <param name="Summary">Resumen de la edición</param>
         ''' <param name="Minor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal minor As Boolean, ByVal bot As Boolean) As String
+        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal minor As Boolean, ByVal bot As Boolean) As EditResults
             If Not BotCanEdit(_text, _username) Then
                 EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
-                Return "No Bots"
+                Return EditResults.No_bots
             End If
             Return SavePage(text, summary, minor, bot, False, 0)
         End Function
@@ -421,10 +436,10 @@ Namespace WikiBot
         ''' <param name="Summary">Resumen de la edición</param>
         ''' <param name="IsMinor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean) As String
+        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String, ByVal isMinor As Boolean) As EditResults
             If Not BotCanEdit(_text, _username) Then
                 EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
-                Return "No Bots"
+                Return EditResults.No_bots
             End If
             Return SavePage(text, summary, isMinor, False, False, 0)
         End Function
@@ -435,10 +450,10 @@ Namespace WikiBot
         ''' <param name="text">Texto (wikicódigo) de la página</param>
         ''' <param name="Summary">Resumen de la edición</param>
         ''' <returns></returns>
-        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String) As String
+        Overloads Function CheckAndSave(ByVal text As String, ByVal summary As String) As EditResults
             If Not BotCanEdit(_text, _username) Then
                 EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
-                Return "No Bots"
+                Return EditResults.No_bots
             End If
             Return SavePage(text, summary, False, False, False, 0)
         End Function
@@ -448,10 +463,10 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="text">Texto (wikicódigo) de la página</param>
         ''' <returns></returns>
-        Overloads Function CheckAndSave(ByVal text As String) As String
+        Overloads Function CheckAndSave(ByVal text As String) As EditResults
             If Not BotCanEdit(_text, _username) Then
                 EventLogger.Log("Bots can't edit " & _title & "!", "BOT", _username)
-                Return "No Bots"
+                Return EditResults.No_bots
             End If
             Return SavePage(text, "Bot edit", False, False, False, 0)
         End Function
@@ -464,7 +479,7 @@ Namespace WikiBot
         ''' <param name="Minor">¿Marcar como menor?</param>
         ''' <param name="bot">¿Marcar como edición de bot?</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal minor As Boolean, ByVal bot As Boolean) As String
+        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal minor As Boolean, ByVal bot As Boolean) As EditResults
             Return SavePage(text, summary, minor, bot, False, 0)
         End Function
 
@@ -476,7 +491,7 @@ Namespace WikiBot
         ''' <param name="summary">Resumen de la edición</param>
         ''' <param name="minor">¿Marcar como menor?</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal minor As Boolean) As String
+        Overloads Function Save(ByVal text As String, ByVal summary As String, ByVal minor As Boolean) As EditResults
             Return SavePage(text, summary, minor, False, False, 0)
         End Function
 
@@ -486,7 +501,7 @@ Namespace WikiBot
         ''' <param name="text">Texto (wikicódigo) de la página</param>
         ''' <param name="Summary">Resumen de la edición</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal text As String, ByVal summary As String) As String
+        Overloads Function Save(ByVal text As String, ByVal summary As String) As EditResults
             Return SavePage(text, summary, False, False, False, 0)
         End Function
 
@@ -495,7 +510,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="text">Texto (wikicódigo) de la página</param>
         ''' <returns></returns>
-        Overloads Function Save(ByVal text As String) As String
+        Overloads Function Save(ByVal text As String) As EditResults
             Return SavePage(text, "Bot edit", False, False, False, 0)
         End Function
 
@@ -513,7 +528,7 @@ Namespace WikiBot
                 Throw New ArgumentNullException
             End If
 
-            If Not GetLastTimeStamp(_title) = _timestamp Then
+            If Not GetLastTimeStamp() = _timestamp Then
                 EventLogger.Log("Edit conflict", "LOCAL", _username)
                 Return "Edit conflict"
             End If
@@ -746,17 +761,27 @@ Namespace WikiBot
         ''' <summary>
         ''' Entrega la ultima marca de tiempo de la pagina.
         ''' </summary>
-        ''' <param name="pagename">Nombre exacto de la pagina.</param>
         ''' <returns></returns>
-        Function GetLastTimeStamp(ByVal pageName As String) As String
-            Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions&rvprop=timestamp&titles=" & pageName
+        Private Function GetLastTimeStamp() As String
+            Dim querystring As String = "format=json&maxlag=5&action=query&prop=revisions&rvprop=timestamp&titles=" & _title
             Dim QueryText As String = _bot.POSTQUERY(querystring)
             Try
                 Return TextInBetween(QueryText, """timestamp"":""", """")(0)
             Catch ex As IndexOutOfRangeException
                 Return ""
             End Try
+        End Function
 
+        ''' <summary>
+        ''' Entrega la ultima marca de tiempo de la pagina.
+        ''' </summary>
+        ''' <returns></returns>
+        Private Function GetLastEdit() As Date
+            Dim timestamp As String = GetLastTimeStamp()
+            Dim timestringarray As String() = timestamp.Replace("T"c, " "c).Replace("Z"c, "").Replace("-"c, " "c).Replace(":"c, " "c).Split(" "c)
+            Dim timeintarray As Integer() = StringArrayToInt(timestringarray)
+            Dim editdate As Date = New Date(timeintarray(0), timeintarray(1), timeintarray(2), timeintarray(3), timeintarray(4), timeintarray(5), DateTimeKind.Utc)
+            Return editdate
         End Function
 
 
@@ -858,5 +883,18 @@ Namespace WikiBot
 
         End Function
     End Class
+
+    Public Enum EditResults
+        Edit_conflict
+        POST_error
+        Edit_successful
+        AbuseFilter
+        Max_retry_count
+        SpamBlacklist
+        No_bots
+        Unexpected_Result
+    End Enum
+
+
 
 End Namespace

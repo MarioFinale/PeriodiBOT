@@ -38,6 +38,7 @@ NotInheritable Class CommFunctions
     Public Shared Function RemoveExcessOfSpaces(ByVal text As String) As String
         Return Regex.Replace(text, "\s{2,}", " ")
     End Function
+
     ''' <summary>
     ''' Cuenta las veces que un carácter aparece en una cadena de texto dada.
     ''' </summary>
@@ -47,6 +48,7 @@ NotInheritable Class CommFunctions
     Public Shared Function CountCharacter(ByVal value As String, ByVal ch As Char) As Integer
         Return value.Count(Function(c As Char) c = ch)
     End Function
+
     ''' <summary>
     ''' Regresa la misma cadena de texto, pero con la primera letra mayúscula.
     ''' </summary>
@@ -60,6 +62,7 @@ NotInheritable Class CommFunctions
         array(0) = Char.ToUpper(array(0))
         Return New String(array)
     End Function
+
     ''' <summary>
     ''' Convierte el texto completo a minúsculas y luego coloca en mayúsculas la primera letra.
     ''' </summary>
@@ -69,6 +72,7 @@ NotInheritable Class CommFunctions
         Dim s As String = text.ToLower
         Return UppercaseFirstCharacter(s)
     End Function
+
     ''' <summary>
     ''' Verifica si una cadena de texto es numérica.
     ''' </summary>
@@ -81,6 +85,7 @@ NotInheritable Class CommFunctions
             Return False
         End If
     End Function
+
     ''' <summary>
     ''' Une un array de texto usando el separador indicado
     ''' </summary>
@@ -93,6 +98,93 @@ NotInheritable Class CommFunctions
             responsestring = responsestring & s & separator
         Next
         Return responsestring.TrimEnd(separator)
+    End Function
+
+    ''' <summary>
+    ''' Obtiene el último hilo que coincida con el título entregado.
+    ''' </summary>
+    ''' <param name="threads"></param>
+    ''' <returns></returns>
+    Public Shared Function GetLastThreadByTitle(ByVal threads As String(), title As String) As String
+        Dim matchingthread As String = String.Empty
+        For Each t As String In threads
+            If GetTitleFromThread(t) = title Then
+                matchingthread = t
+            End If
+        Next
+        Return matchingthread
+    End Function
+
+    ''' <summary>
+    ''' Entrega el primer título del hilo en formato wikitexto que se le pase como parámetro. Si no tiene título entregará una cadena vacía.
+    ''' </summary>
+    ''' <param name="thread"></param>
+    ''' <returns></returns>
+    Public Shared Function GetTitleFromThread(ByVal thread As String) As String
+        Dim TitlesList As New List(Of String)
+        Dim temptext As String = thread
+        Dim commentMatch As MatchCollection = Regex.Matches(temptext, "(<!--)[\s\S]*?(-->)")
+        Dim CommentsList As New List(Of String)
+        For i As Integer = 0 To commentMatch.Count - 1
+            CommentsList.Add(commentMatch(i).Value)
+            temptext = temptext.Replace(commentMatch(i).Value, ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4))
+        Next
+        Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((==(?!=)).+?(==(?!=)))")
+        For Each m As Match In mc
+            TitlesList.Add(m.Value)
+        Next
+        If TitlesList.Count > 0 Then
+            Return TitlesList.First
+        Else
+            Return String.Empty
+        End If
+    End Function
+
+
+    ''' <summary>
+    ''' Entrega únicamente los títulos de los hilos en formato wikitexto que se les pase como parámetro. Si uno de los parámetros no tiene título entregará una cadena vacía en su lugar.
+    ''' </summary>
+    ''' <param name="threads"></param>
+    ''' <returns></returns>
+    Public Shared Function GetTitlesFromThreads(ByVal threads As String()) As String()
+        Dim TitlesList As New List(Of String)
+        For Each threadtext As String In threads
+            TitlesList.Add(GetTitleFromThread(threadtext))
+        Next
+        Return TitlesList.ToArray
+    End Function
+
+    ''' <summary>
+    ''' Entrega los elementos en el segundo array que no estén presentes en el primero
+    ''' </summary>
+    ''' <param name="Arr1">Array base</param>
+    ''' <param name="arr2">Array a comparar</param>
+    ''' <returns></returns>
+    Public Shared Function GetSecondArrayAddedDiff(ByVal Arr1 As String(), arr2 As String()) As String()
+        Dim Difflist As New List(Of String)
+        For i As Integer = 0 To arr2.Count - 1
+            If Not Arr1.Contains(arr2(i)) Then
+                Difflist.Add(arr2(i))
+            End If
+        Next
+        Return Difflist.ToArray
+    End Function
+
+    ''' <summary>
+    ''' Convierte un array de tipo string numérico a integer. Si uno de los elementos no es numérico retorna 0 en su lugar.
+    ''' </summary>
+    ''' <param name="arr">Array a evaluar</param>
+    ''' <returns></returns>
+    Public Shared Function StringArrayToInt(ByVal arr As String()) As Integer()
+        Dim intlist As New List(Of Integer)
+        For i As Integer = 0 To arr.Count - 1
+            If IsNumeric(arr(i)) Then
+                intlist.Add(Integer.Parse(arr(i)))
+            Else
+                intlist.Add(0)
+            End If
+        Next
+        Return intlist.ToArray
     End Function
 
     ''' <summary>

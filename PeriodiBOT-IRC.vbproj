@@ -82,7 +82,6 @@
     <Compile Include="Initializer.vb" />
     <Compile Include="IRCCommand.vb" />
     <Compile Include="IRCCommands.vb" />
-    <Compile Include="BOT_Tasks.vb" />
     <Compile Include="CommFunctions.vb" />
     <Compile Include="GlobalVars.vb" />
     <Compile Include="GrillitusArchive.vb" />

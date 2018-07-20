@@ -227,7 +227,7 @@ Public Class IRCCommands
     Function UpdateExtracts(ByVal args As CommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            Dim Upexfcn As New Func(Of Boolean)(Function() UpdatePageExtracts(True))
+            Dim Upexfcn As New Func(Of Boolean)(Function() args.Workerbot.UpdatePageExtracts(True))
             NewThread("Actualizar extractos a solicitud", args.Realname, Upexfcn, 1, False)
             Return New IRCMessage(args.Source, args.Realname & ": Se ha creado la tarea.")
         Else
@@ -294,7 +294,7 @@ Public Class IRCCommands
     Function ArchiveAll(ByVal args As CommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            NewThread("Archivado a solicitud", args.Realname, New Func(Of Boolean)(Function() ArchiveAllInclusions(True)), 1, False)
+            NewThread("Archivado a solicitud", args.Realname, New Func(Of Boolean)(Function() args.Workerbot.ArchiveAllInclusions(True)), 1, False)
             Return New IRCMessage(args.Source, "Se realizarará el archivado en todas las páginas.")
         Else
             Return Nothing
