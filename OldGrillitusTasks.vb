@@ -590,24 +590,28 @@ Namespace WikiBot
             End If
             Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Firma_automática")
             For Each pa As String In includedpages
-                EventLogger.Log("SignAllInclusions: Page " & pa, "LOCAL")
-                Dim _Page As Page = _bot.Getpage(pa)
-                If _Page.Exists Then
-                    If Not ValidNamespace(_Page) Then Continue For
-                    If (Date.UtcNow - _Page.LastEdit) < (New TimeSpan(0, 1, 0)) Then Continue For
-                    Dim SignTemplate As Template = GetSignTemplate(_Page)
-                    Dim minor As Boolean = True
-                    Dim newthreads As Boolean = False
-                    For Each tup As Tuple(Of String, String) In SignTemplate.Parameters
-                        If tup.Item1 = "Avisar al completar firma" Then
-                            minor = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char())).ToLower = "no"
-                        End If
-                        If tup.Item1 = "Estrategia" Then
-                            newthreads = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char())).ToLower = "NuevaSecciónSinFirmar"
-                        End If
-                    Next
-                    _bot.AddMissingSignature(_Page, newthreads, minor)
-                End If
+                Try
+                    EventLogger.Log("SignAllInclusions: Page " & pa, "LOCAL")
+                    Dim _Page As Page = _bot.Getpage(pa)
+                    If _Page.Exists Then
+                        If Not ValidNamespace(_Page) Then Continue For
+                        If (Date.UtcNow - _Page.LastEdit) < (New TimeSpan(0, 15, 0)) Then Continue For
+                        Dim SignTemplate As Template = GetSignTemplate(_Page)
+                        Dim minor As Boolean = True
+                        Dim newthreads As Boolean = False
+                        For Each tup As Tuple(Of String, String) In SignTemplate.Parameters
+                            If tup.Item1 = "Avisar al completar firma" Then
+                                minor = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char())).ToLower = "no"
+                            End If
+                            If tup.Item1 = "Estrategia" Then
+                                newthreads = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char())).ToLower = "NuevaSecciónSinFirmar"
+                            End If
+                        Next
+                        _bot.AddMissingSignature(_Page, newthreads, minor)
+                    End If
+                Catch ex As Exception
+                    EventLogger.EX_Log("SignAllInclusions: Page """ & pa & """ EX: " & ex.Message, "LOCAL")
+                End Try
             Next
 
             If IRC Then

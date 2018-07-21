@@ -1274,19 +1274,19 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
             Dim oldThreadTitles As String() = GetTitlesFromThreads(oldPageThreads)
             Dim currentThreadTitles As String() = GetTitlesFromThreads(currentPageThreads)
-            Dim threaddiffs As String()
+            Dim editedthreads As String()
 
             If newthreads Then
-                threaddiffs = GetSecondArrayAddedDiff(oldThreadTitles, currentThreadTitles)
+                editedthreads = GetSecondArrayAddedDiff(oldThreadTitles, currentThreadTitles)
             Else
-                threaddiffs = GetChangedThreadsTitle(oldPageThreads, currentPageThreads)
+                editedthreads = GetChangedThreads(oldPageThreads, currentPageThreads)
             End If
 
-            If threaddiffs.Count > 0 Then
-                Dim editedthread As String = GetLastThreadByTitle(currentPageThreads, threaddiffs.Last)
-                Dim lastsign As Date = LastParagraphDateTime(editedthread)
+            If editedthreads.Count > 0 Then
+                Dim lasteditedthread As String = editedthreads.Last
+                Dim lastsign As Date = LastParagraphDateTime(lasteditedthread)
                 If lastsign = New DateTime(9999, 12, 31, 23, 59, 59) Then
-                    Return New Tuple(Of String, String, Date)(threaddiffs.Last, LastUser, LastEdit)
+                    Return New Tuple(Of String, String, Date)(lasteditedthread, LastUser, LastEdit)
                 End If
             End If
 
@@ -1297,8 +1297,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection(tpage, newthreads)
             If UnsignedSectionInfo Is Nothing Then Return False
             Dim pagetext As String = tpage.Text
-            Dim LastNewThread As String = GetLastThreadByTitle(tpage.Threads, UnsignedSectionInfo.Item1)
-            Dim UnsignedThread As String = LastNewThread
+            Dim UnsignedThread As String = UnsignedSectionInfo.Item1
             pagetext = pagetext.Replace(UnsignedThread, UnsignedThread & " {{sust:No firmado|" & UnsignedSectionInfo.Item2 & "|" & UnsignedSectionInfo.Item3.ToString("HH:mm d MMM yyyy") & " (UTC)}}")
             If tpage.Save(pagetext, "Bot: Completando sección sin firmar.", minor, True) = EditResults.Edit_successful Then
                 Return True

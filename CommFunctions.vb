@@ -171,7 +171,7 @@ NotInheritable Class CommFunctions
     End Function
 
     ''' <summary>
-    ''' Entrega los elementos en el segundo array que no estén presentes en el primero
+    ''' Entrega los titulos de los hilos en el segundo array que sean distintos al primero
     ''' </summary>
     ''' <param name="threadlist1">Array base</param>
     ''' <param name="threadlist2">Array a comparar</param>
@@ -191,6 +191,29 @@ NotInheritable Class CommFunctions
             Next
         ElseIf thread2.Count > thread1.Count - 1 Then
             Difflist.AddRange(GetSecondArrayAddedDiff(GetTitlesFromThreads(thread1.ToArray), GetTitlesFromThreads(thread2.ToArray)))
+        End If
+        Return Difflist.ToArray
+    End Function
+
+
+    ''' <summary>
+    ''' Entrega los titulos de los hilos en el segundo array que sean distintos al primero. Los array deben tener los mismos elementos o se retornara un array vacio.
+    ''' </summary>
+    ''' <param name="threadlist1">Array base</param>
+    ''' <param name="threadlist2">Array a comparar</param>
+    ''' <returns></returns>
+    Public Shared Function GetChangedThreads(ByVal threadlist1 As String(), threadlist2 As String()) As String()
+        Dim Difflist As New List(Of String)
+        Dim thread1 As List(Of String) = threadlist1.ToList
+        Dim thread2 As List(Of String) = threadlist2.ToList
+        thread1.Sort()
+        thread2.Sort()
+        If thread1.Count = thread2.Count Then
+            For i As Integer = 0 To thread1.Count - 1
+                If Not thread1(i) = thread2(i) Then
+                    Difflist.Add(thread2(i))
+                End If
+            Next
         End If
         Return Difflist.ToArray
     End Function
