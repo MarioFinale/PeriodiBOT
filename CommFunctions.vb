@@ -11,7 +11,7 @@ NotInheritable Class CommFunctions
     End Sub
 #End Region
 
-    Public Shared signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([Z-z]{3}) [0-9]{4}( \([A-z]{3,4}\))*"
+    Public Shared signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([A-z]{3})(\.)* [0-9]{4}( \([A-z]{3,4}\))*"
 
 #Region "Text Functions"
     ''' <summary>
@@ -189,25 +189,28 @@ NotInheritable Class CommFunctions
                     Difflist.Add(GetTitleFromThread(thread1(i)))
                 End If
             Next
-        ElseIf thread1.Count > thread2.Count - 1 Then
-            For i As Integer = 0 To thread2.Count - 1
-                If Not thread2(i) = thread1(i) Then
-                    Difflist.Add(GetTitleFromThread(thread2(i)))
-                End If
-            Next
-        Else
-            For i As Integer = 0 To thread1.Count - 1
-                If Not thread1(i) = thread2(i) Then
-                    Difflist.Add(GetTitleFromThread(thread2(i)))
-                End If
-            Next
-            For i As Integer = thread1.Count - 1 To thread2.Count - 1
-                Difflist.Add(GetTitleFromThread(thread2(i)))
-            Next
+        ElseIf thread2.Count > thread1.Count - 1 Then
+            Difflist.AddRange(GetSecondArrayAddedDiff(GetTitlesFromThreads(thread1.ToArray), GetTitlesFromThreads(thread2.ToArray)))
         End If
         Return Difflist.ToArray
     End Function
 
+    ''' <summary>
+    ''' Entrega el último hilo en los hilos entregados que coincida con el nombre
+    ''' </summary>
+    ''' <param name="threads"></param>
+    ''' <param name="title"></param>
+    ''' <returns></returns>
+    Public Shared Function GetThreadByTitle(ByVal threads As String(), title As String) As String
+        Dim thread As String = String.Empty
+        For Each threadtext As String In threads
+            Dim currentthreadtitle As String = GetTitleFromThread(threadtext)
+            If title = currentthreadtitle Then
+                thread = currentthreadtitle
+            End If
+        Next
+        Return thread
+    End Function
 
 
     ''' <summary>
@@ -944,7 +947,7 @@ NotInheritable Class CommFunctions
                 Dim dates As New List(Of Integer)
                 For Each s As String In parsedtxt.Split("/"c)
                     If Not String.IsNullOrWhiteSpace(s) Then
-                        dates.Add(Integer.Parse(s))
+                        dates.Add(Integer.Parse(RemoveAllAlphas(s)))
                     End If
                 Next
 

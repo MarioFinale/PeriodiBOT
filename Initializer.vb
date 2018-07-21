@@ -52,7 +52,7 @@ Public NotInheritable Class Initializer
 
         'Tarea para completar firmas
         Dim SignAllFunc As New Func(Of Boolean)(Function() ESWikiBOT.SignAllInclusions(True))
-        NewThread("Completar firmas", BotCodename, SignAllFunc, 900000, True)
+        NewThread("Completar firmas", BotCodename, SignAllFunc, 120000, True)
 
         'Tarea para archivar todo
         Dim ArchiveAllFunc As New Func(Of Boolean)(Function() ESWikiBOT.ArchiveAllInclusions(True))

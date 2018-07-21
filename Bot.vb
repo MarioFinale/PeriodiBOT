@@ -1283,7 +1283,8 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             End If
 
             If threaddiffs.Count > 0 Then
-                Dim lastsign As Date = LastParagraphDateTime(threaddiffs.Last)
+                Dim editedthread As String = GetLastThreadByTitle(currentPageThreads, threaddiffs.Last)
+                Dim lastsign As Date = LastParagraphDateTime(editedthread)
                 If lastsign = New DateTime(9999, 12, 31, 23, 59, 59) Then
                     Return New Tuple(Of String, String, Date)(threaddiffs.Last, LastUser, LastEdit)
                 End If

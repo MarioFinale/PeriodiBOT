@@ -594,7 +594,7 @@ Namespace WikiBot
                 Dim _Page As Page = _bot.Getpage(pa)
                 If _Page.Exists Then
                     If Not ValidNamespace(_Page) Then Continue For
-                    If (Date.UtcNow - _Page.LastEdit) < (New TimeSpan(0, 15, 0)) Then Continue For
+                    If (Date.UtcNow - _Page.LastEdit) < (New TimeSpan(0, 1, 0)) Then Continue For
                     Dim SignTemplate As Template = GetSignTemplate(_Page)
                     Dim minor As Boolean = True
                     Dim newthreads As Boolean = False
