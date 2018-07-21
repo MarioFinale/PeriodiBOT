@@ -1277,9 +1277,15 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Dim editedthreads As String()
 
             If newthreads Then
-                editedthreads = GetSecondArrayAddedDiff(oldThreadTitles, currentThreadTitles)
+                editedthreads = GetSecondArrayAddedDiff(oldPageThreads, currentPageThreads)
             Else
-                editedthreads = GetChangedThreads(oldPageThreads, currentPageThreads)
+                If oldPageThreads.Count = currentPageThreads.Count Then
+                    editedthreads = GetChangedThreads(oldPageThreads, currentPageThreads)
+                ElseIf oldPageThreads.Count < currentPageThreads.Count Then
+                    editedthreads = GetSecondArrayAddedDiff(oldPageThreads, currentPageThreads)
+                Else
+                    editedthreads = {}
+                End If
             End If
 
             If editedthreads.Count > 0 Then
