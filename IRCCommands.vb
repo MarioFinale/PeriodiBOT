@@ -1,5 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
+Imports System.Globalization
 Imports PeriodiBOT_IRC.CommFunctions
 Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.WikiBot
@@ -12,7 +13,7 @@ Public Class IRCCommands
         Dim source As String = args.Source
         If args.IsOp Then
             Dim responsestring As String = String.Empty
-            responsestring = "Tiempo de espera entre líneas: " & ColoredText(Client.floodDelay.ToString, 4) & " milisegundos."
+            responsestring = "Tiempo de espera entre líneas: " & ColoredText(Client.FloodDelay.ToString, 4) & " milisegundos."
             Return New IRCMessage(source, responsestring.ToArray)
         Else
             Return New IRCMessage(source, "No autorizado.")
@@ -33,7 +34,7 @@ Public Class IRCCommands
             If resdelay <= 0 Then
                 Return New IRCMessage(source, "El valor debe ser mayor a 0.")
             End If
-            client.floodDelay = resdelay
+            client.FloodDelay = resdelay
             responsestring = "Tiempo de espera entre líneas establecido a: " & ColoredText(value, 4) & " milisegundos."
             Return New IRCMessage(source, responsestring.ToArray)
         Else
@@ -85,7 +86,7 @@ Public Class IRCCommands
         Dim timeinterval As String = String.Empty
         If tinfo.Scheduledtask Then
             tstype = "Programada"
-            timeinterval = tinfo.ScheduledTime.ToString("c") & " GMT"
+            timeinterval = tinfo.ScheduledTime.ToString("c", CultureInfo.InvariantCulture()) & " GMT"
         Else
             tstype = "Periódica"
             timeinterval = "Cada " & (tinfo.Interval / 1000).ToString & " segundos."
@@ -151,7 +152,7 @@ Public Class IRCCommands
         If args Is Nothing Then Return Nothing
         Dim source As String = args.Source
         Dim responsestring As String = String.Empty
-        responsestring = "La hora del sistema es " & ColoredText(Date.Now.TimeOfDay.ToString("hh\:mm\:ss"), 4) & " (" & ColoredText(Date.UtcNow.TimeOfDay.ToString("hh\:mm\:ss"), 4) & " UTC)."
+        responsestring = "La hora del sistema es " & ColoredText(Date.Now.TimeOfDay.ToString("hh\:mm\:ss", CultureInfo.InvariantCulture()), 4) & " (" & ColoredText(Date.UtcNow.TimeOfDay.ToString("hh\:mm\:ss", CultureInfo.InvariantCulture()), 4) & " UTC)."
         Return New IRCMessage(source, responsestring)
     End Function
 
@@ -359,7 +360,7 @@ Public Class IRCCommands
     Function About(ByVal args As CommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim elapsedtime As TimeSpan = Uptime.Subtract(DateTime.Now)
-        Dim uptimestr As String = elapsedtime.ToString("d\.hh\:mm")
+        Dim uptimestr As String = elapsedtime.ToString("d\.hh\:mm", CultureInfo.InvariantCulture())
         Dim responsestring As String
 
         If args.Client.IsOp(args.Imputline, args.Source, args.Realname) Then

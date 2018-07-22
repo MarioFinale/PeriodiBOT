@@ -80,7 +80,7 @@ Namespace IRC
         End Sub
 
 
-        Public Async Sub Start()
+        Public Async Sub StartClient()
 
             EventLogger.Log("Starting IRCclient", "IRC", _sNickName)
             Dim sIsInvisible As String = String.Empty
@@ -151,7 +151,7 @@ Namespace IRC
                                                End SyncLock
 
                                                If Not _tcpclientConnection.Connected Then
-                                                   EventLogger.Debug_log("IRC: DISCONNECTED", "IRC", _sNickName)
+                                                   EventLogger.Debug_Log("IRC: DISCONNECTED", "IRC", _sNickName)
                                                    Exit While
                                                End If
 

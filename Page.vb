@@ -206,7 +206,7 @@ Namespace WikiBot
         ''' <param name="PageTitle">Título exacto de la página</param>
         ''' <param name="wbot">Bot logueado a la wiki</param>
         Public Sub New(ByVal pageTitle As String, ByRef wbot As Bot)
-            If wbot Is Nothing Then Throw New ArgumentNullException
+            If wbot Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             _bot = wbot
             _username = _bot.UserName
             Loadpage(pageTitle, _bot.WikiUrl)
@@ -217,7 +217,7 @@ Namespace WikiBot
         ''' <param name="revid">Revision ID.</param>/param>
         ''' <param name="wbot">Bot logueado a la wiki</param>
         Public Sub New(ByVal revid As Integer, ByRef wbot As Bot)
-            If wbot Is Nothing Then Throw New ArgumentNullException
+            If wbot Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             _bot = wbot
             _username = _bot.UserName
             Loadpage(revid, _bot.WikiUrl)
@@ -525,7 +525,7 @@ Namespace WikiBot
         Private Function AddSectionPage(ByVal sectionTitle As String, ByVal text As String, ByVal editSummary As String, ByVal isMinor As Boolean) As String
             Dim additionalParameters As String = String.Empty
             If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Or String.IsNullOrWhiteSpace(sectionTitle) Then
-                Throw New ArgumentNullException
+                Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             End If
 
             If Not GetLastTimeStamp() = _timestamp Then

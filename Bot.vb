@@ -236,7 +236,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                 If l.Contains("#"c) Then 'Si contiene un comentario
                     tempText = tempText.Split("#"c)(0) 'Obtener el texto antes del comentario
                 End If
-                tempText.Trim() 'Eliminar los espacios en blanco
+                tempText = tempText.Trim() 'Eliminar los espacios en blanco
                 If Not String.IsNullOrWhiteSpace(tempText) Then 'Verificar que no esté vacio
                     Regexes.Add(tempText) 'Añadir a la lista
                 End If
@@ -1271,9 +1271,6 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
             Dim LastEdit As Date = currentPage.LastEdit
             Dim LastUser As String = currentPage.Lastuser
-
-            Dim oldThreadTitles As String() = GetTitlesFromThreads(oldPageThreads)
-            Dim currentThreadTitles As String() = GetTitlesFromThreads(currentPageThreads)
             Dim editedthreads As String()
 
             If newthreads Then

@@ -1,5 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
+Imports System.Globalization
 Imports System.Threading
 Imports PeriodiBOT_IRC.CommFunctions
 
@@ -106,7 +107,7 @@ Public Module ThreadPoolAdmin
                 If Not tinfo.Paused Then
                     tinfo.Running = True
                     tinfo.Status = "Scheduled"
-                    If Date.UtcNow.TimeOfDay.ToString("hh\:mm") = tinfo.ScheduledTime.ToString("hh\:mm") Then
+                    If Date.UtcNow.TimeOfDay.ToString("hh\:mm", CultureInfo.InvariantCulture()) = tinfo.ScheduledTime.ToString("hh\:mm", CultureInfo.InvariantCulture()) Then
                         tinfo.Status = "Running"
                         tinfo.Task.Invoke
                         Thread.Sleep(60000)
