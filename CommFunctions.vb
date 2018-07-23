@@ -11,7 +11,7 @@ NotInheritable Class CommFunctions
     End Sub
 #End Region
 
-    Public Shared signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([A-z]{3})(\.)* [0-9]{4}( \([A-z]{3,4}\))*"
+    Public Shared signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([A-z]{3})([\.,])* [0-9]{4}( \([A-z]{3,4}\))*"
 
 #Region "Text Functions"
     ''' <summary>
@@ -1032,17 +1032,16 @@ NotInheritable Class CommFunctions
     End Function
 
     ''' <summary>
-    ''' Entrega como DateTime la fecha más reciente en el texto dado (en formato de firma wikipedia).
+    ''' Entrega como DateTime la primera fecha que aparece en el hilo.
     ''' </summary>
     ''' <param name="text"></param>
     ''' <returns></returns>
     Public Shared Function FirstDate(ByVal text As String) As DateTime
-        Dim dates As New List(Of DateTime)
         Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
-
+        Dim tdat As New DateTime(9999, 12, 31, 23, 59, 59)
         If matchc.Count = 0 Then
-            EventLogger.EX_Log("No date match", "ESWikiDateTime")
-            Return New DateTime(9999, 12, 31, 23, 59, 59)
+            EventLogger.Debug_Log("No date match", "ESWikiDateTime")
+            Return tdat
         End If
 
         For Each m As Match In matchc
@@ -1050,10 +1049,10 @@ NotInheritable Class CommFunctions
                 Dim parsedtxt As String = m.Value.Replace(" "c, "/"c)
                 parsedtxt = parsedtxt.Replace(":"c, "/"c)
                 parsedtxt = parsedtxt.ToLower.Replace("ene", "01").Replace("feb", "02") _
-            .Replace("mar", "03").Replace("abr", "04").Replace("may", "05") _
-            .Replace("jun", "06").Replace("jul", "07").Replace("ago", "08") _
-            .Replace("sep", "09").Replace("oct", "10").Replace("nov", "11") _
-            .Replace("dic", "12")
+                .Replace("mar", "03").Replace("abr", "04").Replace("may", "05") _
+                .Replace("jun", "06").Replace("jul", "07").Replace("ago", "08") _
+                .Replace("sep", "09").Replace("oct", "10").Replace("nov", "11") _
+                .Replace("dic", "12")
 
                 parsedtxt = Regex.Replace(parsedtxt, "([^0-9/])", "")
                 Dim datesInt As New List(Of Integer)
@@ -1062,17 +1061,17 @@ NotInheritable Class CommFunctions
                         datesInt.Add(Integer.Parse(s))
                     End If
                 Next
-                Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
-                dates.Add(dat)
-                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
+                tdat = New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
+                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & tdat.ToShortDateString & """", "LOCAL")
             Catch ex As System.FormatException
+                EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
+            Catch ex As Exception
                 EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
             End Try
 
+            Return tdat
         Next
-        dates.Sort()
-        Return dates.First
-
+        Return tdat
     End Function
 
     ''' <summary>

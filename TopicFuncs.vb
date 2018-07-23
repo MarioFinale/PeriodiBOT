@@ -6,7 +6,7 @@ Imports System.Text
 Imports PeriodiBOT_IRC.CommFunctions
 
 Namespace WikiBot
-    Public Class AddTopic
+    Public Class TopicFuncs
         Private _bot As Bot
         Sub New(ByVal workerbot As Bot)
             _bot = workerbot
@@ -17,7 +17,7 @@ Namespace WikiBot
                 Dim topicpage As Page = ESWikiBOT.Getpage(TopicPageName)
                 Dim newtext As String = GetTopicsPageText()
                 If Not newtext.Length = topicpage.Text.Length Then
-                    topicpage.Save(GetTopicsPageText(), "Bot: Actualizando temas", False, True)
+                    topicpage.Save(newtext, "Bot: Actualizando temas", False, True)
                     Return True
                 Else
                     Return False
@@ -29,7 +29,7 @@ Namespace WikiBot
         End Function
 
 
-        Function GetTopicsPageText() As String
+        Private Function GetTopicsPageText() As String
             Dim scannedPages As Integer = 0
             Dim topics As SortedDictionary(Of String, List(Of String)) = GetTopicsText(scannedPages)
             Dim pagetext As String = "{{/Encabezado}}" & Environment.NewLine
@@ -80,7 +80,7 @@ Namespace WikiBot
         End Function
 
 
-        Function GetTopicGroups() As SortedDictionary(Of String, List(Of String))
+        Private Function GetTopicGroups() As SortedDictionary(Of String, List(Of String))
             Dim GroupsPage As Page = _bot.Getpage(TopicGroupsPage) 'Inicializar página de grupos
             Dim Threads As String() = GetPageThreads(GroupsPage.Text) 'Obtener hilos de la página
 
@@ -101,11 +101,11 @@ Namespace WikiBot
             Return Groups
         End Function
 
-        Function GetTopicsText() As SortedDictionary(Of String, List(Of String))
+        Private Function GetTopicsText() As SortedDictionary(Of String, List(Of String))
             Return GetTopicsText(0)
         End Function
 
-        Function GetTopicsText(ByRef inclusions As Integer) As SortedDictionary(Of String, List(Of String))
+        Private Function GetTopicsText(ByRef inclusions As Integer) As SortedDictionary(Of String, List(Of String))
             Dim TopicThreads As SortedList(Of String, Topic) = GetAllTopicThreads(inclusions) 'Obtener los temas y la información
             Dim TopicList As New SortedDictionary(Of String, List(Of String)) 'Inicializar la lista con el texto
 
@@ -115,7 +115,7 @@ Namespace WikiBot
                 End If
                 For Each thread As WThreadInfo In TopicThreads.Item(topic).Threads 'Por cada hilo en el tema
                     Dim line As String = "* " 'Inicializar la línea con los datos
-                    Dim threadDate As String = thread.LastSignature.ToString("dd-MM-yyyy") & " " 'Fecha
+                    Dim threadDate As String = thread.FirstSignature.ToString("dd-MM-yyyy") & " " 'Fecha
                     Dim threadType As String = thread.Subsection & " " 'En que zona del café está
                     Dim threadTitle As String = thread.ThreadTitle & " " 'Título del hilo
                     Dim threadResume As String = String.Empty
@@ -133,11 +133,11 @@ Namespace WikiBot
             Return TopicList
         End Function
 
-        Function GetAllTopicThreads() As SortedList(Of String, Topic)
+        Private Function GetAllTopicThreads() As SortedList(Of String, Topic)
             Return GetAllTopicThreads(0)
         End Function
 
-        Function GetAllTopicThreads(ByRef inclusions As Integer) As SortedList(Of String, Topic)
+        Private Function GetAllTopicThreads(ByRef inclusions As Integer) As SortedList(Of String, Topic)
             Dim Topiclist As New SortedList(Of String, Topic)
             Dim pages As String() = _bot.GetallInclusions(TopicTemplate) 'Paginas que incluyen la plantilla de tema.
             For Each p As String In pages 'Por cada página que incluya la plantilla tema, no se llama a GetallInclusionsPages por temas de memoria.
@@ -148,7 +148,7 @@ Namespace WikiBot
         End Function
 
 
-        Function GetTopicsOfpage(ByVal sourcePage As Page, ByVal TopicList As SortedList(Of String, Topic)) As SortedList(Of String, Topic)
+        Private Function GetTopicsOfpage(ByVal sourcePage As Page, ByVal TopicList As SortedList(Of String, Topic)) As SortedList(Of String, Topic)
             If TopicList Is Nothing Then 'Si no está inicializado correctamente...
                 TopicList = New SortedList(Of String, Topic)
             End If
@@ -156,7 +156,6 @@ Namespace WikiBot
             For Each Thread As WThreadInfo In Threads 'Por cada hilo....
                 'Añadir temas a diccionario
                 For Each topic As String In Thread.Topics
-
                     If Not TopicList.Keys.Contains(topic) Then
                         'si no existe el tema en el diccionario, lo inicializa y añade el hilo
                         TopicList.Add(topic, New Topic(topic, New SortedSet(Of WThreadInfo)))
@@ -170,32 +169,37 @@ Namespace WikiBot
             Return TopicList
         End Function
 
-        Function GetTopicsThreads(ByVal tPage As Page) As SortedSet(Of WThreadInfo)
+        Private Function GetTitleAndLink(ByVal Pagetitle As String, ByVal thread As String) As Tuple(Of String, String)
+            Dim threadTitle As String = Regex.Match(thread, "(\n|^)(==.+==)").Value.Trim.Trim("="c).Trim 'Inicializa el título del hilo 
+            If (Regex.Match(threadTitle, "(\[\[[^\]]+\|)").Success) Or (Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Success) Then
+                If Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Success Then
+                    Dim threadmatches As MatchCollection = Regex.Matches(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})")
+                    For Each tm As Match In threadmatches
+                        Dim threadsimplelink As String = tm.Value
+                        Dim newthreadsimplelink As String = threadsimplelink.Replace("["c, "").Replace("]"c, "").Trim.TrimStart(":"c).Trim
+                        threadTitle = threadTitle.Replace(threadsimplelink, newthreadsimplelink)
+                    Next
+                End If
+                threadTitle = Regex.Replace(threadTitle, "(\[{1,2}[^\|\]]+)", "").Replace("]"c, "").Replace("|"c, "")
+            End If
+            threadTitle = Regex.Replace(threadTitle, "<+.+?>+", "") 'Quitar etiquetas HTML
+            Dim threadTitleLink As String = UrlWebEncode(threadTitle.Trim.Replace(" ", "_").Replace("'''", "").Replace("''", ""))
+            Dim threadLink As String = Pagetitle & "#" & threadTitleLink 'Generar enlace al hilo específico
+
+            threadTitle = Regex.Replace(threadTitle, "\{{1,2}|\}{1,2}", "") 'Quitar plantillas
+            Return New Tuple(Of String, String)(threadTitle, threadLink)
+        End Function
+
+        Private Function GetTopicsThreads(ByVal tPage As Page) As SortedSet(Of WThreadInfo)
             Dim Threadlist As New SortedSet(Of WThreadInfo)
             Dim threads As String() = tPage.Threads
             For Each t As String In threads
                 Dim TopicMatch As Match = Regex.Match(t, "({{ *[Tt]ema *\|.+?}})") 'Regex para plantilla de tema
                 'Si la plantilla de tema se encuentra en el hilo:
                 If TopicMatch.Success Then
-                    Dim threadTitle As String = Regex.Match(t, "(\n|^)(==.+==)").Value.Trim.Trim("="c).Trim 'Inicializa el título del hilo 
-                    'Normalizar el título del hilo si tiene enlaces
-                    '----------
-                    If (Regex.Match(threadTitle, "(\[\[[^\]]+\|)").Success) Or (Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Success) Then
-                        If Regex.Match(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})").Success Then
-                            Dim threadmatches As MatchCollection = Regex.Matches(threadTitle, "(\[{1,2}[^\|\]]+\]{1,2})")
-                            For Each tm As Match In threadmatches
-                                Dim threadsimplelink As String = tm.Value
-                                Dim newthreadsimplelink As String = threadsimplelink.Replace("["c, "").Replace("]"c, "").Trim.TrimStart(":"c).Trim
-                                threadTitle = threadTitle.Replace(threadsimplelink, newthreadsimplelink)
-                            Next
-                        End If
-                        threadTitle = Regex.Replace(threadTitle, "(\[{1,2}[^\|\]]+)", "").Replace("]"c, "").Replace("|"c, "")
-                    End If
-                    '----------
-                    threadTitle = Regex.Replace(threadTitle, "<+.+?>+", "") 'Quitar etiquetas HTML
-                    Dim threadTitleLink As String = UrlWebEncode(threadTitle.Trim.Replace(" ", "_").Replace("'''", "").Replace("''", ""))
-                    Dim threadLink As String = tPage.Title & "#" & threadTitleLink 'Generar enlace al hilo específico
-                    threadTitle = Regex.Replace(threadTitle, "\{{1,2}|\}{1,2}", "") 'Quitar plantillas
+                    Dim TitleAndLink As Tuple(Of String, String) = GetTitleAndLink(tPage.Title, t)
+                    Dim threadTitle As String = TitleAndLink.Item1
+                    Dim threadLink As String = TitleAndLink.Item2
                     Dim threadResume As String = String.Empty 'Inicializa el resumen del hilo
                     Dim lastsignature As Date = FirstDate(t) 'Firma más antigua del hilo
                     If lastsignature.Year = 9999 Then 'Hilo con plantilla pero sin firma
@@ -218,7 +222,7 @@ Namespace WikiBot
                         End If
                     Next
                     Dim Thread As New WThreadInfo With {
-                        .LastSignature = lastsignature,
+                        .FirstSignature = lastsignature,
                         .Subsection = Subsection,
                         .ThreadBytes = threadBytes,
                         .ThreadLink = threadLink,
@@ -232,14 +236,47 @@ Namespace WikiBot
             Return Threadlist
         End Function
 
+        Function BiggestThreadsEver() As Boolean
+            Dim PageText As String
+            Dim threadlist As New SortedList(Of Integer, List(Of Tuple(Of String, String, Date)))
+            Dim Pages As String() = _bot.PrefixSearch("Wikipedia:Café/")
+            Dim TotalThreadCount As Integer = 0
+            For Each CPage As String In Pages
+                Dim wPage As Page = _bot.Getpage(CPage)
+                For Each thread As String In wPage.Threads
+                    TotalThreadCount += 1
+                    Dim TitleAndLink As Tuple(Of String, String) = GetTitleAndLink(CPage, thread)
+                    Dim ThreadSize As Integer = Encoding.Unicode.GetByteCount(thread) 'bytes del hilo
+                    Dim ThreadDate As Date = FirstDate(thread)
+                    If Not threadlist.Keys.Contains(ThreadSize) Then
+                        threadlist.Add(ThreadSize, New List(Of Tuple(Of String, String, Date)))
+                    End If
+                    threadlist(ThreadSize).Add(New Tuple(Of String, String, Date)(TitleAndLink.Item1, TitleAndLink.Item2, ThreadDate))
+                Next
+            Next
+            Dim threadcount As Integer = threadlist.Count
+            Dim Top100 As New List(Of Tuple(Of Integer, String, String, Date))
+            For i As Integer = threadcount - 1 To threadcount - 101 Step -1
+                For Each t As Tuple(Of String, String, Date) In threadlist(threadlist.Keys(i))
+                    Top100.Add(New Tuple(Of Integer, String, String, Date)(threadlist.Keys(i), t.Item1, t.Item2, t.Item3))
+                Next
+            Next
+
+            For Each thread As Tuple(Of Integer, String, String, Date) In Top100
+
+
+
+
+            Next
+
+            Return True
+
+        End Function
+
+
 
 
     End Class
-
-
-
-
-
 
     Public Class Topic
         Implements IComparable(Of Topic)
@@ -261,10 +298,10 @@ Namespace WikiBot
         Public Property ThreadResume As String
         Public Property ThreadLink As String
         Public Property Subsection As String
-        Public Property LastSignature As Date
+        Public Property FirstSignature As Date
         Public Property ThreadBytes As Integer
         Public Function CompareTo(other As WThreadInfo) As Integer Implements IComparable(Of WThreadInfo).CompareTo
-            Return Me.ThreadTitle().CompareTo(other.ThreadTitle())
+            Return Me.FirstSignature().CompareTo(other.FirstSignature())
         End Function
     End Class
 End Namespace

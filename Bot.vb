@@ -1006,7 +1006,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' </summary>
         ''' <returns></returns>
         Function UpdateTopics() As Boolean
-            Dim topicw As New AddTopic(Me)
+            Dim topicw As New TopicFuncs(Me)
             Return topicw.UpdateTopics()
         End Function
 
@@ -1309,7 +1309,27 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             End If
         End Function
 
+        ''' <summary>
+        ''' Retorna la cantidad máxima que permita la api de páginas que comienze con el texto.
+        ''' </summary>
+        ''' <param name="pagePrefix"></param>
+        ''' <returns></returns>
+        Function PrefixSearch(ByVal pagePrefix As String) As String()
+            Dim QueryString As String = "format=json&action=query&pslimit=max&list=prefixsearch&pssearch=" & UrlWebEncode(pagePrefix)
+            Dim QueryResult As String = POSTQUERY(QueryString)
+            Dim Pages As String() = TextInBetween(QueryResult, """title"":""", """,""")
+            Dim DecodedPages As New List(Of String)
+            For Each p As String In Pages
+                DecodedPages.Add(NormalizeUnicodetext(p))
+            Next
+            Return DecodedPages.ToArray
+        End Function
 
+
+        Function BiggestThreadsEver() As Boolean
+            Dim topicw As New TopicFuncs(Me)
+            Return topicw.BiggestThreadsEver()
+        End Function
 
 
 

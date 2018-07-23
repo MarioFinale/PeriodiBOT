@@ -18,6 +18,14 @@ Public NotInheritable Class Initializer
         BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
         BotIRC.StartClient()
 
+        ESWikiBOT.BiggestThreadsEver()
+        ESWikiBOT.UpdateTopics()
+        Dim i As Integer = 1
+
+
+
+
+
         'Tarea para revisar si hay solicitudes en mediacion informal
         Dim InfMedFunc As New Func(Of Boolean)(Function() ESWikiBOT.CheckInformalMediation())
         NewThread("Verificar solicitudes en mediacion informal", BotCodename, InfMedFunc, 600000, True)
