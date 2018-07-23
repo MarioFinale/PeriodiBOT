@@ -1301,7 +1301,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             If UnsignedSectionInfo Is Nothing Then Return False
             Dim pagetext As String = tpage.Text
             Dim UnsignedThread As String = UnsignedSectionInfo.Item1
-            pagetext = pagetext.Replace(UnsignedThread, UnsignedThread & " {{sust:No firmado|" & UnsignedSectionInfo.Item2 & "|" & UnsignedSectionInfo.Item3.ToString("HH:mm d MMM yyyy") & " (UTC)}}")
+            pagetext = pagetext.Replace(UnsignedThread, UnsignedThread & " {{sust:No firmado|" & UnsignedSectionInfo.Item2 & "|" & UnsignedSectionInfo.Item3.ToString("HH:mm d MMM yyyy", New System.Globalization.CultureInfo("es-ES")) & " (UTC)}}")
             If tpage.Save(pagetext, "Bot: Completando sección sin firmar.", minor, True) = EditResults.Edit_successful Then
                 Return True
             Else

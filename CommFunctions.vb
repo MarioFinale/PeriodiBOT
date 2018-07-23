@@ -848,14 +848,27 @@ NotInheritable Class CommFunctions
     Public Shared Function GetPageThreads(ByVal pagetext As String) As String()
         Dim temptext As String = pagetext
         Dim commentMatch As MatchCollection = Regex.Matches(temptext, "(<!--)[\s\S]*?(-->)")
+        Dim NowikiMatch As MatchCollection = Regex.Matches(temptext, "(<[nN]owiki>)([\s\S]+?)(<\/[Nn]owiki>)")
+        Dim CodeMatch As MatchCollection = Regex.Matches(temptext, "(<[cC]ode>)([\s\S]+?)(<\/[Cc]ode>)")
 
         Dim CommentsList As New List(Of String)
+        Dim NowikiList As New List(Of String)
+        Dim CodeList As New List(Of String)
+
         For i As Integer = 0 To commentMatch.Count - 1
             CommentsList.Add(commentMatch(i).Value)
             temptext = temptext.Replace(commentMatch(i).Value, ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4))
         Next
+        For i As Integer = 0 To NowikiMatch.Count - 1
+            NowikiList.Add(NowikiMatch(i).Value)
+            temptext = temptext.Replace(NowikiMatch(i).Value, ColoredText("PERIODIBOT::::NOWIKIREPLACE::::" & i, 4))
+        Next
+        For i As Integer = 0 To CodeMatch.Count - 1
+            CodeList.Add(CodeMatch(i).Value)
+            temptext = temptext.Replace(CodeMatch(i).Value, ColoredText("PERIODIBOT::::CODEREPLACE::::" & i, 4))
+        Next
 
-        Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((==(?!=)).+?(==(?!=)))")
+        Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((==(?!=)).+?(==(?!=)))([\n\r]|$)")
 
         Dim threadlist As New List(Of String)
 
@@ -891,6 +904,14 @@ NotInheritable Class CommFunctions
             For i As Integer = 0 To commentMatch.Count - 1
                 Dim commenttext As String = ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4)
                 nthreadtext = nthreadtext.Replace(commenttext, CommentsList(i))
+            Next
+            For i As Integer = 0 To NowikiMatch.Count - 1
+                Dim codetext As String = ColoredText("PERIODIBOT::::NOWIKIREPLACE::::" & i, 4)
+                nthreadtext = nthreadtext.Replace(codetext, NowikiList(i))
+            Next
+            For i As Integer = 0 To CodeMatch.Count - 1
+                Dim codetext As String = ColoredText("PERIODIBOT::::CODEREPLACE::::" & i, 4)
+                nthreadtext = nthreadtext.Replace(codetext, CodeList(i))
             Next
             EndThreadList.Add(nthreadtext)
         Next
@@ -1084,7 +1105,25 @@ NotInheritable Class CommFunctions
         Return GetPageThreads(tpage.Text)
     End Function
 
+    Public Shared Function GetSizeText(ByVal bytes As Integer) As String
+        If bytes < 999 Then
+            Return bytes.ToString & " Bytes"
+        ElseIf bytes < 999999 Then
+            Return System.Math.Round((bytes / 1000), 2).ToString & " KB"
+        ElseIf bytes > 999999 Then
+            Return System.Math.Round((bytes / 1000000), 2).ToString & " MB"
+        End If
+        Return " Wtf?"
+    End Function
+
+    Public Shared Function GetSpanishTimeString(ByVal tDate As Date) As String
+        Return tDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES"))
+    End Function
+
 End Class
+
+
+
 
 ''' <summary>
 ''' Excepción que se produce cuando se alcanza un número máximo de reintentos.

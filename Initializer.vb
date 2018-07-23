@@ -18,6 +18,8 @@ Public NotInheritable Class Initializer
         BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
         BotIRC.StartClient()
 
+        Dim pag As Page = ESWikiBOT.Getpage("Wikipedia:Café/Portal/Archivo/Propuestas/2009/05")
+
         ESWikiBOT.BiggestThreadsEver()
         ESWikiBOT.UpdateTopics()
         Dim i As Integer = 1

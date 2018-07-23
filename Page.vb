@@ -14,11 +14,9 @@ Namespace WikiBot
         Private _siteurl As String
         Private _currentRevID As Integer
         Private _parentRevID As Integer
-        Private _ORESScores As Double()
         Private _timestamp As String
         Private _sections As String()
         Private _categories As String()
-        Private _pageViews As Integer
         Private _size As Integer
         Private _Namespace As Integer
         Private _extract As String
@@ -32,7 +30,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <returns></returns>
         Public Function ORESScores() As Double()
-            Return _ORESScores
+            Return GetORESScores(_currentRevID)
         End Function
         ''' <summary>
         ''' Entrega el wikitexto de la página.
@@ -101,7 +99,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Public ReadOnly Property PageViews As Integer
             Get
-                Return _pageViews
+                Return GetPageViewsAvg(_title)
             End Get
         End Property
         ''' <summary>
@@ -244,8 +242,6 @@ Namespace WikiBot
             _siteurl = site
             PageInfoData(PageTitle)
             _sections = GetPageThreads(_text)
-            _ORESScores = GetORESScores(_currentRevID)
-            _pageViews = GetPageViewsAvg(_title)
             EventLogger.Log("Page " & PageTitle & " loaded", "LOCAL", _username)
             Return True
         End Function
@@ -264,8 +260,6 @@ Namespace WikiBot
             _siteurl = site
             PageInfoData(Revid)
             _sections = GetPageThreads(_text)
-            _ORESScores = GetORESScores(_currentRevID)
-            _pageViews = GetPageViewsAvg(_title)
             EventLogger.Log("Page revid " & Revid.ToString & " loaded", "LOCAL", _username)
             Return True
         End Function
@@ -784,20 +778,6 @@ Namespace WikiBot
             Return editdate
         End Function
 
-
-        ''' <summary>
-        ''' Evalua texto (wikicódigo) y regresa un array de string con cada uno de los hilos o secciones del mismo (los que comienzan con == ejemplo == y terminan en otro comienzo o el final de la página).
-        ''' </summary>
-        ''' <param name="pagetext">Texto a evaluar</param>
-        ''' <returns></returns>
-        Private Shared Function GetPageThreads(ByVal pageText As String) As String()
-            Dim threads As New List(Of String)
-            Dim newline As String = Environment.NewLine
-            For Each m As Match In Regex.Matches(pageText, "(" & newline & "==(?!=))[\s\S]+?(?=" & newline & "==(?!=)|$)")
-                threads.Add(m.Value)
-            Next
-            Return threads.ToArray
-        End Function
 
         ''' <summary>
         ''' Elimina una referencia que contenga una cadena exacta.
