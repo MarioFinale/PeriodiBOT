@@ -223,7 +223,7 @@ Namespace IRC
         End Function
 
         Sub Quit(ByVal message As String)
-            SendText("QUIT: " & message)
+            SendText("QUIT :" & message)
             HasExited = True
             _streamReader.Dispose()
             _streamWriter.Dispose()
