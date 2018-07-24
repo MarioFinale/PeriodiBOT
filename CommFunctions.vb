@@ -868,7 +868,7 @@ NotInheritable Class CommFunctions
             temptext = temptext.Replace(CodeMatch(i).Value, ColoredText("PERIODIBOT::::CODEREPLACE::::" & i, 4))
         Next
 
-        Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((==(?!=)).+?(==(?!=)))([\n\r]|$)")
+        Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((==(?!=)).+?(==(?!=)))(( +)*)([\n\r]|$)")
 
         Dim threadlist As New List(Of String)
 

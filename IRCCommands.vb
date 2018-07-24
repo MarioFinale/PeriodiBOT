@@ -271,7 +271,6 @@ Public Class IRCCommands
             Dim mes As New IRCMessage(args.Source, responsestring)
             args.Client.Sendmessage(mes)
             Dim command As String = "Solicitado por un operador."
-            args.Client.HasExited = True
             args.Client.Quit(command)
             EventLogger.Log("QUIT", "IRC", args.Realname)
             Return mes

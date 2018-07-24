@@ -223,13 +223,12 @@ Namespace IRC
         End Function
 
         Sub Quit(ByVal message As String)
-            HasExited = True
             SendText("QUIT: " & message)
+            HasExited = True
             _streamReader.Dispose()
             _streamWriter.Dispose()
             _networkStream.Dispose()
         End Sub
-
 
         Function Sendmessage(ByVal message As IRCMessage) As Boolean
             If message Is Nothing Then

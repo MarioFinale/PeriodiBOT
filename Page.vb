@@ -235,7 +235,6 @@ Namespace WikiBot
         ''' <param name="site">Sitio de la página</param>
         ''' <returns></returns>
         Private Overloads Function Loadpage(ByVal PageTitle As String, ByVal site As String) As Boolean
-            EventLogger.Log("Loading page " & PageTitle, "LOCAL", _username)
             If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
                 Throw New ArgumentNullException("Loadpage", "Empty parameter")
             End If
@@ -253,7 +252,6 @@ Namespace WikiBot
         ''' <param name="site">Sitio de la página.</param>
         ''' <returns></returns>
         Private Overloads Function Loadpage(ByVal Revid As Integer, ByVal site As String) As Boolean
-            EventLogger.Log("Loading revision id " & Revid.ToString, "LOCAL", _username)
             If String.IsNullOrEmpty(Revid.ToString) Or String.IsNullOrEmpty(site) Then
                 Throw New ArgumentNullException("Loadpage", "Empty parameter")
             End If

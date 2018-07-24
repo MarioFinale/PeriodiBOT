@@ -237,14 +237,7 @@ Namespace WikiBot
         End Function
 
         Function BiggestThreadsEver() As Boolean
-            Dim PageText As String = "{{/Header}}"
-            Dim fact1 As String = "[[File:Atari-2600-Heavy-Sixer-FL.png|thumb|right|El tamaño máximo de un videojuego de [[Atari 2600]] es de [[Atari_2600#Características_técnicas|32 Kilobytes]].]]" & Environment.NewLine
-            Dim fact2 As String = "[[File:Baby gerbils.jpg|thumb|right|Esta fotografía de bebes jerbos pesa 52 KB.]]" & Environment.NewLine
-            Dim fact3 As String = "[[File:St-Bernard events 004.gif|thumb|right|Esta imagen de un [[San bernardo (perro)|San Bernardo]] pesa 68 KB.]]" & Environment.NewLine
-            Dim fact4 As String = "[[File:Squirrel by Rupali.jpg|thumb|right|Esta fotografía de una ardilla pesa 117 KB.]]" & Environment.NewLine
-            Dim fact5 As String = "[[File:Nintendo-Entertainment-System-NES-Console-FL.jpg|thumb|right|El tamaño promedio de un videojuego de [[NES]] [[:en:Nintendo_Entertainment_System#Hardware|es de 384 KB]].]]" & Environment.NewLine
-            Dim fact6 As String = "[[File:Stray_kitten_Rambo002.jpg|thumb|right|Esta fotografía de un gatito pesa 1.11 MB]]" & Environment.NewLine
-            Dim fact7 As String = "[[File:El ingenioso hidalgo don Quijote de la Mancha.jpg|thumb|right|Don Quijote de la Mancha [https://www.edujovenes.org/index.php/biblioteca/finish/14-3trim/31-el-ingenioso-hidalgo-don-quijote-de-la-mancha-miguel-de-cervantes/0 pesa 1.3 Megabytes.]]]" & Environment.NewLine
+            Dim PageText As String = "{{/Header}}" & Environment.NewLine
             Dim threadlist As New SortedList(Of Integer, List(Of Tuple(Of String, String, Date)))
             Dim Pages As String() = _bot.PrefixSearch("Wikipedia:Café/")
             Dim TotalThreadCount As Integer = 0
@@ -255,9 +248,6 @@ Namespace WikiBot
                     Dim TitleAndLink As Tuple(Of String, String) = GetTitleAndLink(CPage, thread)
                     Dim ThreadSize As Integer = Encoding.Unicode.GetByteCount(thread) 'bytes del hilo
                     Dim ThreadDate As Date = FirstDate(thread)
-                    If ThreadSize < 100 Then
-                        Debugger.Break()
-                    End If
                     If Not threadlist.Keys.Contains(ThreadSize) Then
                         threadlist.Add(ThreadSize, New List(Of Tuple(Of String, String, Date)))
                     End If
@@ -271,26 +261,21 @@ Namespace WikiBot
                     Top100.Add(New Tuple(Of Integer, String, String, Date)(threadlist.Keys(i), t.Item1, t.Item2, t.Item3))
                 Next
             Next
-            PageText = PageText & Environment.NewLine & fact7 & fact6 & fact5 & fact4 & fact3 & fact2 & fact1
 
             For i As Integer = 0 To 10
-                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]], abierto el " & GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & GetSizeText(Top100(i).Item1) & "." & Environment.NewLine
+                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & GetSizeText(Top100(i).Item1) & "." & Environment.NewLine
             Next
             PageText = PageText & Environment.NewLine & "== Más hilos grandes ==" & Environment.NewLine
             For i As Integer = 11 To Top100.Count - 1
-                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]], abierto el " & GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & GetSizeText(Top100(i).Item1) & "." & Environment.NewLine
+                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & GetSizeText(Top100(i).Item1) & "." & Environment.NewLine
             Next
-
-            Dim a As Integer = 1
-
             Dim tPage As Page = _bot.Getpage("Usuario:PeriodiBOT/Curiosidades/Hilos más largos en la historia del café")
-            tPage.Save(PageText, "Bot: Generando lista.", True, True)
-
-            Return True
-
+            If tPage.Save(PageText, "Bot: Generando lista.", True, True) = EditResults.Edit_successful Then
+                Return True
+            Else
+                Return False
+            End If
         End Function
-
-
 
 
     End Class

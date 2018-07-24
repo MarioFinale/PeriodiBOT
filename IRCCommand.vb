@@ -116,7 +116,7 @@ Public Class CommandParams
         Dim sParam As String = GetParamString(Imputline)
 
         Dim sRealname As String = GetUserFromChatresponse(sPrefix)
-        If Source.ToLower = _client.NickName.ToLower Then
+        If sSource.ToLower = _client.NickName.ToLower Then
             sSource = sRealname
         End If
 
