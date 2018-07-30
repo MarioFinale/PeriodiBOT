@@ -53,10 +53,7 @@ Namespace WikiBot
             Return True
         End Function
 
-
-
         Private Function PageConfig(ByVal Params As String(), ByRef destination As String, ByRef maxDays As Integer, ByRef strategy As String, ByRef useBox As Boolean, ByRef notify As Boolean) As Boolean
-
             If Not Params.Count >= 4 Then Return False
             Try
                 'Destino
@@ -152,9 +149,6 @@ Namespace WikiBot
                 End If
                 'Validar que destino de archivado sea una subpágina del usuario.
                 If Not ArchiveCfg(0).StartsWith(PageToArchive.Title) Then
-
-
-
                     EventLogger.Log("Archive: The page" & ArchiveCfg(0) & " isn't a subpage of the same user.", "LOCAL")
                     Return False
                 End If
@@ -495,8 +489,10 @@ Namespace WikiBot
                     Destination = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim()
                     If Destination.Contains(":") Then
                         Dim destNamespace As String = Destination.Split(":"c)(0)
+                        Dim destPagename As String = ReplaceFirst(Destination, destNamespace & ":", "")
                         Dim destParsedNamespace As String = UppercaseFirstCharacter(destNamespace.ToLower)
-                        Destination = ReplaceFirst(Destination, destNamespace, destParsedNamespace)
+                        Dim destParsedPagename As String = UppercaseFirstCharacter(destPagename.ToLower)
+                        Destination = destParsedNamespace & ":" & destParsedPagename
                     End If
                 End If
                 If tup.Item1 = "Días a mantener" Then

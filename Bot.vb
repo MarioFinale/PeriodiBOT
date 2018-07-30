@@ -1292,7 +1292,6 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                     Return New Tuple(Of String, String, Date)(lasteditedthread, LastUser, LastEdit)
                 End If
             End If
-
             Return Nothing
         End Function
 
@@ -1330,11 +1329,6 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Dim topicw As New TopicFuncs(Me)
             Return topicw.BiggestThreadsEver()
         End Function
-
-
-
-
-
 
 #End Region
 
