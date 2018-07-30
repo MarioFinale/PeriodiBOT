@@ -5,7 +5,7 @@ Imports System.Text.RegularExpressions
 Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.WikiBot
 
-NotInheritable Class CommFunctions
+NotInheritable Class Utils
 #Region "Prevent init"
     Private Sub New()
     End Sub

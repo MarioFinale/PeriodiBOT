@@ -5,7 +5,6 @@ Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.IRC
-Imports PeriodiBOT_IRC.CommFunctions
 Public NotInheritable Class Initializer
 
     Private Sub New()
@@ -13,7 +12,7 @@ Public NotInheritable Class Initializer
 
     Public Shared Sub Init()
         Uptime = DateTime.Now
-        EventLogger.Log("Starting...", "LOCAL")
+        Utils.EventLogger.Log("Starting...", "LOCAL")
         ESWikiBOT = New Bot(New ConfigFile(ConfigFilePath))
         BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
         BotIRC.StartClient()

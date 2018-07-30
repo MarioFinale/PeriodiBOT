@@ -1,7 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
 Imports PeriodiBOT_IRC.WikiBot
-Imports PeriodiBOT_IRC.CommFunctions
 
 Namespace IRC
     Class IRCCommandResolver
@@ -22,7 +21,7 @@ Namespace IRC
             Dim requestedCommand As String = RemovePrefix(arg.CommandName)
             For Each Command As IRCCommand In Clist
                 If Command.Aliases.Contains(requestedCommand) Then
-                    EventLogger.Log("Command """ & requestedCommand & """ issued, parameter/s: """ & arg.CParam & """", arg.Source, arg.Realname)
+                    Utils.EventLogger.Log("Command """ & requestedCommand & """ issued, parameter/s: """ & arg.CParam & """", arg.Source, arg.Realname)
                     Return Command.ComFunc(arg)
                 End If
             Next
@@ -119,13 +118,13 @@ Namespace IRC
         Private Function CommandInfoFcn(ByVal Params As CommandParams) As IRCMessage
             For Each c As IRCCommand In Clist
                 If c.Aliases.Contains(RemovePrefix(Params.CParam).ToLower) Then
-                    Return New IRCMessage(Params.Source, "Comando: " & ColoredText(c.Name, 4) & "| Aliases: " & ColoredText(JoinTextArray(c.Aliases, "/"c), 3) & "| Descripción: " & c.Description & "| Uso: " & ColoredText(Params.CommandName & c.Usage, 10))
+                    Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(Utils.JoinTextArray(c.Aliases, "/"c), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
                 End If
             Next
             If String.IsNullOrWhiteSpace(Params.CParam) Then
                 For Each c As IRCCommand In Clist
                     If c.Aliases.Contains(RemovePrefix(Params.CommandName)) Then
-                        Return New IRCMessage(Params.Source, "Comando: " & ColoredText(c.Name, 4) & "| Aliases: " & ColoredText(JoinTextArray(c.Aliases, "/"c), 3) & "| Descripción: " & c.Description & "| Uso: " & ColoredText(Params.CommandName & c.Usage, 10))
+                        Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(Utils.JoinTextArray(c.Aliases, "/"c), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
                     End If
                 Next
             End If
@@ -144,7 +143,7 @@ Namespace IRC
             If Args.Realname.ToLower.EndsWith("bot") Or Args.Realname.ToLower.StartsWith("bot") Or Args.MessageLine.Contains("*") Then
                 Return Nothing
             End If
-            Dim responsestring As String = String.Format("Hola {0}, Soy {1}, bot multipropósito de apoyo en IRC. Ordenes: '%Ord' | Ayuda con un comando %? <orden> | Más sobre mí: '%??'", ColoredText(Args.Realname, 4), ColoredText(Args.Client.NickName, 3))
+            Dim responsestring As String = String.Format("Hola {0}, Soy {1}, bot multipropósito de apoyo en IRC. Ordenes: '%Ord' | Ayuda con un comando %? <orden> | Más sobre mí: '%??'", Utils.ColoredText(Args.Realname, 4), Utils.ColoredText(Args.Client.NickName, 3))
             Dim mes As New IRCMessage(Args.Source, responsestring)
             Return mes
         End Function
@@ -169,7 +168,7 @@ Namespace IRC
             Dim requestedCommand As String = command
             For Each prfx As String In CommandPrefixes
                 If requestedCommand.StartsWith(prfx) Then
-                    requestedCommand = ReplaceFirst(requestedCommand, prfx, "")
+                    requestedCommand = Utils.ReplaceFirst(requestedCommand, prfx, "")
                     Exit For
                 End If
             Next

@@ -2,7 +2,6 @@
 Option Explicit On
 Imports System.IO
 Imports System.Net.Sockets
-Imports PeriodiBOT_IRC.CommFunctions
 Namespace IRC
     Public Class IRC_Client
         Private _sServer As String = String.Empty 'Server
@@ -82,7 +81,7 @@ Namespace IRC
 
         Public Async Sub StartClient()
 
-            EventLogger.Log("Starting IRCclient", "IRC", _sNickName)
+            Utils.EventLogger.Log("Starting IRCclient", "IRC", _sNickName)
             Dim sIsInvisible As String = String.Empty
             Dim sCommand As String = String.Empty 'linea recibida
             Dim Lastdate As DateTime = DateTime.Now
@@ -97,7 +96,7 @@ Namespace IRC
 
                 Try
                     'Start the main connection to the IRC server.
-                    EventLogger.Log("Creating Connection", "IRC", BotCodename)
+                    Utils.EventLogger.Log("Creating Connection", "IRC", BotCodename)
                     _tcpclientConnection = New TcpClient(_sServer, _lPort)
                     With _tcpclientConnection
                         .ReceiveTimeout = 300000
@@ -117,23 +116,23 @@ Namespace IRC
 
                     'Attempt nickserv auth (freenode server pass method)
                     If Not String.IsNullOrEmpty(_sPass) Then
-                        EventLogger.Log("Attempting nickserv auth", "IRC", BotCodename)
+                        Utils.EventLogger.Log("Attempting nickserv auth", "IRC", BotCodename)
                         _streamWriter.WriteLine(String.Format("PASS {0}:{1}", _sNickName, _sPass))
                         _streamWriter.Flush()
                     End If
 
                     'Create nickname.
-                    EventLogger.Log("Setting Nickname", "IRC", BotCodename)
+                    Utils.EventLogger.Log("Setting Nickname", "IRC", BotCodename)
                     _streamWriter.WriteLine(String.Format(String.Format("NICK {0}", _sNickName)))
                     _streamWriter.Flush()
 
                     'Send in information
-                    EventLogger.Log("Setting up name", "IRC", BotCodename)
+                    Utils.EventLogger.Log("Setting up name", "IRC", BotCodename)
                     _streamWriter.WriteLine(String.Format("USER {0} {1} * :{2}", _sUserName, sIsInvisible, _sRealName))
                     _streamWriter.Flush()
 
                     'Connect to a specific room.
-                    EventLogger.Log("Joining Room """ & _sChannel & """", "IRC", BotCodename)
+                    Utils.EventLogger.Log("Joining Room """ & _sChannel & """", "IRC", BotCodename)
                     _streamWriter.WriteLine(String.Format("JOIN {0}", _sChannel))
                     _streamWriter.Flush()
 
@@ -151,7 +150,7 @@ Namespace IRC
                                                End SyncLock
 
                                                If Not _tcpclientConnection.Connected Then
-                                                   EventLogger.Debug_Log("IRC: DISCONNECTED", "IRC", _sNickName)
+                                                   Utils.EventLogger.Debug_Log("IRC: DISCONNECTED", "IRC", _sNickName)
                                                    Exit While
                                                End If
 
@@ -167,31 +166,27 @@ Namespace IRC
                                            End While
 
                                        Catch IOEX As System.IO.IOException
-                                           EventLogger.Log("IRC: Error Connecting: " + IOEX.Message, "IRC", _sNickName)
+                                           Utils.EventLogger.Log("IRC: Error Connecting: " + IOEX.Message, "IRC", _sNickName)
                                        Catch OtherEx As Exception
-                                           EventLogger.Log("IRC: Error Connecting: " + OtherEx.Message, "IRC", _sNickName)
+                                           Utils.EventLogger.Log("IRC: Error Connecting: " + OtherEx.Message, "IRC", _sNickName)
                                        End Try
 
                                    End Sub)
 
                 Catch ex As SocketException
-
                     'No connection, catch and retry
-                    EventLogger.EX_Log("IRC: Error Connecting: " + ex.Message, "IRC", _sNickName)
-
+                    Utils.EventLogger.EX_Log("IRC: Error Connecting: " + ex.Message, "IRC", _sNickName)
                     Try
                         'close connections
                         _streamReader.Dispose()
                         _streamWriter.Dispose()
                         _networkStream.Dispose()
-
                     Catch exex As Exception
-
                     End Try
                 Catch ex As Exception
 
                     'In case of something goes wrong
-                    EventLogger.EX_Log("IRC: Error: " + ex.Message, "IRC", _sNickName)
+                    Utils.EventLogger.EX_Log("IRC: Error: " + ex.Message, "IRC", _sNickName)
                     Try
                         _streamWriter.WriteLine("QUIT :FATAL ERROR.")
                         _streamWriter.Flush()
@@ -201,15 +196,15 @@ Namespace IRC
                         _networkStream.Dispose()
                     Catch ex2 As Exception
                         'In case of something really bad happens
-                        EventLogger.EX_Log("IRC: Error ex2: " + ex2.Message, "IRC", _sNickName)
+                        Utils.EventLogger.EX_Log("IRC: Error ex2: " + ex2.Message, "IRC", _sNickName)
                     End Try
 
                 End Try
                 If HasExited Then
-                    ExitProgram()
+                    Utils.ExitProgram()
                 End If
 
-                EventLogger.Log("Lost connection, retrying on 5 seconds...", "IRC", _sNickName)
+                Utils.EventLogger.Log("Lost connection, retrying on 5 seconds...", "IRC", _sNickName)
                 System.Threading.Thread.Sleep(5000)
             Loop
 
@@ -218,7 +213,7 @@ Namespace IRC
         Function Sendmessage(ByVal message As String, ByVal channel As String) As Boolean
             _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", channel, message))
             _streamWriter.Flush()
-            WriteLine("MSG", "IRC", channel & " " & _sNickName & ": " & message)
+            Utils.WriteLine("MSG", "IRC", channel & " " & _sNickName & ": " & message)
             Return True
         End Function
 
@@ -242,7 +237,7 @@ Namespace IRC
             For Each s As String In message.Text
                 _streamWriter.WriteLine(String.Format("{2} {0} : {1}", message.Source, s, message.Command))
                 _streamWriter.Flush()
-                WriteLine("MSG", "IRC", message.Source & " " & _sNickName & ": " & s)
+                Utils.WriteLine("MSG", "IRC", message.Source & " " & _sNickName & ": " & s)
                 Threading.Thread.Sleep(FloodDelay) 'Prevent flooding
             Next
             lastmessage = message
@@ -263,14 +258,14 @@ Namespace IRC
         Function Sendmessage(ByVal message As String) As Boolean
             _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", _sChannel, message))
             _streamWriter.Flush()
-            WriteLine("MSG", "IRC", _sChannel & " " & _sNickName & ": " & message)
+            Utils.WriteLine("MSG", "IRC", _sChannel & " " & _sNickName & ": " & message)
             Return True
         End Function
 
         Function SendText(ByVal text As String) As Boolean
             _streamWriter.WriteLine(text)
             _streamWriter.Flush()
-            WriteLine("RAW TEXT", "IRC", text)
+            Utils.WriteLine("RAW TEXT", "IRC", text)
             Return True
         End Function
 
@@ -280,33 +275,33 @@ Namespace IRC
         Sub LoadConfig()
             OPlist = New List(Of String)
             If System.IO.File.Exists(_opFilePath.GetPath) Then
-                EventLogger.Log("Loading operators", "LOCAL")
+                Utils.EventLogger.Log("Loading operators", "LOCAL")
                 Dim opstr As String() = System.IO.File.ReadAllLines(_opFilePath.GetPath)
                 Try
                     For Each op As String In opstr
                         OPlist.Add(op)
                     Next
                 Catch ex As IndexOutOfRangeException
-                    EventLogger.Log("Malformed OpList", "LOCAL")
+                    Utils.EventLogger.Log("Malformed OpList", "LOCAL")
                 End Try
             Else
-                EventLogger.Log("No Ops file", "LOCAL")
+                Utils.EventLogger.Log("No Ops file", "LOCAL")
                 Try
                     System.IO.File.Create(_opFilePath.GetPath).Close()
                 Catch ex As System.IO.IOException
-                    EventLogger.Log("Error creating ops file", "LOCAL")
+                    Utils.EventLogger.Log("Error creating ops file", "LOCAL")
                 End Try
 
             End If
 
             If OPlist.Count = 0 Then
-                EventLogger.Log("Warning: No Ops defined!", "LOCAL")
+                Utils.EventLogger.Log("Warning: No Ops defined!", "LOCAL")
                 Console.WriteLine("IRC OP (Nickname!hostname): ")
                 Dim MainOp As String = Console.ReadLine
                 Try
                     System.IO.File.WriteAllText(_opFilePath.GetPath, MainOp)
                 Catch ex As System.IO.IOException
-                    EventLogger.Log("Error saving ops file", "LOCAL")
+                    Utils.EventLogger.Log("Error saving ops file", "LOCAL")
                 End Try
             End If
 
@@ -330,7 +325,7 @@ Namespace IRC
                         System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
-                        EventLogger.Log("Error saving ops file", "LOCAL")
+                        Utils.EventLogger.Log("Error saving ops file", "LOCAL")
                         Return False
                     End Try
                 Else
@@ -361,7 +356,7 @@ Namespace IRC
                         System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
-                        EventLogger.Log("Error saving ops file", "LOCAL")
+                        Utils.EventLogger.Log("Error saving ops file", "LOCAL")
                         Return False
                     End Try
                 Else
@@ -383,19 +378,19 @@ Namespace IRC
             If message Is Nothing Then Return False
             Try
                 Dim Scommand0 As String = message.Split(" "c)(0)
-                Dim Nickname As String = GetUserFromChatresponse(message)
+                Dim Nickname As String = Utils.GetUserFromChatresponse(message)
                 Dim Hostname As String = Scommand0.Split(CType("@", Char()))(1)
-                EventLogger.Log(String.Format("Checking if user {0} on host {1} is OP", Nickname, Hostname), source, user)
+                Utils.EventLogger.Log(String.Format("Checking if user {0} on host {1} is OP", Nickname, Hostname), source, user)
                 Dim OpString As String = Nickname & "!" & Hostname
                 If OPlist.Contains(OpString) Then
-                    EventLogger.Log(String.Format("User {0} on host {1} is OP", Nickname, Hostname), source, user)
+                    Utils.EventLogger.Log(String.Format("User {0} on host {1} is OP", Nickname, Hostname), source, user)
                     Return True
                 Else
-                    EventLogger.Log(String.Format("User {0} on host {1} is not OP", Nickname, Hostname), source, user)
+                    Utils.EventLogger.Log(String.Format("User {0} on host {1} is not OP", Nickname, Hostname), source, user)
                     Return False
                 End If
             Catch ex As IndexOutOfRangeException
-                EventLogger.Log("EX Checking if user is OP : " & ex.Message, source, user)
+                Utils.EventLogger.Log("EX Checking if user is OP : " & ex.Message, source, user)
                 Return False
             End Try
         End Function
@@ -411,7 +406,7 @@ Namespace IRC
                             queuedmsg.Item3.Sendmessage(MsgResponse)
                         End If
                     Catch ex As Exception
-                        EventLogger.EX_Log(ex.Message, "SendMessagequeue", BotCodename)
+                        Utils.EventLogger.EX_Log(ex.Message, "SendMessagequeue", BotCodename)
                         Return False
                     End Try
                 End SyncLock

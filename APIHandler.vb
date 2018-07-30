@@ -1,6 +1,5 @@
 ﻿Imports System.IO
 Imports System.Net
-Imports PeriodiBOT_IRC.CommFunctions
 
 Namespace WikiBot
 
@@ -65,11 +64,11 @@ Namespace WikiBot
         ''' Obtiene un Token y cookies de ingreso, establece las cookies de la clase y retorna el token como string.
         ''' </summary>
         Private Function GetWikiToken() As String
-            EventLogger.Log("Obtaining token...", "LOCAL")
+            Utils.EventLogger.Log("Obtaining token...", "LOCAL")
             Dim postdata As String = "action=query&meta=tokens&type=login&format=json"
             Dim postresponse As String = PostDataAndGetResult(_apiURL, postdata, ApiCookies)
-            Dim token As String = TextInBetween(postresponse, """logintoken"":""", """}}}")(0).Replace("\\", "\")
-            EventLogger.Log("Token obtained!", "LOCAL")
+            Dim token As String = Utils.TextInBetween(postresponse, """logintoken"":""", """}}}")(0).Replace("\\", "\")
+            Utils.EventLogger.Log("Token obtained!", "LOCAL")
             Return token
         End Function
 
@@ -77,7 +76,7 @@ Namespace WikiBot
         ''' Luego de obtener un Token y cookies de ingreso, envía estos al servidor para loguear y guarda las cookies de sesión.
         ''' </summary>
         Public Function LogOn() As String
-            EventLogger.Log("Signing in...", "LOCAL")
+            Utils.EventLogger.Log("Signing in...", "LOCAL")
             Dim token As String = String.Empty
             Dim url As String = _apiURL
             Dim postdata As String = String.Empty
@@ -88,48 +87,48 @@ Namespace WikiBot
             Do Until exitloop
                 Try
                     token = GetWikiToken()
-                    postdata = "action=login&format=json&lgname=" & _botusername & "&lgpassword=" & _botpass & "&lgdomain=" & "&lgtoken=" & UrlWebEncode(token)
+                    postdata = "action=login&format=json&lgname=" & _botusername & "&lgpassword=" & _botpass & "&lgdomain=" & "&lgtoken=" & Utils.UrlWebEncode(token)
                     postresponse = PostDataAndGetResult(url, postdata, ApiCookies)
-                    lresult = TextInBetween(postresponse, "{""result"":""", """,")(0)
-                    EventLogger.Log("Login result: " & lresult, "LOCAL")
-                    Dim lUserID As String = TextInBetween(postresponse, """lguserid"":", ",")(0)
-                    EventLogger.Log("UserID: " & lUserID, "LOCAL")
-                    Dim lUsername As String = TextInBetween(postresponse, """lgusername"":""", """}")(0)
-                    EventLogger.Log("Username: " & lUsername, "LOCAL")
+                    lresult = Utils.TextInBetween(postresponse, "{""result"":""", """,")(0)
+                    Utils.EventLogger.Log("Login result: " & lresult, "LOCAL")
+                    Dim lUserID As String = Utils.TextInBetween(postresponse, """lguserid"":", ",")(0)
+                    Utils.EventLogger.Log("UserID: " & lUserID, "LOCAL")
+                    Dim lUsername As String = Utils.TextInBetween(postresponse, """lgusername"":""", """}")(0)
+                    Utils.EventLogger.Log("Username: " & lUsername, "LOCAL")
                     Return lresult
                 Catch ex As IndexOutOfRangeException
-                    EventLogger.Log("Logon error", "LOCAL")
+                    Utils.EventLogger.Log("Logon error", "LOCAL")
                     If lresult.ToLower = "failed" Then
-                        Dim reason As String = TextInBetween(postresponse, """reason"":""", """")(0)
+                        Dim reason As String = Utils.TextInBetween(postresponse, """reason"":""", """")(0)
                         Console.WriteLine(Environment.NewLine & Environment.NewLine)
                         Console.WriteLine("Login Failed")
                         Console.WriteLine("Reason: " & reason)
                         Console.WriteLine(Environment.NewLine & Environment.NewLine)
                         Console.Write("Press any key to exit...")
                         Console.ReadKey()
-                        ExitProgram()
+                        Utils.ExitProgram()
                         Return lresult
                     End If
                     Return lresult
                 Catch ex2 As System.Net.WebException
-                    EventLogger.Log("Network error", "LOCAL")
+                    Utils.EventLogger.Log("Network error", "LOCAL")
                     Console.WriteLine(Environment.NewLine & Environment.NewLine)
                     Dim reason As String = ex2.Message
                     Console.WriteLine("Login Failed (Network error)")
                     Console.WriteLine(reason)
                     Console.WriteLine(Environment.NewLine & Environment.NewLine)
                 Catch ex3 As Exception
-                    EventLogger.Log("Logon error", "LOCAL")
-                    EventLogger.Debug_Log("Logon error: " & ex3.Message, "LOCAL")
+                    Utils.EventLogger.Log("Logon error", "LOCAL")
+                    Utils.EventLogger.Debug_Log("Logon error: " & ex3.Message, "LOCAL")
                     Console.WriteLine(Environment.NewLine & Environment.NewLine)
                     Dim reason As String = ex3.Message
                     Console.WriteLine("Login Failed")
                     Console.WriteLine("Reason: " & reason)
                     Console.WriteLine(Environment.NewLine & Environment.NewLine)
                 End Try
-                exitloop = PressKeyTimeout()
+                exitloop = Utils.PressKeyTimeout()
             Loop
-            ExitProgram()
+            Utils.ExitProgram()
             Return lresult
         End Function
 
@@ -236,8 +235,8 @@ Namespace WikiBot
                     cookies = tempcookies
                     Return postreqreader.ReadToEnd
                 Catch ex As ProtocolViolationException 'Catch para los headers erróneos que a veces entrega la API de MediaWiki
-                    EventLogger.EX_Log(ex.Message, ex.TargetSite.Name)
-                    EventLogger.Debug_Log("EX STACK TRACE: " & ex.StackTrace, ex.Source)
+                    Utils.EventLogger.EX_Log(ex.Message, ex.TargetSite.Name)
+                    Utils.EventLogger.Debug_Log("EX STACK TRACE: " & ex.StackTrace, ex.Source)
                     tryCount += 1
                 End Try
             Loop

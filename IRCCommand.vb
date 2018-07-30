@@ -2,7 +2,6 @@
 Option Explicit On
 Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.WikiBot
-Imports PeriodiBOT_IRC.CommFunctions
 
 Public Class IRCCommand
     Public ReadOnly Property Name As String
@@ -115,7 +114,7 @@ Public Class CommandParams
         Dim sSource As String = sCommandParts(2)
         Dim sParam As String = GetParamString(Imputline)
 
-        Dim sRealname As String = GetUserFromChatresponse(sPrefix)
+        Dim sRealname As String = Utils.GetUserFromChatresponse(sPrefix)
         If sSource.ToLower = _client.NickName.ToLower Then
             sSource = sRealname
         End If
@@ -153,13 +152,13 @@ Public Class CommandParams
     Private Function GetParamString(ByVal message As String) As String
         If message.Contains(":") Then
             Try
-                Dim StringToRemove As String = TextInBetweenInclusive(message, ":", " :")(0)
+                Dim StringToRemove As String = Utils.TextInBetweenInclusive(message, ":", " :")(0)
                 Dim Paramstring As String = message.Replace(StringToRemove, String.Empty)
                 Return Paramstring
             Catch ex As IndexOutOfRangeException
                 Return String.Empty
             Catch ex2 As Exception
-                EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex2.Message, "IRC", _client.NickName)
+                Utils.EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex2.Message, "IRC", _client.NickName)
                 Return String.Empty
             End Try
         Else

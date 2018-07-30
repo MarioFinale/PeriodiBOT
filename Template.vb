@@ -1,7 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Text.RegularExpressions
-Imports PeriodiBOT_IRC.CommFunctions
 Namespace WikiBot
 
     Public Class Template
@@ -152,7 +151,7 @@ Namespace WikiBot
             If Not templatetext.Substring(0, 2) = "{{" Then
                 Exit Sub
             End If
-            If Not CountCharacter(templatetext, CChar("{")) = CountCharacter(templatetext, CChar("}")) Then
+            If Not Utils.CountCharacter(templatetext, CChar("{")) = Utils.CountCharacter(templatetext, CChar("}")) Then
                 Exit Sub
             End If
             If Not templatetext.Substring(templatetext.Length - 2, 2) = "}}" Then
@@ -168,10 +167,10 @@ Namespace WikiBot
             Dim TemplateInnerText = NewText.Substring(2, NewText.Length - 4)
 
             'Reemplazar plantillas internas con texto para reconocer parametros de principal
-            Dim temparray As List(Of String) = GetTemplateTextArray(TemplateInnerText)
+            Dim temparray As List(Of String) = Utils.GetTemplateTextArray(TemplateInnerText)
 
             For templ As Integer = 0 To temparray.Count - 1
-                Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & templ.ToString, 1)
+                Dim tempreplace As String = Utils.ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & templ.ToString, 1)
                 NewText = NewText.Replace(temparray(templ), tempreplace)
                 ReplacedTemplates.Add(temparray(templ))
             Next
@@ -184,7 +183,7 @@ Namespace WikiBot
             Next
 
             For temp2 As Integer = 0 To LinkArray.Count - 1
-                Dim LinkReplace As String = ColoredText("PERIODIBOT:LINKREPLACE::::" & temp2.ToString, 1)
+                Dim LinkReplace As String = Utils.ColoredText("PERIODIBOT:LINKREPLACE::::" & temp2.ToString, 1)
                 NewText = NewText.Replace(LinkArray(temp2), LinkReplace)
                 ReplacedLinks.Add(LinkArray(temp2))
             Next
@@ -202,7 +201,7 @@ Namespace WikiBot
 
             'Reemplazar plantillas internas en el titulo con texto para reconocer nombre de la principal
             For reptempindex As Integer = 0 To ReplacedTemplates.Count - 1
-                Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & reptempindex.ToString, 1)
+                Dim tempreplace As String = Utils.ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & reptempindex.ToString, 1)
                 tempname = tempname.Replace(tempreplace, ReplacedTemplates(reptempindex)).Trim(CType(" ", Char())).Trim(CType(Environment.NewLine, Char()))
             Next
             _name = tempname
@@ -240,14 +239,14 @@ Namespace WikiBot
                 Dim ParamValue As String = tup.Item2
 
                 For reptempindex As Integer = 0 To ReplacedTemplates.Count - 1
-                    Dim tempreplace As String = ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & reptempindex.ToString, 1)
+                    Dim tempreplace As String = Utils.ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & reptempindex.ToString, 1)
 
                     ParamName = ParamName.Replace(tempreplace, ReplacedTemplates(reptempindex))
                     ParamValue = ParamValue.Replace(tempreplace, ReplacedTemplates(reptempindex))
                 Next
 
                 For RepLinkIndex As Integer = 0 To ReplacedLinks.Count - 1
-                    Dim LinkReplace As String = ColoredText("PERIODIBOT:LINKREPLACE::::" & RepLinkIndex.ToString, 1)
+                    Dim LinkReplace As String = Utils.ColoredText("PERIODIBOT:LINKREPLACE::::" & RepLinkIndex.ToString, 1)
 
                     ParamName = ParamName.Replace(LinkReplace, ReplacedLinks(RepLinkIndex))
                     ParamValue = ParamValue.Replace(LinkReplace, ReplacedLinks(RepLinkIndex))

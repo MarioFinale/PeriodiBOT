@@ -1,7 +1,6 @@
 ﻿Option Explicit On
 Option Strict On
 Imports System.IO
-Imports PeriodiBOT_IRC.CommFunctions
 
 Public Class Settings
 
@@ -45,7 +44,7 @@ Public Class Settings
         Try
             File.WriteAllLines(_filePath, lines.ToArray)
         Catch ex As Exception
-            EventLogger.EX_Log(ex.Message, "Settings:SaveConfig")
+            Utils.EventLogger.EX_Log(ex.Message, "Settings:SaveConfig")
         End Try
     End Sub
 

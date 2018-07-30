@@ -2,7 +2,7 @@
 Option Explicit On
 Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.IRC
-Imports PeriodiBOT_IRC.CommFunctions
+Imports PeriodiBOT_IRC.Utils
 
 Module GlobalVars
     Public Const BotCodename As String = "PeriodiBOT"

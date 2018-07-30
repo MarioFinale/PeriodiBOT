@@ -1,6 +1,5 @@
 ﻿Option Strict On
 Option Explicit On
-Imports PeriodiBOT_IRC.CommFunctions
 
 Class LogEngine
 
@@ -133,7 +132,7 @@ Class LogEngine
     ''' <returns></returns>
     Public Function Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
         AddEvent(text, source, user, "LOG")
-        WriteLine("LOG", source, user & ": " & text)
+        Utils.WriteLine("LOG", source, user & ": " & text)
         Return True
     End Function
 
@@ -160,7 +159,7 @@ Class LogEngine
     ''' <returns></returns>
     Public Function EX_Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
         AddEvent(text, source, user, "EX")
-        WriteLine("EX", source, user & ": " & text)
+        Utils.WriteLine("EX", source, user & ": " & text)
         Return True
     End Function
 
@@ -174,7 +173,7 @@ Class LogEngine
         For Each Line As String() In _userData
             Dim Linetxt As String = String.Empty
             For Each item As String In Line
-                Linetxt = Linetxt & PsvSafeEncode(item) & "|"
+                Linetxt = Linetxt & Utils.PsvSafeEncode(item) & "|"
             Next
             Linetxt = Linetxt.Trim(CType("|", Char))
             StringToFile.Add(Linetxt)
@@ -276,7 +275,7 @@ Class LogEngine
 
             Dim totallines As String() = IO.File.ReadAllLines(filepath)
             If totallines.Count > _maxLogLenght Then
-                IO.File.WriteAllLines(filepath, SplitStringArrayIntoChunks(totallines, _maxLogLenght).Last.ToArray)
+                IO.File.WriteAllLines(filepath, Utils.SplitStringArrayIntoChunks(totallines, _maxLogLenght).Last.ToArray)
             End If
             Return True
         Catch ex As Exception
@@ -367,7 +366,7 @@ Class LogEngine
             For Each line As String In System.IO.File.ReadAllLines(User_Filepath)
                 Dim Encodedline As New List(Of String)
                 For Each s As String In line.Split(CType("|", Char))
-                    Encodedline.Add(PsvSafeDecode(s))
+                    Encodedline.Add(Utils.PsvSafeDecode(s))
                 Next
                 UserList.Add(Encodedline.ToArray)
             Next

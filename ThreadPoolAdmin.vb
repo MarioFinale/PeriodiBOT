@@ -2,7 +2,6 @@
 Option Explicit On
 Imports System.Globalization
 Imports System.Threading
-Imports PeriodiBOT_IRC.CommFunctions
 
 Public Module ThreadPoolAdmin
     Public ThreadList As New List(Of ThreadInfo)
@@ -56,7 +55,7 @@ Public Module ThreadPoolAdmin
                     If Not tinfo.Critical Then
                         Exit Do
                     Else
-                        EventLogger.Log("CANNOT END TASK """ & tinfo.Name & """: CRITICAL TASK", "THREAD", tinfo.Author)
+                        Utils.EventLogger.Log("CANNOT END TASK """ & tinfo.Name & """: CRITICAL TASK", "THREAD", tinfo.Author)
                     End If
                 End If
                 If Not tinfo.Paused Then
@@ -66,7 +65,7 @@ Public Module ThreadPoolAdmin
                         tinfo.Task.Invoke
                     Catch ex As Exception
                         tinfo.ExCount += 1
-                        EventLogger.EX_Log("UNHANDLED TASK EX: """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
+                        Utils.EventLogger.EX_Log("UNHANDLED TASK EX: """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
                     End Try
 
                     tinfo.Runcount += 1.0F
@@ -81,14 +80,14 @@ Public Module ThreadPoolAdmin
                         tinfo.Status = "Paused"
                         Thread.Sleep(1000)
                     Else
-                        EventLogger.Log("CANNOT PAUSE TASK """ & tinfo.Name & """: CRITICAL TASK", "THREAD", tinfo.Author)
+                        Utils.EventLogger.Log("CANNOT PAUSE TASK """ & tinfo.Name & """: CRITICAL TASK", "THREAD", tinfo.Author)
                         tinfo.Paused = False
                     End If
                 End If
             Loop
         Catch ex As Exception
             tinfo.ExCount += 1
-            EventLogger.EX_Log("UNHANDLED THREAD EX: """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
+            Utils.EventLogger.EX_Log("UNHANDLED THREAD EX: """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
         End Try
         ThreadList.Remove(tinfo)
     End Sub
@@ -101,7 +100,7 @@ Public Module ThreadPoolAdmin
                     If Not tinfo.Critical Then
                         Exit Do
                     Else
-                        EventLogger.Log("CANNOT END TASK """ & tinfo.Name & """: CRITICAL TASK", "THREAD", tinfo.Author)
+                        Utils.EventLogger.Log("CANNOT END TASK """ & tinfo.Name & """: CRITICAL TASK", "THREAD", tinfo.Author)
                     End If
                 End If
                 If Not tinfo.Paused Then
@@ -123,7 +122,7 @@ Public Module ThreadPoolAdmin
                         tinfo.Status = "Paused"
                         Thread.Sleep(1000)
                     Else
-                        EventLogger.Log("CANNOT PAUSE TASK """ & tinfo.Name & """: CRITICAL TASK", "THREAD", tinfo.Author)
+                        Utils.EventLogger.Log("CANNOT PAUSE TASK """ & tinfo.Name & """: CRITICAL TASK", "THREAD", tinfo.Author)
                         tinfo.Paused = False
                     End If
 
@@ -131,7 +130,7 @@ Public Module ThreadPoolAdmin
             Loop
         Catch ex As Exception
             tinfo.ExCount += 1
-            EventLogger.EX_Log("TASK """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
+            Utils.EventLogger.EX_Log("TASK """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
         End Try
         ThreadList.Remove(tinfo)
     End Sub
