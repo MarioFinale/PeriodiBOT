@@ -82,7 +82,7 @@
     <Compile Include="Initializer.vb" />
     <Compile Include="IRCCommand.vb" />
     <Compile Include="IRCCommands.vb" />
-    <Compile Include="CommFunctions.vb" />
+    <Compile Include="Utils.vb" />
     <Compile Include="GlobalVars.vb" />
     <Compile Include="OldGrillitusTasks.vb" />
     <Compile Include="IRCMessage.vb" />
