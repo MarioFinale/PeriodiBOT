@@ -27,7 +27,6 @@ Namespace WikiBot
             End Try
         End Function
 
-
         Private Function GetTopicsPageText() As String
             Dim scannedPages As Integer = 0
             Dim topics As SortedDictionary(Of String, List(Of String)) = GetTopicsText(scannedPages)
@@ -77,7 +76,6 @@ Namespace WikiBot
             Next
             Return pagetext
         End Function
-
 
         Private Function GetTopicGroups() As SortedDictionary(Of String, List(Of String))
             Dim GroupsPage As Page = _bot.Getpage(TopicGroupsPage) 'Inicializar página de grupos
@@ -145,7 +143,6 @@ Namespace WikiBot
             inclusions = pages.Length 'Cuantas páginas se revisaron
             Return Topiclist 'Retorna el diccionario
         End Function
-
 
         Private Function GetTopicsOfpage(ByVal sourcePage As Page, ByVal TopicList As SortedList(Of String, Topic)) As SortedList(Of String, Topic)
             If TopicList Is Nothing Then 'Si no está inicializado correctamente...
@@ -275,8 +272,6 @@ Namespace WikiBot
                 Return False
             End If
         End Function
-
-
     End Class
 
     Public Class Topic

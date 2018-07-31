@@ -527,6 +527,101 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Return BOTGetPagesExtract(pageNames, characterLimit, wiki)
         End Function
 
+        ''' <summary>
+        ''' Corta de la mejor forma que pueda un extracto para que esté debajo del límite de caracteres especificado.
+        ''' </summary>
+        ''' <param name="safetext"></param>
+        ''' <param name="charlimit"></param>
+        ''' <returns></returns>
+        Function SafeTrimExtract(ByVal safetext As String, ByVal charlimit As Integer) As String
+            Dim TrimmedText As String = safetext
+            For a As Integer = charlimit To 0 Step -1
+                If (TrimmedText.Chars(a) = ".") Or (TrimmedText.Chars(a) = ";") Then
+
+                    If TrimmedText.Contains("(") Then
+                        If Not Utils.CountCharacter(TrimmedText, CType("(", Char)) = Utils.CountCharacter(TrimmedText, CType(")", Char)) Then
+                            Continue For
+                        End If
+                    End If
+                    If TrimmedText.Contains("<") Then
+                        If Not Utils.CountCharacter(TrimmedText, CType("<", Char)) = Utils.CountCharacter(TrimmedText, CType(">", Char)) Then
+                            Continue For
+                        End If
+                    End If
+                    If TrimmedText.Contains("«") Then
+                        If Not Utils.CountCharacter(TrimmedText, CType("«", Char)) = Utils.CountCharacter(TrimmedText, CType("»", Char)) Then
+                            Continue For
+                        End If
+                    End If
+                    If TrimmedText.Contains("{") Then
+                        If Not Utils.CountCharacter(TrimmedText, CType("{", Char)) = Utils.CountCharacter(TrimmedText, CType("}", Char)) Then
+                            Continue For
+                        End If
+                    End If
+
+                    'Verifica que no este cortando un numero
+                    If TrimmedText.Length - 1 >= (a + 1) Then
+                        If Regex.Match(TrimmedText.Chars(a + 1), "[0-9]+").Success Then
+                            Continue For
+                        Else
+                            Exit For
+                        End If
+                    End If
+                    'Verifica que no este cortando un n/f
+                    If ((TrimmedText.Chars(a - 2) & TrimmedText.Chars(a - 1)).ToString.ToLower = "(n") Or
+                    ((TrimmedText.Chars(a - 2) & TrimmedText.Chars(a - 1)).ToString.ToLower = "(f") Then
+                        Continue For
+                    Else
+                        Exit For
+                    End If
+
+                End If
+                TrimmedText = TrimmedText.Substring(0, a)
+            Next
+            If Regex.Match(TrimmedText, "{\\.+}").Success Then
+                For Each m As Match In Regex.Matches(TrimmedText, "{\\.+}")
+                    TrimmedText = TrimmedText.Replace(m.Value, "")
+                Next
+                TrimmedText = Utils.RemoveExcessOfSpaces(TrimmedText)
+            End If
+            Return TrimmedText
+        End Function
+
+        Function GetExtractsFromApiResponse(ByVal queryresponse As String, ByVal charLimit As Integer, ByVal wiki As Boolean) As HashSet(Of WExtract)
+            Dim ExtractsList As New HashSet(Of WExtract)
+            Dim ResponseArray As String() = Utils.TextInBetweenInclusive(queryresponse, ",""title"":", """}")
+            For Each s As String In ResponseArray
+                If Not s.Contains(",""missing"":") Then
+                    Dim pagetitle As String = Utils.TextInBetween(s, ",""title"":""", """,""")(0).Replace("_"c, " ")
+                    Dim TreatedExtract As String = Utils.TextInBetween(s, pagetitle & """,""extract"":""", """}")(0)
+                    TreatedExtract = Utils.NormalizeUnicodetext(TreatedExtract)
+                    TreatedExtract = TreatedExtract.Replace("\n", Environment.NewLine)
+                    TreatedExtract = TreatedExtract.Replace("\""", """")
+                    TreatedExtract = Regex.Replace(TreatedExtract, "\{\\\\.*\}", " ")
+                    TreatedExtract = Regex.Replace(TreatedExtract, "\[[0-9]+\]", " ")
+                    TreatedExtract = Regex.Replace(TreatedExtract, "\[nota\ [0-9]+\]", " ")
+                    TreatedExtract = Utils.RemoveExcessOfSpaces(TreatedExtract)
+                    TreatedExtract = Utils.FixResumeNumericExp(TreatedExtract)
+                    If TreatedExtract.Contains(""",""missing"":""""}}}}") Then
+                        TreatedExtract = Nothing
+                    End If
+                    If TreatedExtract.Length > charLimit Then
+                        TreatedExtract = SafeTrimExtract(TreatedExtract.Substring(0, charLimit + 1), charLimit)
+                    End If
+                    'Si el título de la página está en el resumen, coloca en negritas la primera ocurrencia
+                    If wiki Then
+                        Dim regx As New Regex(Regex.Escape(pagetitle), RegexOptions.IgnoreCase)
+                        TreatedExtract = regx.Replace(TreatedExtract, "'''" & pagetitle & "'''", 1)
+                    End If
+                    Dim Extract As New WExtract With {
+                        .ExtractContent = TreatedExtract,
+                        .PageName = Utils.NormalizeUnicodetext(pagetitle)}
+                    ExtractsList.Add(Extract)
+                End If
+            Next
+            Return ExtractsList
+        End Function
+
 
         ''' <summary>
         ''' Retorna los resúmenes de las páginas indicadas en el array de entrada como SortedList (con el formato {Página,Resumen}), los nombres de página deben ser distintos. 
@@ -538,114 +633,28 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Utils.EventLogger.Log("Loading " & pageNames.Count.ToString & " page extracts", "LOCAL")
             Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
-
             Dim PageList As List(Of List(Of String)) = Utils.SplitStringArrayIntoChunks(PageNamesList.ToArray, 20)
             Dim PagenameAndResume As New SortedList(Of String, String)
-
             Try
                 For Each ListInList As List(Of String) In PageList
                     Dim Qstring As String = String.Empty
-
                     For Each s As String In ListInList
                         s = Utils.UrlWebEncode(s)
                         Qstring = Qstring & s & "|"
                     Next
                     Qstring = Qstring.Trim(CType("|", Char))
                     Dim QueryResponse As String = GETQUERY("format=json&action=query&prop=extracts&exintro=&explaintext=&titles=" & Qstring)
-                    Dim ResponseArray As String() = Utils.TextInBetweenInclusive(QueryResponse, ",""title"":", """}")
-                    For Each s As String In ResponseArray
-                        Dim pagetitle As String = Utils.TextInBetween(s, ",""title"":""", """,""")(0)
+                    Dim ExtractsList As HashSet(Of WExtract) = GetExtractsFromApiResponse(QueryResponse, charLimit, wiki)
 
-                        If Not s.Contains(",""missing"":") Then
+                    Dim NormalizedNames As New List(Of String)
+                    For Each pageName As String In PageNamesList.ToArray
+                        NormalizedNames.Add(pageName.ToLower.Replace("_", " "))
+                    Next
 
-                            If Not PagenameAndResume.ContainsKey(pagetitle) Then
-                                Dim TreatedExtract As String = Utils.TextInBetween(s, pagetitle & """,""extract"":""", """}")(0)
-
-                                Dim PageKey As String = String.Empty
-                                Dim modlist As New List(Of String)
-                                For Each tx As String In PageNamesList.ToArray
-                                    modlist.Add(tx.ToLower.Replace("_", " "))
-                                Next
-                                Dim normtext As String = Utils.NormalizeUnicodetext(pagetitle)
-                                normtext = normtext.ToLower.Replace("_", " ")
-
-                                Dim ItemIndex As Integer = modlist.IndexOf(normtext)
-                                PageKey = PageNamesList(ItemIndex)
-                                TreatedExtract = Utils.NormalizeUnicodetext(TreatedExtract)
-                                TreatedExtract = TreatedExtract.Replace("​", String.Empty) 'This isn't a empty string, it contains the invisible character u+200
-                                TreatedExtract = TreatedExtract.Replace("\n", Environment.NewLine)
-                                TreatedExtract = TreatedExtract.Replace("\""", """")
-                                TreatedExtract = Regex.Replace(TreatedExtract, "\{\\\\.*\}", " ")
-                                TreatedExtract = Regex.Replace(TreatedExtract, "\[[0-9]+\]", " ")
-                                TreatedExtract = Regex.Replace(TreatedExtract, "\[nota\ [0-9]+\]", " ")
-                                TreatedExtract = Utils.RemoveExcessOfSpaces(TreatedExtract)
-                                TreatedExtract = Utils.FixResumeNumericExp(TreatedExtract)
-                                If TreatedExtract.Contains(""",""missing"":""""}}}}") Then
-                                    TreatedExtract = Nothing
-                                End If
-                                If TreatedExtract.Length > charLimit Then
-                                    TreatedExtract = TreatedExtract.Substring(0, charLimit + 1)
-                                    For a As Integer = -charLimit To 0
-                                        If (TreatedExtract.Chars(0 - a) = ".") Or (TreatedExtract.Chars(0 - a) = ";") Then
-
-                                            If TreatedExtract.Contains("(") Then
-                                                If Not Utils.CountCharacter(TreatedExtract, CType("(", Char)) = Utils.CountCharacter(TreatedExtract, CType(")", Char)) Then
-                                                    Continue For
-                                                End If
-                                            End If
-                                            If TreatedExtract.Contains("<") Then
-                                                If Not Utils.CountCharacter(TreatedExtract, CType("<", Char)) = Utils.CountCharacter(TreatedExtract, CType(">", Char)) Then
-                                                    Continue For
-                                                End If
-                                            End If
-                                            If TreatedExtract.Contains("«") Then
-                                                If Not Utils.CountCharacter(TreatedExtract, CType("«", Char)) = Utils.CountCharacter(TreatedExtract, CType("»", Char)) Then
-                                                    Continue For
-                                                End If
-                                            End If
-                                            If TreatedExtract.Contains("{") Then
-                                                If Not Utils.CountCharacter(TreatedExtract, CType("{", Char)) = Utils.CountCharacter(TreatedExtract, CType("}", Char)) Then
-                                                    Continue For
-                                                End If
-                                            End If
-
-                                            'Verifica que no este cortando un numero
-                                            If TreatedExtract.Length - 1 >= (0 - a + 1) Then
-                                                If Regex.Match(TreatedExtract.Chars(0 - a + 1), "[0-9]+").Success Then
-                                                    Continue For
-                                                Else
-                                                    Exit For
-                                                End If
-                                            End If
-                                            'Verifica que no este cortando un n/f
-                                            If ((TreatedExtract.Chars(0 - a - 2) & TreatedExtract.Chars(0 - a - 1)).ToString.ToLower = "(n") Or
-                                            ((TreatedExtract.Chars(0 - a - 2) & TreatedExtract.Chars(0 - a - 1)).ToString.ToLower = "(f") Then
-                                                Continue For
-                                            Else
-                                                Exit For
-                                            End If
-
-                                        End If
-                                        TreatedExtract = TreatedExtract.Substring(0, 1 - a)
-                                    Next
-                                    If Regex.Match(TreatedExtract, "{\\.+}").Success Then
-                                        For Each m As Match In Regex.Matches(TreatedExtract, "{\\.+}")
-                                            TreatedExtract = TreatedExtract.Replace(m.Value, "")
-                                        Next
-                                        TreatedExtract = Utils.RemoveExcessOfSpaces(TreatedExtract)
-                                    End If
-                                End If
-
-                                'Si el título de la página está en el resumen, coloca en negritas la primera ocurrencia
-                                If wiki Then
-                                    Dim regx As New Regex(Regex.Escape(pagetitle), RegexOptions.IgnoreCase)
-                                    TreatedExtract = regx.Replace(TreatedExtract, "'''" & pagetitle & "'''", 1)
-                                End If
-
-                                PagenameAndResume.Add(PageKey, TreatedExtract)
-                            End If
-                        End If
-
+                    For Each Extract As WExtract In ExtractsList
+                        Dim OriginalNameIndex As Integer = NormalizedNames.IndexOf(Extract.PageName.ToLower)
+                        Dim OriginalName As String = PageNamesList(OriginalNameIndex)
+                        PagenameAndResume.Add(OriginalName, Extract.ExtractContent)
                     Next
                 Next
             Catch ex As Exception
@@ -1396,5 +1405,17 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 #End Region
 
     End Class
+
+    Public Class WExtract
+        Implements IComparable(Of WExtract)
+        Property PageName As String
+        Property ExtractContent As String
+
+        Public Function CompareTo(other As WExtract) As Integer Implements IComparable(Of WExtract).CompareTo
+            Return Me.PageName().CompareTo(other.PageName())
+        End Function
+    End Class
+
+
 
 End Namespace

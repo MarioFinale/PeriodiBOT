@@ -131,7 +131,6 @@ Namespace WikiBot
         End Property
 #End Region
 
-
         Sub New(ByVal wikiBot As Bot, userName As String)
             _userName = userName
             _bot = wikiBot
