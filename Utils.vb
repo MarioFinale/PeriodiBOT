@@ -1129,6 +1129,7 @@ End Class
 ''' Excepción que se produce cuando se alcanza un número máximo de reintentos.
 ''' </summary>
 Public Class MaxRetriesExceededExeption : Inherits System.Exception
+    Implements ISerializable
     Public Sub New()
         MyBase.New()
     End Sub

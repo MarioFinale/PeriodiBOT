@@ -10,7 +10,7 @@ Public Class IRCCommand
     Public ReadOnly Property Usage As String
     Friend ComFunc As Func(Of CommandParams, IRCMessage)
 
-    Public Sub New(ByVal commandName As String, ByVal commandAliases As String(), ByRef commandFunc As Func(Of CommandParams, IRCMessage), ByVal commandDescription As String, ByVal commandUsage As String, ByVal clientResolver As IRC_Client)
+    Public Sub New(ByVal commandName As String, ByVal commandAliases As String(), ByRef commandFunc As Func(Of CommandParams, IRCMessage), ByVal commandDescription As String, ByVal commandUsage As String)
         Name = commandName
         Aliases = commandAliases
         ComFunc = commandFunc

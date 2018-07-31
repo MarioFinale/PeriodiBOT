@@ -202,7 +202,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="PageTitle">Título exacto de la página</param>
         ''' <param name="wbot">Bot logueado a la wiki</param>
-        Public Sub New(ByVal pageTitle As String, ByRef wbot As Bot)
+        Public Sub New(ByVal pageTitle As String, ByVal wbot As Bot)
             If wbot Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             _bot = wbot
             _username = _bot.UserName
@@ -213,7 +213,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="revid">Revision ID.</param>/param>
         ''' <param name="wbot">Bot logueado a la wiki</param>
-        Public Sub New(ByVal revid As Integer, ByRef wbot As Bot)
+        Public Sub New(ByVal revid As Integer, ByVal wbot As Bot)
             If wbot Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             _bot = wbot
             _username = _bot.UserName

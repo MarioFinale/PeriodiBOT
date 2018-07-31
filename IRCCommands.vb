@@ -197,7 +197,7 @@ Public Class IRCCommands
     End Function
 
 
-    Function DeOp(ByVal args As CommandParams) As IRCMessage
+    Function DEOp(ByVal args As CommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             Dim message As String = args.Imputline

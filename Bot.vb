@@ -700,65 +700,6 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         End Function
 
         ''' <summary>
-        ''' Evalua texto (wikicódigo) y regresa un array de string con cada uno de los hilos del mismo (los que comienzan con == ejemplo == y terminan en otro comienzo o el final de la página).
-        ''' </summary>
-        ''' <param name="pagetext">Texto a evaluar</param>
-        ''' <returns></returns>
-        Function GetSubThreads(ByVal pagetext As String) As String()
-            Dim temptext As String = pagetext
-
-            Dim commentMatch As MatchCollection = Regex.Matches(temptext, "(<!--)[\s\S]*?(-->)")
-
-            Dim CommentsList As New List(Of String)
-            For i As Integer = 0 To commentMatch.Count - 1
-                CommentsList.Add(commentMatch(i).Value)
-                temptext = temptext.Replace(commentMatch(i).Value, Utils.ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4))
-            Next
-
-            Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((===(?!=)).+?(===(?!=)))")
-
-            Dim threadlist As New List(Of String)
-
-
-            For i As Integer = 0 To mc.Count - 1
-
-                Dim nextmatch As Integer = (i + 1)
-
-                If Not nextmatch = mc.Count Then
-
-                    Dim threadtitle As String = mc(i).Value
-                    Dim nextthreadtitle As String = mc(nextmatch).Value
-                    Dim threadtext As String = String.Empty
-
-                    threadtext = Utils.TextInBetween(temptext, threadtitle, nextthreadtitle)(0)
-                    Dim Completethread As String = threadtitle & threadtext
-                    threadlist.Add(Completethread)
-                    temptext = Utils.ReplaceFirst(temptext, Completethread, "")
-
-                Else
-                    Dim threadtitle As String = mc(i).Value
-
-                    Dim ThreadPos As Integer = temptext.IndexOf(threadtitle)
-                    Dim threadlenght As Integer = temptext.Length - temptext.Substring(0, ThreadPos).Length
-                    Dim threadtext As String = temptext.Substring(ThreadPos, threadlenght)
-                    threadlist.Add(threadtext)
-
-                End If
-            Next
-            Dim EndThreadList As New List(Of String)
-            For Each t As String In threadlist
-                Dim nthreadtext As String = t
-                For i As Integer = 0 To commentMatch.Count - 1
-                    Dim commenttext As String = Utils.ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4)
-                    nthreadtext = nthreadtext.Replace(commenttext, CommentsList(i))
-                Next
-                EndThreadList.Add(nthreadtext)
-            Next
-
-            Return EndThreadList.ToArray
-        End Function
-
-        ''' <summary>
         ''' Crea una nueva instancia de la clase de archivado y realiza un archivado siguiendo una lógica similar a la de Grillitus.
         ''' </summary>
         ''' <param name="pageToArchive">Página a archivar</param>
@@ -1232,7 +1173,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Dim newThreads As Boolean = False
             Dim membPage As Page = Getpage(InformalMediationMembers)
             Dim MedPage As Page = Getpage(InfMedPage)
-            Dim subthreads As String() = GetSubThreads(membPage.Text)
+            Dim subthreads As String() = Utils.GetPageThreads(membPage.Text)
             Dim uTempList As List(Of Template) = Utils.GetTemplates(subthreads(0))
             Dim userList As New List(Of String)
             For Each temp As Template In uTempList

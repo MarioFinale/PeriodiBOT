@@ -3,7 +3,7 @@ Imports System.Net
 
 Namespace WikiBot
 
-    Public Class APIHandler
+    Public Class ApiHandler
 
         Private ApiCookies As CookieContainer
         Private _userName As String = String.Empty
