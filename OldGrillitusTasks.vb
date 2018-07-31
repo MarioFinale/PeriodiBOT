@@ -489,7 +489,7 @@ Namespace WikiBot
                         Dim destNamespace As String = Destination.Split(":"c)(0)
                         Dim destPagename As String = Utils.ReplaceFirst(Destination, destNamespace & ":", "")
                         Dim destParsedNamespace As String = Utils.UppercaseFirstCharacter(destNamespace.ToLower)
-                        Dim destParsedPagename As String = Utils.UppercaseFirstCharacter(destPagename.ToLower)
+                        Dim destParsedPagename As String = Utils.UppercaseFirstCharacter(destPagename)
                         Destination = destParsedNamespace & ":" & destParsedPagename
                     End If
                 End If
