@@ -1049,7 +1049,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Dim NotSafePagesAdded As Integer = 0
 
             Utils.EventLogger.Debug_Log("UpdatePageExtracts: Parsing resume template", "LOCAL")
-            Dim templatelist As List(Of String) = Utils.GetTemplateTextArray(ResumePageText)
+            Dim templatelist As List(Of String) = Template.GetTemplateTextArray(ResumePageText)
             Dim ResumeTemplate As New Template(templatelist(0), False)
             Utils.EventLogger.Debug_Log("UpdatePageExtracts: Adding Old resumes to list", "LOCAL")
             Dim PageNames As New List(Of String)
@@ -1173,8 +1173,8 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Dim newThreads As Boolean = False
             Dim membPage As Page = Getpage(InformalMediationMembers)
             Dim MedPage As Page = Getpage(InfMedPage)
-            Dim subthreads As String() = Utils.GetPageThreads(membPage.Text)
-            Dim uTempList As List(Of Template) = Utils.GetTemplates(subthreads(0))
+            Dim subthreads As String() = Utils.GetPageSubThreads(membPage.Text)
+            Dim uTempList As List(Of Template) = Template.GetTemplates(subthreads(0))
             Dim userList As New List(Of String)
             For Each temp As Template In uTempList
                 If temp.Name = "u" Then
@@ -1299,7 +1299,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                     Dim User As New WikiUser(Me, Username)
                     'Validar usuario
                     If Not ValidUser(User) Then
-                        Utils.EventLogger.Log("Archive: The user" & User.UserName & " doesn't meet the requirements.", "LOCAL")
+                        Utils.EventLogger.Log("CheckUsersActivity: The user " & User.UserName & " is not valid.", "LOCAL")
                         Continue For
                     End If
 

@@ -500,80 +500,7 @@ NotInheritable Class Utils
         Dim occurences As Integer = CInt(lenghtdiff / strlen)
         Return occurences
     End Function
-    ''' <summary>
-    ''' Retorna un array de string con todas las plantillas contenidas en un texto.
-    ''' Pueden repetirse si hay plantillas que contienen otras en su interior.
-    ''' </summary>
-    ''' <param name="text"></param>
-    ''' <returns></returns>
-    Public Shared Function GetTemplateTextArray(ByVal text As String) As List(Of String)
-        Dim temptext As String = String.Empty
-        Dim templist As New List(Of String)
-        Dim CharArr As Char() = text.ToArray
 
-        Dim OpenTemplateCount2 As Integer = 0
-        Dim CloseTemplateCount2 As Integer = 0
-
-        Dim Flag1 As Boolean = False
-        Dim Flag2 As Boolean = False
-
-        Dim beginindex As Integer = 0
-
-        For i As Integer = 0 To CharArr.Length - 1
-
-            If CharArr(i) = "{" Then
-                If Flag1 Then
-                    Flag1 = False
-                    OpenTemplateCount2 += 1
-                Else
-                    Flag1 = True
-                End If
-            Else
-                Flag1 = False
-            End If
-
-            If CharArr(i) = "}" Then
-                If Flag2 Then
-                    Flag2 = False
-                    If CharArr.Count > i Then
-                        If CharArr(i + 1) = "}" Then
-                            Flag2 = True
-                            CloseTemplateCount2 += -1
-                        End If
-                    End If
-                    CloseTemplateCount2 += 1
-                Else
-                    Flag2 = True
-                End If
-            Else
-                Flag2 = False
-            End If
-
-            If OpenTemplateCount2 > 0 Then
-                If OpenTemplateCount2 = CloseTemplateCount2 Then
-                    temptext = text.Substring(beginindex, (i - beginindex) + 1)
-                    Dim BeginPos As Integer = temptext.IndexOf("{{")
-                    Dim Textbefore As String = temptext.Substring(0, BeginPos)
-                    Dim Lenght As Integer = temptext.Length - (Textbefore.Length)
-                    Dim TemplateText As String = temptext.Substring(BeginPos, Lenght)
-                    temptext = ""
-                    beginindex = i + 1
-                    OpenTemplateCount2 = 0
-                    CloseTemplateCount2 = 0
-                    templist.Add(TemplateText)
-                End If
-            End If
-        Next
-        Dim innertemplates As New List(Of String)
-        For Each t As String In templist
-            If t.Length >= 4 Then
-                Dim innertext As String = t.Substring(2, t.Length - 4)
-                innertemplates.AddRange(GetTemplateTextArray(innertext))
-            End If
-        Next
-        templist.AddRange(innertemplates)
-        Return templist
-    End Function
 #End Region
 
 
@@ -720,60 +647,6 @@ NotInheritable Class Utils
                 ToList()
     End Function
 
-
-    ''' <summary>
-    ''' Retorna una lista de plantillas si se le entrega como parámetro un array de tipo string con texto en formato válido de plantilla.
-    ''' Si uno de los items del array no tiene formato válido, entregará una plantilla vacia en su lugar ("{{}}").
-    ''' </summary>
-    ''' <param name="templatearray"></param>
-    ''' <returns></returns>
-    Public Shared Function GetTemplates(ByVal templatearray As List(Of String)) As List(Of Template)
-        If templatearray Is Nothing Then
-            Return New List(Of Template)
-        End If
-        Dim TemplateList As New List(Of Template)
-        For Each t As String In templatearray
-            TemplateList.Add(New Template(t, False))
-        Next
-        Return TemplateList
-    End Function
-
-    ''' <summary>
-    ''' Retorna todas las plantillas que encuentre en una pagina, de no haber entregará una lista vacia.
-    ''' </summary>
-    ''' <param name="WikiPage"></param>
-    ''' <returns></returns>
-    Public Shared Function GetTemplates(ByVal wikiPage As Page) As List(Of Template)
-        If wikiPage Is Nothing Then
-            Return New List(Of Template)
-        End If
-        Dim TemplateList As New List(Of Template)
-        Dim temps As List(Of String) = GetTemplateTextArray(wikiPage.Text)
-
-        For Each t As String In temps
-            TemplateList.Add(New Template(t, False))
-        Next
-        Return TemplateList
-    End Function
-
-    ''' <summary>
-    ''' Retorna todas las plantillas que encuentre en un texto, de no haber entregará una lista vacia.
-    ''' </summary>
-    ''' <param name="text">Texto a evaluar</param>
-    ''' <returns></returns>
-    Public Shared Function GetTemplates(ByVal text As String) As List(Of Template)
-        If String.IsNullOrWhiteSpace(text) Then
-            Return New List(Of Template)
-        End If
-        Dim TemplateList As New List(Of Template)
-        Dim temps As List(Of String) = GetTemplateTextArray(text)
-
-        For Each t As String In temps
-            TemplateList.Add(New Template(t, False))
-        Next
-        Return TemplateList
-    End Function
-
     Public Shared Function GetCurrentThreads() As Integer
         Try
             Return Process.GetCurrentProcess().Threads.Count
@@ -918,6 +791,87 @@ NotInheritable Class Utils
 
         Return EndThreadList.ToArray
     End Function
+
+    ''' <summary>
+    ''' Evalua texto (wikicódigo) y regresa un array de string con cada uno de los subhilos del mismo (los que comienzan con === ejemplo === y terminan en otro subhilo o el final de la página).
+    ''' </summary>
+    ''' <param name="pagetext">Texto a evaluar</param>
+    ''' <returns></returns>
+    Public Shared Function GetPageSubThreads(ByVal pagetext As String) As String()
+        Dim temptext As String = pagetext
+        Dim commentMatch As MatchCollection = Regex.Matches(temptext, "(<!--)[\s\S]*?(-->)")
+        Dim NowikiMatch As MatchCollection = Regex.Matches(temptext, "(<[nN]owiki>)([\s\S]+?)(<\/[Nn]owiki>)")
+        Dim CodeMatch As MatchCollection = Regex.Matches(temptext, "(<[cC]ode>)([\s\S]+?)(<\/[Cc]ode>)")
+
+        Dim CommentsList As New List(Of String)
+        Dim NowikiList As New List(Of String)
+        Dim CodeList As New List(Of String)
+
+        For i As Integer = 0 To commentMatch.Count - 1
+            CommentsList.Add(commentMatch(i).Value)
+            temptext = temptext.Replace(commentMatch(i).Value, ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4))
+        Next
+        For i As Integer = 0 To NowikiMatch.Count - 1
+            NowikiList.Add(NowikiMatch(i).Value)
+            temptext = temptext.Replace(NowikiMatch(i).Value, ColoredText("PERIODIBOT::::NOWIKIREPLACE::::" & i, 4))
+        Next
+        For i As Integer = 0 To CodeMatch.Count - 1
+            CodeList.Add(CodeMatch(i).Value)
+            temptext = temptext.Replace(CodeMatch(i).Value, ColoredText("PERIODIBOT::::CODEREPLACE::::" & i, 4))
+        Next
+
+        Dim mc As MatchCollection = Regex.Matches(temptext, "([\n\r]|^)((===(?!=)).+?(===(?!=)))(( +)*)([\n\r]|$)")
+
+        Dim threadlist As New List(Of String)
+
+
+        For i As Integer = 0 To mc.Count - 1
+
+            Dim nextmatch As Integer = (i + 1)
+
+            If Not nextmatch = mc.Count Then
+
+                Dim threadtitle As String = mc(i).Value
+                Dim nextthreadtitle As String = mc(nextmatch).Value
+                Dim threadtext As String = String.Empty
+
+                threadtext = TextInBetween(temptext, threadtitle, nextthreadtitle)(0)
+                Dim Completethread As String = threadtitle & threadtext
+                threadlist.Add(Completethread)
+                temptext = ReplaceFirst(temptext, Completethread, "")
+
+            Else
+                Dim threadtitle As String = mc(i).Value
+
+                Dim ThreadPos As Integer = temptext.IndexOf(threadtitle)
+                Dim threadlenght As Integer = temptext.Length - temptext.Substring(0, ThreadPos).Length
+                Dim threadtext As String = temptext.Substring(ThreadPos, threadlenght)
+                threadlist.Add(threadtext)
+
+            End If
+        Next
+        Dim EndThreadList As New List(Of String)
+        For Each t As String In threadlist
+            Dim nthreadtext As String = t
+            For i As Integer = 0 To commentMatch.Count - 1
+                Dim commenttext As String = ColoredText("PERIODIBOT::::COMMENTREPLACE::::" & i, 4)
+                nthreadtext = nthreadtext.Replace(commenttext, CommentsList(i))
+            Next
+            For i As Integer = 0 To NowikiMatch.Count - 1
+                Dim codetext As String = ColoredText("PERIODIBOT::::NOWIKIREPLACE::::" & i, 4)
+                nthreadtext = nthreadtext.Replace(codetext, NowikiList(i))
+            Next
+            For i As Integer = 0 To CodeMatch.Count - 1
+                Dim codetext As String = ColoredText("PERIODIBOT::::CODEREPLACE::::" & i, 4)
+                nthreadtext = nthreadtext.Replace(codetext, CodeList(i))
+            Next
+            EndThreadList.Add(nthreadtext)
+        Next
+
+        Return EndThreadList.ToArray
+    End Function
+
+
     ''' <summary>
     ''' Entrega como DateTime la última fecha (formato firma Wikipedia) en el último parrafo. Si no encuentra firma retorna 31/12/9999.
     ''' </summary>

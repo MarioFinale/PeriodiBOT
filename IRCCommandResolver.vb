@@ -59,6 +59,7 @@ Namespace IRC
             Dim TPause As String() = {"pause", "tpause", "taskpause", "pausetask", "pausa", "pausar"}
             Dim SetFlood As String() = {"setflood", "sflood", "setflooddelay"}
             Dim GetFlood As String() = {"getflood", "gflood", "getflooddelay"}
+            Dim GenEfem As String() = {"genefe", "efe", "efem"}
 
             Dim _Clist As New List(Of IRCCommand)
 
@@ -108,6 +109,8 @@ Namespace IRC
             _Clist.Add(Gflood)
             Dim SFlood As New IRCCommand("SetFloodDelay", SetFlood, AddressOf Commands.SetFloodDelay, "Obtiene el delay de flood.", "")
             _Clist.Add(SFlood)
+            Dim GenEfe As New IRCCommand("GenEfe", GenEfem, AddressOf Commands.GenEfe, "Fuerza la generación del video de efemérides.", "")
+            _Clist.Add(GenEfe)
             Dim CommandInfo As New IRCCommand("?", Ayuda, AddressOf CommandInfoFcn, "Entrega información sobre un comando.", " <comando>")
             _Clist.Add(CommandInfo)
             Dim Orders As New IRCCommand("Ords", Ordenes, AddressOf GetCommandsFcn, "Obtiene la lista de comandos disponibles.", "")

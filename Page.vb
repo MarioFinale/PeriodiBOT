@@ -240,7 +240,7 @@ Namespace WikiBot
             _siteurl = site
             PageInfoData(PageTitle)
             _sections = Utils.GetPageThreads(_text)
-            Utils.EventLogger.Log("Page " & PageTitle & " loaded", "LOCAL", _username)
+            Utils.EventLogger.Debug_Log("Page " & PageTitle & " loaded", "LOCAL", _username)
             Return True
         End Function
 
@@ -257,7 +257,7 @@ Namespace WikiBot
             _siteurl = site
             PageInfoData(Revid)
             _sections = Utils.GetPageThreads(_text)
-            Utils.EventLogger.Log("Page revid " & Revid.ToString & " loaded", "LOCAL", _username)
+            Utils.EventLogger.Debug_Log("Page revid " & Revid.ToString & " loaded", "LOCAL", _username)
             Return True
         End Function
 

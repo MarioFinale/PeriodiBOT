@@ -7,7 +7,7 @@ Imports PeriodiBOT_IRC.Utils
 Module GlobalVars
     Public Const BotCodename As String = "PeriodiBOT"
     Public Exepath As String = AppDomain.CurrentDomain.BaseDirectory
-
+    Public DirSeparator As String = IO.Path.DirectorySeparatorChar
     ''' <summary>
     ''' El separador de decimales varia segun SO y configuracion regional, eso puede afectar los calculos.
     ''' </summary>

@@ -59,6 +59,25 @@ Public Class IRCCommands
         Return New IRCMessage(source, responsestring.ToArray)
     End Function
 
+    Function GenEfe(ByVal args As CommandParams) As IRCMessage
+        If args.IsOp Then
+            If args Is Nothing Then Return Nothing
+
+            NewThread("Generar imágenes de efemérides", args.Realname, New Func(Of Boolean)(Function()
+                                                                                                Dim imggen As New ImageGen(args.Workerbot)
+                                                                                                If imggen.CheckEfe Then
+                                                                                                    args.Client.Sendmessage(New IRCMessage(args.Source, "Se ha generado el video."))
+                                                                                                Else
+                                                                                                    args.Client.Sendmessage(New IRCMessage(args.Source, "No se ha generado el video, ver log para más detalles."))
+                                                                                                End If
+                                                                                                Return True
+                                                                                            End Function), 1, False)
+            Return New IRCMessage(args.Source, "Generando video.")
+        End If
+        Return New IRCMessage(args.Source, "No autorizado.")
+    End Function
+
+
     Function TaskInfo(ByVal args As CommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim taskindex As String = args.CParam

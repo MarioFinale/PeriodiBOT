@@ -142,7 +142,7 @@ Namespace WikiBot
                 Dim User As New WikiUser(_bot, Username)
                 'Validar usuario
                 If Not ValidUser(User) Then
-                    Utils.EventLogger.Log("Archive: The user" & User.UserName & " doesn't meet the requirements.", "LOCAL")
+                    Utils.EventLogger.Log("Archive: """ & User.UserName & """ doesn't meet the requirements.", "LOCAL")
                     Return False
                 End If
                 'Validar que destino de archivado sea una subpágina del usuario.
@@ -516,7 +516,7 @@ Namespace WikiBot
         ''' <param name="PageToGet">Pagina de la cual se busca la plantilla de archivado</param>
         ''' <returns></returns>
         Function GetArchiveTemplate(ByVal PageToGet As Page) As Template
-            Dim templist As List(Of Template) = Utils.GetTemplates(Utils.GetTemplateTextArray(PageToGet.Text))
+            Dim templist As List(Of Template) = Template.GetTemplates(Template.GetTemplateTextArray(PageToGet.Text))
             Dim Archtemp As New Template
             For Each t As Template In templist
                 If Regex.Match(t.Name, " *[Aa]rchivado automático").Success Then
@@ -562,7 +562,7 @@ Namespace WikiBot
         ''' <param name="PageToGet">Pagina de la cual se busca la plantilla de firmado</param>
         ''' <returns></returns>
         Function GetSignTemplate(ByVal PageToGet As Page) As Template
-            Dim templist As List(Of Template) = Utils.GetTemplates(Utils.GetTemplateTextArray(PageToGet.Text))
+            Dim templist As List(Of Template) = Template.GetTemplates(Template.GetTemplateTextArray(PageToGet.Text))
             Dim signtemp As New Template
             For Each t As Template In templist
                 If Regex.Match(t.Name, " *[Ff]irma automática").Success Then
@@ -585,7 +585,7 @@ Namespace WikiBot
             Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Firma_automática")
             For Each pa As String In includedpages
                 Try
-                    Utils.EventLogger.Log("SignAllInclusions: Page " & pa, "LOCAL")
+                    Utils.EventLogger.Debug_Log("SignAllInclusions: Page " & pa, "LOCAL")
                     Dim _Page As Page = _bot.Getpage(pa)
                     If _Page.Exists Then
                         If Not ValidNamespace(_Page) Then Continue For
@@ -601,7 +601,9 @@ Namespace WikiBot
                                 newthreads = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char())).ToLower = "NuevaSecciónSinFirmar"
                             End If
                         Next
-                        _bot.AddMissingSignature(_Page, newthreads, minor)
+                        If _bot.AddMissingSignature(_Page, newthreads, minor) Then
+                            Utils.EventLogger.Log("SignAllInclusions: Page """ & pa & """", "LOCAL")
+                        End If
                     End If
                 Catch ex As Exception
                     Utils.EventLogger.EX_Log("SignAllInclusions: Page """ & pa & """ EX: " & ex.Message, "LOCAL")

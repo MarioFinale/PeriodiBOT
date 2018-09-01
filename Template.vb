@@ -167,7 +167,7 @@ Namespace WikiBot
             Dim TemplateInnerText = NewText.Substring(2, NewText.Length - 4)
 
             'Reemplazar plantillas internas con texto para reconocer parametros de principal
-            Dim temparray As List(Of String) = Utils.GetTemplateTextArray(TemplateInnerText)
+            Dim temparray As List(Of String) = GetTemplateTextArray(TemplateInnerText)
 
             For templ As Integer = 0 To temparray.Count - 1
                 Dim tempreplace As String = Utils.ColoredText("PERIODIBOT:TEMPLATEREPLACE::::" & templ.ToString, 1)
@@ -258,6 +258,130 @@ Namespace WikiBot
             _parameters.AddRange(TotalParams)
 
         End Sub
+
+
+
+        ''' <summary>
+        ''' Retorna una lista de plantillas si se le entrega como parámetro un array de tipo string con texto en formato válido de plantilla.
+        ''' Si uno de los items del array no tiene formato válido, entregará una plantilla vacia en su lugar ("{{}}").
+        ''' </summary>
+        ''' <param name="templatearray"></param>
+        ''' <returns></returns>
+        Public Shared Function GetTemplates(ByVal templatearray As List(Of String)) As List(Of Template)
+            If templatearray Is Nothing Then
+                Return New List(Of Template)
+            End If
+            Dim TemplateList As New List(Of Template)
+            For Each t As String In templatearray
+                TemplateList.Add(New Template(t, False))
+            Next
+            Return TemplateList
+        End Function
+
+        ''' <summary>
+        ''' Retorna todas las plantillas que encuentre en una pagina, de no haber entregará una lista vacia.
+        ''' </summary>
+        ''' <param name="WikiPage"></param>
+        ''' <returns></returns>
+        Public Shared Function GetTemplates(ByVal wikiPage As Page) As List(Of Template)
+            If wikiPage Is Nothing Then
+                Return New List(Of Template)
+            End If
+            Dim TemplateList As New List(Of Template)
+            Dim temps As List(Of String) = Template.GetTemplateTextArray(wikiPage.Text)
+
+            For Each t As String In temps
+                TemplateList.Add(New Template(t, False))
+            Next
+            Return TemplateList
+        End Function
+
+        ''' <summary>
+        ''' Retorna todas las plantillas que encuentre en un texto, de no haber entregará una lista vacia.
+        ''' </summary>
+        ''' <param name="text">Texto a evaluar</param>
+        ''' <returns></returns>
+        Public Shared Function GetTemplates(ByVal text As String) As List(Of Template)
+            If String.IsNullOrWhiteSpace(text) Then
+                Return New List(Of Template)
+            End If
+            Dim TemplateList As New List(Of Template)
+            Dim temps As List(Of String) = Template.GetTemplateTextArray(text)
+
+            For Each t As String In temps
+                TemplateList.Add(New Template(t, False))
+            Next
+            Return TemplateList
+        End Function
+
+        ''' <summary>
+        ''' Retorna un array de string con todas las plantillas contenidas en un texto.
+        ''' Pueden repetirse si hay plantillas que contienen otras en su interior.
+        ''' </summary>
+        ''' <param name="text"></param>
+        ''' <returns></returns>
+        Public Shared Function GetTemplateTextArray(ByVal text As String) As List(Of String)
+            Dim temptext As String = String.Empty
+            Dim templist As New List(Of String)
+            Dim CharArr As Char() = text.ToArray
+
+            Dim OpenTemplateCount2 As Integer = 0
+            Dim CloseTemplateCount2 As Integer = 0
+
+            Dim Flag1 As Boolean = False
+            Dim Flag2 As Boolean = False
+
+            Dim beginindex As Integer = 0
+
+            For i As Integer = 0 To CharArr.Length - 1
+
+                If CharArr(i) = "{" Then
+                    If Flag1 Then
+                        Flag1 = False
+                        OpenTemplateCount2 += 1
+                    Else
+                        Flag1 = True
+                    End If
+                Else
+                    Flag1 = False
+                End If
+
+                If CharArr(i) = "}" Then
+                    If Flag2 Then
+                        Flag2 = False
+                        CloseTemplateCount2 += 1
+                    Else
+                        Flag2 = True
+                    End If
+                Else
+                    Flag2 = False
+                End If
+
+                If OpenTemplateCount2 > 0 Then
+                    If OpenTemplateCount2 = CloseTemplateCount2 Then
+                        temptext = text.Substring(beginindex, (i - beginindex) + 1)
+                        Dim BeginPos As Integer = temptext.IndexOf("{{")
+                        Dim Textbefore As String = temptext.Substring(0, BeginPos)
+                        Dim Lenght As Integer = temptext.Length - (Textbefore.Length)
+                        Dim TemplateText As String = temptext.Substring(BeginPos, Lenght)
+                        temptext = ""
+                        beginindex = i + 1
+                        OpenTemplateCount2 = 0
+                        CloseTemplateCount2 = 0
+                        templist.Add(TemplateText)
+                    End If
+                End If
+            Next
+            Dim innertemplates As New List(Of String)
+            For Each t As String In templist
+                If t.Length >= 4 Then
+                    Dim innertext As String = t.Substring(2, t.Length - 4)
+                    innertemplates.AddRange(GetTemplateTextArray(innertext))
+                End If
+            Next
+            templist.AddRange(innertemplates)
+            Return templist
+        End Function
 
 
         ''' <summary>
