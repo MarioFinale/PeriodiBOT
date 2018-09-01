@@ -12,7 +12,7 @@ Class LogEngine
     Private _logging As Boolean
     Private _defaultUser As String
     Private _Debug As Boolean
-    Private _maxLogLenght As Integer = 50000
+    Private _maxLogLenght As Integer = 5000
 #End Region
 
 #Region "Properties"

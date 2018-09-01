@@ -68,11 +68,11 @@ Public Class IRCCommands
                                                                                                 If imggen.CheckEfe Then
                                                                                                     args.Client.Sendmessage(New IRCMessage(args.Source, "Se ha generado el video."))
                                                                                                 Else
-                                                                                                    args.Client.Sendmessage(New IRCMessage(args.Source, "No se ha generado el video, ver log para más detalles."))
+                                                                                                    args.Client.Sendmessage(New IRCMessage(args.Source, "No se han generado todos los videos, ver log para más detalles."))
                                                                                                 End If
                                                                                                 Return True
                                                                                             End Function), 1, False)
-            Return New IRCMessage(args.Source, "Generando video.")
+            Return New IRCMessage(args.Source, "Generando videos.")
         End If
         Return New IRCMessage(args.Source, "No autorizado.")
     End Function

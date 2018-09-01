@@ -17,10 +17,6 @@ Public NotInheritable Class Initializer
         BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
         BotIRC.StartClient()
 
-        Dim ig As New ImageGen(ESWikiBOT)
-        ig.CheckEfe()
-        ig.GetEfeInfo(Date.Now)
-
         'Tarea para generar video de efemérides
         Dim efevidfunc As New Func(Of Boolean)(Function()
                                                    Dim igen As New ImageGen(ESWikiBOT)

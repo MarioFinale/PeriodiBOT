@@ -8,13 +8,19 @@ Class ImageGen
 
     Property Bot As WikiBot.Bot
 
+
+    Private Header As String = Exepath & "Res" & DirSeparator & "header.hres"
+    Private Bottom As String = Exepath & "Res" & DirSeparator & "bottom.hres"
+    Private Hfolder As String = Exepath & "hfiles" & DirSeparator
+
     Sub New(ByRef workingbot As WikiBot.Bot)
         Bot = workingbot
     End Sub
 
 
     Function Allefe() As Boolean
-        For i As Integer = 0 To 7
+        Dim results As New List(Of Boolean)
+        For i As Integer = 0 To 6
             Utils.BotSettings.NewVal("efecheck", False.ToString)
             Utils.BotSettings.NewVal("efe", "")
             Dim tdate As Date = Date.UtcNow.AddDays(i)
@@ -22,35 +28,49 @@ Class ImageGen
             If Not Checked(tdate) Then
                 Utils.BotSettings.Set("efecheck", False.ToString)
                 Utils.EventLogger.Log("Efemérides no revisadas", "GenEfemerides")
+                results.Add(False)
                 Continue For
             End If
-            GenEfemerides(tdate)
+            results.Add(GenEfemerides(tdate))
             Utils.BotSettings.Set("efecheck", True.ToString)
         Next
-        Return True
+
+        Dim tresult As Boolean = True
+        For Each b As Boolean In results
+            tresult = (tresult And b)
+        Next
+        Return tresult
     End Function
 
 
     Function CheckEfe() As Boolean
-        Utils.BotSettings.NewVal("efecheck", False.ToString)
-        Utils.BotSettings.NewVal("efe", "")
-        Dim tdate As Date = Date.UtcNow.AddDays(1.0F)
-        If Not Checked(tdate) Then
-            Utils.BotSettings.Set("efecheck", False.ToString)
-            Utils.EventLogger.Log("Efemérides no revisadas", "GenEfemerides")
-            Return False
+        Dim tdate As Date = Date.Now.AddDays(-1)
+        Dim yfile1 As String = Exepath & "hfiles" & DirSeparator & tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00") & ".htm"
+        Dim yfile2 As String = Exepath & "hfiles" & DirSeparator & tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00") & ".mp4"
+        If IO.File.Exists(yfile1) Then
+            IO.File.Delete(yfile1)
         End If
-        Utils.BotSettings.Set("efecheck", True.ToString)
-        Return GenEfemerides(tdate)
+        If IO.File.Exists(yfile2) Then
+            IO.File.Delete(yfile2)
+        End If
+        Return Allefe()
     End Function
 
-    Function GenEfemerides(ByVal tdate As Date) As Boolean
-        Dim Generated As Boolean = True
+    Function Createhfiles(ByVal tdate As Date) As Boolean
         Dim tdatestring As String = tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00")
-        Dim Fecha As String = tdate.ToString("dd 'de' MMMM", New Globalization.CultureInfo("es-ES"))
-        Dim filepath As String = Exepath & "Res" & DirSeparator & tdatestring & ".mp4"
-        Dim efeinfopath As String = Exepath & "Res" & DirSeparator & tdatestring & ".info"
-        Dim efeinfotext As String = "Efemérides del " & Fecha & " en Wikipedia, la enciclopedia libre."
+        Dim Fecha As String = tdate.ToString("d 'de' MMMM", New Globalization.CultureInfo("es-ES"))
+
+        If Not IO.File.Exists(Header) Then
+            IO.File.Create(Header).Close()
+        End If
+        If Not IO.File.Exists(Bottom) Then
+            IO.File.Create(Bottom).Close()
+        End If
+        Dim htext As String = IO.File.ReadAllText(Header)
+        Dim btext As String = IO.File.ReadAllText(Bottom)
+
+        Dim efeinfopath As String = Hfolder & tdatestring & ".htm"
+        Dim efeinfotext As String = htext & "Efemérides del " & Fecha & " en Wikipedia, la enciclopedia libre."
         efeinfotext = efeinfotext & Environment.NewLine & Environment.NewLine & "Enlaces:"
         Dim efes As EfeInfo = GetEfeInfo(tdate)
         For Each ef As Efe In efes.EfeDetails
@@ -64,7 +84,15 @@ Class ImageGen
             efeinfotext = efeinfotext & ef.Page & ": "
             efeinfotext = efeinfotext & "http://es.wikipedia.org/wiki/" & Utils.UrlWebEncode(ef.Page.Replace(" "c, "_"c))
         Next
+        efeinfotext = efeinfotext & btext
         IO.File.WriteAllText(efeinfopath, efeinfotext)
+        Return True
+    End Function
+
+
+    Function GenEfemerides(ByVal tdate As Date) As Boolean
+        Dim Generated As Boolean = True
+        Createhfiles(tdate)
         If Not CheckResources() Then
             Utils.EventLogger.Log("Faltan recursos en /Res", "GenEfemerides")
             Return False
@@ -85,7 +113,11 @@ Class ImageGen
 
         Utils.EventLogger.Log("Limpiando imágenes temporales", "GenEfemerides")
         For Each f As String In IO.Directory.GetFiles(Tpath)
-            IO.File.Delete(f)
+            Try
+                IO.File.Delete(f)
+            Catch ex As Exception
+                Utils.EventLogger.EX_Log("Error al eliminar el archivo """ & f & """", "GenEfemerides")
+            End Try
         Next
         Utils.EventLogger.Log("Proceso completo", "GenEfemerides")
         Utils.BotSettings.Set("efe", tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00"))
@@ -103,7 +135,7 @@ Class ImageGen
                 Using exec As New Process
                     exec.StartInfo.FileName = "ffmpeg"
                     exec.StartInfo.UseShellExecute = True
-                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -vcodec libx264 -preset slower -crf 19 """ & Exepath & "Res" & DirSeparator & tdatestring & ".mp4"""
+                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -vcodec libx264 -preset slower -crf 19 """ & Hfolder & tdatestring & ".mp4"""
                     exec.Start()
                     exec.WaitForExit()
                 End Using
@@ -114,7 +146,7 @@ Class ImageGen
                 Using exec As New Process
                     exec.StartInfo.FileName = "avconv"
                     exec.StartInfo.UseShellExecute = True
-                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -vcodec libx264 -preset slower -crf 19 """ & Exepath & "Res" & DirSeparator & tdatestring & ".mp4"""
+                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -vcodec libx264 -preset slower -crf 19 """ & Hfolder & tdatestring & ".mp4"""
                     exec.Start()
                     exec.WaitForExit()
                 End Using
@@ -246,7 +278,7 @@ Class ImageGen
                         tef.Page = varval
                     End If
                     If varname = "tamaño" Then
-                        tef.TextSize = Integer.Parse(varval)
+                        tef.TextSize = Double.Parse(varval.Replace(","c, DecimalSeparator))
                     End If
                     If varname = "tipo" Then
                         Select Case varval
@@ -268,7 +300,12 @@ Class ImageGen
     Function GetEfetxt(ByVal tdate As Date) As String()
         Dim fechastr As String = tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00")
         Dim efetxt As String = "https://tools.wmflabs.org/jembot/ef/pub/" & fechastr & "/" & fechastr & ".txt"
-        Dim txt As String = Bot.GET(efetxt)
+        Dim txt As String = String.Empty
+        Try
+            txt = Bot.GET(efetxt)
+        Catch ex As Exception
+        End Try
+        If String.IsNullOrWhiteSpace(txt) Then Return {""}
         Dim txtlist As List(Of String) = txt.Split(CType(vbLf, Char())).ToList
         For i As Integer = 0 To txtlist.Count - 1
             txtlist(i) = txtlist(i).Replace("█", Environment.NewLine)
@@ -277,7 +314,13 @@ Class ImageGen
     End Function
 
     Function Checked(tdate As Date) As Boolean
-        Return GetEfetxt(tdate)(31).Split("="c)(1).ToLower.Trim = "sí"
+        Dim ttext As String() = GetEfetxt(tdate)
+        If ttext.Count > 31 Then
+            Return GetEfetxt(tdate)(31).Split("="c)(1).ToLower.Trim = "sí"
+        Else
+            Return False
+        End If
+        Return False
     End Function
 
     Function CallImages(ByVal current As Integer, imagename As String, path As String, tDate As Date) As Integer
@@ -292,14 +335,14 @@ Class ImageGen
             Dim licenceurl As String = commonsimgdata.Item2(1)
             Dim author As String = commonsimgdata.Item2(2)
             Using cimage As Image = commonsimgdata.Item1
-                current = Createimages(path, imagename, current, ef.Image, cimage, licence, licenceurl, author, año, Description)
+                current = Createimages(path, imagename, current, ef.Image, cimage, licence, licenceurl, author, año, Description, ef.TextSize)
             End Using
             c += 6
         Next
         Return current
     End Function
 
-    Function Createimages(ByVal Path As String, imagename As String, current As Integer, efimgname As String, efimg As Image, licencename As String, licenceurl As String, artist As String, year As Integer, description As String) As Integer
+    Function Createimages(ByVal Path As String, imagename As String, current As Integer, efimgname As String, efimg As Image, licencename As String, licenceurl As String, artist As String, year As Integer, description As String, textsize As Double) As Integer
         If licencename.ToLower = "public domain" Then licencename = "En dominio público"
         If Not String.IsNullOrWhiteSpace(licenceurl) Then licencename = licencename & " (" & licenceurl & ")"
         Dim CommonsName As String = "Imagen en Wikimedia Commons:  " & Utils.NormalizeUnicodetext(efimgname)
@@ -346,7 +389,7 @@ Class ImageGen
             End Using
         End Using
 
-        Using descimg As Drawing.Image = DrawText(description, New Font(FontFamily.GenericSansSerif, 30.0!, FontStyle.Regular), Color.White, Color.White, True)
+        Using descimg As Drawing.Image = DrawText(description, New Font(FontFamily.GenericSansSerif, Convert.ToSingle(3.0! * textsize), FontStyle.Regular), Color.White, Color.White, True)
             Using timage As Image = PasteImage(lastimg, descimg, New Point(CInt((lastimg.Width - descimg.Width) / 2), 350))
                 current = PasteFadeIn(lastimg, timage, New Point(0, 0), imagename, Path, current)
                 lastimg = Drawing.Image.FromFile(Path & imagename & current.ToString("0000") & ".jpg")
@@ -725,7 +768,7 @@ Class Efe
     Property Description As String
     Property Year As Integer
     Property Image As String
-    Property TextSize As Integer
+    Property TextSize As Double
     Property Type As Efetype
 End Class
 

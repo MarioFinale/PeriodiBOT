@@ -156,7 +156,7 @@ Namespace WikiBot
 
             If Not ConfigOK Then
                 Console.Clear()
-                Console.WriteLine("No config file, please fill the data or exit the program and create a mew config file.")
+                Console.WriteLine("No config file, please fill the data or exit the program and create a new config file.")
                 Console.WriteLine("Bot Name: ")
                 MainBotName = Console.ReadLine
                 Console.WriteLine("Wikipedia Bot Username: ")
