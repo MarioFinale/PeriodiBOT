@@ -19,13 +19,14 @@ Class ImageGen
 
     Function Allefe() As Boolean
         Dim results As New List(Of Boolean)
-        For i As Integer = 0 To 6
+        For i As Integer = 3 To 6
             Utils.BotSettings.NewVal("efecheck", False.ToString)
             Utils.BotSettings.NewVal("efe", "")
             Dim tdate As Date = Date.UtcNow.AddDays(i)
             Dim tdatestring As String = tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00")
-            Utils.EventLogger.Log("Generar efemérides " & tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00"), "GenEfemerides")
-            If Not Checked(tdate) Then
+            Utils.EventLogger.Log("Generar efemérides " & tdatestring, "GenEfemerides")
+            Dim tef As EfeInfo = GetEfeInfo(tdate)
+            If Not tef.Revised Then
                 Utils.BotSettings.Set("efecheck", False.ToString)
                 Utils.EventLogger.Log("Efemérides no revisadas", "GenEfemerides")
                 Dim efeinfopath As String = Hfolder & tdatestring & ".htm"
@@ -315,15 +316,6 @@ Class ImageGen
         Return txtlist.ToArray
     End Function
 
-    Function Checked(tdate As Date) As Boolean
-        Dim ttext As String() = GetEfetxt(tdate)
-        If ttext.Count > 31 Then
-            Return GetEfetxt(tdate)(31).Split("="c)(1).ToLower.Trim = "sí"
-        Else
-            Return False
-        End If
-        Return False
-    End Function
 
     Function CallImages(ByVal current As Integer, imagename As String, path As String, tDate As Date) As Integer
         Dim efes As EfeInfo = GetEfeInfo(tDate)
