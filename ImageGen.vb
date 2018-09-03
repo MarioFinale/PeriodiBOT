@@ -19,7 +19,7 @@ Class ImageGen
 
     Function Allefe() As Boolean
         Dim results As New List(Of Boolean)
-        For i As Integer = 3 To 6
+        For i As Integer = 0 To 6
             Utils.BotSettings.NewVal("efecheck", False.ToString)
             Utils.BotSettings.NewVal("efe", "")
             Dim tdate As Date = Date.UtcNow.AddDays(i)
