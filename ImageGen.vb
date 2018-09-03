@@ -8,7 +8,6 @@ Class ImageGen
 
     Property Bot As WikiBot.Bot
 
-
     Private Header As String = Exepath & "Res" & DirSeparator & "header.hres"
     Private Bottom As String = Exepath & "Res" & DirSeparator & "bottom.hres"
     Private Hfolder As String = Exepath & "hfiles" & DirSeparator
@@ -24,10 +23,13 @@ Class ImageGen
             Utils.BotSettings.NewVal("efecheck", False.ToString)
             Utils.BotSettings.NewVal("efe", "")
             Dim tdate As Date = Date.UtcNow.AddDays(i)
+            Dim tdatestring As String = tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00")
             Utils.EventLogger.Log("Generar efemérides " & tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00"), "GenEfemerides")
             If Not Checked(tdate) Then
                 Utils.BotSettings.Set("efecheck", False.ToString)
                 Utils.EventLogger.Log("Efemérides no revisadas", "GenEfemerides")
+                Dim efeinfopath As String = Hfolder & tdatestring & ".htm"
+                IO.File.WriteAllText(efeinfopath, "Efemérides no revisadas.")
                 results.Add(False)
                 Continue For
             End If
@@ -345,7 +347,7 @@ Class ImageGen
     Function Createimages(ByVal Path As String, imagename As String, current As Integer, efimgname As String, efimg As Image, licencename As String, licenceurl As String, artist As String, year As Integer, description As String, textsize As Double) As Integer
         If licencename.ToLower = "public domain" Then licencename = "En dominio público"
         If Not String.IsNullOrWhiteSpace(licenceurl) Then licencename = licencename & " (" & licenceurl & ")"
-        Dim CommonsName As String = "Imagen en Wikimedia Commons:  " & Utils.NormalizeUnicodetext(efimgname)
+        Dim CommonsName As String = "Imagen en Wikimedia Commons: " & Utils.NormalizeUnicodetext(efimgname)
         Dim detailstext As String = CommonsName & Environment.NewLine & "Autor: " & artist & Environment.NewLine & "Licencia: " & licencename
         Dim yeardiff As Integer = Date.Now.Year - year
         Dim syeardiff As String = "Hace " & yeardiff.ToString & " años"

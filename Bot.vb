@@ -1253,6 +1253,9 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
             Dim cinfo As Globalization.CultureInfo = New System.Globalization.CultureInfo("es-ES")
             Dim mstring As String = cinfo.DateTimeFormat.GetAbbreviatedMonthName(UnsignedDate.Month)
+            If mstring.Length > 3 Then
+                mstring = mstring.Substring(0, 3)
+            End If
             Dim dstring As String = UnsignedDate.Hour.ToString("00") & ":" & UnsignedDate.Minute.ToString("00") & " " & UnsignedDate.Day.ToString & " " & mstring & " " & UnsignedDate.Year.ToString & " (UTC)"
             pagetext = pagetext.Replace(UnsignedThread, UnsignedThread & " {{sust:No firmado|" & Username & "|" & dstring & "}}")
             If tpage.Save(pagetext, "Bot: Completando sección sin firmar.", minor, True) = EditResults.Edit_successful Then
