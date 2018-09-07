@@ -76,6 +76,7 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChatBot.vb" />
     <Compile Include="ImageGen.vb" />
     <Compile Include="TopicFuncs.vb" />
     <Compile Include="APIHandler.vb" />
