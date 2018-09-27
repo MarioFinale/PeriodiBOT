@@ -300,12 +300,7 @@ Namespace WikiBot
             Dim postreqreader As New StreamReader(postresponse.GetResponseStream())
             cookies = tempcookies
             Return postreqreader.ReadToEnd
-
-
         End Function
-
-
-
     End Class
 
 End Namespace

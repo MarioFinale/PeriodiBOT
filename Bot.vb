@@ -6,7 +6,6 @@ Imports System.Text.RegularExpressions
 Imports PeriodiBOT_IRC.IRC
 
 Namespace WikiBot
-
     Public Class Bot
 
 #Region "Properties"
@@ -15,7 +14,7 @@ Namespace WikiBot
         Private _apiUrl As String
         Private _wikiUrl As String
 
-        Private Api As APIHandler
+        Private Api As ApiHandler
         Private _localName As String
         Private _userName As String
 
@@ -100,12 +99,12 @@ Namespace WikiBot
 #Region "Init"
         Sub New(ByVal configPath As ConfigFile)
             LoadConfig(configPath)
-            Api = New APIHandler(_botUserName, _botPassword, _apiUrl)
+            Api = New ApiHandler(_botUserName, _botPassword, _apiUrl)
             _userName = Api.UserName
         End Sub
 
         Sub Relogin()
-            Api = New APIHandler(_botUserName, _botPassword, _apiUrl)
+            Api = New ApiHandler(_botUserName, _botPassword, _apiUrl)
         End Sub
         ''' <summary>
         ''' Inicializa las configuraciones genereales del programa desde el archivo de configuración.
@@ -1349,7 +1348,4 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 #End Region
 
     End Class
-
-
-
 End Namespace

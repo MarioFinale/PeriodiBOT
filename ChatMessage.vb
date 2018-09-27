@@ -2,10 +2,9 @@
 Option Explicit On
 
 Public Class ChatMessage
-    Implements IChatMessage
-    Property Source As String Implements IChatMessage.Source
-    Property User As String Implements IChatMessage.User
-    Property Text As String Implements IChatMessage.Text
+    Property Source As String
+    Property User As String
+    Property Text As String
 
     Sub New(ByVal tSource As String, tUser As String, tText As String)
         Source = tSource
