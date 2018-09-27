@@ -19,10 +19,10 @@ Public NotInheritable Class Initializer
 
         'Tarea para generar video de efemérides
         Dim efevidfunc As New Func(Of Boolean)(Function()
-                                                   Dim igen As New ImageGen(ESWikiBOT)
+                                                   Dim igen As New VideoGen(ESWikiBOT)
                                                    Return igen.CheckEfe
                                                End Function)
-        NewThread("Generar video con las efemérides del día", BotCodename, efevidfunc, New TimeSpan(15, 0, 0), True)
+        TaskAdmin.NewThread("Generar video con las efemérides del día", BotCodename, efevidfunc, New TimeSpan(15, 0, 0), True)
 
 
         'Tarea para revisar si hay solicitudes en mediacion informal

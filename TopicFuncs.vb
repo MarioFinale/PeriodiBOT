@@ -5,7 +5,7 @@ Imports System.Text.RegularExpressions
 Imports System.Text
 
 Namespace WikiBot
-    Public Class TopicFuncs
+    Public Class WikiTopicList
         Private _bot As Bot
         Sub New(ByVal workerbot As Bot)
             _bot = workerbot
@@ -103,14 +103,14 @@ Namespace WikiBot
         End Function
 
         Private Function GetTopicsText(ByRef inclusions As Integer) As SortedDictionary(Of String, List(Of String))
-            Dim TopicThreads As SortedList(Of String, Topic) = GetAllTopicThreads(inclusions) 'Obtener los temas y la información
+            Dim TopicThreads As SortedList(Of String, WikiTopic) = GetAllTopicThreads(inclusions) 'Obtener los temas y la información
             Dim TopicList As New SortedDictionary(Of String, List(Of String)) 'Inicializar la lista con el texto
 
             For Each topic As String In TopicThreads.Keys 'Por cada tema...
                 If Not TopicList.Keys.Contains(topic) Then 'Si no está en el diccionario, se añade
                     TopicList.Add(topic, New List(Of String))
                 End If
-                For Each thread As WThreadInfo In TopicThreads.Item(topic).Threads 'Por cada hilo en el tema
+                For Each thread As WikiTopicThread In TopicThreads.Item(topic).Threads 'Por cada hilo en el tema
                     Dim line As String = "* " 'Inicializar la línea con los datos
                     Dim threadDate As String = thread.FirstSignature.ToString("dd-MM-yyyy") & " " 'Fecha
                     Dim threadType As String = thread.Subsection & " " 'En que zona del café está
@@ -130,12 +130,12 @@ Namespace WikiBot
             Return TopicList
         End Function
 
-        Private Function GetAllTopicThreads() As SortedList(Of String, Topic)
+        Private Function GetAllTopicThreads() As SortedList(Of String, WikiTopic)
             Return GetAllTopicThreads(0)
         End Function
 
-        Private Function GetAllTopicThreads(ByRef inclusions As Integer) As SortedList(Of String, Topic)
-            Dim Topiclist As New SortedList(Of String, Topic)
+        Private Function GetAllTopicThreads(ByRef inclusions As Integer) As SortedList(Of String, WikiTopic)
+            Dim Topiclist As New SortedList(Of String, WikiTopic)
             Dim pages As String() = _bot.GetallInclusions(TopicTemplate) 'Paginas que incluyen la plantilla de tema.
             For Each p As String In pages 'Por cada página que incluya la plantilla tema, no se llama a GetallInclusionsPages por temas de memoria.
                 Topiclist = GetTopicsOfpage(_bot.Getpage(p), Topiclist) 'Añadir nuevos hilos
@@ -144,17 +144,17 @@ Namespace WikiBot
             Return Topiclist 'Retorna el diccionario
         End Function
 
-        Private Function GetTopicsOfpage(ByVal sourcePage As Page, ByVal TopicList As SortedList(Of String, Topic)) As SortedList(Of String, Topic)
+        Private Function GetTopicsOfpage(ByVal sourcePage As Page, ByVal TopicList As SortedList(Of String, WikiTopic)) As SortedList(Of String, WikiTopic)
             If TopicList Is Nothing Then 'Si no está inicializado correctamente...
-                TopicList = New SortedList(Of String, Topic)
+                TopicList = New SortedList(Of String, WikiTopic)
             End If
-            Dim Threads As SortedSet(Of WThreadInfo) = GetTopicsThreads(sourcePage)
-            For Each Thread As WThreadInfo In Threads 'Por cada hilo....
+            Dim Threads As SortedSet(Of WikiTopicThread) = GetTopicsThreads(sourcePage)
+            For Each Thread As WikiTopicThread In Threads 'Por cada hilo....
                 'Añadir temas a diccionario
                 For Each topic As String In Thread.Topics
                     If Not TopicList.Keys.Contains(topic) Then
                         'si no existe el tema en el diccionario, lo inicializa y añade el hilo
-                        TopicList.Add(topic, New Topic(topic, New SortedSet(Of WThreadInfo)))
+                        TopicList.Add(topic, New WikiTopic(topic, New SortedSet(Of WikiTopicThread)))
                         TopicList.Item(topic).Threads.Add(Thread)
                     Else
                         'si existe solo añade el hilo
@@ -186,8 +186,8 @@ Namespace WikiBot
             Return New Tuple(Of String, String)(threadTitle, threadLink)
         End Function
 
-        Private Function GetTopicsThreads(ByVal tPage As Page) As SortedSet(Of WThreadInfo)
-            Dim Threadlist As New SortedSet(Of WThreadInfo)
+        Private Function GetTopicsThreads(ByVal tPage As Page) As SortedSet(Of WikiTopicThread)
+            Dim Threadlist As New SortedSet(Of WikiTopicThread)
             Dim threads As String() = tPage.Threads
             For Each t As String In threads
                 Dim TopicMatch As Match = Regex.Match(t, "({{ *[Tt]ema *\|.+?}})") 'Regex para plantilla de tema
@@ -217,7 +217,7 @@ Namespace WikiBot
                             TopicList.Add(p.Item2) 'Añade el tema a la lista de temas
                         End If
                     Next
-                    Dim Thread As New WThreadInfo With {
+                    Dim Thread As New WikiTopicThread With {
                         .FirstSignature = lastsignature,
                         .Subsection = Subsection,
                         .ThreadBytes = threadBytes,
@@ -259,11 +259,11 @@ Namespace WikiBot
             Next
 
             For i As Integer = 0 To 10
-                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & Utils.GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & Utils.GetSizeText(Top100(i).Item1) & "." & Environment.NewLine
+                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & Utils.GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & Utils.GetSizeAsString(Top100(i).Item1) & "." & Environment.NewLine
             Next
             PageText = PageText & Environment.NewLine & "== Más hilos grandes ==" & Environment.NewLine
             For i As Integer = 11 To Top100.Count - 1
-                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & Utils.GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & Utils.GetSizeText(Top100(i).Item1) & "." & Environment.NewLine
+                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & Utils.GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & Utils.GetSizeAsString(Top100(i).Item1) & "." & Environment.NewLine
             Next
             Dim tPage As Page = _bot.Getpage("Usuario:PeriodiBOT/Curiosidades/Hilos más largos en la historia del café")
             If tPage.Save(PageText, "Bot: Generando lista.", True, True) = EditResults.Edit_successful Then
@@ -271,33 +271,6 @@ Namespace WikiBot
             Else
                 Return False
             End If
-        End Function
-    End Class
-
-    Public Class Topic
-        Implements IComparable(Of Topic)
-        Public Property Name As String
-        Public Property Threads As New SortedSet(Of WThreadInfo)
-        Public Function CompareTo(other As Topic) As Integer Implements IComparable(Of Topic).CompareTo
-            Return Me.Name().CompareTo(other.Name())
-        End Function
-        Sub New(ByVal TopicName As String, ThreadList As SortedSet(Of WThreadInfo))
-            Name = TopicName
-            Threads = ThreadList
-        End Sub
-    End Class
-
-    Public Class WThreadInfo
-        Implements IComparable(Of WThreadInfo)
-        Public Property Topics As List(Of String)
-        Public Property ThreadTitle As String
-        Public Property ThreadResume As String
-        Public Property ThreadLink As String
-        Public Property Subsection As String
-        Public Property FirstSignature As Date
-        Public Property ThreadBytes As Integer
-        Public Function CompareTo(other As WThreadInfo) As Integer Implements IComparable(Of WThreadInfo).CompareTo
-            Return Me.FirstSignature().CompareTo(other.FirstSignature())
         End Function
     End Class
 End Namespace

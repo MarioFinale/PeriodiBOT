@@ -3,8 +3,6 @@ Option Strict On
 Imports System.IO
 
 Public Class Settings
-
-    'Private BoolSettings As New Dictionary(Of String, Boolean)
     Private StrSettings As New Dictionary(Of String, String)
     Private IntSettings As New Dictionary(Of String, Integer)
     Private SettingsIndex As New HashSet(Of String)
@@ -128,5 +126,4 @@ Public Class Settings
         End If
         Return True
     End Function
-
 End Class

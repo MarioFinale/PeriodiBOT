@@ -5,8 +5,7 @@ Imports System.Globalization
 Namespace WikiBot
 
     Public Class WikiUser
-        Private _bot As Bot
-
+        Private _workerBot As Bot
         Private _userName As String
         Private _userId As Integer
         Private _editCount As Integer
@@ -15,7 +14,6 @@ Namespace WikiBot
         Private _gender As String
         Private _talkPage As Page
         Private _userPage As Page
-
         Private _blocked As Boolean
         Private _blockID As Integer
         Private _blockedTimestamp As String
@@ -24,7 +22,6 @@ Namespace WikiBot
         Private _blockReason As String
         Private _blockExpiry As String
         Private _lastEdit As Date
-
         Private _exists As Boolean
 
 #Region "Properties"
@@ -133,13 +130,13 @@ Namespace WikiBot
 
         Sub New(ByVal wikiBot As Bot, userName As String)
             _userName = userName
-            _bot = wikiBot
+            _workerBot = wikiBot
             LoadInfo()
             _lastEdit = GetLastEditTimestampUser(_userName)
         End Sub
 
         Sub LoadInfo()
-            Dim queryresponse As String = _bot.POSTQUERY("action=query&format=json&list=users&usprop=blockinfo|groups|editcount|registration|gender&ususers=" & _userName)
+            Dim queryresponse As String = _workerBot.POSTQUERY("action=query&format=json&list=users&usprop=blockinfo|groups|editcount|registration|gender&ususers=" & _userName)
             Try
                 _userName = Utils.NormalizeUnicodetext(Utils.TextInBetween(queryresponse, """name"":""", """")(0))
 
@@ -150,8 +147,8 @@ Namespace WikiBot
                     _exists = True
                 End If
 
-                _talkPage = _bot.Getpage("Usuario discusión:" & _userName)
-                _userPage = _bot.Getpage("Usuario:" & _userName)
+                _talkPage = _workerBot.Getpage("Usuario discusión:" & _userName)
+                _userPage = _workerBot.Getpage("Usuario:" & _userName)
                 _userId = Integer.Parse(Utils.TextInBetween(queryresponse, """userid"":", ",")(0))
                 _editCount = Integer.Parse(Utils.TextInBetween(queryresponse, """editcount"":", ",")(0))
                 Try
@@ -191,7 +188,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function GetLastEditTimestampUser(ByVal user As String) As DateTime
             user = Utils.UrlWebEncode(user)
-            Dim qtest As String = _bot.POSTQUERY("action=query&list=usercontribs&uclimit=1&format=json&ucuser=" & user)
+            Dim qtest As String = _workerBot.POSTQUERY("action=query&list=usercontribs&uclimit=1&format=json&ucuser=" & user)
 
             If qtest.Contains("""usercontribs"":[]") Then
                 Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)

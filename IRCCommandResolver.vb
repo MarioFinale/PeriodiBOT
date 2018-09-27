@@ -16,7 +16,7 @@ Namespace IRC
         Function ResolveCommand(ByVal imputline As String, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client, WorkerBot As Bot) As IRCMessage
             Client = IRCCLient
             _bot = WorkerBot
-            Dim arg As New CommandParams(imputline, Client, _bot)
+            Dim arg As New IRCCommandParams(imputline, Client, _bot)
             If Not BeginsWithPrefix(CommandPrefixes, arg.MessageLine) Then Return Nothing
             Dim requestedCommand As String = RemovePrefix(arg.CommandName)
             For Each Command As IRCCommand In Clist
@@ -118,7 +118,7 @@ Namespace IRC
             Return _Clist
         End Function
 
-        Private Function CommandInfoFcn(ByVal Params As CommandParams) As IRCMessage
+        Private Function CommandInfoFcn(ByVal Params As IRCCommandParams) As IRCMessage
             For Each c As IRCCommand In Clist
                 If c.Aliases.Contains(RemovePrefix(Params.CParam).ToLower) Then
                     Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(Utils.JoinTextArray(c.Aliases, "/"c), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
@@ -134,7 +134,7 @@ Namespace IRC
             Return New IRCMessage(Params.Source, "No se ha encontrado el comando: """ & Params.CParam & """")
         End Function
 
-        Private Function GetCommandsFcn(ByVal Params As CommandParams) As IRCMessage
+        Private Function GetCommandsFcn(ByVal Params As IRCCommandParams) As IRCMessage
             Dim responsestring As String = "Comandos disponibles: "
             For Each c As IRCCommand In Clist
                 responsestring = responsestring & CommandPrefixes(0) & c.Name & ", "
@@ -142,7 +142,7 @@ Namespace IRC
             Return New IRCMessage(Params.Source, responsestring)
         End Function
 
-        Private Function Greetings(ByVal Args As CommandParams) As IRCMessage
+        Private Function Greetings(ByVal Args As IRCCommandParams) As IRCMessage
             If Args.Realname.ToLower.EndsWith("bot") Or Args.Realname.ToLower.StartsWith("bot") Or Args.MessageLine.Contains("*") Then
                 Return Nothing
             End If

@@ -77,11 +77,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChatBot.vb" />
-    <Compile Include="ImageGen.vb" />
+    <Compile Include="ChatMessage.vb" />
+    <Compile Include="EditResults.vb" />
+    <Compile Include="IRCCommandParams.vb" />
+    <Compile Include="MaxRetriesExeption.vb" />
+    <Compile Include="TaskInfo.vb" />
+    <Compile Include="VideoGen.vb" />
     <Compile Include="TopicFuncs.vb" />
     <Compile Include="APIHandler.vb" />
     <Compile Include="Bot.vb" />
-    <Compile Include="FilePath.vb" />
+    <Compile Include="ConfigFile.vb" />
     <Compile Include="Initializer.vb" />
     <Compile Include="IRCCommand.vb" />
     <Compile Include="IRCCommands.vb" />
@@ -111,7 +116,13 @@
     <Compile Include="Page.vb" />
     <Compile Include="Settings.vb" />
     <Compile Include="Template.vb" />
-    <Compile Include="ThreadPoolAdmin.vb" />
+    <Compile Include="TaskAdmin.vb" />
+    <Compile Include="WExtract.vb" />
+    <Compile Include="WikiBotEphe.vb" />
+    <Compile Include="WikiEphe.vb" />
+    <Compile Include="WikiEpheType.vb" />
+    <Compile Include="WikiTopic.vb" />
+    <Compile Include="WikiTopicThread.vb" />
     <Compile Include="WikiUser.vb" />
   </ItemGroup>
   <ItemGroup>

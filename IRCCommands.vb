@@ -6,7 +6,7 @@ Imports PeriodiBOT_IRC.WikiBot
 
 Public Class IRCCommands
 
-    Function GetFloodDelay(ByVal args As CommandParams) As IRCMessage
+    Function GetFloodDelay(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim Client As IRC_Client = args.Client
         Dim source As String = args.Source
@@ -19,7 +19,7 @@ Public Class IRCCommands
         End If
     End Function
 
-    Function SetFloodDelay(ByVal args As CommandParams) As IRCMessage
+    Function SetFloodDelay(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim value As String = args.CParam
         Dim source As String = args.Source
@@ -41,30 +41,30 @@ Public Class IRCCommands
         End If
     End Function
 
-    Function GetTasks(ByVal args As CommandParams) As IRCMessage
+    Function GetTasks(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim source As String = args.Source
         Dim responsestring As New List(Of String)
-        If Not ThreadList.Count >= 1 Then
+        If Not TaskList.Count >= 1 Then
             Return New IRCMessage(source, "No hay tareas ejecutándose.")
         End If
         Dim threadnames As New List(Of Tuple(Of String, String, String))
-        For Each t As ThreadInfo In ThreadList
+        For Each t As TaskInfo In TaskList
             threadnames.Add(New Tuple(Of String, String, String)(t.Name, t.Author, t.Status))
         Next
-        responsestring.Add("Hay " & Utils.ColoredText(ThreadList.Count.ToString, 4) & " tareas ejecutándose en este momento:")
+        responsestring.Add("Hay " & Utils.ColoredText(TaskList.Count.ToString, 4) & " tareas ejecutándose en este momento:")
         For i As Integer = 0 To threadnames.Count - 1
             responsestring.Add((i + 1).ToString & ": """ & threadnames(i).Item1 & """ por """ & threadnames(i).Item2 & """. Estado: " & Utils.ColoredText(threadnames(i).Item3, 4))
         Next
         Return New IRCMessage(source, responsestring.ToArray)
     End Function
 
-    Function GenEfe(ByVal args As CommandParams) As IRCMessage
+    Function GenEfe(ByVal args As IRCCommandParams) As IRCMessage
         If args.IsOp Then
             If args Is Nothing Then Return Nothing
 
             NewThread("Generar imágenes de efemérides", args.Realname, New Func(Of Boolean)(Function()
-                                                                                                Dim imggen As New ImageGen(args.Workerbot)
+                                                                                                Dim imggen As New VideoGen(args.Workerbot)
                                                                                                 If imggen.CheckEfe Then
                                                                                                     args.Client.Sendmessage(New IRCMessage(args.Source, "Se ha generado el video."))
                                                                                                 Else
@@ -78,7 +78,7 @@ Public Class IRCCommands
     End Function
 
 
-    Function TaskInfo(ByVal args As CommandParams) As IRCMessage
+    Function TaskInfo(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim taskindex As String = args.CParam
         Dim source As String = args.Source
@@ -86,7 +86,7 @@ Public Class IRCCommands
         If Not IsNumeric(taskindex) Then
             Return New IRCMessage(source, "Ingrese el número de la tarea.")
         End If
-        If Not ThreadList.Count >= 1 Then
+        If Not TaskList.Count >= 1 Then
             Return New IRCMessage(source, "No hay tareas ejecutándose.")
         End If
         If taskindex.Length > 5 Then
@@ -96,10 +96,10 @@ Public Class IRCCommands
         If Not tindex > 0 Then
             Return New IRCMessage(source, "El valor debe ser mayor a 0.")
         End If
-        If tindex > ThreadList.Count Then
+        If tindex > TaskList.Count Then
             Return New IRCMessage(source, "La tarea no existe.")
         End If
-        Dim tinfo As ThreadInfo = ThreadList(tindex - 1)
+        Dim tinfo As TaskInfo = TaskList(tindex - 1)
         Dim tstype As String = String.Empty
         Dim timeinterval As String = String.Empty
         If tinfo.Scheduledtask Then
@@ -124,7 +124,7 @@ Public Class IRCCommands
         Return New IRCMessage(source, responsestring.ToArray)
     End Function
 
-    Function PauseTask(ByVal args As CommandParams) As IRCMessage
+    Function PauseTask(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             Dim taskindex As String = args.CParam
@@ -134,7 +134,7 @@ Public Class IRCCommands
             If Not IsNumeric(taskindex) Then
                 Return New IRCMessage(source, "Ingrese el número de la tarea.")
             End If
-            If Not ThreadList.Count >= 1 Then
+            If Not TaskList.Count >= 1 Then
                 Return New IRCMessage(source, "No hay tareas ejecutándose.")
             End If
             If taskindex.Length > 5 Then
@@ -144,10 +144,10 @@ Public Class IRCCommands
             If Not tindex > 0 Then
                 Return New IRCMessage(source, "El valor debe ser mayor a 0.")
             End If
-            If tindex > ThreadList.Count Then
+            If tindex > TaskList.Count Then
                 Return New IRCMessage(source, "La tarea no existe.")
             End If
-            Dim tinfo As ThreadInfo = ThreadList(tindex - 1)
+            Dim tinfo As TaskInfo = TaskList(tindex - 1)
             If Not tinfo.Critical Then
                 If tinfo.Paused Then
                     tinfo.Paused = False
@@ -166,7 +166,7 @@ Public Class IRCCommands
         End If
     End Function
 
-    Function GetTime(ByVal args As CommandParams) As IRCMessage
+    Function GetTime(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim source As String = args.Source
         Dim responsestring As String = String.Empty
@@ -174,7 +174,7 @@ Public Class IRCCommands
         Return New IRCMessage(source, responsestring)
     End Function
 
-    Function SetDebug(ByVal args As CommandParams) As IRCMessage
+    Function SetDebug(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim source As String = args.Source
         Dim responsestring As String = String.Empty
@@ -188,7 +188,7 @@ Public Class IRCCommands
         Return New IRCMessage(source, responsestring)
     End Function
 
-    Function SetOp(ByVal args As CommandParams) As IRCMessage
+    Function SetOp(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             Dim message As String = args.Imputline
@@ -216,7 +216,7 @@ Public Class IRCCommands
     End Function
 
 
-    Function DEOp(ByVal args As CommandParams) As IRCMessage
+    Function DEOp(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             Dim message As String = args.Imputline
@@ -243,7 +243,7 @@ Public Class IRCCommands
         End If
     End Function
 
-    Function UpdateExtracts(ByVal args As CommandParams) As IRCMessage
+    Function UpdateExtracts(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             Dim Upexfcn As New Func(Of Boolean)(Function() args.Workerbot.UpdatePageExtracts(True))
@@ -254,7 +254,7 @@ Public Class IRCCommands
         End If
     End Function
 
-    Function JoinRoom(ByVal args As CommandParams) As IRCMessage
+    Function JoinRoom(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             Dim command As String = String.Format("JOIN {0}", args.CParam)
@@ -268,7 +268,7 @@ Public Class IRCCommands
         End If
     End Function
 
-    Function LeaveRoom(ByVal args As CommandParams) As IRCMessage
+    Function LeaveRoom(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             Dim responsestring As String = Utils.ColoredText("Saliendo de la sala solicitada", 4)
@@ -282,7 +282,7 @@ Public Class IRCCommands
         End If
     End Function
 
-    Function Quit(ByVal args As CommandParams) As IRCMessage
+    Function Quit(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             Dim responsestring As String = Utils.ColoredText("OK, voy saliendo...", 4)
@@ -297,7 +297,7 @@ Public Class IRCCommands
         End If
     End Function
 
-    Function Div0(ByVal args As CommandParams) As IRCMessage
+    Function Div0(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Utils.EventLogger.Log("Div0 requested", args.Source, args.Realname)
         Dim mes1 As New IRCMessage(args.Source, "OK, dividiendo 1 por 0...")
@@ -309,7 +309,7 @@ Public Class IRCCommands
         Return mes
     End Function
 
-    Function ArchiveAll(ByVal args As CommandParams) As IRCMessage
+    Function ArchiveAll(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             NewThread("Archivado a solicitud", args.Realname, New Func(Of Boolean)(Function() args.Workerbot.ArchiveAllInclusions(True)), 1, False)
@@ -319,7 +319,7 @@ Public Class IRCCommands
         End If
     End Function
 
-    Function ArchivePage(ByVal args As CommandParams) As IRCMessage
+    Function ArchivePage(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Utils.EventLogger.Log("ArchivePage requested", args.Source, args.Realname)
         Dim PageName As String = args.Workerbot.TitleFirstGuess(args.CParam)
@@ -341,7 +341,7 @@ Public Class IRCCommands
         Return mes
     End Function
 
-    Function GetResume(ByVal args As CommandParams) As IRCMessage
+    Function GetResume(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim PageName As String = args.Workerbot.TitleFirstGuess(args.CParam)
         Utils.EventLogger.Log("IRC: GetResume of " & args.CParam, "IRC", args.Realname)
@@ -357,7 +357,7 @@ Public Class IRCCommands
         End If
     End Function
 
-    Function LastLogComm(ByVal args As CommandParams) As IRCMessage
+    Function LastLogComm(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             Dim responsestring As String = String.Empty
@@ -374,7 +374,7 @@ Public Class IRCCommands
     ''' Retorna informacion sobre el estado del bot dependiendo si el solicitante es OP.
     ''' </summary>
     ''' <returns></returns>
-    Function About(ByVal args As CommandParams) As IRCMessage
+    Function About(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim elapsedtime As TimeSpan = Uptime.Subtract(DateTime.Now)
         Dim uptimestr As String = elapsedtime.ToString("d\.hh\:mm", CultureInfo.InvariantCulture())
@@ -385,7 +385,7 @@ Public Class IRCCommands
                 responsestring = String.Format("{1} Versión: {0} (Uptime: {2}; Bajo {3} (MONO)). Ordenes: %ord", Utils.ColoredText(Version, 3), args.Client.NickName, uptimestr, Utils.ColoredText(OS, 4))
                 Utils.EventLogger.Log("IRC: Requested info (%??)", "IRC", args.Realname)
             Else
-                responsestring = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Hilos: {4}; Memoria (en uso): {6}Kb, (Privada): {5}Kb). Ordenes: %ord", Utils.ColoredText(Version, 3), Utils.ColoredText(OS, 4), args.Client.NickName, uptimestr, Utils.GetCurrentThreads.ToString, Utils.PrivateMemory.ToString, Utils.UsedMemory.ToString)
+                responsestring = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Tareas en ejecución: {4}; Memoria (en uso): {6}Kb, (Privada): {5}Kb). Ordenes: %ord", Utils.ColoredText(Version, 3), Utils.ColoredText(OS, 4), args.Client.NickName, uptimestr, Utils.TaskCount, Utils.PrivateMemory.ToString, Utils.UsedMemory.ToString)
                 Utils.EventLogger.Log("IRC: Requested info (%??)", "IRC", args.Realname)
             End If
 
@@ -397,7 +397,7 @@ Public Class IRCCommands
         Return mes
     End Function
 
-    Function RemoveUser(ByVal args As CommandParams) As IRCMessage
+    Function RemoveUser(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim responsestring As String = String.Empty
         Dim UsersOfOP As New List(Of String)
@@ -435,7 +435,7 @@ Public Class IRCCommands
 
     End Function
 
-    Function ProgramNewUser(ByVal args As CommandParams) As IRCMessage
+    Function ProgramNewUser(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim ResponseString As String = String.Empty
         Dim UserAndTime As String = args.CParam
@@ -484,7 +484,7 @@ Public Class IRCCommands
         Return mes
     End Function
 
-    Function GetProgrammedUsers(ByVal args As CommandParams) As IRCMessage
+    Function GetProgrammedUsers(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim UserList As New List(Of String)
         Dim UserString As String = String.Empty
@@ -513,7 +513,7 @@ Public Class IRCCommands
     End Function
 
 
-    Function LastEdit(ByVal args As CommandParams) As IRCMessage
+    Function LastEdit(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim wuser As New WikiUser(args.Workerbot, args.CParam)
         Dim responsestring As String = String.Empty
@@ -560,7 +560,7 @@ Public Class IRCCommands
         Return mes
     End Function
 
-    Function PageInfo(ByVal args As CommandParams) As IRCMessage
+    Function PageInfo(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim PageName As String = args.Workerbot.TitleFirstGuess(args.CParam)
         Utils.EventLogger.Log("IRC: Get PageInfo of " & args.CParam, "IRC", args.Realname)

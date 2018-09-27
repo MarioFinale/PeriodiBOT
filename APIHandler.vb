@@ -126,7 +126,7 @@ Namespace WikiBot
                     Console.WriteLine("Reason: " & reason)
                     Console.WriteLine(Environment.NewLine & Environment.NewLine)
                 End Try
-                exitloop = Utils.PressKeyTimeout()
+                exitloop = Utils.PressKeyTimeout(5)
             Loop
             Utils.ExitProgram()
             Return lresult
@@ -240,7 +240,7 @@ Namespace WikiBot
                     tryCount += 1
                 End Try
             Loop
-            Throw New MaxRetriesExceededExeption
+            Throw New MaxRetriesExeption
         End Function
 
         ''' <summary>Realiza una solicitud de tipo POST a un recurso web y retorna el texto.</summary>

@@ -61,6 +61,7 @@ Namespace WikiBot
                 GetTemplateOfText(text)
             End If
         End Sub
+
         ''' <summary>
         ''' Crea una nueva plantilla con los parámetros indicados.
         ''' </summary>
@@ -71,6 +72,7 @@ Namespace WikiBot
             _parameters = templateParams
             _text = MakeTemplateText(templateName, templateParams)
         End Sub
+
         ''' <summary>
         ''' Crea una nueva plantilla vacía ("{{}}")
         ''' </summary>
@@ -106,7 +108,6 @@ Namespace WikiBot
             text = text & "}}"
             Return text
         End Function
-
 
         ''' <summary>
         ''' Genera el texto de la plantilla a partir del nombre y parámetros indicados.
@@ -256,10 +257,7 @@ Namespace WikiBot
             Next
             'Agregar parametros locales a parametros de clase
             _parameters.AddRange(TotalParams)
-
         End Sub
-
-
 
         ''' <summary>
         ''' Retorna una lista de plantillas si se le entrega como parámetro un array de tipo string con texto en formato válido de plantilla.
@@ -382,7 +380,6 @@ Namespace WikiBot
             templist.AddRange(innertemplates)
             Return templist
         End Function
-
 
         ''' <summary>
         ''' Elimina los parámetros en blanco de la plantilla.

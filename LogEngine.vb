@@ -398,8 +398,6 @@ Class LogEngine
             Return QueueToDequeue.Dequeue()
         End SyncLock
     End Function
-
 #End Region
 
 End Class
-

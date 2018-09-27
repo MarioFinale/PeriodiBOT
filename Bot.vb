@@ -587,8 +587,8 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Return TrimmedText
         End Function
 
-        Function GetExtractsFromApiResponse(ByVal queryresponse As String, ByVal charLimit As Integer, ByVal wiki As Boolean) As HashSet(Of WExtract)
-            Dim ExtractsList As New HashSet(Of WExtract)
+        Function GetExtractsFromApiResponse(ByVal queryresponse As String, ByVal charLimit As Integer, ByVal wiki As Boolean) As HashSet(Of WikiExtract)
+            Dim ExtractsList As New HashSet(Of WikiExtract)
             Dim ResponseArray As String() = Utils.TextInBetweenInclusive(queryresponse, ",""title"":", """}")
             For Each s As String In ResponseArray
                 If Not s.Contains(",""missing"":") Then
@@ -613,7 +613,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                         Dim regx As New Regex(Regex.Escape(pagetitle), RegexOptions.IgnoreCase)
                         TreatedExtract = regx.Replace(TreatedExtract, "'''" & pagetitle & "'''", 1)
                     End If
-                    Dim Extract As New WExtract With {
+                    Dim Extract As New WikiExtract With {
                         .ExtractContent = TreatedExtract,
                         .PageName = Utils.NormalizeUnicodetext(pagetitle)}
                     ExtractsList.Add(Extract)
@@ -644,14 +644,14 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                     Next
                     Qstring = Qstring.Trim(CType("|", Char))
                     Dim QueryResponse As String = GETQUERY("format=json&action=query&prop=extracts&exintro=&explaintext=&titles=" & Qstring)
-                    Dim ExtractsList As HashSet(Of WExtract) = GetExtractsFromApiResponse(QueryResponse, charLimit, wiki)
+                    Dim ExtractsList As HashSet(Of WikiExtract) = GetExtractsFromApiResponse(QueryResponse, charLimit, wiki)
 
                     Dim NormalizedNames As New List(Of String)
                     For Each pageName As String In PageNamesList.ToArray
                         NormalizedNames.Add(pageName.ToLower.Replace("_", " "))
                     Next
 
-                    For Each Extract As WExtract In ExtractsList
+                    For Each Extract As WikiExtract In ExtractsList
                         Dim OriginalNameIndex As Integer = NormalizedNames.IndexOf(Extract.PageName.ToLower)
                         Dim OriginalName As String = PageNamesList(OriginalNameIndex)
                         PagenameAndResume.Add(OriginalName, Extract.ExtractContent)
@@ -955,7 +955,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' </summary>
         ''' <returns></returns>
         Function UpdateTopics() As Boolean
-            Dim topicw As New TopicFuncs(Me)
+            Dim topicw As New WikiTopicList(Me)
             Return topicw.UpdateTopics()
         End Function
 
@@ -1251,12 +1251,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Dim UnsignedThread As String = UnsignedSectionInfo.Item1
             Dim Username As String = UnsignedSectionInfo.Item2
             Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
-            Dim cinfo As Globalization.CultureInfo = New System.Globalization.CultureInfo("es-ES")
-            Dim mstring As String = cinfo.DateTimeFormat.GetAbbreviatedMonthName(UnsignedDate.Month)
-            If mstring.Length > 3 Then
-                mstring = mstring.Substring(0, 3)
-            End If
-            Dim dstring As String = UnsignedDate.Hour.ToString("00") & ":" & UnsignedDate.Minute.ToString("00") & " " & UnsignedDate.Day.ToString & " " & mstring & " " & UnsignedDate.Year.ToString & " (UTC)"
+            Dim dstring As String = Utils.GetSpanishTimeString(UnsignedDate)
             pagetext = pagetext.Replace(UnsignedThread, UnsignedThread & " {{sust:No firmado|" & Username & "|" & dstring & "}}")
             If tpage.Save(pagetext, "Bot: Completando sección sin firmar.", minor, True) = EditResults.Edit_successful Then
                 Return True
@@ -1283,7 +1278,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
 
         Function BiggestThreadsEver() As Boolean
-            Dim topicw As New TopicFuncs(Me)
+            Dim topicw As New WikiTopicList(Me)
             Return topicw.BiggestThreadsEver()
         End Function
 
@@ -1353,16 +1348,6 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
 #End Region
 
-    End Class
-
-    Public Class WExtract
-        Implements IComparable(Of WExtract)
-        Property PageName As String
-        Property ExtractContent As String
-
-        Public Function CompareTo(other As WExtract) As Integer Implements IComparable(Of WExtract).CompareTo
-            Return Me.PageName().CompareTo(other.PageName())
-        End Function
     End Class
 
 

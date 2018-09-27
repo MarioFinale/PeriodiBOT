@@ -2,7 +2,6 @@
 Option Explicit On
 Namespace IRC
     Public Class IRCMessage
-
         Public ReadOnly Property Source As String
         Public ReadOnly Property Text As List(Of String)
         Public ReadOnly Property Command As String

@@ -1,19 +1,30 @@
 ﻿Option Strict On
 Option Explicit On
-Imports System.Runtime.Serialization
 Imports System.Text.RegularExpressions
 Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.WikiBot
 
 NotInheritable Class Utils
+#Region "Properties"
+    Public Shared ReadOnly Property TaskCount As Integer
+        Get
+            Return TaskList.Count
+        End Get
+    End Property
+
+    Public Shared Property EventLogger As New LogEngine(Log_Filepath, User_Filepath, BotCodename)
+    Public Shared Property BotSettings As New Settings(SettingsPath)
+
+#End Region
+
 #Region "Prevent init"
     Private Sub New()
     End Sub
 #End Region
 
+#Region "Text Functions"
     Public Shared signpattern As String = "([0-9]{2}):([0-9]{2}) ([0-9]{2}|[0-9]) ([A-z]{3})([\.,])* [0-9]{4}( \([A-z]{3,4}\))*"
 
-#Region "Text Functions"
     ''' <summary>
     ''' Elimina los tags html de una cadena de texto dada.
     ''' </summary>
@@ -501,39 +512,6 @@ NotInheritable Class Utils
         Return occurences
     End Function
 
-#End Region
-
-
-    Public Shared EventLogger As New LogEngine(Log_Filepath, User_Filepath, BotCodename)
-    Public Shared BotSettings As New Settings(SettingsPath)
-
-    ''' <summary>
-    ''' Finaliza el programa correctamente.
-    ''' </summary>
-    Public Shared Sub ExitProgram()
-        EventLogger.EndLog = True
-        Environment.Exit(0)
-    End Sub
-
-    ''' <summary>
-    ''' Retorna true si un numero es par.
-    ''' </summary>
-    ''' <param name="Number"></param>
-    ''' <returns></returns>
-    Public Shared Function IsODD(ByVal number As Integer) As Boolean
-        Return (number Mod 2 = 0)
-    End Function
-
-    ''' <summary>
-    ''' Cuenta cuantas veces se repite una cadena de texto dada dentro de otra cadena de texto.
-    ''' </summary>
-    ''' <param name="input">Cadena de texto donde se busca</param>
-    ''' <param name="value">CAdena de texto a buscar</param>
-    ''' <returns></returns>
-    Public Shared Function CountString(ByVal input As String, ByVal value As String) As Integer
-        Return Regex.Split(input, RegexParser(value)).Length - 1
-    End Function
-
     ''' <summary>
     ''' Entrega un valor que simboliza el nivel de aparición de las palabras indicadas
     ''' </summary>
@@ -558,6 +536,87 @@ NotInheritable Class Utils
     End Function
 
     ''' <summary>
+    ''' Separa un array de string segun lo especificado. Retorna una lista con listas de texto.
+    ''' </summary>
+    ''' <param name="StrArray">Lista a partir</param>
+    ''' <param name="chunkSize">En cuantos items se parte</param>
+    ''' <returns></returns>
+    Public Shared Function SplitStringArrayIntoChunks(strArray As String(), chunkSize As Integer) As List(Of List(Of String))
+        Return strArray.
+                Select(Function(x, i) New With {Key .Index = i, Key .Value = x}).
+                GroupBy(Function(x) (x.Index \ chunkSize)).
+                Select(Function(x) x.Select(Function(v) v.Value).ToList()).
+                ToList()
+    End Function
+
+    ''' <summary>
+    ''' Retorna una cadena de texto que interpreta los bytes entregados como Byte, Kbyte o Mbyte respectivamente.
+    ''' Importante: El valor debe ser en Bytes, no Bits. La función redondea en la segunda posición decimal.
+    ''' </summary>
+    ''' <param name="bytes"></param>
+    ''' <returns></returns>
+    Public Shared Function GetSizeAsString(ByVal bytes As Integer) As String
+        If bytes < 999 Then
+            Return bytes.ToString & " Bytes"
+        ElseIf bytes < 999999 Then
+            Return System.Math.Round((bytes / 1000), 2).ToString & " KB"
+        Else
+            Return System.Math.Round((bytes / 1000000), 2).ToString & " MB"
+        End If
+    End Function
+
+#End Region
+
+#Region "Math Functions"
+    ''' <summary>
+    ''' Retorna true si un numero es par.
+    ''' </summary>
+    ''' <param name="Number"></param>
+    ''' <returns></returns>
+    Public Shared Function IsODD(ByVal number As Integer) As Boolean
+        Return (number Mod 2 = 0)
+    End Function
+
+    ''' <summary>
+    ''' Separa un array de integer segun lo especificado. Retorna una lista con listas de integer.
+    ''' </summary>
+    ''' <param name="IntArray">Lista a partir</param>
+    ''' <param name="chunkSize">En cuantos items se parte</param>
+    ''' <returns></returns>
+    Public Shared Function SplitIntegerArrayIntoChunks(intArray As Integer(), chunkSize As Integer) As List(Of List(Of Integer))
+        Return intArray.
+                Select(Function(x, i) New With {Key .Index = i, Key .Value = x}).
+                GroupBy(Function(x) (x.Index \ chunkSize)).
+                Select(Function(x) x.Select(Function(v) v.Value).ToList()).
+                ToList()
+    End Function
+
+#End Region
+
+#Region "Program Subs"
+    ''' <summary>
+    ''' Finaliza el programa correctamente.
+    ''' </summary>
+    Public Shared Sub ExitProgram()
+        EventLogger.EndLog = True
+        Environment.Exit(0)
+    End Sub
+
+#End Region
+
+#Region "Program Functions"
+
+    ''' <summary>
+    ''' Establece un tiempo de espera (en segundos)
+    ''' </summary>
+    ''' <param name="seconds"></param>
+    ''' <returns></returns>
+    Public Shared Function WaitSeconds(ByVal seconds As Integer) As Boolean
+        System.Threading.Thread.Sleep(seconds * 1000)
+        Return True
+    End Function
+
+    ''' <summary>
     ''' Convierte una cadena de texto con una hora en formato unix a DateTime
     ''' </summary>
     ''' <param name="strUnixTime"></param>
@@ -570,7 +629,19 @@ NotInheritable Class Utils
     End Function
 
     ''' <summary>
-    ''' Convierte una cadena de texto con formatoe special a segundos
+    ''' Convierte una fecha a un numero entero que representa la hora en formato unix
+    ''' </summary>
+    ''' <param name="dteDate"></param>
+    ''' <returns></returns>
+    Public Shared Function TimeToUnix(ByVal dteDate As Date) As Integer
+        If dteDate.IsDaylightSavingTime = True Then
+            dteDate = DateAdd(DateInterval.Hour, -1, dteDate)
+        End If
+        TimeToUnix = CInt(DateDiff(DateInterval.Second, #1/1/1970#, dteDate))
+    End Function
+
+    ''' <summary>
+    ''' Convierte una cadena de texto con formato es pecial a segundos
     ''' </summary>
     ''' <param name="time"></param>
     ''' <returns></returns>
@@ -598,55 +669,9 @@ NotInheritable Class Utils
     End Function
 
     ''' <summary>
-    ''' Establece un tiempo de espera (en segundos)
+    ''' Retorna los hilos hijos del programa, puede variar según el framework. No es fiable como indicador de tareas en ejecución.
     ''' </summary>
-    ''' <param name="seconds"></param>
     ''' <returns></returns>
-    Public Shared Function WaitSeconds(ByVal seconds As Integer) As Boolean
-        System.Threading.Thread.Sleep(seconds * 1000)
-        Return True
-    End Function
-
-    ''' <summary>
-    ''' Convierte una fecha a un numero entero que representa la hora en formato unix
-    ''' </summary>
-    ''' <param name="dteDate"></param>
-    ''' <returns></returns>
-    Public Shared Function TimeToUnix(ByVal dteDate As Date) As Integer
-        If dteDate.IsDaylightSavingTime = True Then
-            dteDate = DateAdd(DateInterval.Hour, -1, dteDate)
-        End If
-        TimeToUnix = CInt(DateDiff(DateInterval.Second, #1/1/1970#, dteDate))
-    End Function
-
-    ''' <summary>
-    ''' Separa un array de string segun lo especificado. Retorna una lista con listas de texto.
-    ''' </summary>
-    ''' <param name="StrArray">Lista a partir</param>
-    ''' <param name="chunkSize">En cuantos items se parte</param>
-    ''' <returns></returns>
-    Public Shared Function SplitStringArrayIntoChunks(strArray As String(), chunkSize As Integer) As List(Of List(Of String))
-        Return strArray.
-                Select(Function(x, i) New With {Key .Index = i, Key .Value = x}).
-                GroupBy(Function(x) (x.Index \ chunkSize)).
-                Select(Function(x) x.Select(Function(v) v.Value).ToList()).
-                ToList()
-    End Function
-
-    ''' <summary>
-    ''' Separa un array de integer segun lo especificado. Retorna una lista con listas de integer.
-    ''' </summary>
-    ''' <param name="IntArray">Lista a partir</param>
-    ''' <param name="chunkSize">En cuantos items se parte</param>
-    ''' <returns></returns>
-    Public Shared Function SplitIntegerArrayIntoChunks(intArray As Integer(), chunkSize As Integer) As List(Of List(Of Integer))
-        Return intArray.
-                Select(Function(x, i) New With {Key .Index = i, Key .Value = x}).
-                GroupBy(Function(x) (x.Index \ chunkSize)).
-                Select(Function(x) x.Select(Function(v) v.Value).ToList()).
-                ToList()
-    End Function
-
     Public Shared Function GetCurrentThreads() As Integer
         Try
             Return Process.GetCurrentProcess().Threads.Count
@@ -654,9 +679,12 @@ NotInheritable Class Utils
             EventLogger.Debug_Log(ex.Message, "LOCAL")
             Return 0
         End Try
-
     End Function
 
+    ''' <summary>
+    ''' Entrega la cantidad de memoria reservada para el proceso, depende del framework y no tiene relación directa con el rendimiento real del programa.
+    ''' </summary>
+    ''' <returns></returns>
     Public Shared Function PrivateMemory() As Long
         Try
             Return CLng(Process.GetCurrentProcess().PrivateMemorySize64 / 1024)
@@ -667,6 +695,10 @@ NotInheritable Class Utils
 
     End Function
 
+    ''' <summary>
+    ''' Entrega la cantidad de memoria que el programa está usando efectivamente.
+    ''' </summary>
+    ''' <returns></returns>
     Public Shared Function UsedMemory() As Long
         Try
             Return CLng(Process.GetCurrentProcess().WorkingSet64 / 1024)
@@ -677,16 +709,26 @@ NotInheritable Class Utils
 
     End Function
 
-
+    ''' <summary>
+    ''' Escribe una línea en la salida del programa a modo de registro siguiendo un formato estándar 
+    ''' (en realidad es completamente arbitrario pero está ordenado y bonito :) ).
+    ''' </summary>
+    ''' <param name="type">Tipo de registro</param>
+    ''' <param name="source">Origen del registro</param>
+    ''' <param name="message">Mensaje de salida</param>
     Public Shared Sub WriteLine(ByVal type As String, ByVal source As String, message As String)
         Dim msgstr As String = "[" & DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") & "]" & " [" & source & " " & type & "] " & message
         Console.WriteLine(msgstr)
     End Sub
 
-    Public Shared Function PressKeyTimeout() As Boolean
+    ''' <summary>
+    ''' Entrega Verdadero si el usuario presiona cualquier tecla dentro del tiempo indicado
+    ''' </summary>
+    ''' <returns></returns>
+    Public Shared Function PressKeyTimeout(ByVal Timeout As Integer) As Boolean
         Dim exitloop As Boolean = False
-        Console.WriteLine("Press any key to exit or wait 5 seconds")
-        For timeout As Integer = 0 To 5
+        Console.WriteLine("Press any key to cancel.")
+        For ttime As Integer = 0 To Timeout
             Console.Write(".")
             If Console.KeyAvailable Then
                 exitloop = True
@@ -698,6 +740,9 @@ NotInheritable Class Utils
     End Function
 
 
+#End Region
+
+#Region "Wikipedia exclusive"
     ''' <summary>
     ''' Entrega como array de DateTime todas las fechas (Formato de firma Wikipedia) en el texto dado.
     ''' </summary>
@@ -1059,41 +1104,15 @@ NotInheritable Class Utils
         Return GetPageThreads(tpage.Text)
     End Function
 
-    Public Shared Function GetSizeText(ByVal bytes As Integer) As String
-        If bytes < 999 Then
-            Return bytes.ToString & " Bytes"
-        ElseIf bytes < 999999 Then
-            Return System.Math.Round((bytes / 1000), 2).ToString & " KB"
-        ElseIf bytes > 999999 Then
-            Return System.Math.Round((bytes / 1000000), 2).ToString & " MB"
-        End If
-        Return " Wtf?"
-    End Function
-
     Public Shared Function GetSpanishTimeString(ByVal tDate As Date) As String
-        Return tDate.ToString("dd 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES"))
+        Dim cinfo As Globalization.CultureInfo = New System.Globalization.CultureInfo("es-ES")
+        Dim mstring As String = cinfo.DateTimeFormat.GetAbbreviatedMonthName(tDate.Month)
+        If mstring.Length > 3 Then
+            mstring = mstring.Substring(0, 3)
+        End If
+        Dim dstring As String = tDate.Hour.ToString("00") & ":" & tDate.Minute.ToString("00") & " " & tDate.Day.ToString & " " & mstring & " " & tDate.Year.ToString & " (UTC)"
+        Return dstring
     End Function
+#End Region
 
-End Class
-
-
-
-
-''' <summary>
-''' Excepción que se produce cuando se alcanza un número máximo de reintentos.
-''' </summary>
-Public Class MaxRetriesExceededExeption : Inherits System.Exception
-    Implements ISerializable
-    Public Sub New()
-        MyBase.New()
-    End Sub
-    Public Sub New(ByVal message As String)
-        MyBase.New(message)
-    End Sub
-    Public Sub New(ByVal message As String, ByVal innerException As System.Exception)
-        MyBase.New(message, innerException)
-    End Sub
-    Protected Sub New(ByVal info As SerializationInfo, ByVal context As StreamingContext)
-        MyBase.New(info, context)
-    End Sub
 End Class

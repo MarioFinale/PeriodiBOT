@@ -10,7 +10,6 @@ Namespace WikiBot
             _bot = WorkerBot
         End Sub
 
-
         ''' <summary>
         ''' Verifica si el usuario que se le pase cumple con los requisitos para archivar su discusión
         ''' </summary>
@@ -108,8 +107,6 @@ Namespace WikiBot
             End Try
 
         End Function
-
-
 
         ''' <summary>
         ''' Realiza un archivado general siguiendo una lógica similar a la de Grillitus.
@@ -367,7 +364,6 @@ Namespace WikiBot
             Return True
         End Function
 
-
         Private Function SetPageDestination(ByVal threaddate As Date, destination As String) As String
             Dim Threadyear As String = threaddate.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
             Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
@@ -464,7 +460,6 @@ Namespace WikiBot
             Return True
         End Function
 
-
         ''' <summary>
         ''' Obtiene los datos de una plantilla de archivado y retorna estos como array.
         ''' </summary>
@@ -555,7 +550,6 @@ Namespace WikiBot
             Return True
         End Function
 
-
         ''' <summary>
         ''' Obtiene la primera aparición de la plantilla de firmado en la página pasada como parámetro 
         ''' </summary>
@@ -572,7 +566,6 @@ Namespace WikiBot
             Next
             Return signtemp
         End Function
-
 
         ''' <summary>
         ''' Actualiza todas las paginas que incluyan la plantilla de archivado automático.
