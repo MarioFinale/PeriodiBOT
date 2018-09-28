@@ -591,6 +591,16 @@ NotInheritable Class Utils
                 ToList()
     End Function
 
+    ''' <summary>
+    ''' Convierte una cadena de texto a un array de integer donde cada valor equivale a la representación numérica del cada caracter en la cadena.
+    ''' </summary>
+    ''' <param name="tstring"></param>
+    ''' <returns></returns>
+    Public Shared Function StringToIntArray(ByVal tstring As String) As Integer()
+        Return tstring.ToCharArray.[Select](Function(c) Convert.ToInt32(c.ToString())).ToArray()
+    End Function
+
+
 #End Region
 
 #Region "Program Subs"
@@ -605,6 +615,18 @@ NotInheritable Class Utils
 #End Region
 
 #Region "Program Functions"
+
+    ''' <summary>
+    ''' Intercambia dos objetos del mismo tipo
+    ''' </summary>
+    ''' <typeparam name="T"></typeparam>
+    ''' <param name="arg1"></param>
+    ''' <param name="arg2"></param>
+    Sub Swap(Of T)(ByRef arg1 As T, ByRef arg2 As T)
+        Dim temp As T = arg1
+        arg1 = arg2
+        arg2 = temp
+    End Sub
 
     ''' <summary>
     ''' Establece un tiempo de espera (en segundos)

@@ -331,12 +331,28 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' </summary>
         ''' <param name="Text">Título aproximado o similar al de una página</param>
         ''' <returns></returns>
-        Function TitleFirstGuess(text As String) As String
+        Function SearchForPage(text As String) As String
             Dim titles As String() = Utils.GetTitlesFromQueryText(GETQUERY("action=query&format=json&list=search&utf8=1&srsearch=" & text))
             If titles.Count >= 1 Then
                 Return titles(0)
             Else
                 Return String.Empty
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Entregacla primera página que coincida remotamente con el texto entregado como parámetro.
+        ''' Usa las mismas sugerencias del cuadro de búsqueda de Wikipedia, pero por medio de la API.
+        ''' Si no hay coincidencia, no retorna nada.
+        ''' </summary>
+        ''' <param name="text"></param>
+        ''' <returns></returns>
+        Function GetSearchedPage(text As String) As Page
+            Dim titles As String() = Utils.GetTitlesFromQueryText(GETQUERY("action=query&format=json&list=search&utf8=1&srsearch=" & text))
+            If titles.Count >= 1 Then
+                Return Getpage(titles(0))
+            Else
+                Return Nothing
             End If
         End Function
 

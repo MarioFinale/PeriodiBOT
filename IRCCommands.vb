@@ -322,7 +322,7 @@ Public Class IRCCommands
     Function ArchivePage(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Utils.EventLogger.Log("ArchivePage requested", args.Source, args.Realname)
-        Dim PageName As String = args.Workerbot.TitleFirstGuess(args.CParam)
+        Dim PageName As String = args.Workerbot.SearchForPage(args.CParam)
         Dim responsestring As String = Utils.ColoredText("Archivando ", 4) & """" & PageName & """"
         Dim archf As New Func(Of Boolean)(Function()
                                               Dim p As Page = ESWikiBOT.Getpage(PageName)
@@ -343,7 +343,7 @@ Public Class IRCCommands
 
     Function GetResume(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
-        Dim PageName As String = args.Workerbot.TitleFirstGuess(args.CParam)
+        Dim PageName As String = args.Workerbot.SearchForPage(args.CParam)
         Utils.EventLogger.Log("IRC: GetResume of " & args.CParam, "IRC", args.Realname)
         If Not PageName = String.Empty Then
             Dim pretext As String = "Entradilla de " & Utils.ColoredText(PageName, 3) & " en Wikipedia: " & args.Workerbot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
@@ -562,7 +562,7 @@ Public Class IRCCommands
 
     Function PageInfo(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
-        Dim PageName As String = args.Workerbot.TitleFirstGuess(args.CParam)
+        Dim PageName As String = args.Workerbot.SearchForPage(args.CParam)
         Utils.EventLogger.Log("IRC: Get PageInfo of " & args.CParam, "IRC", args.Realname)
 
         If Not PageName = String.Empty Then
