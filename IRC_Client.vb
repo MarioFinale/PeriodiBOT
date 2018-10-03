@@ -5,7 +5,7 @@ Imports System.Net.Sockets
 Namespace IRC
     Public Class IRC_Client
         Private _sServer As String = String.Empty 'Server
-        Private _sChannel As String = String.Empty 'canal
+        Private _sChannels As String() 'canales
         Private _sNickName As String = String.Empty 'nickname
         Private _sPass As String = String.Empty 'contrasena de irc para nickserv auth
         Private _lPort As Int32 = 6667 'puerto 6667 por defecto
@@ -39,27 +39,27 @@ Namespace IRC
             End Get
         End Property
 #End Region
-        Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
+        Public Sub New(ByVal server As String, ByVal channel As String(), ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal userName As String, ByVal opFilePath As ConfigFile)
             Initialize(server, channel, nickName, port, invisible, pass, realname, userName, opFilePath)
         End Sub
 
-        Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
+        Public Sub New(ByVal server As String, ByVal channel As String(), ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean, ByVal pass As String, ByVal opFilePath As ConfigFile)
             Initialize(server, channel, nickName, port, invisible, pass, nickName, nickName, opFilePath)
         End Sub
 
-        Public Sub New(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
+        Public Sub New(ByVal server As String, ByVal channel As String(), ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean, ByVal opFilePath As ConfigFile)
             Initialize(server, channel, nickName, port, invisible, String.Empty, nickName, nickName, opFilePath)
         End Sub
 
-        Public Sub Initialize(ByVal server As String, ByVal channel As String, ByVal nickName As String, ByVal port As Int32,
+        Public Sub Initialize(ByVal server As String, ByVal channel As String(), ByVal nickName As String, ByVal port As Int32,
                           ByVal invisible As Boolean, ByVal pass As String, ByVal realName As String, ByVal userName As String, ByVal opFilePath As ConfigFile)
             _opFilePath = opFilePath
             LoadConfig()
             _sServer = server
-            _sChannel = channel
+            _sChannels = channel
 
             If Not String.IsNullOrEmpty(userName) Then
                 _sUserName = userName
@@ -131,10 +131,14 @@ Namespace IRC
                     _streamWriter.WriteLine(String.Format("USER {0} {1} * :{2}", _sUserName, sIsInvisible, _sRealName))
                     _streamWriter.Flush()
 
-                    'Connect to a specific room.
-                    Utils.EventLogger.Log("Joining Room """ & _sChannel & """", "IRC", BotCodename)
-                    _streamWriter.WriteLine(String.Format("JOIN {0}", _sChannel))
-                    _streamWriter.Flush()
+                    'Connect to the channels.
+                    For Each chan As String In _sChannels
+                        Utils.EventLogger.Log("Joining Room """ & chan & """", "IRC", BotCodename)
+                        _streamWriter.WriteLine(String.Format("JOIN {0}", chan))
+                        _streamWriter.Flush()
+                    Next
+
+
 
 
                     Await Task.Run(Sub()
@@ -252,13 +256,6 @@ Namespace IRC
                     Threading.Thread.Sleep(FloodDelay) 'Prevent flooding
                 End If
             Next
-            Return True
-        End Function
-
-        Function Sendmessage(ByVal message As String) As Boolean
-            _streamWriter.WriteLine(String.Format("PRIVMSG {0} : {1}", _sChannel, message))
-            _streamWriter.Flush()
-            Utils.WriteLine("MSG", "IRC", _sChannel & " " & _sNickName & ": " & message)
             Return True
         End Function
 

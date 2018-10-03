@@ -13,7 +13,7 @@ Module GlobalVars
     ''' </summary>
     Public DecimalSeparator As String = String.Format(CType(1.1, String)).Substring(1, 1)
 
-    Public OS As String = My.Computer.Info.OSFullName & " Version:" & My.Computer.Info.OSVersion
+    Public OS As String = My.Computer.Info.OSFullName & " " & My.Computer.Info.OSVersion
     Public Version As String = Reflection.Assembly.GetExecutingAssembly.GetName.Version.ToString
     Public User_Filepath As String = Exepath & "Users.psv"
     Public Log_Filepath As String = Exepath & "Log.psv"

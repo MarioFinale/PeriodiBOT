@@ -712,8 +712,8 @@ Namespace WikiBot
             If thumburlmatches.Count > 0 Then
                 img = PicFromUrl(thumburlmatches(0))
             End If
-            If String.IsNullOrWhiteSpace(author) Then
-                author = "Anónimo"
+            If String.IsNullOrWhiteSpace(author) Or (author.ToLower.Contains("unknown")) Then
+                author = "Desconocido"
             End If
             Return New Tuple(Of Image, String())(img, {licence, licenceurl, author})
         End Function

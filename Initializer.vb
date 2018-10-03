@@ -14,7 +14,7 @@ Public NotInheritable Class Initializer
         Uptime = DateTime.Now
         Utils.EventLogger.Log("Starting...", "LOCAL")
         ESWikiBOT = New Bot(New ConfigFile(ConfigFilePath))
-        BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannel, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
+        BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannels, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
         BotIRC.StartClient()
 
         'Tarea para generar video de efemérides
@@ -50,15 +50,15 @@ Public NotInheritable Class Initializer
         NewThread("Actualizar la lista con los hilos más grandes del café.", BotCodename, BiggestThreadsFunc, New TimeSpan(9, 0, 0), True)
 
         'Tarea para actualizar extractos
-        Dim UpdateExtractFunc As New Func(Of Boolean)(Function() ESWikiBOT.UpdatePageExtracts(False))
+        Dim UpdateExtractFunc As New Func(Of Boolean)(Function() ESWikiBOT.UpdatePageExtracts())
         NewThread("Actualizar extractos", BotCodename, UpdateExtractFunc, 3600000, True)
 
         'Tarea para completar firmas
-        Dim SignAllFunc As New Func(Of Boolean)(Function() ESWikiBOT.SignAllInclusions(False))
+        Dim SignAllFunc As New Func(Of Boolean)(Function() ESWikiBOT.SignAllInclusions())
         NewThread("Completar firmas", BotCodename, SignAllFunc, 240000, True)
 
         'Tarea para archivar todo
-        Dim ArchiveAllFunc As New Func(Of Boolean)(Function() ESWikiBOT.ArchiveAllInclusions(False))
+        Dim ArchiveAllFunc As New Func(Of Boolean)(Function() ESWikiBOT.ArchiveAllInclusions())
         NewThread("Archivado automático", BotCodename, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
 
     End Sub

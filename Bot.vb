@@ -19,7 +19,7 @@ Namespace WikiBot
         Private _userName As String
 
         Private _ircNickName As String
-        Private _ircChannel As String
+        Private _ircChannels As String()
         Private _ircPassword As String
         Private _ircUrl As String
         Public ReadOnly Property Bot As Boolean
@@ -82,9 +82,9 @@ Namespace WikiBot
             End Get
         End Property
 
-        Public ReadOnly Property IrcChannel As String
+        Public ReadOnly Property IrcChannels As String()
             Get
-                Return _ircChannel
+                Return _ircChannels
             End Get
         End Property
 
@@ -121,7 +121,7 @@ Namespace WikiBot
             Dim IRCBotNickName As String = String.Empty
             Dim IRCBotPassword As String = String.Empty
             Dim MainIRCNetwork As String = String.Empty
-            Dim MainIRCChannel As String = String.Empty
+            Dim IRCChannels As String() = {String.Empty}
             Dim ConfigOK As Boolean = False
             Console.WriteLine("==================== PeriodiBOT " & Version & " ====================")
             Utils.EventLogger.Debug_Log("PeriodiBOT " & Version, "LOCAL", "Undefined")
@@ -138,7 +138,7 @@ Namespace WikiBot
                     MainIRCNetwork = Utils.TextInBetween(Configstr, "IRCNetwork=""", """")(0)
                     IRCBotNickName = Utils.TextInBetween(Configstr, "IRCBotNickName=""", """")(0)
                     IRCBotPassword = Utils.TextInBetween(Configstr, "IRCBotPassword=""", """")(0)
-                    MainIRCChannel = Utils.TextInBetween(Configstr, "IRCChannel=""", """")(0)
+                    IRCChannels = Utils.TextInBetween(Configstr, "IRCChannel=""", """")(0).Split("|"c)
                     ConfigOK = True
                 Catch ex As IndexOutOfRangeException
                     Utils.EventLogger.Log("Malformed config", "LOCAL", "Undefined")
@@ -173,7 +173,7 @@ Namespace WikiBot
                 Console.WriteLine("IRC nickserv/server password: ")
                 IRCBotPassword = Console.ReadLine
                 Console.WriteLine("IRC main Channel: ")
-                MainIRCChannel = Console.ReadLine
+                IRCChannels = {Console.ReadLine}
 
                 Dim configstr As String = String.Format("======================CONFIG======================
 BOTName=""{0}""
@@ -184,7 +184,7 @@ ApiURL=""{4}""
 IRCNetwork=""{5}""
 IRCBotNickName=""{6}""
 IRCBotPassword=""{7}""
-IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, MainIRCChannel)
+IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, IRCChannels)
 
                 Try
                     System.IO.File.WriteAllText(path.GetPath, configstr)
@@ -201,7 +201,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             _wikiUrl = WPSite
 
             _ircUrl = MainIRCNetwork
-            _ircChannel = MainIRCChannel
+            _ircChannels = IRCChannels
             _ircNickName = IRCBotNickName
             _ircPassword = IRCBotPassword
             Return True
@@ -951,18 +951,18 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' Crea una nueva instancia de la clase de archivado y actualiza todas las paginas que incluyan la pseudoplantilla de archivado de grillitus.
         ''' </summary>
         ''' <returns></returns>
-        Function ArchiveAllInclusions(ByVal irc As Boolean) As Boolean
+        Function ArchiveAllInclusions() As Boolean
             Dim Archive As New OldGrillitusTasks(Me)
-            Return Archive.ArchiveAllInclusions(irc)
+            Return Archive.ArchiveAllInclusions()
         End Function
 
         ''' <summary>
         ''' Crea una nueva instancia de la clase de archivado y actualiza todas las paginas que incluyan la pseudoplantilla de archivado de grillitus.
         ''' </summary>
         ''' <returns></returns>
-        Function SignAllInclusions(ByVal irc As Boolean) As Boolean
+        Function SignAllInclusions() As Boolean
             Dim signtask As New OldGrillitusTasks(Me)
-            Return signtask.SignAllInclusions(irc)
+            Return signtask.SignAllInclusions()
         End Function
 
         ''' <summary>
@@ -1027,19 +1027,6 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' </summary>
         ''' <returns></returns>
         Public Function UpdatePageExtracts() As Boolean
-            Return UpdatePageExtracts(False)
-        End Function
-
-        ''' <summary>
-        ''' Actualiza los resúmenes de página basado en varios parámetros,
-        ''' por defecto estos son de un máximo de 660 carácteres.
-        ''' </summary>
-        ''' <param name="IRC">Si se establece este valor envía un comando en IRC avisando de la actualización</param>
-        ''' <returns></returns>
-        Public Function UpdatePageExtracts(ByVal irc As Boolean) As Boolean
-            If irc Then
-                BotIRC.Sendmessage(Utils.ColoredText("Actualizando extractos.", 4))
-            End If
 
             Utils.EventLogger.Log("UpdatePageExtracts: Beginning update of page extracts", "LOCAL")
             Utils.EventLogger.Debug_Log("UpdatePageExtracts: Declaring Variables", "LOCAL")
@@ -1169,16 +1156,12 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                 End If
 
                 Utils.EventLogger.Log("UpdatePageExtracts: Update of page extracts completed successfully", "LOCAL")
-                If irc Then
-                    BotIRC.Sendmessage(Utils.ColoredText("¡Extractos actualizados!", 4))
-                End If
 
                 Return True
 
             Catch ex As Exception
                 Utils.EventLogger.Log("UpdatePageExtracts: Error updating page extracts", "LOCAL")
                 Utils.EventLogger.Debug_Log(ex.Message, "LOCAL")
-                BotIRC.Sendmessage(Utils.ColoredText("Error al actualizar los extractos, ver LOG.", 4))
                 Return False
             End Try
 

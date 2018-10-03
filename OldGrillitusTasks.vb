@@ -526,10 +526,7 @@ Namespace WikiBot
         ''' Actualiza todas las paginas que incluyan la plantilla de archivado automático.
         ''' </summary>
         ''' <returns></returns>
-        Function ArchiveAllInclusions(ByVal IRC As Boolean) As Boolean
-            If IRC Then
-                BotIRC.Sendmessage(Utils.ColoredText("Archivando todas las páginas.", 4))
-            End If
+        Function ArchiveAllInclusions() As Boolean
             Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Archivado automático")
             For Each pa As String In includedpages
                 Utils.EventLogger.Log("ArchiveAllInclusions: Page " & pa, "LOCAL")
@@ -544,9 +541,6 @@ Namespace WikiBot
 
                 End If
             Next
-            If IRC Then
-                BotIRC.Sendmessage(Utils.ColoredText("¡Archivado completo!", 4))
-            End If
             Return True
         End Function
 
@@ -571,10 +565,7 @@ Namespace WikiBot
         ''' Actualiza todas las paginas que incluyan la plantilla de archivado automático.
         ''' </summary>
         ''' <returns></returns>
-        Function SignAllInclusions(ByVal IRC As Boolean) As Boolean
-            If IRC Then
-                BotIRC.Sendmessage(Utils.ColoredText("Completando firmas.", 4))
-            End If
+        Function SignAllInclusions() As Boolean
             Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Firma_automática")
             For Each pa As String In includedpages
                 Try
@@ -602,11 +593,6 @@ Namespace WikiBot
                     Utils.EventLogger.EX_Log("SignAllInclusions: Page """ & pa & """ EX: " & ex.Message, "LOCAL")
                 End Try
             Next
-
-            If IRC Then
-                BotIRC.Sendmessage(Utils.ColoredText("¡Autofirmado completo!", 4))
-            End If
-
             Return True
         End Function
 
