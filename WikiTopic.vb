@@ -9,9 +9,9 @@ Namespace WikiBot
         Public Function CompareTo(other As WikiTopic) As Integer Implements IComparable(Of WikiTopic).CompareTo
             Return Me.Name().CompareTo(other.Name())
         End Function
-        Sub New(ByVal TopicName As String, ThreadList As SortedSet(Of WikiTopicThread))
-            Name = TopicName
-            Threads = ThreadList
+        Sub New(ByVal topicName As String, threadList As SortedSet(Of WikiTopicThread))
+            Name = topicName
+            Threads = threadList
         End Sub
     End Class
 End Namespace

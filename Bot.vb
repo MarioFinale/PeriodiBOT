@@ -4,6 +4,7 @@ Imports System.IO
 Imports System.Net
 Imports System.Text.RegularExpressions
 Imports PeriodiBOT_IRC.IRC
+Imports PeriodiBOT_IRC.My.Resources
 
 Namespace WikiBot
     Public Class Bot
@@ -11,8 +12,8 @@ Namespace WikiBot
 #Region "Properties"
         Private _botPassword As String
         Private _botUserName As String
-        Private _apiUrl As String
-        Private _wikiUrl As String
+        Private _apiUri As Uri
+        Private _wikiUri As Uri
 
         Private Api As ApiHandler
         Private _localName As String
@@ -24,9 +25,9 @@ Namespace WikiBot
         Private _ircUrl As String
         Public ReadOnly Property Bot As Boolean
             Get
-                Dim postdata As String = "action=query&assert=bot&format=json"
+                Dim postdata As String = StaticVars.AssertBotData
                 Dim postresponse As String = POSTQUERY(postdata)
-                If postresponse.Contains("assertbotfailed") Then
+                If postresponse.Contains(StaticVars.AssertBotFailed) Then
                     Return False
                 Else
                     Return True
@@ -36,9 +37,9 @@ Namespace WikiBot
 
         Public ReadOnly Property LoggedIn As Boolean
             Get
-                Dim postdata As String = "action=query&assert=user&format=json"
+                Dim postdata As String = StaticVars.AssertUserData
                 Dim postresponse As String = POSTQUERY(postdata)
-                If postresponse.Contains("assertuserfailed") Then
+                If postresponse.Contains(StaticVars.AssertUserFailed) Then
                     Return False
                 Else
                     Return True
@@ -46,9 +47,9 @@ Namespace WikiBot
             End Get
         End Property
 
-        Public ReadOnly Property ApiUrl As String
+        Public ReadOnly Property ApiUri As Uri
             Get
-                Return _apiUrl
+                Return _apiUri
             End Get
         End Property
 
@@ -64,9 +65,9 @@ Namespace WikiBot
             End Get
         End Property
 
-        Public ReadOnly Property WikiUrl As String
+        Public ReadOnly Property WikiUri As Uri
             Get
-                Return _wikiUrl
+                Return _wikiUri
             End Get
         End Property
 
@@ -98,13 +99,16 @@ Namespace WikiBot
 
 #Region "Init"
         Sub New(ByVal configPath As ConfigFile)
-            LoadConfig(configPath)
-            Api = New ApiHandler(_botUserName, _botPassword, _apiUrl)
+            Dim valid As Boolean = LoadConfig(configPath)
+            Do Until valid
+                valid = LoadConfig(configPath)
+            Loop
+            Api = New ApiHandler(_botUserName, _botPassword, _apiUri)
             _userName = Api.UserName
         End Sub
 
         Sub Relogin()
-            Api = New ApiHandler(_botUserName, _botPassword, _apiUrl)
+            Api = New ApiHandler(_botUserName, _botPassword, _apiUri)
         End Sub
         ''' <summary>
         ''' Inicializa las configuraciones genereales del programa desde el archivo de configuración.
@@ -123,11 +127,10 @@ Namespace WikiBot
             Dim MainIRCNetwork As String = String.Empty
             Dim IRCChannels As String() = {String.Empty}
             Dim ConfigOK As Boolean = False
-            Console.WriteLine("==================== PeriodiBOT " & Version & " ====================")
-            Utils.EventLogger.Debug_Log("PeriodiBOT " & Version, "LOCAL", "Undefined")
-
+            Console.WriteLine(String.Format(Messages.GreetingMsg, Version))
+            Utils.EventLogger.Debug_Log(Messages.BotEngine & Version, StaticVars.LocalSource, StaticVars.LocalSource)
             If System.IO.File.Exists(path.GetPath) Then
-                Utils.EventLogger.Log("Loading config", "LOCAL", "Undefined")
+                Utils.EventLogger.Log(Messages.LoadingConfig, StaticVars.LocalSource, StaticVars.LocalSource)
                 Dim Configstr As String = System.IO.File.ReadAllText(path.GetPath)
                 Try
                     MainBotName = Utils.TextInBetween(Configstr, "BOTName=""", """")(0)
@@ -141,65 +144,65 @@ Namespace WikiBot
                     IRCChannels = Utils.TextInBetween(Configstr, "IRCChannel=""", """")(0).Split("|"c)
                     ConfigOK = True
                 Catch ex As IndexOutOfRangeException
-                    Utils.EventLogger.Log("Malformed config", "LOCAL", "Undefined")
+                    Utils.EventLogger.Log(Messages.ConfigError, StaticVars.LocalSource, StaticVars.LocalSource)
                 End Try
             Else
-                Utils.EventLogger.Log("No config file", "LOCAL", "Undefined")
+                Utils.EventLogger.Log(Messages.NoConfigFile, StaticVars.LocalSource, StaticVars.LocalSource)
                 Try
                     System.IO.File.Create(path.ToString).Close()
                 Catch ex As System.IO.IOException
-                    Utils.EventLogger.Log("Error creating new config file", "LOCAL", "Undefined")
+                    Utils.EventLogger.Log(Messages.NewConfigFileError, StaticVars.LocalSource, StaticVars.LocalSource)
                 End Try
 
             End If
 
             If Not ConfigOK Then
                 Console.Clear()
-                Console.WriteLine("No config file, please fill the data or exit the program and create a new config file.")
-                Console.WriteLine("Bot Name: ")
+                Console.WriteLine(Messages.NewConfigMessage)
+                Console.WriteLine(Messages.NewBotName)
                 MainBotName = Console.ReadLine
-                Console.WriteLine("Wikipedia Bot Username: ")
+                Console.WriteLine(Messages.NewUsername)
                 WPBotUserName = Console.ReadLine
-                Console.WriteLine("Wikipedia bot password: ")
+                Console.WriteLine(Messages.NewBotPassword)
                 WPBotPassword = Console.ReadLine
-                Console.WriteLine("Wikipedia main URL: ")
+                Console.WriteLine(Messages.NewWikiMainUrl)
                 WPSite = Console.ReadLine
-                Console.WriteLine("Wikipedia API URL: ")
+                Console.WriteLine(Messages.NewWikiMainApiUrl)
                 WPAPI = Console.ReadLine
-                Console.WriteLine("IRC Network: ")
+                Console.WriteLine(Messages.NewIrcNetworkAdress)
                 MainIRCNetwork = Console.ReadLine
-                Console.WriteLine("IRC NickName: ")
+                Console.WriteLine(Messages.NewIrcNetworkNickName)
                 IRCBotNickName = Console.ReadLine
-                Console.WriteLine("IRC nickserv/server password: ")
+                Console.WriteLine(Messages.NewIrcNetworkPass)
                 IRCBotPassword = Console.ReadLine
-                Console.WriteLine("IRC main Channel: ")
+                Console.WriteLine(Messages.NewIrcNetworkChannels)
                 IRCChannels = {Console.ReadLine}
 
-                Dim configstr As String = String.Format("======================CONFIG======================
-BOTName=""{0}""
-WPUserName=""{1}""
-WPBotPassword=""{2}""
-PageURL=""{3}""
-ApiURL=""{4}""
-IRCNetwork=""{5}""
-IRCBotNickName=""{6}""
-IRCBotPassword=""{7}""
-IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, IRCChannels)
-
+                Dim configstr As String = String.Format(StaticVars.ConfigTemplate, MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, Utils.JoinTextArray(IRCChannels, "|"c))
                 Try
                     System.IO.File.WriteAllText(path.GetPath, configstr)
                 Catch ex As System.IO.IOException
-                    Utils.EventLogger.Log("Error saving config file", "LOCAL", "Undefined")
+                    Utils.EventLogger.Log(Messages.SaveConfigError, StaticVars.LocalSource, StaticVars.LocalSource)
                 End Try
-
             End If
 
             _localName = MainBotName
             _botUserName = WPBotUserName
             _botPassword = WPBotPassword
-            _apiUrl = WPAPI
-            _wikiUrl = WPSite
-
+            Try
+                _apiUri = New Uri(WPAPI)
+                _wikiUri = New Uri(WPSite)
+            Catch ex As ArgumentException
+                Utils.EventLogger.Log(Messages.InvalidUrl, StaticVars.LocalSource, StaticVars.LocalSource)
+                System.IO.File.Delete(path.GetPath)
+                Utils.WaitSeconds(5)
+                Return False
+            Catch ex2 As UriFormatException
+                Utils.EventLogger.Log(Messages.InvalidUrl, StaticVars.LocalSource, StaticVars.LocalSource)
+                System.IO.File.Delete(path.GetPath)
+                Utils.PressKeyTimeout(5)
+                Return False
+            End Try
             _ircUrl = MainIRCNetwork
             _ircChannels = IRCChannels
             _ircNickName = IRCBotNickName
@@ -211,15 +214,15 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
 #Region "ApiFunctions"
         Function POSTQUERY(ByVal postdata As String) As String
-            Return Api.POSTQUERY(postdata)
+            Return Api.Postquery(postdata)
         End Function
 
         Function GETQUERY(ByVal getdata As String) As String
-            Return Api.GETQUERY(getdata)
+            Return Api.Getquery(getdata)
         End Function
 
-        Function [GET](ByVal url As String) As String
-            Return Api.GET(url)
+        Function [GET](ByVal turi As Uri) As String
+            Return Api.GET(turi)
         End Function
 #End Region
 
@@ -242,30 +245,6 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Return Regexes.ToArray
         End Function
 
-
-        ''' <summary>
-        ''' Retorna una pagina aleatoria
-        ''' </summary>
-        Function GetRandomPage() As String()
-            Utils.EventLogger.Log("GetRandomPage: Starting query of random page.", "LOCAL")
-            Try
-                Dim QueryText As String = String.Empty
-                QueryText = GETQUERY("action=query&format=json&list=random&rnnamespace=0&rnlimit=10")
-
-                Dim plist As New List(Of String)
-
-                For Each s As String In Utils.TextInBetween(QueryText, """title"":""", """}")
-                    Utils.EventLogger.Log("GetRandomPage: Found """ & s & """.", "LOCAL")
-                    plist.Add(Utils.NormalizeUnicodetext(s))
-                Next
-                Utils.EventLogger.Log("GetRandomPage: Ended.", "LOCAL")
-                Return plist.ToArray
-            Catch ex As Exception
-                Utils.EventLogger.Debug_Log("GetRandomPage: ex message: " & ex.Message, "LOCAL")
-                Return {""}
-            End Try
-        End Function
-
         ''' <summary>
         ''' Retorna el ultimo REVID (como integer) de las paginas indicadas como SortedList (con el formato {Pagename,Revid}), las paginas deben ser distintas. 
         ''' En caso de no existir la pagina, retorna -1 como REVID.
@@ -273,7 +252,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' <param name="pageNames">Array con nombres de paginas unicos.</param>
         ''' <remarks></remarks>
         Function GetLastRevIds(ByVal pageNames As String()) As SortedList(Of String, Integer)
-            Utils.EventLogger.Debug_Log("GetLastRevIDs: Get Wikipedia last RevisionID of """ & pageNames.Count.ToString & """ pages.", "LOCAL")
+            Utils.EventLogger.Debug_Log(String.Format(Messages.GetLastrevIDs, pageNames.Count), "GetLastRevIds", StaticVars.LocalSource)
             Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
             Dim PageList As List(Of List(Of String)) = Utils.SplitStringArrayIntoChunks(PageNamesList.ToArray, 50)
@@ -320,7 +299,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                     End If
                 Next
             Next
-            Utils.EventLogger.Debug_Log("GetLastRevIDs: Done """ & PagenameAndLastId.Count.ToString & """ pages returned.", "LOCAL")
+            Utils.EventLogger.Debug_Log(String.Format(Messages.DoneXPagesReturned, PagenameAndLastId.Count), "GetLastRevIDs", StaticVars.LocalSource)
             Return PagenameAndLastId
         End Function
 
@@ -373,7 +352,8 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                 Next
                 Qstring = Qstring.Trim(CType("|", Char))
                 Try
-                    Dim s As String = Api.GET(("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & Utils.UrlWebEncode(Qstring)))
+                    Dim apiuri As Uri = New Uri("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & Utils.UrlWebEncode(Qstring))
+                    Dim s As String = Api.GET(apiuri)
 
                     For Each m As Match In Regex.Matches(s, "({|, )(""[0-9]+"":).+?(}}}})")
 
@@ -384,7 +364,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
                         If m.Value.Contains("error") Then
 
-                            Utils.EventLogger.Debug_Log("GetORESScore: Server error in query of ORES score from revid " & EditID_str & " (invalid diff?)", "LOCAL")
+                            Utils.EventLogger.Debug_Log("GetORESScore: Server error in query of ORES score from revid " & EditID_str & " (invalid diff?)", StaticVars.LocalSource)
                             EditAndScoreList.Add(EditID, {0, 0})
                         Else
                             Try
@@ -392,26 +372,23 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                                 Dim GoodFaithScore_str As String = Utils.TextInBetween(m.Value, """true"": ", "}")(1).Replace(".", DecimalSeparator)
 
 
-                                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, "LOCAL")
+                                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, StaticVars.LocalSource)
 
                                 Dim DMGScore As Double = Double.Parse(DMGScore_str) * 100
                                 Dim GoodFaithScore As Double = Double.Parse(GoodFaithScore_str) * 100
 
-                                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, "LOCAL")
+                                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, StaticVars.LocalSource)
 
                                 EditAndScoreList.Add(EditID, {DMGScore, GoodFaithScore})
                             Catch ex As IndexOutOfRangeException
-                                Utils.EventLogger.Debug_Log("GetORESScore: IndexOutOfRange EX in ORES score from revid " & EditID_str & " EX: " & ex.Message, "LOCAL")
-                                EditAndScoreList.Add(EditID, {0, 0})
-                            Catch ex2 As Exception
-                                Utils.EventLogger.Debug_Log("GetORESScore: EX in ORES score from revid " & EditID_str & " EX: " & ex2.Message, "LOCAL")
+                                Utils.EventLogger.Debug_Log("GetORESScore: IndexOutOfRange EX in ORES score from revid " & EditID_str & " EX: " & ex.Message, StaticVars.LocalSource)
                                 EditAndScoreList.Add(EditID, {0, 0})
                             End Try
                         End If
 
                     Next
                 Catch ex As Exception
-                    Utils.EventLogger.Debug_Log("GetORESScore: EX obttaining ORES scores EX: " & ex.Message, "LOCAL")
+                    Utils.EventLogger.Debug_Log("GetORESScore: EX obttaining ORES scores EX: " & ex.Message, StaticVars.LocalSource)
                 End Try
             Next
 
@@ -645,36 +622,35 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' <param name="pageNames">Array con nombres de página unicos.</param>
         ''' <remarks></remarks>
         Private Function BOTGetPagesExtract(ByVal pageNames As String(), charLimit As Integer, wiki As Boolean) As SortedList(Of String, String)
-            Utils.EventLogger.Log("Loading " & pageNames.Count.ToString & " page extracts", "LOCAL")
+            Utils.EventLogger.Log("Loading " & pageNames.Count.ToString & " page extracts", StaticVars.LocalSource)
+            If pageNames Is Nothing Then Return Nothing
             Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
             Dim PageList As List(Of List(Of String)) = Utils.SplitStringArrayIntoChunks(PageNamesList.ToArray, 20)
             Dim PagenameAndResume As New SortedList(Of String, String)
-            Try
-                For Each ListInList As List(Of String) In PageList
-                    Dim Qstring As String = String.Empty
-                    For Each s As String In ListInList
-                        s = Utils.UrlWebEncode(s)
-                        Qstring = Qstring & s & "|"
-                    Next
-                    Qstring = Qstring.Trim(CType("|", Char))
-                    Dim QueryResponse As String = GETQUERY("format=json&action=query&prop=extracts&exintro=&explaintext=&titles=" & Qstring)
-                    Dim ExtractsList As HashSet(Of WikiExtract) = GetExtractsFromApiResponse(QueryResponse, charLimit, wiki)
 
-                    Dim NormalizedNames As New List(Of String)
-                    For Each pageName As String In PageNamesList.ToArray
-                        NormalizedNames.Add(pageName.ToLower.Replace("_", " "))
-                    Next
-
-                    For Each Extract As WikiExtract In ExtractsList
-                        Dim OriginalNameIndex As Integer = NormalizedNames.IndexOf(Extract.PageName.ToLower)
-                        Dim OriginalName As String = PageNamesList(OriginalNameIndex)
-                        PagenameAndResume.Add(OriginalName, Extract.ExtractContent)
-                    Next
+            For Each ListInList As List(Of String) In PageList
+                Dim Qstring As String = String.Empty
+                For Each s As String In ListInList
+                    s = Utils.UrlWebEncode(s)
+                    Qstring = Qstring & s & "|"
                 Next
-            Catch ex As Exception
-                Utils.EventLogger.Debug_Log("BOTGetPagesExtract EX: " & ex.Message, "LOCAL")
-            End Try
+                Qstring = Qstring.Trim(CType("|", Char))
+                Dim QueryResponse As String = GETQUERY("format=json&action=query&prop=extracts&exintro=&explaintext=&titles=" & Qstring)
+                Dim ExtractsList As HashSet(Of WikiExtract) = GetExtractsFromApiResponse(QueryResponse, charLimit, wiki)
+
+                Dim NormalizedNames As New List(Of String)
+                For Each pageName As String In PageNamesList.ToArray
+                    NormalizedNames.Add(pageName.ToLower.Replace("_", " "))
+                Next
+
+                For Each Extract As WikiExtract In ExtractsList
+                    Dim OriginalNameIndex As Integer = NormalizedNames.IndexOf(Extract.PageName.ToLower)
+                    Dim OriginalName As String = PageNamesList(OriginalNameIndex)
+                    PagenameAndResume.Add(OriginalName, Extract.ExtractContent)
+                Next
+            Next
+
             Return PagenameAndResume
         End Function
 
@@ -688,7 +664,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         Function UserFirstGuess(text As String) As String
             Try
                 Return Utils.GetTitlesFromQueryText(GETQUERY("action=query&format=json&list=search&utf8=1&srnamespace=2&srsearch=" & text))(0)
-            Catch ex As Exception
+            Catch ex As IndexOutOfRangeException
                 Return String.Empty
             End Try
         End Function
@@ -750,7 +726,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                 Return Nothing
             End If
             Dim toid As Integer = thepage.CurrentRevId
-            Dim fromid As Integer = thepage.ParentRevID
+            Dim fromid As Integer = thepage.ParentRevId
             If fromid = -1 Then
                 Return Nothing
             End If
@@ -775,7 +751,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Dim difftext As String = String.Empty
             Try
                 difftext = Utils.NormalizeUnicodetext(Utils.TextInBetween(querytext, ",""*"":""", "\n""}}")(0))
-            Catch ex As Exception
+            Catch ex As IndexOutOfRangeException
                 Return Changedlist
             End Try
             Dim Rows As String() = Utils.TextInBetween(difftext, "<tr>", "</tr>")
@@ -854,7 +830,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' </summary>
         ''' <returns></returns>
         Function CheckUsers() As IRCMessage()
-            Utils.EventLogger.Log("CheckUsers: Checking users", "LOCAL")
+            Utils.EventLogger.Log("CheckUsers: Checking users", StaticVars.LocalSource)
             Dim Messages As New List(Of IRCMessage)
             Try
                 For Each UserdataLine As String() In Utils.EventLogger.LogUserData
@@ -926,22 +902,22 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' <param name="user">Usuario de Wiki</param>
         ''' <returns></returns>
         Private Function ValidUser(ByVal user As WikiUser) As Boolean
-            Utils.EventLogger.Debug_Log("ValidUser: Check user", "LOCAL")
+            Utils.EventLogger.Debug_Log("ValidUser: Check user", StaticVars.LocalSource)
             'Verificar si el usuario existe
             If Not user.Exists Then
-                Utils.EventLogger.Log("ValidUser: User " & user.UserName & " doesn't exist", "LOCAL")
+                Utils.EventLogger.Log("ValidUser: User " & user.UserName & " doesn't exist", StaticVars.LocalSource)
                 Return False
             End If
 
             'Verificar si el usuario está bloqueado.
             If user.Blocked Then
-                Utils.EventLogger.Log("ValidUser: User " & user.UserName & " is blocked", "LOCAL")
+                Utils.EventLogger.Log("ValidUser: User " & user.UserName & " is blocked", StaticVars.LocalSource)
                 Return False
             End If
 
             'Verificar si el usuario editó hace al menos 4 días.
             If Date.Now.Subtract(user.LastEdit).Days >= 4 Then
-                Utils.EventLogger.Log("ValidUser: User " & user.UserName & " is inactive", "LOCAL")
+                Utils.EventLogger.Log("ValidUser: User " & user.UserName & " is inactive", StaticVars.LocalSource)
                 Return False
             End If
             Return True
@@ -1014,7 +990,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                             Reqlist.Add(pair.Key, pair.Value)
                         End If
                     End If
-                Catch ex As Exception
+                Catch ex As IndexOutOfRangeException
                 End Try
             Next
             Return Reqlist
@@ -1028,32 +1004,32 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
         ''' <returns></returns>
         Public Function UpdatePageExtracts() As Boolean
 
-            Utils.EventLogger.Log("UpdatePageExtracts: Beginning update of page extracts", "LOCAL")
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Declaring Variables", "LOCAL")
+            Utils.EventLogger.Log("UpdatePageExtracts: Beginning update of page extracts", StaticVars.LocalSource)
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Declaring Variables", StaticVars.LocalSource)
             Dim NewResumes As New SortedList(Of String, String)
             Dim OldResumes As New SortedList(Of String, String)
             Dim FinalList As New List(Of String)
 
 
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Loading resume page", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Loading resume page", StaticVars.LocalSource)
             Dim ResumePage As Page = Getpage(ResumePageName)
 
             Dim ResumePageText As String = ResumePage.Text
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Resume page loaded", StaticVars.LocalSource)
 
 
             Dim NewResumePageText As String = "{{#switch:{{{1}}}" & Environment.NewLine
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Resume page loaded", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Resume page loaded", StaticVars.LocalSource)
 
             Dim Safepages As Integer = 0
             Dim NotSafepages As Integer = 0
             Dim NewPages As Integer = 0
             Dim NotSafePagesAdded As Integer = 0
 
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Parsing resume template", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Parsing resume template", StaticVars.LocalSource)
             Dim templatelist As List(Of String) = Template.GetTemplateTextArray(ResumePageText)
             Dim ResumeTemplate As New Template(templatelist(0), False)
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Adding Old resumes to list", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Adding Old resumes to list", StaticVars.LocalSource)
             Dim PageNames As New List(Of String)
 
             For Each PageResume As Tuple(Of String, String) In ResumeTemplate.Parameters
@@ -1068,10 +1044,10 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
             PageNames.Sort()
 
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Get last revision ID", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Get last revision ID", StaticVars.LocalSource)
             Dim IDLIST As SortedList(Of String, Integer) = GetLastRevIds(PageNames.ToArray)
 
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Adding New resumes to list", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Adding New resumes to list", StaticVars.LocalSource)
             '============================================================================================
             ' Adding New resumes to list
             Dim Page_Resume_pair As SortedList(Of String, String) = GetPagesExtract(PageNames.ToArray, 660, True)
@@ -1095,12 +1071,12 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
             '===========================================================================================
 
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: getting ORES of IDS", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: getting ORES of IDS", StaticVars.LocalSource)
             Dim EditScoreList As SortedList(Of Integer, Double()) = GetORESScores(IDLIST.Values.ToArray)
 
             '==========================================================================================
             'Choose between a old resume and a new resume depending if new resume is safe to use
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Recreating text", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Recreating text", StaticVars.LocalSource)
             For Each s As String In PageNames.ToArray
                 Try
                     If (EditScoreList(IDLIST(s))(0) < 20) And (Utils.CountCharacter(NewResumes(s), CType("[", Char)) = Utils.CountCharacter(NewResumes(s), CType("]", Char))) Then
@@ -1125,9 +1101,9 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
             Next
             '==========================================================================================
 
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Concatenating text", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Concatenating text", StaticVars.LocalSource)
             NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & "}}" & Environment.NewLine & "<noinclude>{{documentación}}</noinclude>"
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Done, trying to save", "LOCAL")
+            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Done, trying to save", StaticVars.LocalSource)
 
             Try
                 If NotSafepages = 0 Then
@@ -1154,14 +1130,12 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                     End If
 
                 End If
-
-                Utils.EventLogger.Log("UpdatePageExtracts: Update of page extracts completed successfully", "LOCAL")
-
+                Utils.EventLogger.Log("UpdatePageExtracts: Update of page extracts completed successfully", StaticVars.LocalSource)
                 Return True
 
             Catch ex As Exception
-                Utils.EventLogger.Log("UpdatePageExtracts: Error updating page extracts", "LOCAL")
-                Utils.EventLogger.Debug_Log(ex.Message, "LOCAL")
+                Utils.EventLogger.Log("UpdatePageExtracts: Error updating page extracts", StaticVars.LocalSource)
+                Utils.EventLogger.Debug_Log(ex.Message, StaticVars.LocalSource)
                 Return False
             End Try
 
@@ -1210,7 +1184,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
 
         Function GetLastUnsignedSection(ByVal tpage As Page, newthreads As Boolean) As Tuple(Of String, String, Date)
             If tpage Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
-            Dim oldPage As Page = Getpage(tpage.ParentRevID)
+            Dim oldPage As Page = Getpage(tpage.ParentRevId)
             Dim currentPage As Page = tpage
 
             Dim oldPageThreads As String() = oldPage.Threads
@@ -1300,7 +1274,7 @@ IRCChannel=""{8}""", MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, M
                     Dim User As New WikiUser(Me, Username)
                     'Validar usuario
                     If Not ValidUser(User) Then
-                        Utils.EventLogger.Log("CheckUsersActivity: The user " & User.UserName & " is not valid.", "LOCAL")
+                        Utils.EventLogger.Log("CheckUsersActivity: The user " & User.UserName & " is not valid.", StaticVars.LocalSource)
                         Continue For
                     End If
 

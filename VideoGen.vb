@@ -120,7 +120,7 @@ Namespace WikiBot
             For Each f As String In IO.Directory.GetFiles(Tpath)
                 Try
                     IO.File.Delete(f)
-                Catch ex As Exception
+                Catch ex As IO.IOException
                     Utils.EventLogger.EX_Log("Error al eliminar el archivo """ & f & """", "GenEfemerides")
                 End Try
             Next
@@ -156,7 +156,7 @@ Namespace WikiBot
                         exec.WaitForExit()
                     End Using
                 End If
-            Catch ex As Exception
+            Catch ex As SystemException
                 Utils.EventLogger.EX_Log("EX Encoding: " & ex.Message, "EncodeVideo")
                 Return False
             End Try
@@ -186,7 +186,7 @@ Namespace WikiBot
                         tdrawing.Clear(Color.White)
                         tdrawing.Save()
                         Dim Fecha As String = tdate.ToString("dd 'de' MMMM", New Globalization.CultureInfo("es-ES"))
-                        Using fechaimg As Image = DrawText(Fecha, New Font(FontFamily.GenericSansSerif, 35.0!, FontStyle.Regular), Color.Black, Color.White, True)
+                        Using fechaimg As Image = DrawText(Fecha, New Font(FontFamily.GenericSansSerif, 35.0!, FontStyle.Regular), Color.Black, True)
                             current = DragRightToLeft(Bgimg, Efeimg, New Point(0, 0), 0.2F, imagename, path, 0)
                             Dim lastimg As Image = Image.FromFile(path & imagename & current.ToString("0000") & ".jpg")
                             current = DragRightToLeft(lastimg, fechaimg, New Point(lastimg.Width - fechaimg.Width, 0), 0.08F, imagename, path, current)
@@ -304,12 +304,9 @@ Namespace WikiBot
 
         Function GetEfetxt(ByVal tdate As Date) As String()
             Dim fechastr As String = tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00")
-            Dim efetxt As String = "https://tools.wmflabs.org/jembot/ef/pub/" & fechastr & "/" & fechastr & ".txt"
+            Dim efetxt As Uri = New Uri("https://tools.wmflabs.org/jembot/ef/pub/" & fechastr & "/" & fechastr & ".txt")
             Dim txt As String = String.Empty
-            Try
-                txt = Bot.GET(efetxt)
-            Catch ex As Exception
-            End Try
+            txt = Bot.GET(efetxt)
             If String.IsNullOrWhiteSpace(txt) Then Return {""}
             Dim txtlist As List(Of String) = txt.Split(CType(vbLf, Char())).ToList
             For i As Integer = 0 To txtlist.Count - 1
@@ -385,7 +382,7 @@ Namespace WikiBot
                 End Using
             End Using
 
-            Using descimg As Drawing.Image = DrawText(description, New Font(FontFamily.GenericSansSerif, Convert.ToSingle(3.0! * textsize), FontStyle.Regular), Color.White, Color.White, True)
+            Using descimg As Drawing.Image = DrawText(description, New Font(FontFamily.GenericSansSerif, Convert.ToSingle(3.0! * textsize), FontStyle.Regular), Color.White, True)
                 Using timage As Image = PasteImage(lastimg, descimg, New Point(CInt((lastimg.Width - descimg.Width) / 2), 350))
                     current = PasteFadeIn(lastimg, timage, New Point(0, 0), imagename, Path, current)
                     lastimg = Drawing.Image.FromFile(Path & imagename & current.ToString("0000") & ".jpg")
@@ -398,7 +395,7 @@ Namespace WikiBot
                 lastimg = Drawing.Image.FromFile(Path & imagename & current.ToString("0000") & ".jpg")
             End Using
 
-            Using detailsimg As Image = DrawText(detailstext, New Font(FontFamily.GenericMonospace, 10.0!, FontStyle.Regular), Color.LightGray, Color.White, False)
+            Using detailsimg As Image = DrawText(detailstext, New Font(FontFamily.GenericMonospace, 10.0!, FontStyle.Regular), Color.LightGray, False)
                 current = DragRightToLeft(lastimg, detailsimg, New Point(0, 650), 0.6F, imagename, Path, current)
                 lastimg = Drawing.Image.FromFile(Path & imagename & current.ToString("0000") & ".jpg")
                 current = Repeatimage(Path, imagename, current, lastimg, 120)
@@ -599,12 +596,12 @@ Namespace WikiBot
             Return img
         End Function
 
-        Public Function DrawText(ByVal text As String, ByVal font As Font, ByVal textColor As Color, ByVal backColor As Color, ByVal center As Boolean) As Drawing.Image
+        Public Function DrawText(ByVal text As String, ByVal font As Font, ByVal textColor As Color, ByVal center As Boolean) As Drawing.Image
             Dim Lines As String() = Utils.GetLines(text)
             Dim images As New List(Of Drawing.Image)
 
             For Each line As String In Lines
-                images.Add(DrawLine(line, font, textColor, backColor))
+                images.Add(DrawLine(line, font, textColor))
             Next
 
             Dim timg As Drawing.Image = New Bitmap(1, 1)
@@ -636,41 +633,32 @@ Namespace WikiBot
             Return timg
         End Function
 
-        Public Function DrawLine(ByVal text As String, ByVal font As Font, ByVal textColor As Color, ByVal backColor As Color) As Drawing.Image
+        Public Function DrawLine(ByVal text As String, ByVal font As Font, ByVal textColor As Color) As Drawing.Image
             Dim img As Drawing.Image = New Bitmap(1, 1)
             text = text.Replace("'''", "") 'Ignoremos negritas
             text = text.Replace(Environment.NewLine, "").Replace(vbLf, "").Replace(vbCr, "").Replace(vbCrLf, "") 'No saltos de linea
-            Dim drawing As Graphics = Graphics.FromImage(img)
-            If String.IsNullOrEmpty(text) Then Return img
 
             Dim sf As New StringFormat With {
-            .Alignment = StringAlignment.Near,
-            .FormatFlags = StringFormatFlags.NoClip,
-            .Trimming = StringTrimming.None,
-            .HotkeyPrefix = System.Drawing.Text.HotkeyPrefix.Hide
-        }
+                .Alignment = StringAlignment.Near,
+                .FormatFlags = StringFormatFlags.NoClip,
+                .Trimming = StringTrimming.None,
+                .HotkeyPrefix = System.Drawing.Text.HotkeyPrefix.Hide
+                 }
 
-            Dim boldfont As New Font(font.FontFamily, font.Size, FontStyle.Bold)
-            Dim textSize As SizeF = drawing.MeasureString(text, font)
-            Dim boldSize As SizeF = drawing.MeasureString(text, boldfont)
+            Using drawing As Graphics = Graphics.FromImage(img)
+                If String.IsNullOrEmpty(text) Then Return img
+                Dim textSize As SizeF = drawing.MeasureString(text, font)
+                img = New Bitmap(CType(textSize.Width, Integer), CType(textSize.Height, Integer))
+            End Using
 
-            img.Dispose()
-            drawing.Dispose()
-
-            img = New Bitmap(CType(textSize.Width, Integer), CType(textSize.Height, Integer))
-            drawing = Graphics.FromImage(img)
-            'drawing.Clear(backColor)
-
-            Dim textBrush As Brush = New SolidBrush(textColor)
-            Dim textBrush2 As Brush = New SolidBrush(Color.White)
-            Dim wordSize As SizeF = drawing.MeasureString(text, font)
-            Dim tstring As String = text.Trim
-
-            drawing.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
-            drawing.DrawString(tstring, font, textBrush, 0, 0, sf)
-            drawing.Save()
-            textBrush.Dispose()
-            drawing.Dispose()
+            Using drawing As Graphics = Graphics.FromImage(img)
+                Using textBrush As Brush = New SolidBrush(textColor)
+                    Dim tstring As String = text.Trim
+                    drawing.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
+                    drawing.DrawString(tstring, font, textBrush, 0, 0, sf)
+                    drawing.Save()
+                End Using
+            End Using
             Return img
         End Function
 
@@ -727,10 +715,11 @@ Namespace WikiBot
                         img = CType(Image.FromStream(stream).Clone, Image)
                     End Using
                 End Using
+                Return img
             Catch ex As Exception
+                img.Dispose()
+                Return Nothing
             End Try
-            'img = Transparent2Color(img, Color.White)
-            Return img
         End Function
 
         Private Function Transparent2Color(ByVal bmp1 As Image, ByVal target As Color) As Bitmap

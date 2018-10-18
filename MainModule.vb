@@ -6,6 +6,7 @@ Imports System.Threading
 Module MainModule
 
     Sub Main()
+        Thread.CurrentThread.CurrentUICulture = New Globalization.CultureInfo("es")
         Initializer.Init()
         Do
             Thread.Sleep(500)

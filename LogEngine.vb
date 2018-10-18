@@ -180,10 +180,10 @@ Class LogEngine
         Next
 
         Try
-            System.IO.File.WriteAllLines(_userPath, StringToFile.ToArray)
+            IO.File.WriteAllLines(_userPath, StringToFile.ToArray)
             LoadUsers()
             Return True
-        Catch ex As Exception
+        Catch ex As IO.IOException
             Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             'Do something, idk...\
             LoadUsers()
@@ -197,6 +197,7 @@ Class LogEngine
     ''' <param name="UserAndTime">Array con {usuario a avisar, tiempo en formato d.hh:mm, operador} </param>
     ''' <returns></returns>
     Function SetUserTime(ByVal UserAndTime As String()) As Boolean
+        If Not UserAndTime.Count < 3 Then Return False
         Try
             Dim RequestedUser As String = UserAndTime(1)
             Dim UserTime As String = UserAndTime(2)
@@ -225,7 +226,7 @@ Class LogEngine
             End If
             SaveUsersToFile()
             Return True
-        Catch ex As Exception
+        Catch ex As IndexOutOfRangeException
             Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             Return False
         End Try
@@ -240,7 +241,7 @@ Class LogEngine
         Try
             _userData = GetUsersFromFile()
             Return True
-        Catch ex As Exception
+        Catch ex As IndexOutOfRangeException
             Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             Return False
         End Try
@@ -267,6 +268,7 @@ Class LogEngine
     ''' <param name="_queue"></param>
     ''' <returns></returns>
     Private Function SaveData(ByVal filepath As String, ByRef _queue As Queue(Of String())) As Boolean
+        If String.IsNullOrWhiteSpace(filepath) Then Return False
         Try
             Do Until _queue.Count = 0
                 AppendLinesToText(filepath, SafeDequeue(_queue))
@@ -278,7 +280,7 @@ Class LogEngine
                 IO.File.WriteAllLines(filepath, Utils.SplitStringArrayIntoChunks(totallines, _maxLogLenght).Last.ToArray)
             End If
             Return True
-        Catch ex As Exception
+        Catch ex As IO.IOException
             EX_Log(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, _defaultUser)
             Return False
         End Try
@@ -334,9 +336,10 @@ Class LogEngine
     ''' <param name="Lines">Líneas a añadir</param>
     ''' <returns></returns>
     Private Function AppendLinesToText(ByVal FilePath As String, Lines As String()) As Boolean
+        If String.IsNullOrWhiteSpace(FilePath) Then Return False
         Try
-            If Not System.IO.File.Exists(FilePath) Then
-                System.IO.File.Create(FilePath).Close()
+            If Not IO.File.Exists(FilePath) Then
+                IO.File.Create(FilePath).Close()
             End If
             Using Writer As New System.IO.StreamWriter(FilePath, True)
                 Dim LineStr As String = String.Empty
@@ -347,8 +350,8 @@ Class LogEngine
                 Writer.WriteLine(LineStr)
             End Using
             Return True
-        Catch ex As Exception
-            Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
+        Catch ex As IO.IOException
+            Debug_Log(Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             Return False
         End Try
     End Function

@@ -1,7 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Text.RegularExpressions
-Imports PeriodiBOT_IRC.IRC
+Imports PeriodiBOT_IRC.My.Resources
 Imports PeriodiBOT_IRC.WikiBot
 
 NotInheritable Class Utils
@@ -403,7 +403,7 @@ NotInheritable Class Utils
         Return mlist.ToArray
     End Function
     ''' <summary>
-    ''' Entrega los títulos en una cadena de texto con el formatod e respuesta de la Api de wikipedia.
+    ''' Entrega los títulos en una cadena de texto con el formato de respuesta de la Api de wikipedia.
     ''' </summary>
     ''' <param name="sourcestring">Texto a evaluar.</param>
     ''' <returns></returns>
@@ -430,10 +430,10 @@ NotInheritable Class Utils
     ''' <summary>
     ''' Codifica una cadena de texto en URLENCODE.
     ''' </summary>
-    ''' <param name="text">Texto a codificar.</param>
+    ''' <param name="textToEncode">Texto a codificar.</param>
     ''' <returns></returns>
-    Public Shared Function UrlWebEncode(ByVal text As String) As String
-        Dim PreTreatedText As String = Net.WebUtility.UrlEncode(text)
+    Public Shared Function UrlWebEncode(ByVal textToEncode As String) As String
+        Dim PreTreatedText As String = Net.WebUtility.UrlEncode(textToEncode)
         Dim TreatedText As String = Regex.Replace(PreTreatedText, "%\w{2}", Function(x) x.Value.ToUpper)
         Return TreatedText
     End Function
@@ -663,13 +663,12 @@ NotInheritable Class Utils
     End Function
 
     ''' <summary>
-    ''' Convierte una cadena de texto con formato es pecial a segundos
+    ''' Convierte una cadena de texto con formato especial a segundos
     ''' </summary>
     ''' <param name="time"></param>
     ''' <returns></returns>
     Public Shared Function TimeStringToSeconds(ByVal time As String) As Integer
         Try
-
             Dim Str1 As String() = time.Split(CType(":", Char))
             Dim Str2 As String() = Str1(0).Split(CType(".", Char))
 
@@ -684,7 +683,7 @@ NotInheritable Class Utils
             Dim total As Integer = (Days + Hours + Minutes)
             Return total
 
-        Catch ex As Exception
+        Catch ex As IndexOutOfRangeException
             EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "CommFuncs")
             Return 0
         End Try
@@ -695,12 +694,7 @@ NotInheritable Class Utils
     ''' </summary>
     ''' <returns></returns>
     Public Shared Function GetCurrentThreads() As Integer
-        Try
-            Return Process.GetCurrentProcess().Threads.Count
-        Catch ex As Exception
-            EventLogger.Debug_Log(ex.Message, "LOCAL")
-            Return 0
-        End Try
+        Return Process.GetCurrentProcess().Threads.Count
     End Function
 
     ''' <summary>
@@ -708,13 +702,7 @@ NotInheritable Class Utils
     ''' </summary>
     ''' <returns></returns>
     Public Shared Function PrivateMemory() As Long
-        Try
-            Return CLng(Process.GetCurrentProcess().PrivateMemorySize64 / 1024)
-        Catch ex As Exception
-            EventLogger.Debug_Log(ex.Message, "LOCAL")
-            Return 0
-        End Try
-
+        Return CLng(Process.GetCurrentProcess().PrivateMemorySize64 / 1024)
     End Function
 
     ''' <summary>
@@ -722,13 +710,7 @@ NotInheritable Class Utils
     ''' </summary>
     ''' <returns></returns>
     Public Shared Function UsedMemory() As Long
-        Try
-            Return CLng(Process.GetCurrentProcess().WorkingSet64 / 1024)
-        Catch ex As Exception
-            EventLogger.Debug_Log(ex.Message, "LOCAL")
-            Return 0
-        End Try
-
+        Return CLng(Process.GetCurrentProcess().WorkingSet64 / 1024)
     End Function
 
     ''' <summary>
@@ -749,7 +731,7 @@ NotInheritable Class Utils
     ''' <returns></returns>
     Public Shared Function PressKeyTimeout(ByVal Timeout As Integer) As Boolean
         Dim exitloop As Boolean = False
-        Console.WriteLine("Press any key to cancel.")
+        Console.Write(Messages.PressKey)
         For ttime As Integer = 0 To Timeout
             Console.Write(".")
             If Console.KeyAvailable Then
@@ -758,6 +740,7 @@ NotInheritable Class Utils
             End If
             System.Threading.Thread.Sleep(1000)
         Next
+        Console.Write(Environment.NewLine)
         Return exitloop
     End Function
 
@@ -775,7 +758,7 @@ NotInheritable Class Utils
         For Each m As Match In Regex.Matches(text, signpattern)
             Dim TheDate As DateTime = ESWikiDatetime(m.Value)
             Datelist.Add(TheDate)
-            EventLogger.Log("AllDateTimes: Adding " & TheDate.ToString, "LOCAL")
+            EventLogger.Log("AllDateTimes: Adding " & TheDate.ToString, StaticVars.LocalSource)
         Next
         Return Datelist.ToArray
     End Function
@@ -980,7 +963,7 @@ NotInheritable Class Utils
         End If
 
         Dim TheDate As DateTime = ESWikiDatetime(lastparagraph)
-        EventLogger.Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, "LOCAL")
+        EventLogger.Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, StaticVars.LocalSource)
         Return TheDate
     End Function
 
@@ -1018,7 +1001,7 @@ NotInheritable Class Utils
 
                 Dim dat As New DateTime(dates(4), dates(3), dates(2), dates(0), dates(1), 0)
                 TheDate = dat
-                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
+                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", StaticVars.LocalSource)
             Catch ex As System.FormatException
                 EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
             End Try
@@ -1062,7 +1045,7 @@ NotInheritable Class Utils
                 Next
                 Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
                 dates.Add(dat)
-                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", "LOCAL")
+                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", StaticVars.LocalSource)
             Catch ex As System.FormatException
                 EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
             End Try
@@ -1104,13 +1087,10 @@ NotInheritable Class Utils
                     End If
                 Next
                 tdat = New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
-                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & tdat.ToShortDateString & """", "LOCAL")
+                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & tdat.ToShortDateString & """", StaticVars.LocalSource)
             Catch ex As System.FormatException
                 EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
-            Catch ex As Exception
-                EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
             End Try
-
             Return tdat
         Next
         Return tdat

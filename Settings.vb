@@ -42,8 +42,8 @@ Public Class Settings
         Next
         Try
             File.WriteAllLines(_filePath, lines.ToArray)
-        Catch ex As Exception
-            Utils.EventLogger.EX_Log(ex.Message, "Settings:SaveConfig")
+        Catch ex As IO.IOException
+            Utils.EventLogger.EX_Log(ex.Message, "SaveConfig")
         End Try
     End Sub
 

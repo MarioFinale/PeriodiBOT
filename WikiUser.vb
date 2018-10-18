@@ -1,6 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Globalization
+Imports PeriodiBOT_IRC.My.Resources
 
 Namespace WikiBot
 
@@ -151,6 +152,7 @@ Namespace WikiBot
                 _userPage = _workerBot.Getpage("Usuario:" & _userName)
                 _userId = Integer.Parse(Utils.TextInBetween(queryresponse, """userid"":", ",")(0))
                 _editCount = Integer.Parse(Utils.TextInBetween(queryresponse, """editcount"":", ",")(0))
+
                 Try
                     Dim registrationString As String = Utils.TextInBetween(queryresponse, """registration"":""", """")(0).Replace("-"c, "").Replace("T"c, "").Replace("Z"c, "").Replace(":"c, "")
                     _registration = Date.ParseExact(registrationString, "yyyyMMddHHmmss", CultureInfo.InvariantCulture)
@@ -173,10 +175,7 @@ Namespace WikiBot
                 End If
 
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.EX_Log("Wikiuser LoadInfo" & ex.Message, "LOCAL")
-
-            Catch ex2 As Exception
-                Utils.EventLogger.EX_Log("Wikiuser LoadInfo: " & ex2.Message, "LOCAL")
+                Utils.EventLogger.EX_Log("Wikiuser LoadInfo" & ex.Message, StaticVars.LocalSource)
             End Try
 
         End Sub

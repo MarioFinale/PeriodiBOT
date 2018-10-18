@@ -2,29 +2,32 @@
 Option Explicit On
 Imports System.IO
 Imports System.Net.Sockets
+Imports PeriodiBOT_IRC.My.Resources
 Namespace IRC
     Public Class IRC_Client
-        Private _sServer As String = String.Empty 'Server
-        Private _sChannels As String() 'canales
-        Private _sNickName As String = String.Empty 'nickname
-        Private _sPass As String = String.Empty 'contrasena de irc para nickserv auth
-        Private _lPort As Int32 = 6667 'puerto 6667 por defecto
-        Private _bInvisible As Boolean = False 'invisible
-        Private _sRealName As String = String.Empty 'realname
-        Private _sUserName As String = String.Empty 'nombre irc unico
 
-        Private _tcpclientConnection As TcpClient = Nothing 'IRC network TCPclient.
-        Private _networkStream As NetworkStream = Nothing 'conexion a un network stream.
-        Private _streamWriter As StreamWriter = Nothing 'escribir en el stream.
-        Private _streamReader As StreamReader = Nothing 'leer desde el stream.
+        Property HasExited As Boolean = False
+        Property FloodDelay As Integer = 700
+
+        Private _sServer As String = String.Empty
+        Private _sChannels As String()
+        Private _sNickName As String = String.Empty
+        Private _sPass As String = String.Empty
+        Private _lPort As Int32 = 6667
+        Private _bInvisible As Boolean = False
+        Private _sRealName As String = String.Empty
+        Private _sUserName As String = String.Empty
+
+        Private _tcpClient As TcpClient = Nothing
+        Private _networkStream As NetworkStream = Nothing
+        Private _streamWriter As StreamWriter = Nothing
+        Private _streamReader As StreamReader = Nothing
         Private _opFilePath As ConfigFile
 
         Private Commands As New IRCCommandResolver
 
         Private lastmessage As New IRCMessage("", {""})
 
-        Public HasExited As Boolean = False
-        Public FloodDelay As Integer = 700
 
 #Region "Properties"
         Public ReadOnly Property NickName As String
@@ -93,17 +96,16 @@ Namespace IRC
             NewThread("Resolver mensajes en IRC", BotCodename, ResolveMessages, 10, True, True)
 
             Do Until HasExited
-
                 Try
                     'Start the main connection to the IRC server.
                     Utils.EventLogger.Log("Creating Connection", "IRC", BotCodename)
-                    _tcpclientConnection = New TcpClient(_sServer, _lPort)
-                    With _tcpclientConnection
+                    _tcpClient = New TcpClient(_sServer, _lPort)
+                    With _tcpClient
                         .ReceiveTimeout = 300000
                         .SendTimeout = 300000
                     End With
 
-                    _networkStream = _tcpclientConnection.GetStream
+                    _networkStream = _tcpClient.GetStream
                     _streamReader = New StreamReader(_networkStream)
                     _streamWriter = New StreamWriter(_networkStream)
 
@@ -138,9 +140,6 @@ Namespace IRC
                         _streamWriter.Flush()
                     Next
 
-
-
-
                     Await Task.Run(Sub()
 
                                        Try
@@ -153,7 +152,7 @@ Namespace IRC
                                                    MsgQueue.Enqueue(New Tuple(Of String, String, IRC_Client, WikiBot.Bot)(sCommand, _sNickName, Me, ESWikiBOT))
                                                End SyncLock
 
-                                               If Not _tcpclientConnection.Connected Then
+                                               If Not _tcpClient.Connected Then
                                                    Utils.EventLogger.Debug_Log("IRC: DISCONNECTED", "IRC", _sNickName)
                                                    Exit While
                                                End If
@@ -168,7 +167,6 @@ Namespace IRC
                                                End If
 
                                            End While
-
                                        Catch IOEX As System.IO.IOException
                                            Utils.EventLogger.Log("IRC: Error Connecting: " + IOEX.Message, "IRC", _sNickName)
                                        Catch OtherEx As Exception
@@ -272,33 +270,33 @@ Namespace IRC
         Sub LoadConfig()
             OPlist = New List(Of String)
             If System.IO.File.Exists(_opFilePath.GetPath) Then
-                Utils.EventLogger.Log("Loading operators", "LOCAL")
+                Utils.EventLogger.Log("Loading operators", StaticVars.LocalSource)
                 Dim opstr As String() = System.IO.File.ReadAllLines(_opFilePath.GetPath)
                 Try
                     For Each op As String In opstr
                         OPlist.Add(op)
                     Next
                 Catch ex As IndexOutOfRangeException
-                    Utils.EventLogger.Log("Malformed OpList", "LOCAL")
+                    Utils.EventLogger.Log("Malformed OpList", StaticVars.LocalSource)
                 End Try
             Else
-                Utils.EventLogger.Log("No Ops file", "LOCAL")
+                Utils.EventLogger.Log("No Ops file", StaticVars.LocalSource)
                 Try
                     System.IO.File.Create(_opFilePath.GetPath).Close()
                 Catch ex As System.IO.IOException
-                    Utils.EventLogger.Log("Error creating ops file", "LOCAL")
+                    Utils.EventLogger.Log("Error creating ops file", StaticVars.LocalSource)
                 End Try
 
             End If
 
             If OPlist.Count = 0 Then
-                Utils.EventLogger.Log("Warning: No Ops defined!", "LOCAL")
+                Utils.EventLogger.Log("Warning: No Ops defined!", StaticVars.LocalSource)
                 Console.WriteLine("IRC OP (Nickname!hostname): ")
                 Dim MainOp As String = Console.ReadLine
                 Try
                     System.IO.File.WriteAllText(_opFilePath.GetPath, MainOp)
                 Catch ex As System.IO.IOException
-                    Utils.EventLogger.Log("Error saving ops file", "LOCAL")
+                    Utils.EventLogger.Log("Error saving ops file", StaticVars.LocalSource)
                 End Try
             End If
 
@@ -322,7 +320,7 @@ Namespace IRC
                         System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
-                        Utils.EventLogger.Log("Error saving ops file", "LOCAL")
+                        Utils.EventLogger.Log("Error saving ops file", StaticVars.LocalSource)
                         Return False
                     End Try
                 Else
@@ -353,7 +351,7 @@ Namespace IRC
                         System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
-                        Utils.EventLogger.Log("Error saving ops file", "LOCAL")
+                        Utils.EventLogger.Log("Error saving ops file", StaticVars.LocalSource)
                         Return False
                     End Try
                 Else
@@ -396,16 +394,11 @@ Namespace IRC
             If queuedat Is Nothing Then Return False
             If queuedat.Count >= 1 Then
                 SyncLock queuedat
-                    Try
-                        Dim queuedmsg As Tuple(Of String, String, IRC_Client, WikiBot.Bot) = queuedat.Dequeue()
-                        Dim MsgResponse As IRCMessage = Commands.ResolveCommand(queuedmsg.Item1, queuedmsg.Item2, queuedmsg.Item3, queuedmsg.Item4)
-                        If Not MsgResponse Is Nothing Then
-                            queuedmsg.Item3.Sendmessage(MsgResponse)
-                        End If
-                    Catch ex As Exception
-                        Utils.EventLogger.EX_Log(ex.Message, "SendMessagequeue", BotCodename)
-                        Return False
-                    End Try
+                    Dim queuedmsg As Tuple(Of String, String, IRC_Client, WikiBot.Bot) = queuedat.Dequeue()
+                    Dim MsgResponse As IRCMessage = Commands.ResolveCommand(queuedmsg.Item1, queuedmsg.Item2, queuedmsg.Item3, queuedmsg.Item4)
+                    If Not MsgResponse Is Nothing Then
+                        queuedmsg.Item3.Sendmessage(MsgResponse)
+                    End If
                 End SyncLock
                 Return True
             Else

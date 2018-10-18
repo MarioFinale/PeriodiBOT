@@ -2,6 +2,7 @@
 Option Explicit On
 Imports System.Net
 Imports System.Text.RegularExpressions
+Imports PeriodiBOT_IRC.My.Resources
 
 Namespace WikiBot
     Public Class Page
@@ -10,9 +11,9 @@ Namespace WikiBot
         Private _lastuser As String
         Private _username As String
         Private _ID As Integer
-        Private _siteurl As String
+        Private _siteuri As Uri
         Private _currentRevID As Integer
-        Private _parentRevID As Integer
+        Private _parentRevId As Integer
         Private _timestamp As String
         Private _sections As String()
         Private _categories As String()
@@ -151,9 +152,9 @@ Namespace WikiBot
         ''' Obtiene el revid de la edición anterior de la página (si existe)
         ''' </summary>
         ''' <returns></returns>
-        Public ReadOnly Property ParentRevID As Integer
+        Public ReadOnly Property ParentRevId As Integer
             Get
-                Return _parentRevID
+                Return _parentRevId
             End Get
         End Property
 
@@ -206,7 +207,7 @@ Namespace WikiBot
             If wbot Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             _bot = wbot
             _username = _bot.UserName
-            Loadpage(pageTitle, _bot.WikiUrl)
+            Loadpage(pageTitle, _bot.WikiUri)
         End Sub
         ''' <summary>
         ''' Inicializa una nueva página, por lo general no se llama de forma directa. Se puede obtener una página creandola con Bot.Getpage.
@@ -217,14 +218,14 @@ Namespace WikiBot
             If wbot Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             _bot = wbot
             _username = _bot.UserName
-            Loadpage(revid, _bot.WikiUrl)
+            Loadpage(revid, _bot.WikiUri)
         End Sub
 
         ''' <summary>
         ''' Inicializa de nuevo la página (al crear una página esta ya está inicializada).
         ''' </summary>
         Public Sub Load()
-            Loadpage(_title, _siteurl)
+            Loadpage(_title, _siteuri)
         End Sub
 
         ''' <summary>
@@ -233,14 +234,18 @@ Namespace WikiBot
         ''' <param name="PageTitle">Título exacto de la página</param>
         ''' <param name="site">Sitio de la página</param>
         ''' <returns></returns>
-        Private Overloads Function Loadpage(ByVal PageTitle As String, ByVal site As String) As Boolean
-            If String.IsNullOrEmpty(PageTitle) Or String.IsNullOrEmpty(site) Then
-                Throw New ArgumentNullException("Loadpage", "Empty parameter")
+        Private Overloads Function Loadpage(ByVal PageTitle As String, ByVal site As Uri) As Boolean
+            If site Is Nothing Then
+                Throw New ArgumentNullException("site", "Empty parameter")
             End If
-            _siteurl = site
+
+            If String.IsNullOrEmpty(PageTitle) Then
+                Throw New ArgumentNullException("PageTitle", "Empty parameter")
+            End If
+            _siteuri = site
             PageInfoData(PageTitle)
             _sections = Utils.GetPageThreads(_text)
-            Utils.EventLogger.Debug_Log("Page " & PageTitle & " loaded", "LOCAL", _username)
+            Utils.EventLogger.Debug_Log("Page " & PageTitle & " loaded", StaticVars.LocalSource, _username)
             Return True
         End Function
 
@@ -250,14 +255,19 @@ Namespace WikiBot
         ''' <param name="Revid">ID de revisión.</param>
         ''' <param name="site">Sitio de la página.</param>
         ''' <returns></returns>
-        Private Overloads Function Loadpage(ByVal Revid As Integer, ByVal site As String) As Boolean
-            If String.IsNullOrEmpty(Revid.ToString) Or String.IsNullOrEmpty(site) Then
-                Throw New ArgumentNullException("Loadpage", "Empty parameter")
+        Private Overloads Function Loadpage(ByVal Revid As Integer, ByVal site As uri) As Boolean
+            If site Is Nothing Then
+                Throw New ArgumentNullException("site", "Empty parameter")
             End If
-            _siteurl = site
+
+            If Revid <= 0 Then
+                Throw New ArgumentNullException("PageTitle", "Empty parameter")
+            End If
+
+            _siteuri = site
             PageInfoData(Revid)
             _sections = Utils.GetPageThreads(_text)
-            Utils.EventLogger.Debug_Log("Page revid " & Revid.ToString & " loaded", "LOCAL", _username)
+            Utils.EventLogger.Debug_Log("Page revid " & Revid.ToString & " loaded", StaticVars.LocalSource, _username)
             Return True
         End Function
 
@@ -268,24 +278,22 @@ Namespace WikiBot
         ''' <param name="revid">EDIT ID de la edicion a revisar</param>
         ''' <remarks>Los EDIT ID deben ser distintos</remarks>
         Private Function GetORESScores(ByVal revid As Integer) As Double()
-            Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString, "LOCAL", _username)
+            Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString, StaticVars.LocalSource, _username)
             Try
-                Dim s As String = _bot.GET("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & revid)
+                Dim turi As Uri = New Uri("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & revid)
+                Dim s As String = _bot.GET(turi)
 
                 Dim DMGScore_str As String = Utils.TextInBetween(Utils.TextInBetweenInclusive(s, "{""damaging"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
                 Dim GoodFaithScore_str As String = Utils.TextInBetween(Utils.TextInBetweenInclusive(s, """goodfaith"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
-                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, "LOCAL", _username)
+                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, StaticVars.LocalSource, _username)
 
                 Dim DMGScore As Double = Math.Round((Double.Parse(DMGScore_str) * 100), 2)
                 Dim GoodFaithScore As Double = Math.Round((Double.Parse(GoodFaithScore_str) * 100), 2)
-                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, "LOCAL", _username)
+                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, StaticVars.LocalSource, _username)
 
                 Return {DMGScore, GoodFaithScore}
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString & " failed, returning Nothing", "LOCAL", _username)
-                Return Nothing
-            Catch ex2 As Exception
-                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString & " failed: " & ex2.Message, "LOCAL", _username)
+                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString & " failed, returning Nothing", StaticVars.LocalSource, _username)
                 Return Nothing
             End Try
         End Function
@@ -312,7 +320,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Private Function SavePage(ByVal text As String, ByVal EditSummary As String, ByVal IsMinor As Boolean, ByVal IsBot As Boolean, ByVal Spamreplace As Boolean, ByRef RetryCount As Integer) As EditResults
             If String.IsNullOrEmpty(text) Or String.IsNullOrWhiteSpace(text) Then
-                Throw New ArgumentNullException("SavePage", "Empty parameter")
+                Throw New ArgumentNullException("text", "Empty parameter")
             End If
             Dim ntimestamp As String = GetLastTimeStamp()
 
@@ -338,9 +346,9 @@ Namespace WikiBot
 
             Try
                 postresult = _bot.POSTQUERY(postdata)
-                System.Threading.Thread.Sleep(1000) 'Some time to the server to process the data
+                Threading.Thread.Sleep(1000) 'Some time to the server to process the data
                 Load() 'Update page data
-            Catch ex As Exception
+            Catch ex As IO.IOException
                 Utils.EventLogger.Log("POST error on " & _title, "BOT", _username)
             End Try
 
@@ -349,26 +357,26 @@ Namespace WikiBot
             End If
 
             If postresult.Contains("""result"":""Success""") Then
-                Utils.EventLogger.Log("Edit on " & _title & " successful!", "LOCAL", _username)
+                Utils.EventLogger.Log("Edit on " & _title & " successful!", StaticVars.LocalSource, _username)
                 Return EditResults.Edit_successful
             End If
 
             If postresult.ToLower.Contains("abusefilter") Then
-                Utils.EventLogger.Log("AbuseFilter Triggered! on " & _title, "LOCAL", _username)
-                Utils.EventLogger.Debug_Log("ABUSEFILTER: " & postresult, "LOCAL", _username)
+                Utils.EventLogger.Log("AbuseFilter Triggered! on " & _title, StaticVars.LocalSource, _username)
+                Utils.EventLogger.Debug_Log("ABUSEFILTER: " & postresult, StaticVars.LocalSource, _username)
                 Return EditResults.AbuseFilter
             End If
 
             If postresult.ToLower.Contains("spamblacklist") Then
-                Utils.EventLogger.Log("AbuseFilter Triggered! on " & _title, "LOCAL", _username)
-                Utils.EventLogger.Debug_Log("ABUSEFILTER: " & postresult, "LOCAL", _username)
+                Utils.EventLogger.Log("AbuseFilter Triggered! on " & _title, StaticVars.LocalSource, _username)
+                Utils.EventLogger.Debug_Log("ABUSEFILTER: " & postresult, StaticVars.LocalSource, _username)
                 If Spamreplace Then
                     Dim spamlinkRegex As String = Utils.TextInBetween(postresult, """spamblacklist"":""", """")(0)
                     Dim newtext As String = Regex.Replace(text, Utils.SpamListParser(spamlinkRegex), Function(x) "<nowiki>" & x.Value & "</nowiki>") 'Reeplazar links con el Nowiki
                     If Not RetryCount > MaxRetry Then
                         Return SavePage(newtext, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
                     Else
-                        Utils.EventLogger.Log("Max retry count saving " & _title, "LOCAL", _username)
+                        Utils.EventLogger.Log("Max retry count saving " & _title, StaticVars.LocalSource, _username)
                         Return EditResults.Max_retry_count
                     End If
                 Else
@@ -382,7 +390,7 @@ Namespace WikiBot
                 _bot.Relogin()
                 Return SavePage(text, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
             Else
-                Utils.EventLogger.Log("Max retry count saving " & _title, "LOCAL", _username)
+                Utils.EventLogger.Log("Max retry count saving " & _title, StaticVars.LocalSource, _username)
                 Utils.EventLogger.Debug_Log("Unexpected result: " & postresult, "SavePage", _username)
                 Return EditResults.Max_retry_count
             End If
@@ -520,12 +528,12 @@ Namespace WikiBot
             End If
 
             If Not GetLastTimeStamp() = _timestamp Then
-                Utils.EventLogger.Log("Edit conflict", "LOCAL", _username)
+                Utils.EventLogger.Log("Edit conflict", StaticVars.LocalSource, _username)
                 Return "Edit conflict"
             End If
 
             If Not BotCanEdit(_text, _username) Then
-                Utils.EventLogger.Log("Bots can't edit this page!", "LOCAL", _username)
+                Utils.EventLogger.Log("Bots can't edit this page!", StaticVars.LocalSource, _username)
                 Return "No Bots"
             End If
 
@@ -541,12 +549,12 @@ Namespace WikiBot
             Load() 'Update page data
 
             If postresult.Contains("""result"":""Success""") Then
-                Utils.EventLogger.Log("Edit successful!", "LOCAL", _username)
+                Utils.EventLogger.Log("Edit successful!", StaticVars.LocalSource, _username)
                 Return "Edit successful!"
             End If
 
             If postresult.Contains("abusefilter") Then
-                Utils.EventLogger.Log("AbuseFilter Triggered!", "LOCAL", _username)
+                Utils.EventLogger.Log("AbuseFilter Triggered!", StaticVars.LocalSource, _username)
                 Return "AbuseFilter Triggered"
             End If
 
@@ -650,13 +658,13 @@ Namespace WikiBot
                 PExtract = Utils.NormalizeUnicodetext(Utils.TextInBetween(QueryText, """extract"":""", """}")(0))
                 PaRevID = Utils.TextInBetween(QueryText, """parentid"":", ",""")(0)
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.Log("Warning: The page '" & pageName & "' doesn't exist yet!", "LOCAL", _username)
+                Utils.EventLogger.Log("Warning: The page '" & pageName & "' doesn't exist yet!", StaticVars.LocalSource, _username)
             End Try
 
             If Utils.TextInBetween(QueryText, """pageimage"":""", """").Count >= 1 Then
                 PageImage = Utils.TextInBetween(QueryText, """pageimage"":""", """")(0)
             Else
-                Utils.EventLogger.Debug_Log("The page '" & pageName & "' doesn't have any thumbnail", "LOCAL", _username)
+                Utils.EventLogger.Debug_Log("The page '" & pageName & "' doesn't have any thumbnail", StaticVars.LocalSource, _username)
             End If
 
             For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")
@@ -679,7 +687,7 @@ Namespace WikiBot
             _Namespace = Integer.Parse(WNamespace)
             _categories = PCategories.ToArray
             _currentRevID = Integer.Parse(PRevID)
-            _parentRevID = Integer.Parse(PaRevID)
+            _parentRevId = Integer.Parse(PaRevID)
             _extract = PExtract
             _thumbnail = PageImage
         End Sub
@@ -716,13 +724,13 @@ Namespace WikiBot
                 PRevID = Utils.TextInBetween(QueryText, """revid"":", ",""")(0)
                 PExtract = Utils.NormalizeUnicodetext(Utils.TextInBetween(QueryText, """extract"":""", """}")(0))
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.Log("Warning: The page '" & PTitle & "' doesn't exist yet!", "LOCAL", _username)
+                Utils.EventLogger.Log("Warning: The page '" & PTitle & "' doesn't exist yet!", StaticVars.LocalSource, _username)
             End Try
 
             If Utils.TextInBetween(QueryText, """pageimage"":""", """").Count >= 1 Then
                 PageImage = Utils.TextInBetween(QueryText, """pageimage"":""", """")(0)
             Else
-                Utils.EventLogger.Debug_Log("The page '" & PTitle & "' doesn't have any thumbnail", "LOCAL", _username)
+                Utils.EventLogger.Debug_Log("The page '" & PTitle & "' doesn't have any thumbnail", StaticVars.LocalSource, _username)
             End If
 
             For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")
@@ -803,13 +811,8 @@ Namespace WikiBot
                 For Each m As Match In Regex.Matches(PageText, "(<[REFref]+>)([^<]+?)" & pageregex & ".+?(<[/REFref]+>)")
                     PageText = PageText.Replace(m.Value, "")
                 Next
-                Try
-                    requestedPage.CheckAndSave(PageText, "(Bot): Removiendo referencias que contengan '" & requestedRef & "' según solicitud", False, True)
-                    Return True
-                Catch ex As Exception
-                    Return False
-                End Try
-
+                requestedPage.CheckAndSave(PageText, "(Bot): Removiendo referencias que contengan '" & requestedRef & "' según solicitud", False, True)
+                Return True
             Else
                 Return False
             End If
@@ -824,7 +827,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Private Function GetPageViewsAvg(ByVal page As String) As Integer
             Try
-                Dim Project As String = Utils.TextInBetween(_siteurl, "https://", ".org")(0)
+                Dim Project As String = Utils.TextInBetween(_siteuri.OriginalString, "https://", ".org")(0)
                 Dim currentDate As DateTime = DateTime.Now
                 Dim Month As Integer = currentDate.Month - 1
                 Dim CurrentMonth As Integer = currentDate.Month
@@ -841,8 +844,8 @@ Namespace WikiBot
                     Year = Year - 1
                 End If
 
-                Dim Url As String = String.Format("https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{0}/all-access/all-agents/{1}/daily/{2}{4}{6}00/{3}{5}{7}00",
-                              Project, page, Year, Currentyear, Month.ToString("00"), CurrentMonth.ToString("00"), FirstDay, LastDay)
+                Dim Url As Uri = New Uri(String.Format("https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{0}/all-access/all-agents/{1}/daily/{2}{4}{6}00/{3}{5}{7}00",
+                              Project, page, Year, Currentyear, Month.ToString("00"), CurrentMonth.ToString("00"), FirstDay, LastDay))
                 Dim response As String = _bot.GET(Url)
 
                 For Each view As String In Utils.TextInBetween(response, """views"":", "}")
@@ -854,7 +857,7 @@ Namespace WikiBot
                 ViewAverage = CInt((totalviews / (Views.Count - 1)))
 
                 Return ViewAverage
-            Catch ex As Exception
+            Catch ex As IndexOutOfRangeException
                 Return 0
             End Try
 

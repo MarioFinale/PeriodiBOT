@@ -347,7 +347,7 @@ Public Class IRCCommands
         Utils.EventLogger.Log("IRC: GetResume of " & args.CParam, "IRC", args.Realname)
         If Not PageName = String.Empty Then
             Dim pretext As String = "Entradilla de " & Utils.ColoredText(PageName, 3) & " en Wikipedia: " & args.Workerbot.GetPageExtract(PageName, 390).Replace(Environment.NewLine, " ")
-            Dim endtext As String = "Enlace al artículo: " & Utils.ColoredText(" " & args.Workerbot.WikiUrl & "wiki/" & PageName.Replace(" ", "_") & " ", 10)
+            Dim endtext As String = "Enlace al artículo: " & Utils.ColoredText(" " & args.Workerbot.WikiUri.OriginalString & "wiki/" & PageName.Replace(" ", "_") & " ", 10)
             Dim mes As New IRCMessage(args.Source, {pretext, endtext})
             Return mes
         Else
@@ -425,7 +425,7 @@ Public Class IRCCommands
                 End If
 
             End If
-        Catch ex As Exception
+        Catch ex As IndexOutOfRangeException
             Utils.EventLogger.Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", args.Client.NickName)
             responsestring = String.Format("Se ha producido un error al quitar a '{0}' de tu lista", Utils.ColoredText(args.CParam, 4))
         End Try
@@ -472,12 +472,10 @@ Public Class IRCCommands
             End If
         Catch ex As IndexOutOfRangeException
             ResponseString = String.Format(Utils.ColoredText("Error:", 4) & " El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
+            Utils.EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", args.Realname)
         Catch ex As InvalidCastException
             ResponseString = String.Format(Utils.ColoredText("Error:", 4) & " El comando se ha ingresado de forma incorrecta (Uso: '%Programar Usuario/Dias/Horas/Minutos')")
-        Catch ex As Exception
             Utils.EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", args.Realname)
-            Dim exmes As String = ex.Message
-            ResponseString = String.Format(Utils.ColoredText("Error:", 4) & " {0}", exmes)
         End Try
 
         Dim mes As New IRCMessage(args.Source, ResponseString)
@@ -577,7 +575,7 @@ Public Class IRCCommands
                                        Utils.ColoredText(PageName, 3), Utils.ColoredText(pag.Lastuser, 3), Utils.ColoredText(CatString, 6), Utils.ColoredText(pag.PageViews.ToString, 13),
                                        "Dañina: " & Utils.ColoredText(pag.ORESScores(0).ToString, 4) & " Buena fé: " & Utils.ColoredText(pag.ORESScores(1).ToString, 3), Utils.ColoredText(pag.Size.ToString, 3))
 
-            Dim endmessage As String = "Enlace al artículo: " & Utils.ColoredText(" " & args.Workerbot.WikiUrl & "wiki/" & PageName.Replace(" ", "_") & " ", 10)
+            Dim endmessage As String = "Enlace al artículo: " & Utils.ColoredText(" " & args.Workerbot.WikiUri.OriginalString & "wiki/" & PageName.Replace(" ", "_") & " ", 10)
 
             Dim mes As New IRCMessage(args.Source, {beginmessage, endmessage})
             Return mes
