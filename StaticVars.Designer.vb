@@ -119,11 +119,29 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a action=query&amp;meta=tokens&amp;type=login&amp;format=json.
+        '''</summary>
+        Friend Shared ReadOnly Property GetWikiToken() As String
+            Get
+                Return ResourceManager.GetString("GetWikiToken", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a LOCAL.
         '''</summary>
         Friend Shared ReadOnly Property LocalSource() As String
             Get
                 Return ResourceManager.GetString("LocalSource", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a action=login&amp;format=json&amp;lgname={0}&amp;lgpassword={1}&amp;lgdomain=&amp;lgtoken={2}.
+        '''</summary>
+        Friend Shared ReadOnly Property Login() As String
+            Get
+                Return ResourceManager.GetString("Login", resourceCulture)
             End Get
         End Property
     End Class

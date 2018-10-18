@@ -141,7 +141,13 @@ IRCBotNickName="{6}"
 IRCBotPassword="{7}"
 IRCChannel="{8}"</value>
   </data>
+  <data name="GetWikiToken" xml:space="preserve">
+    <value>action=query&amp;meta=tokens&amp;type=login&amp;format=json</value>
+  </data>
   <data name="LocalSource" xml:space="preserve">
     <value>LOCAL</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>action=login&amp;format=json&amp;lgname={0}&amp;lgpassword={1}&amp;lgdomain=&amp;lgtoken={2}</value>
   </data>
 </root>

@@ -3,6 +3,7 @@ Imports System.IO
 Imports System.Net
 Imports System.Resources
 Imports System.Threading
+Imports PeriodiBOT_IRC.My.Resources
 
 Namespace WikiBot
 
@@ -71,11 +72,11 @@ Namespace WikiBot
         ''' Obtiene un Token y cookies de ingreso, establece las cookies de la clase y retorna el token como string.
         ''' </summary>
         Private Function GetWikiToken() As String
-            Utils.EventLogger.Log(My.Resources.Messages.RequestingToken, My.Resources.StaticVars.LocalSource)
-            Dim postdata As String = "action=query&meta=tokens&type=login&format=json"
+            Utils.EventLogger.Log(Messages.RequestingToken, StaticVars.LocalSource)
+            Dim postdata As String = StaticVars.GetWikiToken
             Dim postresponse As String = PostDataAndGetResult(_apiUri, postdata, ApiCookies)
             Dim token As String = Utils.TextInBetween(postresponse, """logintoken"":""", """}}}")(0).Replace("\\", "\")
-            Utils.EventLogger.Log(My.Resources.Messages.TokenObtained, My.Resources.StaticVars.LocalSource)
+            Utils.EventLogger.Log(Messages.TokenObtained, StaticVars.LocalSource)
             Return token
         End Function
 
@@ -83,7 +84,7 @@ Namespace WikiBot
         ''' Luego de obtener un Token y cookies de ingreso, envía estos al servidor para loguear y guarda las cookies de sesión.
         ''' </summary>
         Public Function LogOn() As String
-            Utils.EventLogger.Log(My.Resources.Messages.SigninIn, My.Resources.StaticVars.LocalSource)
+            Utils.EventLogger.Log(Messages.SigninIn, StaticVars.LocalSource)
             Dim token As String = String.Empty
             Dim turi As Uri = _apiUri
             Dim postdata As String = String.Empty
@@ -94,30 +95,30 @@ Namespace WikiBot
             Do Until exitloop
                 Try
                     token = GetWikiToken()
-                    postdata = "action=login&format=json&lgname=" & _botUsername & "&lgpassword=" & _botPassword & "&lgdomain=" & "&lgtoken=" & Utils.UrlWebEncode(token)
+                    postdata = String.Format(StaticVars.Login, _botUsername, _botPassword, Utils.UrlWebEncode(token))
                     postresponse = PostDataAndGetResult(turi, postdata, ApiCookies)
                     lresult = Utils.TextInBetween(postresponse, "{""result"":""", """,")(0)
-                    Utils.EventLogger.Log(My.Resources.Messages.LoginResult & lresult, My.Resources.StaticVars.LocalSource)
+                    Utils.EventLogger.Log(Messages.LoginResult & lresult, StaticVars.LocalSource)
                     Dim lUserID As String = Utils.TextInBetween(postresponse, """lguserid"":", ",")(0)
-                    Utils.EventLogger.Log(My.Resources.Messages.LoginID & lUserID, My.Resources.StaticVars.LocalSource)
+                    Utils.EventLogger.Log(Messages.LoginID & lUserID, StaticVars.LocalSource)
                     Dim lUsername As String = Utils.TextInBetween(postresponse, """lgusername"":""", """}")(0)
-                    Utils.EventLogger.Log(My.Resources.Messages.Username & lUsername, My.Resources.StaticVars.LocalSource)
+                    Utils.EventLogger.Log(Messages.Username & lUsername, StaticVars.LocalSource)
                     Return lresult
                 Catch ex As IndexOutOfRangeException
-                    Utils.EventLogger.Log(My.Resources.Messages.LoginError, My.Resources.StaticVars.LocalSource)
+                    Utils.EventLogger.Log(Messages.LoginError, StaticVars.LocalSource)
                     If lresult.ToLower(Globalization.CultureInfo.InvariantCulture) = "failed" Then
                         Dim reason As String = Utils.TextInBetween(postresponse, """reason"":""", """")(0)
                         Console.WriteLine(Environment.NewLine & Environment.NewLine)
-                        Console.WriteLine(My.Resources.Messages.Reason & reason)
+                        Console.WriteLine(Messages.Reason & reason)
                         Console.WriteLine(Environment.NewLine & Environment.NewLine)
-                        Console.Write(My.Resources.Messages.PressKey)
+                        Console.Write(Messages.PressKey)
                         Console.ReadKey()
                         Utils.ExitProgram()
                         Return lresult
                     End If
                     Return lresult
                 Catch ex2 As System.Net.WebException
-                    Utils.EventLogger.Log(My.Resources.Messages.NetworkError & ex2.Message, My.Resources.StaticVars.LocalSource)
+                    Utils.EventLogger.Log(Messages.NetworkError & ex2.Message, StaticVars.LocalSource)
                 End Try
                 Console.WriteLine(Environment.NewLine)
                 exitloop = Utils.PressKeyTimeout(5)
