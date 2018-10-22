@@ -120,6 +120,12 @@
   <data name="BotEngine" xml:space="preserve">
     <value>PeriodiBOT </value>
   </data>
+  <data name="CheckingUser" xml:space="preserve">
+    <value>Checking user {0}</value>
+  </data>
+  <data name="CheckingUsers" xml:space="preserve">
+    <value>Checking users.</value>
+  </data>
   <data name="ConfigError" xml:space="preserve">
     <value>Malformed config file</value>
   </data>
@@ -129,14 +135,29 @@
   <data name="GetLastrevIDs" xml:space="preserve">
     <value>Getting the last revid of {0} pages.</value>
   </data>
+  <data name="GetPageExtract" xml:space="preserve">
+    <value>Loading page extract of '{0}'.</value>
+  </data>
+  <data name="GetPagesExtract" xml:space="preserve">
+    <value>Loading {0} pages extract.</value>
+  </data>
   <data name="GreetingMsg" xml:space="preserve">
     <value>==================== PeriodiBOT {0} ====================</value>
   </data>
   <data name="InvalidUrl" xml:space="preserve">
     <value>The url is invalid.</value>
   </data>
+  <data name="InvalidUser" xml:space="preserve">
+    <value />
+  </data>
   <data name="LoadingConfig" xml:space="preserve">
     <value>Loading config</value>
+  </data>
+  <data name="LoadingNewExtracts" xml:space="preserve">
+    <value>Loading {0} new extracts</value>
+  </data>
+  <data name="LoadingOldExtracts" xml:space="preserve">
+    <value>Loading {0} old extracts</value>
   </data>
   <data name="LoginError" xml:space="preserve">
     <value>Login failed</value>
@@ -183,14 +204,32 @@
   <data name="NewWikiMainUrl" xml:space="preserve">
     <value>Wiki Url: </value>
   </data>
+  <data name="NextNotif" xml:space="preserve">
+    <value>. The next notice will be in 5 minutes.</value>
+  </data>
   <data name="NoConfigFile" xml:space="preserve">
     <value>No config file</value>
+  </data>
+  <data name="OresQueryError" xml:space="preserve">
+    <value>Server error on ORES query score from revid {0} (invalid diff?)</value>
+  </data>
+  <data name="OresQueryEx" xml:space="preserve">
+    <value>ORES query from revid {0} EX: {1}</value>
+  </data>
+  <data name="OresQueryResult" xml:space="preserve">
+    <value>ORES query for revid {0} done. GF: {1} DMG: {2}</value>
+  </data>
+  <data name="PageLoaded" xml:space="preserve">
+    <value>Page '{0}' loaded.</value>
   </data>
   <data name="PressKey" xml:space="preserve">
     <value>Press any key to exit</value>
   </data>
   <data name="Reason" xml:space="preserve">
     <value>Reason: </value>
+  </data>
+  <data name="RecreatingText" xml:space="preserve">
+    <value>Recreating text.</value>
   </data>
   <data name="RequestingToken" xml:space="preserve">
     <value>Requesting token</value>
@@ -201,10 +240,43 @@
   <data name="SigninIn" xml:space="preserve">
     <value>Signing in</value>
   </data>
+  <data name="TextReplaced" xml:space="preserve">
+    <value>(Bot) Replacing '{0}' with '{1}' {2}.</value>
+  </data>
   <data name="TokenObtained" xml:space="preserve">
     <value>Token obtained</value>
   </data>
+  <data name="UserBlocked" xml:space="preserve">
+    <value>User {0} is blocked.</value>
+  </data>
+  <data name="UserEditedDay" xml:space="preserve">
+    <value>The last edit of {0} was {1} day ago.</value>
+  </data>
+  <data name="UserEditedDays" xml:space="preserve">
+    <value>The last edit of {0} was {1} days ago.</value>
+  </data>
+  <data name="UserEditedHour" xml:space="preserve">
+    <value>The last edit of {0} was {1} hour ago.</value>
+  </data>
+  <data name="UserEditedHours" xml:space="preserve">
+    <value>The last edit of {0} was {1} hours ago.</value>
+  </data>
+  <data name="UserEditedMinutes" xml:space="preserve">
+    <value>The last edit of {0} was {1} minutes ago.</value>
+  </data>
+  <data name="UserInactive" xml:space="preserve">
+    <value>User {0} is inactive.</value>
+  </data>
+  <data name="UserInexistent" xml:space="preserve">
+    <value>User {0} does not exist.</value>
+  </data>
+  <data name="UserJustEdited" xml:space="preserve">
+    <value>{0} has just edited.</value>
+  </data>
   <data name="Username" xml:space="preserve">
     <value>User name: </value>
+  </data>
+  <data name="UserNoEdits" xml:space="preserve">
+    <value>The user {0} have not edited on this Wiki.</value>
   </data>
 </root>

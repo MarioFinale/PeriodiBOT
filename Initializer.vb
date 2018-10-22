@@ -12,7 +12,7 @@ Public NotInheritable Class Initializer
 
     Public Shared Sub Init()
         Uptime = DateTime.Now
-        Utils.EventLogger.Log("Starting...", My.Resources.StaticVars.LocalSource)
+        Utils.EventLogger.Log("Starting...", My.Resources.SStrings.LocalSource)
         ESWikiBOT = New Bot(New ConfigFile(ConfigFilePath))
         BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannels, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
         BotIRC.StartClient()
@@ -50,7 +50,7 @@ Public NotInheritable Class Initializer
         NewThread("Actualizar la lista con los hilos más grandes del café.", BotCodename, BiggestThreadsFunc, New TimeSpan(9, 0, 0), True)
 
         'Tarea para actualizar extractos
-        Dim UpdateExtractFunc As New Func(Of Boolean)(Function() ESWikiBOT.UpdatePageExtracts())
+        Dim UpdateExtractFunc As New Func(Of Boolean)(Function() ESWikiBOT.UpdatePageExtracts(ResumePageName))
         NewThread("Actualizar extractos", BotCodename, UpdateExtractFunc, 3600000, True)
 
         'Tarea para completar firmas

@@ -120,6 +120,12 @@
   <data name="BotEngine" xml:space="preserve">
     <value>PeriodiBOT </value>
   </data>
+  <data name="CheckingUser" xml:space="preserve">
+    <value>Comprobando el usuario {0}</value>
+  </data>
+  <data name="CheckingUsers" xml:space="preserve">
+    <value>Comprobando usuarios.</value>
+  </data>
   <data name="ConfigError" xml:space="preserve">
     <value>Archivo de configuraciones corrupto</value>
   </data>
@@ -129,6 +135,12 @@
   <data name="GetLastrevIDs" xml:space="preserve">
     <value>Obteniendo el ultimo revid de {0} páginas.</value>
   </data>
+  <data name="GetPageExtract" xml:space="preserve">
+    <value>Cargando el extracto de la página '{0}'.</value>
+  </data>
+  <data name="GetPagesExtract" xml:space="preserve">
+    <value>Cargando {0} extractos de páginas.</value>
+  </data>
   <data name="GreetingMsg" xml:space="preserve">
     <value>==================== PeriodiBOT {0} ====================</value>
   </data>
@@ -137,6 +149,12 @@
   </data>
   <data name="LoadingConfig" xml:space="preserve">
     <value>Cargando configuraciones</value>
+  </data>
+  <data name="LoadingNewExtracts" xml:space="preserve">
+    <value>Cargando {0} resúmenes nuevos.</value>
+  </data>
+  <data name="LoadingOldExtracts" xml:space="preserve">
+    <value>Cargando {0} resúmenes antiguos.</value>
   </data>
   <data name="LoginError" xml:space="preserve">
     <value>Falló el inicio de sesión</value>
@@ -183,14 +201,32 @@
   <data name="NewWikiMainUrl" xml:space="preserve">
     <value>URL principal de la Wiki: </value>
   </data>
+  <data name="NextNotif" xml:space="preserve">
+    <value>. El próximo aviso será en 5 minutos.</value>
+  </data>
   <data name="NoConfigFile" xml:space="preserve">
     <value>El archivo de configuraciones no existe</value>
+  </data>
+  <data name="OresQueryError" xml:space="preserve">
+    <value>Error de servidor en la query del puntaje ORES desde el revid {0} (diff inválido?)</value>
+  </data>
+  <data name="OresQueryEx" xml:space="preserve">
+    <value>Excepción al obtener el puntaje ORES del revid {0}. EX: {1}</value>
+  </data>
+  <data name="OresQueryResult" xml:space="preserve">
+    <value>Query del puntaje ORES del revid {0} completada. GF: {1} DMG: {2}</value>
+  </data>
+  <data name="PageLoaded" xml:space="preserve">
+    <value>Página '{0}' cargada.</value>
   </data>
   <data name="PressKey" xml:space="preserve">
     <value>Presione cualquier tecla para salir</value>
   </data>
   <data name="Reason" xml:space="preserve">
     <value>Motivo: </value>
+  </data>
+  <data name="RecreatingText" xml:space="preserve">
+    <value>Recreando texto.</value>
   </data>
   <data name="RequestingToken" xml:space="preserve">
     <value>Obteniendo token</value>
@@ -201,10 +237,43 @@
   <data name="SigninIn" xml:space="preserve">
     <value>Iniciando sesión</value>
   </data>
+  <data name="TextReplaced" xml:space="preserve">
+    <value>(Bot) Reemplazando '{0}' con '{1}' {2}.</value>
+  </data>
   <data name="TokenObtained" xml:space="preserve">
     <value>Token obtenido</value>
   </data>
+  <data name="UserBlocked" xml:space="preserve">
+    <value>El usuario {0} está bloqueado.</value>
+  </data>
+  <data name="UserEditedDay" xml:space="preserve">
+    <value>La última edición de {0} fue hace {1} día.</value>
+  </data>
+  <data name="UserEditedDays" xml:space="preserve">
+    <value>La última edición de {0} fue hace {1} días.</value>
+  </data>
+  <data name="UserEditedHour" xml:space="preserve">
+    <value>La última edición de {0} fue hace {1} hora.</value>
+  </data>
+  <data name="UserEditedHours" xml:space="preserve">
+    <value>La última edición de {0} fue hace {1} horas.</value>
+  </data>
+  <data name="UserEditedMinutes" xml:space="preserve">
+    <value>La última edición de {0} fue hace {1} minutos.</value>
+  </data>
+  <data name="UserInactive" xml:space="preserve">
+    <value>El usuario {0} está inactivo.</value>
+  </data>
+  <data name="UserInexistent" xml:space="preserve">
+    <value>El usuario {0} no existe.</value>
+  </data>
+  <data name="UserJustEdited" xml:space="preserve">
+    <value>{0} acaba de editar.</value>
+  </data>
   <data name="Username" xml:space="preserve">
     <value>Nombre de usuario: </value>
+  </data>
+  <data name="UserNoEdits" xml:space="preserve">
+    <value>El usuario {0} no tiene ediciones en esta Wiki.</value>
   </data>
 </root>

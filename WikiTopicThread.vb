@@ -12,6 +12,7 @@ Namespace WikiBot
         Public Property FirstSignature As Date
         Public Property ThreadBytes As Integer
         Public Function CompareTo(other As WikiTopicThread) As Integer Implements IComparable(Of WikiTopicThread).CompareTo
+            If other Is Nothing Then Throw New ArgumentNullException
             Return Me.FirstSignature().CompareTo(other.FirstSignature())
         End Function
     End Class

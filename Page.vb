@@ -245,7 +245,7 @@ Namespace WikiBot
             _siteuri = site
             PageInfoData(PageTitle)
             _sections = Utils.GetPageThreads(_text)
-            Utils.EventLogger.Debug_Log("Page " & PageTitle & " loaded", StaticVars.LocalSource, _username)
+            Utils.EventLogger.Log(String.Format(Messages.PageLoaded, PageTitle), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
             Return True
         End Function
 
@@ -255,7 +255,7 @@ Namespace WikiBot
         ''' <param name="Revid">ID de revisión.</param>
         ''' <param name="site">Sitio de la página.</param>
         ''' <returns></returns>
-        Private Overloads Function Loadpage(ByVal Revid As Integer, ByVal site As uri) As Boolean
+        Private Overloads Function Loadpage(ByVal Revid As Integer, ByVal site As Uri) As Boolean
             If site Is Nothing Then
                 Throw New ArgumentNullException("site", "Empty parameter")
             End If
@@ -267,7 +267,7 @@ Namespace WikiBot
             _siteuri = site
             PageInfoData(Revid)
             _sections = Utils.GetPageThreads(_text)
-            Utils.EventLogger.Debug_Log("Page revid " & Revid.ToString & " loaded", StaticVars.LocalSource, _username)
+            Utils.EventLogger.Debug_Log("Page revid " & Revid.ToString & " loaded", SStrings.LocalSource, _username)
             Return True
         End Function
 
@@ -278,22 +278,22 @@ Namespace WikiBot
         ''' <param name="revid">EDIT ID de la edicion a revisar</param>
         ''' <remarks>Los EDIT ID deben ser distintos</remarks>
         Private Function GetORESScores(ByVal revid As Integer) As Double()
-            Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString, StaticVars.LocalSource, _username)
+            Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString, SStrings.LocalSource, _username)
             Try
                 Dim turi As Uri = New Uri("https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&format=json&revids=" & revid)
                 Dim s As String = _bot.GET(turi)
 
                 Dim DMGScore_str As String = Utils.TextInBetween(Utils.TextInBetweenInclusive(s, "{""damaging"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
                 Dim GoodFaithScore_str As String = Utils.TextInBetween(Utils.TextInBetweenInclusive(s, """goodfaith"": {""score"":", "}}}")(0), """true"": ", "}}}")(0).Replace(".", DecimalSeparator)
-                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, StaticVars.LocalSource, _username)
+                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Strings: GF: " & GoodFaithScore_str & " DMG:" & DMGScore_str, SStrings.LocalSource, _username)
 
                 Dim DMGScore As Double = Math.Round((Double.Parse(DMGScore_str) * 100), 2)
                 Dim GoodFaithScore As Double = Math.Round((Double.Parse(GoodFaithScore_str) * 100), 2)
-                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, StaticVars.LocalSource, _username)
+                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid done, Double: GF: " & GoodFaithScore.ToString & " DMG:" & DMGScore.ToString, SStrings.LocalSource, _username)
 
                 Return {DMGScore, GoodFaithScore}
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString & " failed, returning Nothing", StaticVars.LocalSource, _username)
+                Utils.EventLogger.Debug_Log("GetORESScore: Query of ORES score from revid " & revid.ToString & " failed, returning Nothing", SStrings.LocalSource, _username)
                 Return Nothing
             End Try
         End Function
@@ -357,26 +357,26 @@ Namespace WikiBot
             End If
 
             If postresult.Contains("""result"":""Success""") Then
-                Utils.EventLogger.Log("Edit on " & _title & " successful!", StaticVars.LocalSource, _username)
+                Utils.EventLogger.Log("Edit on " & _title & " successful!", SStrings.LocalSource, _username)
                 Return EditResults.Edit_successful
             End If
 
             If postresult.ToLower.Contains("abusefilter") Then
-                Utils.EventLogger.Log("AbuseFilter Triggered! on " & _title, StaticVars.LocalSource, _username)
-                Utils.EventLogger.Debug_Log("ABUSEFILTER: " & postresult, StaticVars.LocalSource, _username)
+                Utils.EventLogger.Log("AbuseFilter Triggered! on " & _title, SStrings.LocalSource, _username)
+                Utils.EventLogger.Debug_Log("ABUSEFILTER: " & postresult, SStrings.LocalSource, _username)
                 Return EditResults.AbuseFilter
             End If
 
             If postresult.ToLower.Contains("spamblacklist") Then
-                Utils.EventLogger.Log("AbuseFilter Triggered! on " & _title, StaticVars.LocalSource, _username)
-                Utils.EventLogger.Debug_Log("ABUSEFILTER: " & postresult, StaticVars.LocalSource, _username)
+                Utils.EventLogger.Log("AbuseFilter Triggered! on " & _title, SStrings.LocalSource, _username)
+                Utils.EventLogger.Debug_Log("ABUSEFILTER: " & postresult, SStrings.LocalSource, _username)
                 If Spamreplace Then
                     Dim spamlinkRegex As String = Utils.TextInBetween(postresult, """spamblacklist"":""", """")(0)
                     Dim newtext As String = Regex.Replace(text, Utils.SpamListParser(spamlinkRegex), Function(x) "<nowiki>" & x.Value & "</nowiki>") 'Reeplazar links con el Nowiki
                     If Not RetryCount > MaxRetry Then
                         Return SavePage(newtext, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
                     Else
-                        Utils.EventLogger.Log("Max retry count saving " & _title, StaticVars.LocalSource, _username)
+                        Utils.EventLogger.Log("Max retry count saving " & _title, SStrings.LocalSource, _username)
                         Return EditResults.Max_retry_count
                     End If
                 Else
@@ -390,7 +390,7 @@ Namespace WikiBot
                 _bot.Relogin()
                 Return SavePage(text, EditSummary, IsMinor, IsBot, True, RetryCount + 1)
             Else
-                Utils.EventLogger.Log("Max retry count saving " & _title, StaticVars.LocalSource, _username)
+                Utils.EventLogger.Log("Max retry count saving " & _title, SStrings.LocalSource, _username)
                 Utils.EventLogger.Debug_Log("Unexpected result: " & postresult, "SavePage", _username)
                 Return EditResults.Max_retry_count
             End If
@@ -528,12 +528,12 @@ Namespace WikiBot
             End If
 
             If Not GetLastTimeStamp() = _timestamp Then
-                Utils.EventLogger.Log("Edit conflict", StaticVars.LocalSource, _username)
+                Utils.EventLogger.Log("Edit conflict", SStrings.LocalSource, _username)
                 Return "Edit conflict"
             End If
 
             If Not BotCanEdit(_text, _username) Then
-                Utils.EventLogger.Log("Bots can't edit this page!", StaticVars.LocalSource, _username)
+                Utils.EventLogger.Log("Bots can't edit this page!", SStrings.LocalSource, _username)
                 Return "No Bots"
             End If
 
@@ -549,12 +549,12 @@ Namespace WikiBot
             Load() 'Update page data
 
             If postresult.Contains("""result"":""Success""") Then
-                Utils.EventLogger.Log("Edit successful!", StaticVars.LocalSource, _username)
+                Utils.EventLogger.Log("Edit successful!", SStrings.LocalSource, _username)
                 Return "Edit successful!"
             End If
 
             If postresult.Contains("abusefilter") Then
-                Utils.EventLogger.Log("AbuseFilter Triggered!", StaticVars.LocalSource, _username)
+                Utils.EventLogger.Log("AbuseFilter Triggered!", SStrings.LocalSource, _username)
                 Return "AbuseFilter Triggered"
             End If
 
@@ -658,13 +658,13 @@ Namespace WikiBot
                 PExtract = Utils.NormalizeUnicodetext(Utils.TextInBetween(QueryText, """extract"":""", """}")(0))
                 PaRevID = Utils.TextInBetween(QueryText, """parentid"":", ",""")(0)
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.Log("Warning: The page '" & pageName & "' doesn't exist yet!", StaticVars.LocalSource, _username)
+                Utils.EventLogger.Log("Warning: The page '" & pageName & "' doesn't exist yet!", SStrings.LocalSource, _username)
             End Try
 
             If Utils.TextInBetween(QueryText, """pageimage"":""", """").Count >= 1 Then
                 PageImage = Utils.TextInBetween(QueryText, """pageimage"":""", """")(0)
             Else
-                Utils.EventLogger.Debug_Log("The page '" & pageName & "' doesn't have any thumbnail", StaticVars.LocalSource, _username)
+                Utils.EventLogger.Debug_Log("The page '" & pageName & "' doesn't have any thumbnail", SStrings.LocalSource, _username)
             End If
 
             For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")
@@ -724,13 +724,13 @@ Namespace WikiBot
                 PRevID = Utils.TextInBetween(QueryText, """revid"":", ",""")(0)
                 PExtract = Utils.NormalizeUnicodetext(Utils.TextInBetween(QueryText, """extract"":""", """}")(0))
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.Log("Warning: The page '" & PTitle & "' doesn't exist yet!", StaticVars.LocalSource, _username)
+                Utils.EventLogger.Log("Warning: The page '" & PTitle & "' doesn't exist yet!", SStrings.LocalSource, _username)
             End Try
 
             If Utils.TextInBetween(QueryText, """pageimage"":""", """").Count >= 1 Then
                 PageImage = Utils.TextInBetween(QueryText, """pageimage"":""", """")(0)
             Else
-                Utils.EventLogger.Debug_Log("The page '" & PTitle & "' doesn't have any thumbnail", StaticVars.LocalSource, _username)
+                Utils.EventLogger.Debug_Log("The page '" & PTitle & "' doesn't have any thumbnail", SStrings.LocalSource, _username)
             End If
 
             For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")

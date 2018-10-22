@@ -60,8 +60,8 @@ Public Class IRCCommands
     End Function
 
     Function GenEfe(ByVal args As IRCCommandParams) As IRCMessage
+        If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            If args Is Nothing Then Return Nothing
 
             NewThread("Generar imágenes de efemérides", args.Realname, New Func(Of Boolean)(Function()
                                                                                                 Dim imggen As New VideoGen(args.Workerbot)
@@ -246,7 +246,7 @@ Public Class IRCCommands
     Function UpdateExtracts(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            Dim Upexfcn As New Func(Of Boolean)(Function() args.Workerbot.UpdatePageExtracts())
+            Dim Upexfcn As New Func(Of Boolean)(Function() args.Workerbot.UpdatePageExtracts(ResumePageName))
             NewThread("Actualizar extractos a solicitud", args.Realname, Upexfcn, 1, False)
             Return New IRCMessage(args.Source, args.Realname & ": Se ha creado la tarea.")
         Else

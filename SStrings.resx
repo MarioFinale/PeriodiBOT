@@ -141,13 +141,43 @@ IRCBotNickName="{6}"
 IRCBotPassword="{7}"
 IRCChannel="{8}"</value>
   </data>
+  <data name="GetDiffQuery" xml:space="preserve">
+    <value>format=json&amp;action=compare&amp;fromrev={0}&amp;torev={1}</value>
+  </data>
+  <data name="GetLastRevIds" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;prop=revisions&amp;titles=</value>
+  </data>
+  <data name="GetPageInclusions" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;list=embeddedin&amp;eilimit=1000&amp;eititle=</value>
+  </data>
+  <data name="GetPagesExtract" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;prop=extracts&amp;exintro=&amp;explaintext=&amp;titles=</value>
+  </data>
+  <data name="GetPagesImage" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;formatversion=2&amp;prop=pageimages&amp;titles=</value>
+  </data>
   <data name="GetWikiToken" xml:space="preserve">
-    <value>action=query&amp;meta=tokens&amp;type=login&amp;format=json</value>
+    <value>format=json&amp;action=query&amp;meta=tokens&amp;type=login</value>
+  </data>
+  <data name="IrcSource" xml:space="preserve">
+    <value>IRC</value>
   </data>
   <data name="LocalSource" xml:space="preserve">
     <value>LOCAL</value>
   </data>
   <data name="Login" xml:space="preserve">
-    <value>action=login&amp;format=json&amp;lgname={0}&amp;lgpassword={1}&amp;lgdomain=&amp;lgtoken={2}</value>
+    <value>format=json&amp;action=login&amp;lgname={0}&amp;lgpassword={1}&amp;lgdomain=&amp;lgtoken={2}</value>
+  </data>
+  <data name="OresScoresApiQueryUrl" xml:space="preserve">
+    <value>https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&amp;format=json&amp;revids=</value>
+  </data>
+  <data name="PrefixSearchQuery" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;pslimit=max&amp;list=prefixsearch&amp;pssearch=</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;list=search&amp;utf8=1&amp;srsearch=</value>
+  </data>
+  <data name="SearchForUser" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;list=search&amp;utf8=1&amp;srnamespace=2&amp;srsearch=</value>
   </data>
 </root>

@@ -175,7 +175,7 @@ Namespace WikiBot
                 End If
 
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.EX_Log("Wikiuser LoadInfo" & ex.Message, StaticVars.LocalSource)
+                Utils.EventLogger.EX_Log("Wikiuser LoadInfo" & ex.Message, SStrings.LocalSource)
             End Try
 
         End Sub

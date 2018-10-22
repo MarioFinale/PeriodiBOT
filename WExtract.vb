@@ -8,6 +8,7 @@ Namespace WikiBot
         Property ExtractContent As String
 
         Public Function CompareTo(other As WikiExtract) As Integer Implements IComparable(Of WikiExtract).CompareTo
+            If other Is Nothing Then Throw New ArgumentNullException
             Return Me.PageName().CompareTo(other.PageName())
         End Function
     End Class

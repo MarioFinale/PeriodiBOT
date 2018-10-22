@@ -97,19 +97,6 @@ NotInheritable Class Utils
         End If
     End Function
 
-    ''' <summary>
-    ''' Une un array de texto usando el separador indicado
-    ''' </summary>
-    ''' <param name="arr">Array de texto a unir</param>
-    ''' <param name="separator">Separador entre cada elemento del array</param>
-    ''' <returns></returns>
-    Public Shared Function JoinTextArray(ByVal arr As String(), separator As Char) As String
-        Dim responsestring As String = String.Empty
-        For Each s As String In arr
-            responsestring = responsestring & s & separator
-        Next
-        Return responsestring.TrimEnd(separator)
-    End Function
 
     ''' <summary>
     ''' Obtiene el último hilo que coincida con el título entregado.
@@ -414,10 +401,10 @@ NotInheritable Class Utils
     ''' <summary>
     ''' Normaliza el texto ASCII con códigos unicodes escapados con el formato \\u(número)
     ''' </summary>
-    ''' <param name="text"></param>
+    ''' <param name="stringToNormalize"></param>
     ''' <returns></returns>
-    Public Shared Function NormalizeUnicodetext(ByVal text As String) As String
-        Dim temptext As String = Regex.Replace(text, "\\u([\dA-Fa-f]{4})", Function(v) ChrW(Convert.ToInt32(v.Groups(1).Value, 16)))
+    Public Shared Function NormalizeUnicodetext(ByVal stringToNormalize As String) As String
+        Dim temptext As String = Regex.Replace(stringToNormalize, "\\u([\dA-Fa-f]{4})", Function(v) ChrW(Convert.ToInt32(v.Groups(1).Value, 16)))
         temptext = Regex.Replace(temptext, "(?<!\\)\\n", Environment.NewLine)
         temptext = Regex.Replace(temptext, "(?<!\\)\\t", ControlChars.Tab)
         temptext = temptext.Replace("\""", """")
@@ -758,7 +745,7 @@ NotInheritable Class Utils
         For Each m As Match In Regex.Matches(text, signpattern)
             Dim TheDate As DateTime = ESWikiDatetime(m.Value)
             Datelist.Add(TheDate)
-            EventLogger.Log("AllDateTimes: Adding " & TheDate.ToString, StaticVars.LocalSource)
+            EventLogger.Log("AllDateTimes: Adding " & TheDate.ToString, SStrings.LocalSource)
         Next
         Return Datelist.ToArray
     End Function
@@ -963,7 +950,7 @@ NotInheritable Class Utils
         End If
 
         Dim TheDate As DateTime = ESWikiDatetime(lastparagraph)
-        EventLogger.Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, StaticVars.LocalSource)
+        EventLogger.Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, SStrings.LocalSource)
         Return TheDate
     End Function
 
@@ -1001,7 +988,7 @@ NotInheritable Class Utils
 
                 Dim dat As New DateTime(dates(4), dates(3), dates(2), dates(0), dates(1), 0)
                 TheDate = dat
-                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", StaticVars.LocalSource)
+                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", SStrings.LocalSource)
             Catch ex As System.FormatException
                 EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
             End Try
@@ -1045,7 +1032,7 @@ NotInheritable Class Utils
                 Next
                 Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
                 dates.Add(dat)
-                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", StaticVars.LocalSource)
+                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", SStrings.LocalSource)
             Catch ex As System.FormatException
                 EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
             End Try
@@ -1087,7 +1074,7 @@ NotInheritable Class Utils
                     End If
                 Next
                 tdat = New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
-                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & tdat.ToShortDateString & """", StaticVars.LocalSource)
+                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & tdat.ToShortDateString & """", SStrings.LocalSource)
             Catch ex As System.FormatException
                 EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
             End Try

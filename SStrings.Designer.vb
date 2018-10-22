@@ -25,7 +25,7 @@ Namespace My.Resources
     <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute()>  _
-    Friend Class StaticVars
+    Friend Class SStrings
         
         Private Shared resourceMan As Global.System.Resources.ResourceManager
         
@@ -43,7 +43,7 @@ Namespace My.Resources
         Friend Shared ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
-                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("PeriodiBOT_IRC.StaticVars", GetType(StaticVars).Assembly)
+                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("PeriodiBOT_IRC.SStrings", GetType(SStrings).Assembly)
                     resourceMan = temp
                 End If
                 Return resourceMan
@@ -119,11 +119,65 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Busca una cadena traducida similar a action=query&amp;meta=tokens&amp;type=login&amp;format=json.
+        '''  Busca una cadena traducida similar a format=json&amp;action=compare&amp;fromrev={0}&amp;torev={1}.
+        '''</summary>
+        Friend Shared ReadOnly Property GetDiffQuery() As String
+            Get
+                Return ResourceManager.GetString("GetDiffQuery", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;prop=revisions&amp;titles=.
+        '''</summary>
+        Friend Shared ReadOnly Property GetLastRevIds() As String
+            Get
+                Return ResourceManager.GetString("GetLastRevIds", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;list=embeddedin&amp;eilimit=1000&amp;eititle=.
+        '''</summary>
+        Friend Shared ReadOnly Property GetPageInclusions() As String
+            Get
+                Return ResourceManager.GetString("GetPageInclusions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;prop=extracts&amp;exintro=&amp;explaintext=&amp;titles=.
+        '''</summary>
+        Friend Shared ReadOnly Property GetPagesExtract() As String
+            Get
+                Return ResourceManager.GetString("GetPagesExtract", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;formatversion=2&amp;prop=pageimages&amp;titles=.
+        '''</summary>
+        Friend Shared ReadOnly Property GetPagesImage() As String
+            Get
+                Return ResourceManager.GetString("GetPagesImage", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;meta=tokens&amp;type=login.
         '''</summary>
         Friend Shared ReadOnly Property GetWikiToken() As String
             Get
                 Return ResourceManager.GetString("GetWikiToken", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a IRC.
+        '''</summary>
+        Friend Shared ReadOnly Property IrcSource() As String
+            Get
+                Return ResourceManager.GetString("IrcSource", resourceCulture)
             End Get
         End Property
         
@@ -137,11 +191,47 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Busca una cadena traducida similar a action=login&amp;format=json&amp;lgname={0}&amp;lgpassword={1}&amp;lgdomain=&amp;lgtoken={2}.
+        '''  Busca una cadena traducida similar a format=json&amp;action=login&amp;lgname={0}&amp;lgpassword={1}&amp;lgdomain=&amp;lgtoken={2}.
         '''</summary>
         Friend Shared ReadOnly Property Login() As String
             Get
                 Return ResourceManager.GetString("Login", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&amp;format=json&amp;revids=.
+        '''</summary>
+        Friend Shared ReadOnly Property OresScoresApiQueryUrl() As String
+            Get
+                Return ResourceManager.GetString("OresScoresApiQueryUrl", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;pslimit=max&amp;list=prefixsearch&amp;pssearch=.
+        '''</summary>
+        Friend Shared ReadOnly Property PrefixSearchQuery() As String
+            Get
+                Return ResourceManager.GetString("PrefixSearchQuery", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;list=search&amp;utf8=1&amp;srsearch=.
+        '''</summary>
+        Friend Shared ReadOnly Property Search() As String
+            Get
+                Return ResourceManager.GetString("Search", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;list=search&amp;utf8=1&amp;srnamespace=2&amp;srsearch=.
+        '''</summary>
+        Friend Shared ReadOnly Property SearchForUser() As String
+            Get
+                Return ResourceManager.GetString("SearchForUser", resourceCulture)
             End Get
         End Property
     End Class

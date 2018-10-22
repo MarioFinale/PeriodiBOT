@@ -270,33 +270,33 @@ Namespace IRC
         Sub LoadConfig()
             OPlist = New List(Of String)
             If System.IO.File.Exists(_opFilePath.GetPath) Then
-                Utils.EventLogger.Log("Loading operators", StaticVars.LocalSource)
+                Utils.EventLogger.Log("Loading operators", SStrings.LocalSource)
                 Dim opstr As String() = System.IO.File.ReadAllLines(_opFilePath.GetPath)
                 Try
                     For Each op As String In opstr
                         OPlist.Add(op)
                     Next
                 Catch ex As IndexOutOfRangeException
-                    Utils.EventLogger.Log("Malformed OpList", StaticVars.LocalSource)
+                    Utils.EventLogger.Log("Malformed OpList", SStrings.LocalSource)
                 End Try
             Else
-                Utils.EventLogger.Log("No Ops file", StaticVars.LocalSource)
+                Utils.EventLogger.Log("No Ops file", SStrings.LocalSource)
                 Try
                     System.IO.File.Create(_opFilePath.GetPath).Close()
                 Catch ex As System.IO.IOException
-                    Utils.EventLogger.Log("Error creating ops file", StaticVars.LocalSource)
+                    Utils.EventLogger.Log("Error creating ops file", SStrings.LocalSource)
                 End Try
 
             End If
 
             If OPlist.Count = 0 Then
-                Utils.EventLogger.Log("Warning: No Ops defined!", StaticVars.LocalSource)
+                Utils.EventLogger.Log("Warning: No Ops defined!", SStrings.LocalSource)
                 Console.WriteLine("IRC OP (Nickname!hostname): ")
                 Dim MainOp As String = Console.ReadLine
                 Try
                     System.IO.File.WriteAllText(_opFilePath.GetPath, MainOp)
                 Catch ex As System.IO.IOException
-                    Utils.EventLogger.Log("Error saving ops file", StaticVars.LocalSource)
+                    Utils.EventLogger.Log("Error saving ops file", SStrings.LocalSource)
                 End Try
             End If
 
@@ -320,7 +320,7 @@ Namespace IRC
                         System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
-                        Utils.EventLogger.Log("Error saving ops file", StaticVars.LocalSource)
+                        Utils.EventLogger.Log("Error saving ops file", SStrings.LocalSource)
                         Return False
                     End Try
                 Else
@@ -351,7 +351,7 @@ Namespace IRC
                         System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
-                        Utils.EventLogger.Log("Error saving ops file", StaticVars.LocalSource)
+                        Utils.EventLogger.Log("Error saving ops file", SStrings.LocalSource)
                         Return False
                     End Try
                 Else

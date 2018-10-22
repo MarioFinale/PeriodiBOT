@@ -72,11 +72,11 @@ Namespace WikiBot
         ''' Obtiene un Token y cookies de ingreso, establece las cookies de la clase y retorna el token como string.
         ''' </summary>
         Private Function GetWikiToken() As String
-            Utils.EventLogger.Log(Messages.RequestingToken, StaticVars.LocalSource)
-            Dim postdata As String = StaticVars.GetWikiToken
+            Utils.EventLogger.Log(Messages.RequestingToken, SStrings.LocalSource)
+            Dim postdata As String = SStrings.GetWikiToken
             Dim postresponse As String = PostDataAndGetResult(_apiUri, postdata, ApiCookies)
             Dim token As String = Utils.TextInBetween(postresponse, """logintoken"":""", """}}}")(0).Replace("\\", "\")
-            Utils.EventLogger.Log(Messages.TokenObtained, StaticVars.LocalSource)
+            Utils.EventLogger.Log(Messages.TokenObtained, SStrings.LocalSource)
             Return token
         End Function
 
@@ -84,7 +84,7 @@ Namespace WikiBot
         ''' Luego de obtener un Token y cookies de ingreso, envía estos al servidor para loguear y guarda las cookies de sesión.
         ''' </summary>
         Public Function LogOn() As String
-            Utils.EventLogger.Log(Messages.SigninIn, StaticVars.LocalSource)
+            Utils.EventLogger.Log(Messages.SigninIn, SStrings.LocalSource)
             Dim token As String = String.Empty
             Dim turi As Uri = _apiUri
             Dim postdata As String = String.Empty
@@ -95,17 +95,17 @@ Namespace WikiBot
             Do Until exitloop
                 Try
                     token = GetWikiToken()
-                    postdata = String.Format(StaticVars.Login, _botUsername, _botPassword, Utils.UrlWebEncode(token))
+                    postdata = String.Format(SStrings.Login, _botUsername, _botPassword, Utils.UrlWebEncode(token))
                     postresponse = PostDataAndGetResult(turi, postdata, ApiCookies)
                     lresult = Utils.TextInBetween(postresponse, "{""result"":""", """,")(0)
-                    Utils.EventLogger.Log(Messages.LoginResult & lresult, StaticVars.LocalSource)
+                    Utils.EventLogger.Log(Messages.LoginResult & lresult, SStrings.LocalSource)
                     Dim lUserID As String = Utils.TextInBetween(postresponse, """lguserid"":", ",")(0)
-                    Utils.EventLogger.Log(Messages.LoginID & lUserID, StaticVars.LocalSource)
+                    Utils.EventLogger.Log(Messages.LoginID & lUserID, SStrings.LocalSource)
                     Dim lUsername As String = Utils.TextInBetween(postresponse, """lgusername"":""", """}")(0)
-                    Utils.EventLogger.Log(Messages.Username & lUsername, StaticVars.LocalSource)
+                    Utils.EventLogger.Log(Messages.Username & lUsername, SStrings.LocalSource)
                     Return lresult
                 Catch ex As IndexOutOfRangeException
-                    Utils.EventLogger.Log(Messages.LoginError, StaticVars.LocalSource)
+                    Utils.EventLogger.Log(Messages.LoginError, SStrings.LocalSource)
                     If lresult.ToLower(Globalization.CultureInfo.InvariantCulture) = "failed" Then
                         Dim reason As String = Utils.TextInBetween(postresponse, """reason"":""", """")(0)
                         Console.WriteLine(Environment.NewLine & Environment.NewLine)
@@ -118,7 +118,7 @@ Namespace WikiBot
                     End If
                     Return lresult
                 Catch ex2 As System.Net.WebException
-                    Utils.EventLogger.Log(Messages.NetworkError & ex2.Message, StaticVars.LocalSource)
+                    Utils.EventLogger.Log(Messages.NetworkError & ex2.Message, SStrings.LocalSource)
                 End Try
                 Console.WriteLine(Environment.NewLine)
                 exitloop = Utils.PressKeyTimeout(5)
@@ -149,15 +149,11 @@ Namespace WikiBot
         End Function
 
         Public Overloads Function [GET](ByVal urlString As String) As String
-            If String.IsNullOrWhiteSpace(urlString) Then
-                Return String.Empty
-            End If
-            Dim getresponse As String = GetDataAndResult(New Uri(urlString), ApiCookies)
-            Return getresponse
+            Return [GET](New Uri(urlString))
         End Function
 
         Public Overloads Function [GET](ByVal pageUri As Uri) As String
-            If String.IsNullOrWhiteSpace(pageUri.ToString) Then
+            If pageUri Is Nothing Then
                 Return String.Empty
             End If
             Dim getresponse As String = GetDataAndResult(pageUri, ApiCookies)

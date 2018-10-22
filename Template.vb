@@ -321,6 +321,7 @@ Namespace WikiBot
         Public Shared Function GetTemplateTextArray(ByVal text As String) As List(Of String)
             Dim temptext As String = String.Empty
             Dim templist As New List(Of String)
+            If String.IsNullOrWhiteSpace(text) Then Return templist
             Dim CharArr As Char() = text.ToArray
 
             Dim OpenTemplateCount2 As Integer = 0

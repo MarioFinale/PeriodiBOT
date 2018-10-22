@@ -93,10 +93,10 @@
       <DependentUpon>Messages.es.resx</DependentUpon>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="StaticVars.Designer.vb">
+    <Compile Include="SStrings.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>StaticVars.resx</DependentUpon>
+      <DependentUpon>SStrings.resx</DependentUpon>
     </Compile>
     <Compile Include="TaskInfo.vb" />
     <Compile Include="VideoGen.vb" />
@@ -161,10 +161,10 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="StaticVars.resx">
+    <EmbeddedResource Include="SStrings.resx">
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>StaticVars.Designer.vb</LastGenOutput>
+      <LastGenOutput>SStrings.Designer.vb</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

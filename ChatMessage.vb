@@ -14,18 +14,15 @@ Public Class ChatMessage
         NormalizedMessage = NormalizeMessage(tText)
     End Sub
 
-
     Function NormalizeMessage(ByVal text As String) As String
-        Dim newMessage As String = text.ToLower.Trim
+        Dim newMessage As String = String.Empty
+        If String.IsNullOrWhiteSpace(text) Then Return newMessage
+        newMessage = text.ToLower.Trim
         If newMessage.StartsWith("¿") Then
             newMessage = newMessage.Substring(1, newMessage.Length - 2)
         End If
         Return newMessage
     End Function
-
-
-
-
 
 End Class
 

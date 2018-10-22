@@ -16,6 +16,7 @@ Namespace IRC
         End Function
 
         Function GetPossiblePage(ByVal StartStrings As String, ByVal message As ChatMessage) As WikiBot.Page
+            If String.IsNullOrWhiteSpace(StartStrings) Or message Is Nothing Then Throw New ArgumentNullException
             For Each svar As String In StartStrings
                 If message.NormalizedMessage.ToLower.StartsWith(svar.ToLower) Then
                     Dim resline As String = message.NormalizedMessage.ToLower
@@ -29,33 +30,16 @@ Namespace IRC
                     End If
                 End If
             Next
-
-
-
             Return Nothing
         End Function
 
 
-
         Function IsMentioned(ByVal tline As String) As Boolean
+            If String.IsNullOrWhiteSpace(tline) Then Return False
             If tline.Contains("*") Then Return False
             Dim divisor As String = _botName.ToLower
             Return tline.Contains(divisor)
         End Function
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     End Class
 

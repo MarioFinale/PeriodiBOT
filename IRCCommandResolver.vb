@@ -121,13 +121,13 @@ Namespace IRC
         Private Function CommandInfoFcn(ByVal Params As IRCCommandParams) As IRCMessage
             For Each c As IRCCommand In Clist
                 If c.Aliases.Contains(RemovePrefix(Params.CParam).ToLower) Then
-                    Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(Utils.JoinTextArray(c.Aliases, "/"c), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
+                    Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(String.Join("/"c, c.Aliases), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
                 End If
             Next
             If String.IsNullOrWhiteSpace(Params.CParam) Then
                 For Each c As IRCCommand In Clist
                     If c.Aliases.Contains(RemovePrefix(Params.CommandName)) Then
-                        Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(Utils.JoinTextArray(c.Aliases, "/"c), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
+                        Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(String.Join("/"c, c.Aliases), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
                     End If
                 Next
             End If
