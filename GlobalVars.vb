@@ -34,8 +34,4 @@ Module GlobalVars
     'Public WikidataBOT As Bot
     Public BotIRC As IRC_Client
 
-    Public InfMedMessage As String = "¡Hola! Este mensaje es un aviso automático a todos los miembros activos de [[Wikipedia:Mediación informal/Participantes/Lista|Mediación informal]] para informar de una [[Wikipedia:Mediación informal/Solicitudes|nueva solicitud]]. Por favor, considera participar en la discusión.
-
-¡Gracias por tu atención! ~~~~"
-
 End Module

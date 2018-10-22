@@ -173,6 +173,44 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a ¡Hola! Este mensaje es un aviso automático a todos los miembros activos de [[Wikipedia:Mediación informal/Participantes/Lista|Mediación informal]] para informar de una [[Wikipedia:Mediación informal/Solicitudes|nueva solicitud]]. Por favor, considera participar en la discusión.
+        '''
+        '''¡Gracias por tu atención! ~~~~.
+        '''</summary>
+        Friend Shared ReadOnly Property InfMedMsg() As String
+            Get
+                Return ResourceManager.GetString("InfMedMsg", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a InformalMediationLastThreadCount.
+        '''</summary>
+        Friend Shared ReadOnly Property InfMedSettingsName() As String
+            Get
+                Return ResourceManager.GetString("InfMedSettingsName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a (Bot) Aviso automático de una nueva solicitud en [[Wikipedia:Mediación informal/Participantes/Lista|Mediación informal]]..
+        '''</summary>
+        Friend Shared ReadOnly Property InfMedSumm() As String
+            Get
+                Return ResourceManager.GetString("InfMedSumm", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Atención en [[Wikipedia:Mediación informal/Solicitudes|Mediación informal]].
+        '''</summary>
+        Friend Shared ReadOnly Property InfMedTitle() As String
+            Get
+                Return ResourceManager.GetString("InfMedTitle", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a IRC.
         '''</summary>
         Friend Shared ReadOnly Property IrcSource() As String

@@ -65,6 +65,24 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a  {0} new extract has been added..
+        '''</summary>
+        Friend Shared ReadOnly Property AddedExtract() As String
+            Get
+                Return ResourceManager.GetString("AddedExtract", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a  {0} new extracts have been added..
+        '''</summary>
+        Friend Shared ReadOnly Property AddedExtracts() As String
+            Get
+                Return ResourceManager.GetString("AddedExtracts", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a PeriodiBOT .
         '''</summary>
         Friend Shared ReadOnly Property BotEngine() As String
@@ -155,7 +173,7 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Busca una cadena traducida similar a .
+        '''  Busca una cadena traducida similar a The user &apos;{0}&apos; is invalid..
         '''</summary>
         Friend Shared ReadOnly Property InvalidUser() As String
             Get
@@ -344,6 +362,24 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a  {0} unsafe extract has been omitted..
+        '''</summary>
+        Friend Shared ReadOnly Property OmittedExtract() As String
+            Get
+                Return ResourceManager.GetString("OmittedExtract", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a  {0} unsafe extracts have been omitted..
+        '''</summary>
+        Friend Shared ReadOnly Property OmittedExtracts() As String
+            Get
+                Return ResourceManager.GetString("OmittedExtracts", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Server error on ORES query score from revid {0} (invalid diff?).
         '''</summary>
         Friend Shared ReadOnly Property OresQueryError() As String
@@ -434,6 +470,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Successful operation..
+        '''</summary>
+        Friend Shared ReadOnly Property SuccessfulOperation() As String
+            Get
+                Return ResourceManager.GetString("SuccessfulOperation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a (Bot) Replacing &apos;{0}&apos; with &apos;{1}&apos; {2}..
         '''</summary>
         Friend Shared ReadOnly Property TextReplaced() As String
@@ -448,6 +493,42 @@ Namespace My.Resources
         Friend Shared ReadOnly Property TokenObtained() As String
             Get
                 Return ResourceManager.GetString("TokenObtained", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Trying to save &apos;{0}&apos;..
+        '''</summary>
+        Friend Shared ReadOnly Property TryingToSave() As String
+            Get
+                Return ResourceManager.GetString("TryingToSave", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a (Bot) Adding {0}&apos;s missing signature..
+        '''</summary>
+        Friend Shared ReadOnly Property UnsignedSumm() As String
+            Get
+                Return ResourceManager.GetString("UnsignedSumm", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Unsuccessful operation..
+        '''</summary>
+        Friend Shared ReadOnly Property UnsuccessfulOperation() As String
+            Get
+                Return ResourceManager.GetString("UnsuccessfulOperation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a (Bot) Updated {0} resumes..
+        '''</summary>
+        Friend Shared ReadOnly Property UpdatedExtracts() As String
+            Get
+                Return ResourceManager.GetString("UpdatedExtracts", resourceCulture)
             End Get
         End Property
         

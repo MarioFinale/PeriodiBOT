@@ -159,6 +159,20 @@ IRCChannel="{8}"</value>
   <data name="GetWikiToken" xml:space="preserve">
     <value>format=json&amp;action=query&amp;meta=tokens&amp;type=login</value>
   </data>
+  <data name="InfMedMsg" xml:space="preserve">
+    <value>¡Hola! Este mensaje es un aviso automático a todos los miembros activos de [[Wikipedia:Mediación informal/Participantes/Lista|Mediación informal]] para informar de una [[Wikipedia:Mediación informal/Solicitudes|nueva solicitud]]. Por favor, considera participar en la discusión.
+
+¡Gracias por tu atención! ~~~~</value>
+  </data>
+  <data name="InfMedSettingsName" xml:space="preserve">
+    <value>InformalMediationLastThreadCount</value>
+  </data>
+  <data name="InfMedSumm" xml:space="preserve">
+    <value>(Bot) Aviso automático de una nueva solicitud en [[Wikipedia:Mediación informal/Participantes/Lista|Mediación informal]].</value>
+  </data>
+  <data name="InfMedTitle" xml:space="preserve">
+    <value>Atención en [[Wikipedia:Mediación informal/Solicitudes|Mediación informal]]</value>
+  </data>
   <data name="IrcSource" xml:space="preserve">
     <value>IRC</value>
   </data>

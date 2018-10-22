@@ -1082,42 +1082,35 @@ Namespace WikiBot
                 End Try
             Next
             '==========================================================================================
-
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Concatenating text", SStrings.LocalSource)
             NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & "}}" & Environment.NewLine & "<noinclude>{{documentación}}</noinclude>"
-            Utils.EventLogger.Debug_Log("UpdatePageExtracts: Done, trying to save", SStrings.LocalSource)
+            Utils.EventLogger.Debug_Log(String.Format(Messages.TryingToSave, ResumePage.Title), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
 
             Try
-                If NotSafepages = 0 Then
-                    If NewPages = 0 Then
-                        ResumePage.Save(NewResumePageText, "(Bot) : Actualizando " & Safepages.ToString & " resúmenes.", False)
-                    Else
-                        ResumePage.Save(NewResumePageText, "(Bot) : Actualizando " & Safepages.ToString & " resúmenes. Se han añadido " & NewPages.ToString & " resúmenes nuevos", False)
-                    End If
-                Else
+                Dim EditSummary As String = String.Format(Messages.UpdatedExtracts, Safepages.ToString)
 
-                    Dim NumbText As String = " Resumen inseguro fue omitido. "
-                    If NotSafepages > 1 Then
-                        NumbText = " Resúmenes inseguros fueron omitidos. "
+                If NewPages > 0 Then
+                    Dim NewPageText As String = String.Format(Messages.AddedExtract, NewPages.ToString)
+                    If NewPages > 1 Then
+                        NewPageText = String.Format(Messages.AddedExtracts, NewPages.ToString)
                     End If
-
-                    If NewPages = 0 Then
-                        ResumePage.Save(NewResumePageText,
-                                                    "(Bot): Actualizando " & Safepages.ToString & " resúmenes, " _
-                                                    & NotSafepages.ToString & NumbText, False)
-                    Else
-                        ResumePage.Save(NewResumePageText,
-                                                    "(Bot): Actualizando " & Safepages.ToString & " resúmenes," _
-                                                    & NotSafepages.ToString & NumbText & "Se han añadido " & NewPages.ToString & " resúmenes nuevos.", False)
-                    End If
-
+                    EditSummary = EditSummary & NewPageText
                 End If
-                Utils.EventLogger.Log("UpdatePageExtracts: Update of page extracts completed successfully", SStrings.LocalSource)
+
+                If NotSafepages > 0 Then
+                    Dim NumbText As String = String.Format(Messages.OmittedExtract, NotSafepages.ToString)
+                    If NotSafepages > 1 Then
+                        NumbText = String.Format(Messages.OmittedExtracts, NotSafepages.ToString)
+                    End If
+                    NumbText = String.Format(NumbText, NotSafepages)
+                    EditSummary = EditSummary & NumbText
+                End If
+                ResumePage.Save(NewResumePageText, EditSummary, False, True)
+                Utils.EventLogger.Log(Messages.SuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
                 Return True
 
-            Catch ex As Exception
-                Utils.EventLogger.Log("UpdatePageExtracts: Error updating page extracts", SStrings.LocalSource)
-                Utils.EventLogger.Debug_Log(ex.Message, SStrings.LocalSource)
+            Catch ex As IndexOutOfRangeException
+                Utils.EventLogger.Log(Messages.UnsuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                Utils.EventLogger.Debug_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
                 Return False
             End Try
 
@@ -1138,18 +1131,18 @@ Namespace WikiBot
 
             Dim currentThreads As Integer = Utils.GetPageThreads(MedPage).Count
 
-            If Utils.BotSettings.Contains("InformalMediationLastThreadCount") Then
-                If Utils.BotSettings.Get("InformalMediationLastThreadCount").GetType Is GetType(Integer) Then
-                    Dim lastthreadcount As Integer = Integer.Parse(Utils.BotSettings.Get("InformalMediationLastThreadCount").ToString)
+            If Utils.BotSettings.Contains(SStrings.InfMedSettingsName) Then
+                If Utils.BotSettings.Get(SStrings.InfMedSettingsName).GetType Is GetType(Integer) Then
+                    Dim lastthreadcount As Integer = Integer.Parse(Utils.BotSettings.Get(SStrings.InfMedSettingsName).ToString)
                     If currentThreads > lastthreadcount Then
-                        Utils.BotSettings.Set("InformalMediationLastThreadCount", currentThreads)
+                        Utils.BotSettings.Set(SStrings.InfMedSettingsName, currentThreads)
                         newThreads = True
                     Else
-                        Utils.BotSettings.Set("InformalMediationLastThreadCount", currentThreads) 'Si disminuye la cantidad de hilos entonces lo guarda
+                        Utils.BotSettings.Set(SStrings.InfMedSettingsName, currentThreads) 'Si disminuye la cantidad de hilos entonces lo guarda
                     End If
                 End If
             Else
-                Utils.BotSettings.NewVal("InformalMediationLastThreadCount", currentThreads)
+                Utils.BotSettings.NewVal(SStrings.InfMedSettingsName, currentThreads)
             End If
 
             If newThreads Then
@@ -1157,7 +1150,7 @@ Namespace WikiBot
                     Dim user As New WikiUser(Me, u)
                     If user.Exists Then
                         Dim userTalkPage As Page = user.TalkPage
-                        userTalkPage.AddSection("Atención en [[Wikipedia:Mediación informal/Solicitudes|Mediación informal]]", InfMedMessage, "Bot: Aviso automático de nueva solicitud.", False)
+                        userTalkPage.AddSection(SStrings.InfMedTitle, SStrings.InfMedMsg, SStrings.InfMedSumm, False)
                     End If
                 Next
             End If
@@ -1165,7 +1158,7 @@ Namespace WikiBot
         End Function
 
         Function GetLastUnsignedSection(ByVal tpage As Page, newthreads As Boolean) As Tuple(Of String, String, Date)
-            If tpage Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
+            If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name)
             Dim oldPage As Page = Getpage(tpage.ParentRevId)
             Dim currentPage As Page = tpage
 
@@ -1207,7 +1200,7 @@ Namespace WikiBot
             Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
             Dim dstring As String = Utils.GetSpanishTimeString(UnsignedDate)
             pagetext = pagetext.Replace(UnsignedThread, UnsignedThread & " {{sust:No firmado|" & Username & "|" & dstring & "}}")
-            If tpage.Save(pagetext, "Bot: Completando sección sin firmar.", minor, True) = EditResults.Edit_successful Then
+            If tpage.Save(pagetext, String.Format(Messages.UnsignedSumm, Username), minor, True) = EditResults.Edit_successful Then
                 Return True
             Else
                 Return False
@@ -1256,7 +1249,7 @@ Namespace WikiBot
                     Dim User As New WikiUser(Me, Username)
                     'Validar usuario
                     If Not ValidUser(User) Then
-                        Utils.EventLogger.Log("CheckUsersActivity: The user " & User.UserName & " is not valid.", SStrings.LocalSource)
+                        Utils.EventLogger.Log(Messages.InvalidUser, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
                         Continue For
                     End If
 

@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddedExtract" xml:space="preserve">
+    <value> Se añadió {0} extracto nuevo.</value>
+  </data>
+  <data name="AddedExtracts" xml:space="preserve">
+    <value> Se añadieron {0} extractos nuevos.</value>
+  </data>
   <data name="BotEngine" xml:space="preserve">
     <value>PeriodiBOT </value>
   </data>
@@ -146,6 +152,9 @@
   </data>
   <data name="InvalidUrl" xml:space="preserve">
     <value>La url ingresada es inválida</value>
+  </data>
+  <data name="InvalidUser" xml:space="preserve">
+    <value>El usuario '{0}' es inválido.</value>
   </data>
   <data name="LoadingConfig" xml:space="preserve">
     <value>Cargando configuraciones</value>
@@ -207,6 +216,12 @@
   <data name="NoConfigFile" xml:space="preserve">
     <value>El archivo de configuraciones no existe</value>
   </data>
+  <data name="OmittedExtract" xml:space="preserve">
+    <value> Se omitió {0} extracto inseguro.</value>
+  </data>
+  <data name="OmittedExtracts" xml:space="preserve">
+    <value> Se omitieron {0} extractos inseguros.</value>
+  </data>
   <data name="OresQueryError" xml:space="preserve">
     <value>Error de servidor en la query del puntaje ORES desde el revid {0} (diff inválido?)</value>
   </data>
@@ -237,11 +252,26 @@
   <data name="SigninIn" xml:space="preserve">
     <value>Iniciando sesión</value>
   </data>
+  <data name="SuccessfulOperation" xml:space="preserve">
+    <value>Operación exitosa.</value>
+  </data>
   <data name="TextReplaced" xml:space="preserve">
     <value>(Bot) Reemplazando '{0}' con '{1}' {2}.</value>
   </data>
   <data name="TokenObtained" xml:space="preserve">
     <value>Token obtenido</value>
+  </data>
+  <data name="TryingToSave" xml:space="preserve">
+    <value>Intentando guardar '{0}'.</value>
+  </data>
+  <data name="UnsignedSumm" xml:space="preserve">
+    <value>(Bot) Añadiendo firma faltante de '{0}'.</value>
+  </data>
+  <data name="UnsuccessfulOperation" xml:space="preserve">
+    <value>La operación ha fallado.</value>
+  </data>
+  <data name="UpdatedExtracts" xml:space="preserve">
+    <value>(Bot) {0} resúmenes actualizados.</value>
   </data>
   <data name="UserBlocked" xml:space="preserve">
     <value>El usuario {0} está bloqueado.</value>
