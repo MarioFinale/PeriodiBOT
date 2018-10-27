@@ -8,8 +8,8 @@
 
     Public Sub New(ByVal FilePath As String)
         _path = FilePath
-        If Not System.IO.File.Exists(_Path) Then
-            System.IO.File.Create(_Path).Close()
+        If Not IO.File.Exists(_path) Then
+            IO.File.Create(_path).Close()
         End If
     End Sub
 End Class
