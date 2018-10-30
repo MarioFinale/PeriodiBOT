@@ -1,5 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
+Imports PeriodiBOT_IRC.My.Resources
 
 Namespace IRC
     Public Class ChatBot
@@ -16,7 +17,7 @@ Namespace IRC
         End Function
 
         Function GetPossiblePage(ByVal StartStrings As String, ByVal message As ChatMessage) As WikiBot.Page
-            If String.IsNullOrWhiteSpace(StartStrings) Or message Is Nothing Then Throw New ArgumentNullException
+            If String.IsNullOrWhiteSpace(StartStrings) Or message Is Nothing Then Throw New ArgumentNullException("message")
             For Each svar As String In StartStrings
                 If message.NormalizedMessage.ToLower.StartsWith(svar.ToLower) Then
                     Dim resline As String = message.NormalizedMessage.ToLower

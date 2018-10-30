@@ -313,23 +313,6 @@ Class LogEngine
     End Function
 
     ''' <summary>
-    ''' Regresa una lista de string() con todas las lineas en un archivo de texto.
-    ''' </summary>
-    ''' <param name="filename">Nombre y ruta del archivo</param>
-    ''' <returns></returns>
-    Private Function LoadLinesFromFile(ByRef filename As String) As List(Of String())
-        Dim ItemList As New List(Of String())
-        If Not System.IO.File.Exists(filename) Then
-            System.IO.File.Create(filename).Close()
-        End If
-        For Each line As String In System.IO.File.ReadAllLines(filename)
-            Dim items As String() = line.Split(CType("|", Char))
-            ItemList.Add(items)
-        Next
-        Return ItemList
-    End Function
-
-    ''' <summary>
     ''' Añade línteas a un archivo de texto
     ''' </summary>
     ''' <param name="FilePath">Ruta y nombre del archivo</param>

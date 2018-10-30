@@ -6,14 +6,16 @@ Imports PeriodiBOT_IRC.WikiBot
 
 NotInheritable Class Utils
 #Region "Properties"
+    Public Shared Property TaskAdm As New TaskAdmin
     Public Shared ReadOnly Property TaskCount As Integer
         Get
-            Return TaskList.Count
+            Return TaskAdm.TaskList.Count
         End Get
     End Property
 
     Public Shared Property EventLogger As New LogEngine(Log_Filepath, User_Filepath, BotCodename)
     Public Shared Property BotSettings As New Settings(SettingsPath)
+
 
 #End Region
 

@@ -306,4 +306,13 @@
   <data name="UserNoEdits" xml:space="preserve">
     <value>El usuario {0} no tiene ediciones en esta Wiki.</value>
   </data>
+  <data name="AutoArchive" xml:space="preserve">
+    <value>Autoarchivando '{0}'.</value>
+  </data>
+  <data name="NullParameter" xml:space="preserve">
+    <value>El parámetro es nulo.</value>
+  </data>
+  <data name="WikiThreadError" xml:space="preserve">
+    <value>Error en un hilo de la página '{0}'. Hilo número {1}. EX: {2}</value>
+  </data>
 </root>

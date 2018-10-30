@@ -3,18 +3,23 @@ Option Explicit On
 Imports System.Globalization
 Imports System.Threading
 
-Public Module TaskAdmin
-    Public TaskList As New List(Of TaskInfo)
+Class TaskAdmin
+    Public TaskList As ICollection(Of TaskInfo)
 
-    Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), interval As Integer, infinite As Boolean)
-        NewThread(name, author, task, interval, infinite, False)
+    Sub New()
+        TaskList = New List(Of TaskInfo)
     End Sub
 
-    Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), scheduledTime As TimeSpan, infinite As Boolean)
-        NewThread(name, author, task, scheduledTime, infinite, False)
+
+    Sub NewTask(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), interval As Integer, infinite As Boolean)
+        NewTask(name, author, task, interval, infinite, False)
     End Sub
 
-    Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), interval As Integer, infinite As Boolean, critical As Boolean)
+    Sub NewTask(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), scheduledTime As TimeSpan, infinite As Boolean)
+        NewTask(name, author, task, scheduledTime, infinite, False)
+    End Sub
+
+    Sub NewTask(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), interval As Integer, infinite As Boolean, critical As Boolean)
         Dim Tinfo As New TaskInfo With {
             .Author = author,
             .Name = name,
@@ -30,7 +35,7 @@ Public Module TaskAdmin
         ThreadPool.QueueUserWorkItem(New WaitCallback(AddressOf Timedmethod), Tinfo)
     End Sub
 
-    Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), scheduledTime As TimeSpan, infinite As Boolean, critical As Boolean)
+    Sub NewTask(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), scheduledTime As TimeSpan, infinite As Boolean, critical As Boolean)
         Dim Tinfo As New TaskInfo With {
             .Author = author,
             .Name = name,
@@ -137,5 +142,5 @@ Public Module TaskAdmin
 
 
 
-End Module
+End Class
 

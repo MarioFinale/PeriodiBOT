@@ -136,6 +136,7 @@
     <Compile Include="TaskAdmin.vb" />
     <Compile Include="WExtract.vb" />
     <Compile Include="WikiBotEphe.vb" />
+    <Compile Include="WikiDiff.vb" />
     <Compile Include="WikiEphe.vb" />
     <Compile Include="WikiEpheType.vb" />
     <Compile Include="WikiTopic.vb" />

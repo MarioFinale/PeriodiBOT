@@ -5,7 +5,6 @@ Imports System.Runtime.Serialization
 ''' Excepción que se produce cuando se alcanza un número máximo de reintentos.
 ''' </summary>
 Public Class MaxRetriesExeption : Inherits System.Exception
-    Implements ISerializable
     Public Sub New()
         MyBase.New()
     End Sub

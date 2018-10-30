@@ -98,9 +98,6 @@ Namespace WikiBot
             Return Groups
         End Function
 
-        Private Function GetTopicsText() As SortedDictionary(Of String, List(Of String))
-            Return GetTopicsText(0)
-        End Function
 
         Private Function GetTopicsText(ByRef inclusions As Integer) As SortedDictionary(Of String, List(Of String))
             Dim TopicThreads As SortedList(Of String, WikiTopic) = GetAllTopicThreads(inclusions) 'Obtener los temas y la información
@@ -128,10 +125,6 @@ Namespace WikiBot
             Next
             'Regresar el diccionario
             Return TopicList
-        End Function
-
-        Private Function GetAllTopicThreads() As SortedList(Of String, WikiTopic)
-            Return GetAllTopicThreads(0)
         End Function
 
         Private Function GetAllTopicThreads(ByRef inclusions As Integer) As SortedList(Of String, WikiTopic)

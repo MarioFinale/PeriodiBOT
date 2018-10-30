@@ -1,5 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
+Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Net
 Imports System.Text.RegularExpressions
@@ -227,7 +228,7 @@ Namespace WikiBot
 #End Region
 
 #Region "BotFunctions"
-        Function GetSpamListregexes(ByVal spamlistPage As Page) As String()
+        Public Function GetSpamListregexes(ByVal spamlistPage As Page) As String()
             If spamlistPage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name)
             Dim Lines As String() = Utils.GetLines(spamlistPage.Text, True) 'Extraer las líneas del texto de la página
             Dim Regexes As New List(Of String) 'Declarar lista con líneas con expresiones regulares
@@ -693,7 +694,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function Archive(ByVal pageToArchive As Page) As Boolean
             Dim ArchiveFcn As New OldGrillitusTasks(Me)
-            Return ArchiveFcn.Archive(pageToArchive)
+            Return ArchiveFcn.AutoArchive(pageToArchive)
         End Function
 
         ''' <summary>
@@ -716,7 +717,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="thepage">Página a revisar.</param>
         ''' <returns></returns>
-        Function GetLastDiff(ByVal thepage As Page) As List(Of Tuple(Of String, String))
+        Function GetLastDiff(ByVal thepage As Page) As WikiDiff
             If thepage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name)
             If Not thepage.Exists Then
                 Return Nothing
@@ -735,12 +736,13 @@ Namespace WikiBot
         ''' <param name="fromid">Id base en la comparación.</param>
         ''' <param name="toid">Id a compara.r</param>
         ''' <returns></returns>
-        Function GetDiff(ByVal fromid As Integer, ByVal toid As Integer) As List(Of Tuple(Of String, String))
+        Function GetDiff(ByVal fromid As Integer, ByVal toid As Integer) As WikiDiff
+
             Dim Changedlist As New List(Of Tuple(Of String, String))
             Dim page1 As Page = Getpage(fromid)
             Dim page2 As Page = Getpage(toid)
             If Not (page1.Exists And page2.Exists) Then
-                Return Changedlist
+                Return New WikiDiff(fromid, toid, Changedlist)
             End If
             Dim querydata As String = String.Format(SStrings.GetDiffQuery, fromid.ToString, toid.ToString)
             Dim querytext As String = POSTQUERY(querydata)
@@ -748,7 +750,7 @@ Namespace WikiBot
             Try
                 difftext = Utils.NormalizeUnicodetext(Utils.TextInBetween(querytext, ",""*"":""", "\n""}}")(0))
             Catch ex As IndexOutOfRangeException
-                Return Changedlist
+                Return New WikiDiff(fromid, toid, Changedlist)
             End Try
             Dim Rows As String() = Utils.TextInBetween(difftext, "<tr>", "</tr>")
             Dim Diffs As New List(Of Tuple(Of String, String))
@@ -771,7 +773,7 @@ Namespace WikiBot
                     End If
                 End If
             Next
-            Return Diffs
+            Return New WikiDiff(fromid, toid, Diffs)
         End Function
 
         ''' <summary>
@@ -1104,10 +1106,15 @@ Namespace WikiBot
                     NumbText = String.Format(NumbText, NotSafepages)
                     EditSummary = EditSummary & NumbText
                 End If
-                ResumePage.Save(NewResumePageText, EditSummary, False, True)
-                Utils.EventLogger.Log(Messages.SuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
-                Return True
+                Dim Result As EditResults = ResumePage.Save(NewResumePageText, EditSummary, False, True)
 
+                If Result = EditResults.Edit_successful Then
+                    Utils.EventLogger.Log(Messages.SuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                    Return True
+                Else
+                    Utils.EventLogger.Log(Messages.UnsuccessfulOperation & " (" & [Enum].GetName(GetType(EditResults), Result) & ").", Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                    Return False
+                End If
             Catch ex As IndexOutOfRangeException
                 Utils.EventLogger.Log(Messages.UnsuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
                 Utils.EventLogger.Debug_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
@@ -1249,7 +1256,7 @@ Namespace WikiBot
                     Dim User As New WikiUser(Me, Username)
                     'Validar usuario
                     If Not ValidUser(User) Then
-                        Utils.EventLogger.Log(Messages.InvalidUser, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                        Utils.EventLogger.Log(String.Format(Messages.InvalidUser, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
                         Continue For
                     End If
 

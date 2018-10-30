@@ -91,7 +91,7 @@ Namespace IRC
             _Clist.Add(DeOP)
             Dim UpdateExtracts As New IRCCommand("UpdateExtracts", ActualizarExtractos, AddressOf Commands.UpdateExtracts, "Actualiza la plantilla de extractos.", "")
             _Clist.Add(UpdateExtracts)
-            Dim Archive As New IRCCommand("Archive", Archivar, AddressOf Commands.ArchivePage, "Archiva una página específica.", " <página>")
+            Dim Archive As New IRCCommand("AutoArchive", Archivar, AddressOf Commands.ArchivePage, "Archiva una página específica.", " <página>")
             _Clist.Add(Archive)
             Dim DivBy0 As New IRCCommand("Div0", Divide0, AddressOf Commands.Div0, "Divide por cero.", "")
             _Clist.Add(DivBy0)

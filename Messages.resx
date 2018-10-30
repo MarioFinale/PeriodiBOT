@@ -306,4 +306,13 @@
   <data name="UserNoEdits" xml:space="preserve">
     <value>The user {0} have not edited on this Wiki.</value>
   </data>
+  <data name="AutoArchive" xml:space="preserve">
+    <value>Autoarchiving '{0}'.</value>
+  </data>
+  <data name="NullParameter" xml:space="preserve">
+    <value>The parameter is null.</value>
+  </data>
+  <data name="WikiThreadError" xml:space="preserve">
+    <value>Thread error on page '{0}'. Thread number: {1}. EX: {2}</value>
+  </data>
 </root>

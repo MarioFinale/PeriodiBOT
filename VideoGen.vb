@@ -478,24 +478,6 @@ Namespace WikiBot
             Return Counter
         End Function
 
-        Function CutImage(ByVal timg As Image, pos As Point, size As Point) As Image
-            Dim newimg As New Bitmap(size.X, size.Y)
-            Using fimg As Bitmap = CType(timg.Clone, Bitmap)
-                Dim xpos As Integer = 0
-                Dim ypos As Integer = 0
-                For y As Integer = pos.Y To size.Y - 1 + pos.Y
-                    For x As Integer = pos.X To size.X - 1 + pos.X
-                        Dim tcolor As Color = fimg.GetPixel(x, y)
-                        newimg.SetPixel(xpos, ypos, tcolor)
-                        xpos += 1
-                    Next
-                    xpos = 0
-                    ypos += 1
-                Next
-            End Using
-            Return newimg
-        End Function
-
         ''' <summary>
         ''' La imagen de fondo debe tener el mismo tamaño que la de frente
         ''' </summary>
@@ -720,24 +702,6 @@ Namespace WikiBot
                 img.Dispose()
                 Return Nothing
             End Try
-        End Function
-
-        Private Function Transparent2Color(ByVal bmp1 As Image, ByVal target As Color) As Bitmap
-            Dim bmp2 As Bitmap = New Bitmap(bmp1.Width, bmp1.Height)
-            Dim rect As Rectangle = New Rectangle(Point.Empty, bmp1.Size)
-            Using G As Graphics = Graphics.FromImage(bmp2)
-                G.Clear(target)
-                G.DrawImageUnscaledAndClipped(bmp1, rect)
-            End Using
-            Return bmp2
-        End Function
-
-        Private Function TransparentAndImage(bmp1 As Image, ByVal bmp2 As Image, location As Point) As Bitmap
-            Dim rect As Rectangle = New Rectangle(location, bmp1.Size)
-            Using G As Graphics = Graphics.FromImage(bmp2)
-                G.DrawImageUnscaledAndClipped(bmp1, rect)
-            End Using
-            Return CType(bmp2, Bitmap)
         End Function
     End Class
 

@@ -45,14 +45,14 @@ Public Class IRCCommands
         If args Is Nothing Then Return Nothing
         Dim source As String = args.Source
         Dim responsestring As New List(Of String)
-        If Not TaskList.Count >= 1 Then
+        If Not Utils.TaskAdm.TaskList.Count >= 1 Then
             Return New IRCMessage(source, "No hay tareas ejecutándose.")
         End If
         Dim threadnames As New List(Of Tuple(Of String, String, String))
-        For Each t As TaskInfo In TaskList
+        For Each t As TaskInfo In Utils.TaskAdm.TaskList
             threadnames.Add(New Tuple(Of String, String, String)(t.Name, t.Author, t.Status))
         Next
-        responsestring.Add("Hay " & Utils.ColoredText(TaskList.Count.ToString, 4) & " tareas ejecutándose en este momento:")
+        responsestring.Add("Hay " & Utils.ColoredText(Utils.TaskAdm.TaskList.Count.ToString, 4) & " tareas ejecutándose en este momento:")
         For i As Integer = 0 To threadnames.Count - 1
             responsestring.Add((i + 1).ToString & ": """ & threadnames(i).Item1 & """ por """ & threadnames(i).Item2 & """. Estado: " & Utils.ColoredText(threadnames(i).Item3, 4))
         Next
@@ -63,15 +63,15 @@ Public Class IRCCommands
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
 
-            NewThread("Generar imágenes de efemérides", args.Realname, New Func(Of Boolean)(Function()
-                                                                                                Dim imggen As New VideoGen(args.Workerbot)
-                                                                                                If imggen.CheckEfe Then
-                                                                                                    args.Client.Sendmessage(New IRCMessage(args.Source, "Se ha generado el video."))
-                                                                                                Else
-                                                                                                    args.Client.Sendmessage(New IRCMessage(args.Source, "No se han generado todos los videos, ver log para más detalles."))
-                                                                                                End If
-                                                                                                Return True
-                                                                                            End Function), 1, False)
+            Utils.TaskAdm.NewTask("Generar imágenes de efemérides", args.Realname, New Func(Of Boolean)(Function()
+                                                                                                            Dim imggen As New VideoGen(args.Workerbot)
+                                                                                                            If imggen.CheckEfe Then
+                                                                                                                args.Client.Sendmessage(New IRCMessage(args.Source, "Se ha generado el video."))
+                                                                                                            Else
+                                                                                                                args.Client.Sendmessage(New IRCMessage(args.Source, "No se han generado todos los videos, ver log para más detalles."))
+                                                                                                            End If
+                                                                                                            Return True
+                                                                                                        End Function), 1, False)
             Return New IRCMessage(args.Source, "Generando videos.")
         End If
         Return New IRCMessage(args.Source, "No autorizado.")
@@ -86,7 +86,7 @@ Public Class IRCCommands
         If Not IsNumeric(taskindex) Then
             Return New IRCMessage(source, "Ingrese el número de la tarea.")
         End If
-        If Not TaskList.Count >= 1 Then
+        If Not Utils.TaskAdm.TaskList.Count >= 1 Then
             Return New IRCMessage(source, "No hay tareas ejecutándose.")
         End If
         If taskindex.Length > 5 Then
@@ -96,10 +96,10 @@ Public Class IRCCommands
         If Not tindex > 0 Then
             Return New IRCMessage(source, "El valor debe ser mayor a 0.")
         End If
-        If tindex > TaskList.Count Then
+        If tindex > Utils.TaskAdm.TaskList.Count Then
             Return New IRCMessage(source, "La tarea no existe.")
         End If
-        Dim tinfo As TaskInfo = TaskList(tindex - 1)
+        Dim tinfo As TaskInfo = Utils.TaskAdm.TaskList(tindex - 1)
         Dim tstype As String = String.Empty
         Dim timeinterval As String = String.Empty
         If tinfo.Scheduledtask Then
@@ -134,7 +134,7 @@ Public Class IRCCommands
             If Not IsNumeric(taskindex) Then
                 Return New IRCMessage(source, "Ingrese el número de la tarea.")
             End If
-            If Not TaskList.Count >= 1 Then
+            If Not Utils.TaskAdm.TaskList.Count >= 1 Then
                 Return New IRCMessage(source, "No hay tareas ejecutándose.")
             End If
             If taskindex.Length > 5 Then
@@ -144,10 +144,10 @@ Public Class IRCCommands
             If Not tindex > 0 Then
                 Return New IRCMessage(source, "El valor debe ser mayor a 0.")
             End If
-            If tindex > TaskList.Count Then
+            If tindex > Utils.TaskAdm.TaskList.Count Then
                 Return New IRCMessage(source, "La tarea no existe.")
             End If
-            Dim tinfo As TaskInfo = TaskList(tindex - 1)
+            Dim tinfo As TaskInfo = Utils.TaskAdm.TaskList(tindex - 1)
             If Not tinfo.Critical Then
                 If tinfo.Paused Then
                     tinfo.Paused = False
@@ -247,7 +247,7 @@ Public Class IRCCommands
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
             Dim Upexfcn As New Func(Of Boolean)(Function() args.Workerbot.UpdatePageExtracts(ResumePageName))
-            NewThread("Actualizar extractos a solicitud", args.Realname, Upexfcn, 1, False)
+            Utils.TaskAdm.NewTask("Actualizar extractos a solicitud", args.Realname, Upexfcn, 1, False)
             Return New IRCMessage(args.Source, args.Realname & ": Se ha creado la tarea.")
         Else
             Return Nothing
@@ -312,7 +312,7 @@ Public Class IRCCommands
     Function ArchiveAll(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            NewThread("Archivado a solicitud", args.Realname, New Func(Of Boolean)(Function() args.Workerbot.ArchiveAllInclusions()), 1, False)
+            Utils.TaskAdm.NewTask("Archivado a solicitud", args.Realname, New Func(Of Boolean)(Function() args.Workerbot.ArchiveAllInclusions()), 1, False)
             Return New IRCMessage(args.Source, "Se realizarará el archivado en todas las páginas.")
         Else
             Return Nothing
@@ -336,7 +336,7 @@ Public Class IRCCommands
                                               End If
                                               Return True
                                           End Function)
-        NewThread("Archivado a solicitud", args.Realname, archf, 1, False)
+        Utils.TaskAdm.NewTask("Archivado a solicitud", args.Realname, archf, 1, False)
         Dim mes As New IRCMessage(args.Source, responsestring)
         Return mes
     End Function

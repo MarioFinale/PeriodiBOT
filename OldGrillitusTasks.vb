@@ -55,14 +55,14 @@ Namespace WikiBot
             If Not Params.Count >= 4 Then Return False
             'Destino
             If String.IsNullOrEmpty(Params(0)) Then
-                Utils.EventLogger.Log("Archive: Malformed config, aborting.", SStrings.LocalSource)
+                Utils.EventLogger.Log("AutoArchive: Malformed config, aborting.", SStrings.LocalSource)
                 Return False
             Else
                 destination = Params(0)
             End If
             'Dias a mantener
             If String.IsNullOrEmpty(Params(1)) Then
-                Utils.EventLogger.Log("Archive: Malformed config, aborting.", SStrings.LocalSource)
+                Utils.EventLogger.Log("AutoArchive: Malformed config, aborting.", SStrings.LocalSource)
                 Return False
             Else
                 maxDays = Integer.Parse(Params(1))
@@ -107,7 +107,7 @@ Namespace WikiBot
 
             'Verificar el espacio de nombres de la página se archiva
             If Not ValidNamespace(PageToArchive) Then
-                Utils.EventLogger.Log("Archive: The page" & PageToArchive.Title & " is not in a valid namespace, aborting.", SStrings.LocalSource)
+                Utils.EventLogger.Log("AutoArchive: The page" & PageToArchive.Title & " is not in a valid namespace, aborting.", SStrings.LocalSource)
                 Return False
             End If
 
@@ -123,12 +123,12 @@ Namespace WikiBot
                 Dim User As New WikiUser(_bot, Username)
                 'Validar usuario
                 If Not ValidUser(User) Then
-                    Utils.EventLogger.Log("Archive: """ & User.UserName & """ doesn't meet the requirements.", SStrings.LocalSource)
+                    Utils.EventLogger.Log("AutoArchive: """ & User.UserName & """ doesn't meet the requirements.", SStrings.LocalSource)
                     Return False
                 End If
                 'Validar que destino de archivado sea una subpágina del usuario.
                 If Not ArchiveCfg(0).StartsWith(PageToArchive.Title) Then
-                    Utils.EventLogger.Log("Archive: The page" & ArchiveCfg(0) & " isn't a subpage of the same user.", SStrings.LocalSource)
+                    Utils.EventLogger.Log("AutoArchive: The page" & ArchiveCfg(0) & " isn't a subpage of the same user.", SStrings.LocalSource)
                     Return False
                 End If
             End If
@@ -140,22 +140,16 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="PageToArchive">Página a archivar</param>
         ''' <returns></returns>
-        Function Archive(ByVal PageToArchive As Page) As Boolean
-            Utils.EventLogger.Log("Archive: Page " & PageToArchive.Title, SStrings.LocalSource)
+        Function AutoArchive(ByVal PageToArchive As Page) As Boolean
+            Utils.EventLogger.Log(String.Format(Messages.AutoArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name)
             If PageToArchive Is Nothing Then Return False
             Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
             Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
-            Dim Newpagetext As String = PageToArchive.Text
 
             If Not ValidPage(PageToArchive, ArchiveCfg) Then Return False
 
             Dim ArchivePages As New List(Of String)
-
-            Utils.EventLogger.Debug_Log("Archive: Declare tuples", SStrings.LocalSource)
-            Dim Archives As New List(Of Tuple(Of String, String))
-
-            Utils.EventLogger.Debug_Log("Archive: Get threads of page " & PageToArchive.Title, SStrings.LocalSource)
-            Dim threads As String() = Utils.GetPageThreads(PageToArchive.Text)
+            Dim pageThreads As String() = Utils.GetPageThreads(PageToArchive.Text)
 
             Dim notify As Boolean
             Dim strategy As String = String.Empty
@@ -164,122 +158,22 @@ Namespace WikiBot
             Dim maxDays As Integer = 0
             If Not PageConfig(ArchiveCfg, pageDest, maxDays, strategy, useBox, notify) Then Return False
 
-            Dim ArchivedThreads As Integer = 0
-            If threads.Count = 1 Then
-                Utils.EventLogger.Log("Archive: The page " & PageToArchive.Title & " only have one thread, aborting.", SStrings.LocalSource)
+            If pageThreads.Count = 1 Then
+                Utils.EventLogger.Log("AutoArchive: The page " & PageToArchive.Title & " only have one thread, aborting.", SStrings.LocalSource)
                 Return False
             End If
+            Utils.EventLogger.Debug_Log("AutoArchive: Read Threads", SStrings.LocalSource)
 
-            Utils.EventLogger.Debug_Log("Archive: Declare limit date", SStrings.LocalSource)
-            Dim LimitDate As DateTime = DateTime.Now.AddDays(-maxDays)
-            Utils.EventLogger.Debug_Log("Archive: Read Threads", SStrings.LocalSource)
-
-            For Each t As String In threads
-                Try
-                    If ArchivedThreads = threads.Count - 1 Then
-                        Exit For
-                    End If
-                    '-----------------------------------------------------------------------------------------------
-                    'Firma mas reciente en la seccion
-                    If strategy = "FirmaMásRecienteEnLaSección" Then
-                        Dim threaddate As DateTime = Utils.MostRecentDate(t)
-
-                        Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha *\=")
-                        Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
-
-                        If Not DoNotArchiveMatch.Success Then
-
-                            'Archivado programado
-                            If ProgrammedMatch.Success Then
-                                Dim fechastr As String = Utils.TextInBetween(t, ProgrammedMatch.Value, "}}")(0)
-                                fechastr = " " & fechastr & " "
-                                fechastr = fechastr.Replace(" 1-", "01-").Replace(" 2-", "02-").Replace(" 3-", "03-").Replace(" 4-", "04-") _
-                                    .Replace(" 5-", "05-").Replace(" 6-", "06-").Replace(" 7-", "07-").Replace(" 8-", "08-").Replace(" 9-", "09-") _
-                                    .Replace("-1-", "-01-").Replace("-2-", "-02-").Replace("-3-", "-03-").Replace("-4-", "-04-").Replace("-5-", "-05-") _
-                                    .Replace("-6-", "-06-").Replace("-7-", "-07-").Replace("-8-", "-08-").Replace("-9-", "-09-").Trim()
-                                Dim fecha As DateTime = DateTime.ParseExact(fechastr, "dd'-'MM'-'yyyy", System.Globalization.CultureInfo.InvariantCulture)
-
-                                If DateTime.Now > fecha.AddDays(1) Then
-                                    'Quitar el hilo de la pagina
-                                    Newpagetext = Newpagetext.Replace(t, "")
-                                    Dim destination As String = SetPageDestination(threaddate, ArchiveCfg(0))
-                                    Archives.Add(New Tuple(Of String, String)(destination, t))
-                                    ArchivedThreads += 1
-                                End If
-                            Else
-
-                                'Archivado normal
-                                If threaddate < LimitDate Then
-                                    Newpagetext = Newpagetext.Replace(t, "")
-                                    Dim destination As String = SetPageDestination(threaddate, ArchiveCfg(0))
-                                    Archives.Add(New Tuple(Of String, String)(destination, t))
-                                    ArchivedThreads += 1
-                                End If
-                            End If
-                        End If
-
-                        'Firma en el ultimo parrafo
-                        '-----------------------------------------------------------------------------------------------------
-                    ElseIf strategy = "FirmaEnÚltimoPárrafo" Then
-                        Dim threaddate As Date = Utils.LastParagraphDateTime(t)
-                        Dim ProgrammedMatch As Match = Regex.Match(t, "{{ *[Aa]rchivo programado *\| *fecha\=")
-                        Dim DoNotArchiveMatch As Match = Regex.Match(t, "{{ *[Nn]o archivar *")
-
-                        If Not DoNotArchiveMatch.Success Then
-
-                            'Archivado programado
-                            If ProgrammedMatch.Success Then
-                                Dim fechastr As String = Utils.TextInBetween(t, ProgrammedMatch.Value, "}}")(0)
-                                fechastr = " " & fechastr & " "
-                                fechastr = fechastr.Replace(" 1-", "01-").Replace(" 2-", "02-").Replace(" 3-", "03-").Replace(" 4-", "04-") _
-                                    .Replace(" 5-", "05-").Replace(" 6-", "06-").Replace(" 7-", "07-").Replace(" 8-", "08-").Replace(" 9-", "09-") _
-                                    .Replace("-1-", "-01-").Replace("-2-", "-02-").Replace("-3-", "-03-").Replace("-4-", "-04-").Replace("-5-", "-05-") _
-                                    .Replace("-6-", "-06-").Replace("-7-", "-07-").Replace("-8-", "-08-").Replace("-9-", "-09-").Trim()
-
-                                Dim fecha As DateTime = DateTime.ParseExact(fechastr, "dd'-'MM'-'yyyy", System.Globalization.CultureInfo.InvariantCulture)
-
-                                If DateTime.Now > fecha.AddDays(1) Then
-                                    Newpagetext = Newpagetext.Replace(t, "")
-                                    Dim destination As String = SetPageDestination(threaddate, ArchiveCfg(0))
-                                    Archives.Add(New Tuple(Of String, String)(destination, t))
-                                    ArchivedThreads += 1
-
-                                End If
-                            Else
-                                'Archivado normal
-                                If threaddate < LimitDate Then
-                                    Newpagetext = Newpagetext.Replace(t, "")
-                                    Dim destination As String = SetPageDestination(threaddate, ArchiveCfg(0))
-                                    Archives.Add(New Tuple(Of String, String)(destination, t))
-                                    ArchivedThreads += 1
-                                End If
-                            End If
-                        End If
-                    End If
-                Catch ex As Exception
-                    Utils.EventLogger.Log("Archive: Thread error on " & PageToArchive.Title, SStrings.LocalSource)
-                    Utils.EventLogger.EX_Log(ex.Message, "Archive")
-                End Try
-            Next
+            'Revisar hilos y archivar si corresponde
+            Dim archiveResults As Tuple(Of SortedList(Of String, String), String, Integer) = CheckAndArchiveThreads(PageToArchive.Title, pageThreads, PageToArchive.Text, strategy, pageDest, maxDays)
+            Dim ArchivedList As SortedList(Of String, String) = archiveResults.Item1
+            Dim Newpagetext As String = archiveResults.Item2
+            Dim ArchivedThreads As Integer = archiveResults.Item3
 
             If ArchivedThreads > 0 Then
-                Utils.EventLogger.Debug_Log("Archive: List pages", SStrings.LocalSource)
-                'Lista de Pagina de archivado e hilos a archivar
-                Dim Sl As New SortedList(Of String, String)
-
-                For Each t As Tuple(Of String, String) In Archives
-                    Dim tdestiny As String = t.Item1
-                    Dim Thread As String = t.Item2
-                    If Not Sl.Keys.Contains(tdestiny) Then
-                        Sl.Add(tdestiny, Thread)
-                    Else
-                        Sl.Item(tdestiny) = Sl.Item(tdestiny) & Thread
-                    End If
-                Next
-
                 'Guardar los hilos en los archivos correspondientes por fecha
-                For Each k As KeyValuePair(Of String, String) In Sl
-                    Utils.EventLogger.Debug_Log("Archive: Save threads", SStrings.LocalSource)
+                For Each k As KeyValuePair(Of String, String) In ArchivedList
+                    Utils.EventLogger.Debug_Log("AutoArchive: Save pageThreads", SStrings.LocalSource)
                     Dim isminor As Boolean = Not notify
                     Dim Archivepage As String = k.Key
                     Dim ThreadText As String = Environment.NewLine & k.Value
@@ -290,13 +184,13 @@ Namespace WikiBot
 
                     'Verificar si la página de archivado está en el mismo espacio de nombres
                     If Not ArchPage.PageNamespace = PageToArchive.PageNamespace Then
-                        Utils.EventLogger.Log("Archive: The page " & ArchPage.Title & " is not a in the same namespace of " & PageToArchive.Title & " aborting.", SStrings.LocalSource)
+                        Utils.EventLogger.Log("AutoArchive: The page " & ArchPage.Title & " is not a in the same namespace of " & PageToArchive.Title & " aborting.", SStrings.LocalSource)
                         Return False
                     End If
 
                     'Verificar si la página de archivado es una subpágina de la raiz
                     If Not ArchPage.Title.StartsWith(PageToArchive.RootPage) Then
-                        Utils.EventLogger.Log("Archive: The page " & ArchPage.Title & " is not a subpage of " & PageToArchive.RootPage & " aborting.", SStrings.LocalSource)
+                        Utils.EventLogger.Log("AutoArchive: The page " & ArchPage.Title & " is not a subpage of " & PageToArchive.RootPage & " aborting.", SStrings.LocalSource)
                     End If
 
                     'Anadir los hilos al texto
@@ -334,7 +228,7 @@ Namespace WikiBot
 
                 'Guardar pagina principal
                 If Not String.IsNullOrEmpty(Newpagetext) Then
-                    Utils.EventLogger.Debug_Log("Archive: Save main page", SStrings.LocalSource)
+                    Utils.EventLogger.Debug_Log("AutoArchive: Save main page", SStrings.LocalSource)
 
                     'Si debe tener caja de archivos...
                     If useBox Then
@@ -355,13 +249,89 @@ Namespace WikiBot
                 End If
 
             Else
-                Utils.EventLogger.Log("Archive: Nothing to archive on " & PageToArchive.Title, SStrings.LocalSource)
+                Utils.EventLogger.Log("AutoArchive: Nothing to archive on " & PageToArchive.Title, SStrings.LocalSource)
             End If
 
-
-            Utils.EventLogger.Log("Archive: " & PageToArchive.Title & " done.", SStrings.LocalSource)
+            Utils.EventLogger.Log("AutoArchive: " & PageToArchive.Title & " done.", SStrings.LocalSource)
             Return True
         End Function
+
+
+        Private Function CheckAndArchiveThreads(ByVal Pagename As String, ByVal threads As String(), pagetext As String, strategy As String, ConfigDest As String, maxDays As Integer) As Tuple(Of SortedList(Of String, String), String, Integer)
+            Dim archiveList As New SortedList(Of String, String)
+            Dim newText As String = pagetext
+            Dim maxDate As Date = Date.UtcNow.AddDays(-maxDays)
+            Dim archivedThreads As Integer = 0
+
+            For i As Integer = 0 To threads.Count - 1
+                Dim thread As String = threads(i)
+                Try
+                    Dim tDate As Date
+                    If strategy = "FirmaMásRecienteEnLaSección" Then
+                        tDate = Utils.MostRecentDate(thread)
+                    ElseIf strategy = "FirmaEnÚltimoPárrafo" Then
+                        tDate = Utils.LastParagraphDateTime(thread)
+                    Else
+                        Continue For
+                    End If
+                    Dim threadresult As Tuple(Of Tuple(Of String, String), String) = CheckAndArchiveThread(thread, tDate, maxDate, newText, ConfigDest)
+                    If threadresult Is Nothing Then Continue For
+                    archivedThreads += 1
+                    Dim ArchivedThreadInfo As Tuple(Of String, String) = threadresult.Item1
+                    Dim ArchivePageName As String = ArchivedThreadInfo.Item1
+                    Dim ArchiveThreadText As String = ArchivedThreadInfo.Item2
+                    newText = threadresult.Item2
+                    If archiveList.ContainsKey(ArchivePageName) Then
+                        archiveList(ArchivePageName) = archiveList(ArchivePageName) & ArchiveThreadText
+                    Else
+                        archiveList.Add(ArchivePageName, ArchiveThreadText)
+                    End If
+                Catch ex As Exception
+                    Utils.EventLogger.EX_Log(String.Format(Messages.WikiThreadError, Pagename, i.ToString, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name)
+                End Try
+            Next
+            Return New Tuple(Of SortedList(Of String, String), String, Integer)(archiveList, newText, archivedThreads)
+        End Function
+
+
+        Private Function CheckAndArchiveThread(ByVal threadtext As String, threaddate As Date, limitdate As Date, pagetext As String, ConfigDestination As String) As Tuple(Of Tuple(Of String, String), String)
+
+            Dim ProgrammedMatch As Match = Regex.Match(threadtext, "{{ *[Aa]rchivo programado *\| *fecha\=")
+            Dim DoNotArchiveMatch As Match = Regex.Match(threadtext, "{{ *[Nn]o archivar *")
+
+            If Not DoNotArchiveMatch.Success Then
+
+                'Archivado programado
+                If ProgrammedMatch.Success Then
+                    Dim fechastr As String = Utils.TextInBetween(threadtext, ProgrammedMatch.Value, "}}")(0)
+                    fechastr = " " & fechastr & " "
+                    fechastr = fechastr.Replace(" 1-", "01-").Replace(" 2-", "02-").Replace(" 3-", "03-").Replace(" 4-", "04-") _
+                        .Replace(" 5-", "05-").Replace(" 6-", "06-").Replace(" 7-", "07-").Replace(" 8-", "08-").Replace(" 9-", "09-") _
+                        .Replace("-1-", "-01-").Replace("-2-", "-02-").Replace("-3-", "-03-").Replace("-4-", "-04-").Replace("-5-", "-05-") _
+                        .Replace("-6-", "-06-").Replace("-7-", "-07-").Replace("-8-", "-08-").Replace("-9-", "-09-").Trim()
+
+                    Dim fecha As DateTime = DateTime.ParseExact(fechastr, "dd'-'MM'-'yyyy", System.Globalization.CultureInfo.InvariantCulture)
+
+                    If DateTime.Now > fecha.AddDays(1) Then
+                        pagetext = pagetext.Replace(threadtext, "")
+                        Dim destination As String = SetPageDestination(threaddate, ConfigDestination)
+                        Dim tdest As New Tuple(Of String, String)(destination, threadtext)
+                        Return New Tuple(Of Tuple(Of String, String), String)(tdest, pagetext)
+                    End If
+                Else
+                    'Archivado normal
+                    If threaddate < limitdate Then
+                        pagetext = pagetext.Replace(threadtext, "")
+                        Dim destination As String = SetPageDestination(threaddate, ConfigDestination)
+                        Dim tdest As New Tuple(Of String, String)(destination, threadtext)
+                        Return New Tuple(Of Tuple(Of String, String), String)(tdest, pagetext)
+                    End If
+                End If
+            End If
+            Return Nothing
+        End Function
+
+
 
         Private Function SetPageDestination(ByVal threaddate As Date, destination As String) As String
             Dim Threadyear As String = threaddate.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
@@ -375,7 +345,6 @@ Namespace WikiBot
             Else
                 Threadhyear = 2
             End If
-
             Dim PageDestination As String = destination.Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
                           .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
 
@@ -532,9 +501,9 @@ Namespace WikiBot
                 Dim _Page As Page = _bot.Getpage(pa)
                 If _Page.Exists Then
                     Try
-                        Archive(_Page)
+                        AutoArchive(_Page)
                     Catch ex As Exception
-                        Utils.EventLogger.Debug_Log("Archive error, page " & _Page.Title, SStrings.LocalSource)
+                        Utils.EventLogger.Debug_Log("AutoArchive error, page " & _Page.Title, SStrings.LocalSource)
                         Utils.EventLogger.EX_Log(ex.Message, "ArchiveAllInclusions")
                     End Try
 

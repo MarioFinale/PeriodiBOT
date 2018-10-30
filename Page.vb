@@ -257,13 +257,11 @@ Namespace WikiBot
         ''' <returns></returns>
         Private Overloads Function Loadpage(ByVal Revid As Integer, ByVal site As Uri) As Boolean
             If site Is Nothing Then
-                Throw New ArgumentNullException("site", "Empty parameter")
+                Throw New ArgumentNullException("site")
             End If
-
             If Revid <= 0 Then
-                Throw New ArgumentNullException("PageTitle", "Empty parameter")
+                Throw New ArgumentNullException("Revid")
             End If
-
             _siteuri = site
             PageInfoData(Revid)
             _sections = Utils.GetPageThreads(_text)

@@ -83,6 +83,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Autoarchiving &apos;{0}&apos;..
+        '''</summary>
+        Friend Shared ReadOnly Property AutoArchive() As String
+            Get
+                Return ResourceManager.GetString("AutoArchive", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a PeriodiBOT .
         '''</summary>
         Friend Shared ReadOnly Property BotEngine() As String
@@ -362,6 +371,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a The parameter is null..
+        '''</summary>
+        Friend Shared ReadOnly Property NullParameter() As String
+            Get
+                Return ResourceManager.GetString("NullParameter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a  {0} unsafe extract has been omitted..
         '''</summary>
         Friend Shared ReadOnly Property OmittedExtract() As String
@@ -628,6 +646,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property UserNoEdits() As String
             Get
                 Return ResourceManager.GetString("UserNoEdits", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Thread error on page &apos;{0}&apos;. Thread number: {1}. EX: {2}.
+        '''</summary>
+        Friend Shared ReadOnly Property WikiThreadError() As String
+            Get
+                Return ResourceManager.GetString("WikiThreadError", resourceCulture)
             End Get
         End Property
     End Class
