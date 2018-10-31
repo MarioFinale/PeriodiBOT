@@ -15,7 +15,7 @@ Namespace WikiBot
             Try
                 Dim topicpage As Page = ESWikiBOT.Getpage(TopicPageName)
                 Dim newtext As String = GetTopicsPageText()
-                If Not newtext.Length = topicpage.Text.Length Then
+                If Not newtext.Length = topicpage.Content.Length Then
                     topicpage.Save(newtext, "Bot: Actualizando temas", False, True)
                     Return True
                 Else
@@ -79,7 +79,7 @@ Namespace WikiBot
 
         Private Function GetTopicGroups() As SortedDictionary(Of String, List(Of String))
             Dim GroupsPage As Page = _bot.Getpage(TopicGroupsPage) 'Inicializar página de grupos
-            Dim Threads As String() = Utils.GetPageThreads(GroupsPage.Text) 'Obtener hilos de la página
+            Dim Threads As String() = Utils.GetPageThreads(GroupsPage.Content) 'Obtener hilos de la página
 
             Dim Groups As New SortedDictionary(Of String, List(Of String))
             For Each t As String In Threads 'Por cada hilo...

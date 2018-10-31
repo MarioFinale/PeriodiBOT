@@ -154,7 +154,6 @@ Namespace WikiBot
                 Catch ex As System.IO.IOException
                     Utils.EventLogger.Log(Messages.NewConfigFileError, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
                 End Try
-
             End If
 
             If Not ConfigOK Then
@@ -162,7 +161,7 @@ Namespace WikiBot
                 Console.WriteLine(Messages.NewConfigMessage)
                 Console.WriteLine(Messages.NewBotName)
                 MainBotName = Console.ReadLine
-                Console.WriteLine(Messages.NewUsername)
+                Console.WriteLine(Messages.NewUserName)
                 WPBotUserName = Console.ReadLine
                 Console.WriteLine(Messages.NewBotPassword)
                 WPBotPassword = Console.ReadLine
@@ -230,7 +229,7 @@ Namespace WikiBot
 #Region "BotFunctions"
         Public Function GetSpamListregexes(ByVal spamlistPage As Page) As String()
             If spamlistPage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name)
-            Dim Lines As String() = Utils.GetLines(spamlistPage.Text, True) 'Extraer las líneas del texto de la página
+            Dim Lines As String() = Utils.GetLines(spamlistPage.Content, True) 'Extraer las líneas del texto de la página
             Dim Regexes As New List(Of String) 'Declarar lista con líneas con expresiones regulares
 
             For Each l As String In Lines 'Por cada línea...
@@ -311,8 +310,8 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="PageName">Título aproximado o similar al de una página</param>
         ''' <returns></returns>
-        Function SearchForPages(PageName As String) As String()
-            Return Utils.GetTitlesFromQueryText(GETQUERY(SStrings.Search & PageName))
+        Function SearchForPages(pageName As String) As String()
+            Return Utils.GetTitlesFromQueryText(GETQUERY(SStrings.Search & pageName))
         End Function
 
         ''' <summary>
@@ -322,8 +321,8 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="PageName">Título aproximado o similar al de una página</param>
         ''' <returns></returns>
-        Function SearchForPage(PageName As String) As String
-            Dim titles As String() = SearchForPages(PageName)
+        Function SearchForPage(pageName As String) As String
+            Dim titles As String() = SearchForPages(pageName)
             If titles.Count >= 1 Then
                 Return titles(0)
             Else
@@ -338,8 +337,8 @@ Namespace WikiBot
         ''' </summary>
         ''' <param name="PageName"></param>
         ''' <returns></returns>
-        Function GetSearchedPage(PageName As String) As Page
-            Dim titles As String() = SearchForPages(PageName)
+        Function GetSearchedPage(pageName As String) As Page
+            Dim titles As String() = SearchForPages(pageName)
             If titles.Count >= 1 Then
                 Return Getpage(titles(0))
             Else
@@ -678,7 +677,7 @@ Namespace WikiBot
             If requestedpage Is Nothing Then
                 Return False
             End If
-            Dim PageText As String = requestedpage.Text
+            Dim PageText As String = requestedpage.Content
             If PageText.Contains(requestedtext) Then
                 PageText = PageText.Replace(requestedtext, newtext)
             End If
@@ -958,7 +957,7 @@ Namespace WikiBot
             Dim plist As New SortedList(Of String, String())
             For Each s As String In _bot.GetallInclusions(pageName)
                 Dim Pag As Page = _bot.Getpage(s)
-                Dim pagetext As String = Pag.Text
+                Dim pagetext As String = Pag.Content
                 For Each s2 As String In Utils.TextInBetween(pagetext, "{{" & pageName & "|", "}}")
                     If Not plist.Keys.Contains(s2) Then
                         plist.Add(s2, {Pag.Lastuser, Pag.Title})
@@ -978,7 +977,7 @@ Namespace WikiBot
             Dim slist As SortedList(Of String, String()) = GetAllRequestedpages(pageName)
             Dim Reqlist As New SortedList(Of String, String())
             Dim ResumePage As Page = Getpage(ResumePageName)
-            Dim rtext As String = ResumePage.Text
+            Dim rtext As String = ResumePage.Content
 
             For Each pair As KeyValuePair(Of String, String()) In slist
                 Try
@@ -1000,14 +999,14 @@ Namespace WikiBot
         ''' por defecto estos son de un máximo de 660 carácteres.
         ''' </summary>
         ''' <returns></returns>
-        Public Function UpdatePageExtracts(ByVal PageName As String) As Boolean
-            Utils.EventLogger.Log(String.Format(Messages.GetPageExtract, PageName), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+        Public Function UpdatePageExtracts(ByVal pageName As String) As Boolean
+            Utils.EventLogger.Log(String.Format(Messages.GetPageExtract, pageName), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
             Dim NewResumes As New SortedList(Of String, String)
             Dim OldResumes As New SortedList(Of String, String)
             Dim FinalList As New List(Of String)
 
-            Dim ResumePage As Page = Getpage(PageName)
-            Dim ResumePageText As String = ResumePage.Text
+            Dim ResumePage As Page = Getpage(pageName)
+            Dim ResumePageText As String = ResumePage.Content
             Dim NewResumePageText As String = "{{#switch:{{{1}}}" & Environment.NewLine
 
             Dim Safepages As Integer = 0
@@ -1025,7 +1024,7 @@ Namespace WikiBot
                 OldResumes.Add(PageResume.Item1, "|" & PageResume.Item1 & "=" & PageResume.Item2)
             Next
 
-            For Each p As KeyValuePair(Of String, String()) In GetResumeRequests(PageName)
+            For Each p As KeyValuePair(Of String, String()) In GetResumeRequests(pageName)
                 PageNames.Add(p.Key)
                 NewPages += 1
             Next
@@ -1127,7 +1126,7 @@ Namespace WikiBot
             Dim newThreads As Boolean = False
             Dim membPage As Page = Getpage(InformalMediationMembers)
             Dim MedPage As Page = Getpage(InfMedPage)
-            Dim subthreads As String() = Utils.GetPageSubThreads(membPage.Text)
+            Dim subthreads As String() = Utils.GetPageSubThreads(membPage.Content)
             Dim uTempList As List(Of Template) = Template.GetTemplates(subthreads(0))
             Dim userList As New List(Of String)
             For Each temp As Template In uTempList
@@ -1201,7 +1200,7 @@ Namespace WikiBot
         Function AddMissingSignature(ByVal tpage As Page, newthreads As Boolean, minor As Boolean) As Boolean
             Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection(tpage, newthreads)
             If UnsignedSectionInfo Is Nothing Then Return False
-            Dim pagetext As String = tpage.Text
+            Dim pagetext As String = tpage.Content
             Dim UnsignedThread As String = UnsignedSectionInfo.Item1
             Dim Username As String = UnsignedSectionInfo.Item2
             Dim UnsignedDate As Date = UnsignedSectionInfo.Item3

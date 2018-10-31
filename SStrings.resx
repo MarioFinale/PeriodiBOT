@@ -129,6 +129,9 @@
   <data name="AssertUserFailed" xml:space="preserve">
     <value>assertuserfailed</value>
   </data>
+  <data name="BoxMessage" xml:space="preserve">
+    <value>&lt;!-- Caja generada por PeriodiBOT, puedes editarla cuanto quieras, pero los nuevos enlaces siempre se añadirán al final. --&gt;</value>
+  </data>
   <data name="ConfigTemplate" xml:space="preserve">
     <value>======================CONFIG======================
 BOTName="{0}"

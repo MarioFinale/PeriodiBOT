@@ -7,18 +7,18 @@ Namespace IRC
         Private _botName As String
         Private _wBot As WikiBot.Bot
 
-        Sub New(ByVal botName As String, ByVal WorkingBot As WikiBot.Bot)
+        Sub New(ByVal botName As String, ByVal workerBot As WikiBot.Bot)
             _botName = botName
-            _wBot = WorkingBot
+            _wBot = workerBot
         End Sub
 
-        Function GetMessage(ByVal Source As String, ByVal user As String, ByVal text As String) As ChatMessage
-            Return New ChatMessage(Source, user, text, _wBot)
+        Function GetMessage(ByVal source As String, ByVal user As String, ByVal text As String) As ChatMessage
+            Return New ChatMessage(source, user, text, _wBot)
         End Function
 
-        Function GetPossiblePage(ByVal StartStrings As String, ByVal message As ChatMessage) As WikiBot.Page
-            If String.IsNullOrWhiteSpace(StartStrings) Or message Is Nothing Then Throw New ArgumentNullException("message")
-            For Each svar As String In StartStrings
+        Function GetPossiblePage(ByVal starts As String, ByVal message As ChatMessage) As WikiBot.Page
+            If String.IsNullOrWhiteSpace(starts) Or message Is Nothing Then Throw New ArgumentNullException("message")
+            For Each svar As String In starts
                 If message.NormalizedMessage.ToLower.StartsWith(svar.ToLower) Then
                     Dim resline As String = message.NormalizedMessage.ToLower
                     If resline.Contains(Environment.NewLine) Or resline.Contains(vbCrLf) Then

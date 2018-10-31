@@ -133,7 +133,7 @@
     <value>Comprobando usuarios.</value>
   </data>
   <data name="ConfigError" xml:space="preserve">
-    <value>Archivo de configuraciones corrupto</value>
+    <value>Archivo de configuraciones corrupto.</value>
   </data>
   <data name="DoneXPagesReturned" xml:space="preserve">
     <value>Hecho, retornando {0} páginas.</value>
@@ -201,7 +201,7 @@
   <data name="NewIrcNetworkPass" xml:space="preserve">
     <value>Contraseña de Nickserv o de servidor: </value>
   </data>
-  <data name="NewUsername" xml:space="preserve">
+  <data name="NewUserName" xml:space="preserve">
     <value>Nombre de usuario en la Wiki: </value>
   </data>
   <data name="NewWikiMainApiUrl" xml:space="preserve">
@@ -300,7 +300,7 @@
   <data name="UserJustEdited" xml:space="preserve">
     <value>{0} acaba de editar.</value>
   </data>
-  <data name="Username" xml:space="preserve">
+  <data name="UserName" xml:space="preserve">
     <value>Nombre de usuario: </value>
   </data>
   <data name="UserNoEdits" xml:space="preserve">
@@ -314,5 +314,53 @@
   </data>
   <data name="WikiThreadError" xml:space="preserve">
     <value>Error en un hilo de la página '{0}'. Hilo número {1}. EX: {2}</value>
+  </data>
+  <data name="ArchivedThreadDestSumm" xml:space="preserve">
+    <value>(Bot) Archivando {0} hilo con más de {1} días de antigüedad desde [[{2}]].</value>
+  </data>
+  <data name="ArchivedThreadsDestSumm" xml:space="preserve">
+    <value>(Bot) Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].</value>
+  </data>
+  <data name="ArchivedThreadsSumm" xml:space="preserve">
+    <value>(Bot) Archivando {0} hilos con más de {1} días de antigüedad.</value>
+  </data>
+  <data name="ArchivedThreadSumm" xml:space="preserve">
+    <value>(Bot) Archivando {0} hilo con más de {1} días de antigüedad.</value>
+  </data>
+  <data name="ArchivingInclusions" xml:space="preserve">
+    <value>Archivando todas las páginas que incluyan la plantilla '{0}'.</value>
+  </data>
+  <data name="AutoArchiveDone" xml:space="preserve">
+    <value>Autoarchivado de '{0}' completo.</value>
+  </data>
+  <data name="CreatingBoxSumm" xml:space="preserve">
+    <value>(Bot) Creando nueva caja de archivos.</value>
+  </data>
+  <data name="InvalidNamespace" xml:space="preserve">
+    <value>El espacio de nombres de la página '{0}' ({1}) es inválido.</value>
+  </data>
+  <data name="InvalidUserArchive" xml:space="preserve">
+    <value>El usuario '{0}' no cumple con los requisitos mínimos de archivado.</value>
+  </data>
+  <data name="MalformedArchiveConfig" xml:space="preserve">
+    <value>La plantilla de archivado en la página '{0}' está malformada.</value>
+  </data>
+  <data name="NotASubPage" xml:space="preserve">
+    <value>La página '{0}' no es una subpágina de la página principal ('{1}').</value>
+  </data>
+  <data name="NothingToArchive" xml:space="preserve">
+    <value>No hay hilos por archivar en '{0}'.</value>
+  </data>
+  <data name="OneThreadPage" xml:space="preserve">
+    <value>La página '{0}' solo tiene un hilo.</value>
+  </data>
+  <data name="OverwritingBoxSumm" xml:space="preserve">
+    <value>(Bot) Creando una nueva caja de archivos por sobre una ya existente.</value>
+  </data>
+  <data name="UpdateBoxEx" xml:space="preserve">
+    <value>Error al actualizar la caja de archivos en '{0}'. EX: {1}</value>
+  </data>
+  <data name="UpdatingBoxSumm" xml:space="preserve">
+    <value>(Bot) Actualizando caja de archivos.</value>
   </data>
 </root>

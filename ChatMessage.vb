@@ -7,7 +7,7 @@ Public Class ChatMessage
     Property Text As String
     Property NormalizedMessage As String
 
-    Sub New(ByVal tSource As String, tUser As String, tText As String, ByVal WorkingBot As WikiBot.Bot)
+    Sub New(ByVal tSource As String, tUser As String, tText As String, ByVal workerBot As WikiBot.Bot)
         Source = tSource
         User = tUser
         tText = tText

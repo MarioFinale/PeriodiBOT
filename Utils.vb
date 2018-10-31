@@ -1092,7 +1092,7 @@ NotInheritable Class Utils
     ''' <returns></returns>
     Public Shared Function GetPageThreads(ByVal tpage As Page) As String()
         If tpage Is Nothing Then Return Nothing
-        Return GetPageThreads(tpage.Text)
+        Return GetPageThreads(tpage.Content)
     End Function
 
     Public Shared Function GetSpanishTimeString(ByVal tDate As Date) As String

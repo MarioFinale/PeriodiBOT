@@ -83,7 +83,6 @@ Namespace IRC
 
 
         Public Async Sub StartClient()
-
             Utils.EventLogger.Log("Starting IRCclient", "IRC", _sNickName)
             Dim sIsInvisible As String = String.Empty
             Dim sCommand As String = String.Empty 'linea recibida

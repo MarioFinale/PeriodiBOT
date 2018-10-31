@@ -83,11 +83,65 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a (Bot) Archiving {0} thread with more than {1} days old from [[&apos;{2}&apos;]]..
+        '''</summary>
+        Friend Shared ReadOnly Property ArchivedThreadDestSumm() As String
+            Get
+                Return ResourceManager.GetString("ArchivedThreadDestSumm", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a (Bot) Archiving {0} threads with more than {1} days old from [[&apos;{2}&apos;]]..
+        '''</summary>
+        Friend Shared ReadOnly Property ArchivedThreadsDestSumm() As String
+            Get
+                Return ResourceManager.GetString("ArchivedThreadsDestSumm", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a (Bot) Archiving {0} threads with more than {1} days old..
+        '''</summary>
+        Friend Shared ReadOnly Property ArchivedThreadsSumm() As String
+            Get
+                Return ResourceManager.GetString("ArchivedThreadsSumm", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a (Bot) Archiving {0} thread with more than {1} days old..
+        '''</summary>
+        Friend Shared ReadOnly Property ArchivedThreadSumm() As String
+            Get
+                Return ResourceManager.GetString("ArchivedThreadSumm", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Archiving all pages that includes the template &apos;{0}&apos;..
+        '''</summary>
+        Friend Shared ReadOnly Property ArchivingInclusions() As String
+            Get
+                Return ResourceManager.GetString("ArchivingInclusions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Autoarchiving &apos;{0}&apos;..
         '''</summary>
         Friend Shared ReadOnly Property AutoArchive() As String
             Get
                 Return ResourceManager.GetString("AutoArchive", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Auto-archive of &apos;{0}&apos; done..
+        '''</summary>
+        Friend Shared ReadOnly Property AutoArchiveDone() As String
+            Get
+                Return ResourceManager.GetString("AutoArchiveDone", resourceCulture)
             End Get
         End Property
         
@@ -119,11 +173,20 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Busca una cadena traducida similar a Malformed config file.
+        '''  Busca una cadena traducida similar a Malformed config file..
         '''</summary>
         Friend Shared ReadOnly Property ConfigError() As String
             Get
                 Return ResourceManager.GetString("ConfigError", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a (Bot) Creating archive box..
+        '''</summary>
+        Friend Shared ReadOnly Property CreatingBoxSumm() As String
+            Get
+                Return ResourceManager.GetString("CreatingBoxSumm", resourceCulture)
             End Get
         End Property
         
@@ -173,6 +236,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a The namespace of &apos;{0}&apos; ({1}) is invalid..
+        '''</summary>
+        Friend Shared ReadOnly Property InvalidNamespace() As String
+            Get
+                Return ResourceManager.GetString("InvalidNamespace", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a The url is invalid..
         '''</summary>
         Friend Shared ReadOnly Property InvalidUrl() As String
@@ -187,6 +259,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property InvalidUser() As String
             Get
                 Return ResourceManager.GetString("InvalidUser", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a The user &apos;{0}&apos; doesn&apos;t meet the minimum archive requirements..
+        '''</summary>
+        Friend Shared ReadOnly Property InvalidUserArchive() As String
+            Get
+                Return ResourceManager.GetString("InvalidUserArchive", resourceCulture)
             End Get
         End Property
         
@@ -241,6 +322,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property LoginResult() As String
             Get
                 Return ResourceManager.GetString("LoginResult", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a The archive template on the page &apos;{0}&apos; is malformed..
+        '''</summary>
+        Friend Shared ReadOnly Property MalformedArchiveConfig() As String
+            Get
+                Return ResourceManager.GetString("MalformedArchiveConfig", resourceCulture)
             End Get
         End Property
         
@@ -328,9 +418,9 @@ Namespace My.Resources
         '''<summary>
         '''  Busca una cadena traducida similar a Wiki username: .
         '''</summary>
-        Friend Shared ReadOnly Property NewUsername() As String
+        Friend Shared ReadOnly Property NewUserName() As String
             Get
-                Return ResourceManager.GetString("NewUsername", resourceCulture)
+                Return ResourceManager.GetString("NewUserName", resourceCulture)
             End Get
         End Property
         
@@ -371,6 +461,24 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a The page &apos;{0}&apos; is not a subpage of the main page (&apos;{1}&apos;)..
+        '''</summary>
+        Friend Shared ReadOnly Property NotASubPage() As String
+            Get
+                Return ResourceManager.GetString("NotASubPage", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Nothing to archive on &apos;{0}&apos;..
+        '''</summary>
+        Friend Shared ReadOnly Property NothingToArchive() As String
+            Get
+                Return ResourceManager.GetString("NothingToArchive", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a The parameter is null..
         '''</summary>
         Friend Shared ReadOnly Property NullParameter() As String
@@ -398,6 +506,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a The page &apos;{0}&apos; only have one thread..
+        '''</summary>
+        Friend Shared ReadOnly Property OneThreadPage() As String
+            Get
+                Return ResourceManager.GetString("OneThreadPage", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Server error on ORES query score from revid {0} (invalid diff?).
         '''</summary>
         Friend Shared ReadOnly Property OresQueryError() As String
@@ -421,6 +538,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property OresQueryResult() As String
             Get
                 Return ResourceManager.GetString("OresQueryResult", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a (Bot) Creating a new archive box over an existing one..
+        '''</summary>
+        Friend Shared ReadOnly Property OverwritingBoxSumm() As String
+            Get
+                Return ResourceManager.GetString("OverwritingBoxSumm", resourceCulture)
             End Get
         End Property
         
@@ -542,11 +668,29 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Error updating the archive box on &apos;{0}&apos;. EX: {1}.
+        '''</summary>
+        Friend Shared ReadOnly Property UpdateBoxEx() As String
+            Get
+                Return ResourceManager.GetString("UpdateBoxEx", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a (Bot) Updated {0} resumes..
         '''</summary>
         Friend Shared ReadOnly Property UpdatedExtracts() As String
             Get
                 Return ResourceManager.GetString("UpdatedExtracts", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a (Bot) Updating archive box..
+        '''</summary>
+        Friend Shared ReadOnly Property UpdatingBoxSumm() As String
+            Get
+                Return ResourceManager.GetString("UpdatingBoxSumm", resourceCulture)
             End Get
         End Property
         
@@ -634,9 +778,9 @@ Namespace My.Resources
         '''<summary>
         '''  Busca una cadena traducida similar a User name: .
         '''</summary>
-        Friend Shared ReadOnly Property Username() As String
+        Friend Shared ReadOnly Property UserName() As String
             Get
-                Return ResourceManager.GetString("Username", resourceCulture)
+                Return ResourceManager.GetString("UserName", resourceCulture)
             End Get
         End Property
         

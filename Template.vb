@@ -286,7 +286,7 @@ Namespace WikiBot
                 Return New List(Of Template)
             End If
             Dim TemplateList As New List(Of Template)
-            Dim temps As List(Of String) = Template.GetTemplateTextArray(wikiPage.Text)
+            Dim temps As List(Of String) = Template.GetTemplateTextArray(wikiPage.Content)
 
             For Each t As String In temps
                 TemplateList.Add(New Template(t, False))

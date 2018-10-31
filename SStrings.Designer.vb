@@ -101,6 +101,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a &lt;!-- Caja generada por PeriodiBOT, puedes editarla cuanto quieras, pero los nuevos enlaces siempre se añadirán al final. --&gt;.
+        '''</summary>
+        Friend Shared ReadOnly Property BoxMessage() As String
+            Get
+                Return ResourceManager.GetString("BoxMessage", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a ======================CONFIG======================
         '''BOTName=&quot;{0}&quot;
         '''WPUserName=&quot;{1}&quot;

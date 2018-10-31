@@ -102,7 +102,7 @@ Namespace WikiBot
                     Dim lUserID As String = Utils.TextInBetween(postresponse, """lguserid"":", ",")(0)
                     Utils.EventLogger.Log(Messages.LoginID & lUserID, SStrings.LocalSource)
                     Dim lUsername As String = Utils.TextInBetween(postresponse, """lgusername"":""", """}")(0)
-                    Utils.EventLogger.Log(Messages.Username & lUsername, SStrings.LocalSource)
+                    Utils.EventLogger.Log(Messages.UserName & lUsername, SStrings.LocalSource)
                     Return lresult
                 Catch ex As IndexOutOfRangeException
                     Utils.EventLogger.Log(Messages.LoginError, SStrings.LocalSource)
@@ -148,8 +148,8 @@ Namespace WikiBot
             Return getresponse
         End Function
 
-        Public Overloads Function [GET](ByVal urlString As String) As String
-            Return [GET](New Uri(urlString))
+        Public Overloads Function [GET](ByVal address As String) As String
+            Return [GET](New Uri(address))
         End Function
 
         Public Overloads Function [GET](ByVal pageUri As Uri) As String

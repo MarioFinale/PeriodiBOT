@@ -108,7 +108,7 @@ Namespace WikiBot
             Dim imagename As String = "efe"
             Dim current As Integer = Createintro(imagename, Tpath, tdate)
             current = CallImages(current, imagename, Tpath, tdate)
-            current = Blackout(current, imagename, Tpath, tdate)
+            current = Blackout(current, imagename, Tpath)
             Utils.EventLogger.Log(current.ToString & " Imágenes generadas.", "GenEfemerides")
 
             If Not EncodeVideo(Tpath, tdate) Then
@@ -205,7 +205,7 @@ Namespace WikiBot
             Return current
         End Function
 
-        Function Blackout(ByVal current As Integer, imagename As String, path As String, tDate As Date) As Integer
+        Function Blackout(ByVal current As Integer, imagename As String, path As String) As Integer
             Dim lastimg As Drawing.Image = Drawing.Image.FromFile(path & imagename & current.ToString("0000") & ".jpg")
             Dim outimg As Image = New Bitmap(700, 720)
             Using timg As Image = New Bitmap(700, 720)
@@ -499,9 +499,6 @@ Namespace WikiBot
                             Dim cmatrix As Imaging.ColorMatrix = New Imaging.ColorMatrix(tmatrix)
                             Dim imageatt As New Imaging.ImageAttributes()
                             imageatt.SetColorMatrix(cmatrix, Imaging.ColorMatrixFlag.Default, Imaging.ColorAdjustType.Bitmap)
-
-                            Dim ignorecallback As New Graphics.DrawImageAbort(AddressOf Ignore)
-                            Dim tpoint As New Point(0, 0)
                             Dim trectangle As New Rectangle(0, 0, bg.Width, bg.Height)
                             graphic.DrawImage(orig, trectangle, 0F, 0F, bg.Width, bg.Height, GraphicsUnit.Pixel, imageatt)
                             graphic.Save()
