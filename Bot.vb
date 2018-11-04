@@ -129,9 +129,9 @@ Namespace WikiBot
             Dim IRCChannels As String() = {String.Empty}
             Dim ConfigOK As Boolean = False
             Console.WriteLine(String.Format(Messages.GreetingMsg, Version))
-            Utils.EventLogger.Debug_Log(Messages.BotEngine & Version, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+            Utils.EventLogger.Debug_Log(Messages.BotEngine & Version, Reflection.MethodBase.GetCurrentMethod().Name)
             If System.IO.File.Exists(path.GetPath) Then
-                Utils.EventLogger.Log(Messages.LoadingConfig, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                Utils.EventLogger.Log(Messages.LoadingConfig, Reflection.MethodBase.GetCurrentMethod().Name)
                 Dim Configstr As String = System.IO.File.ReadAllText(path.GetPath)
                 Try
                     MainBotName = Utils.TextInBetween(Configstr, "BOTName=""", """")(0)
@@ -145,14 +145,14 @@ Namespace WikiBot
                     IRCChannels = Utils.TextInBetween(Configstr, "IRCChannel=""", """")(0).Split("|"c)
                     ConfigOK = True
                 Catch ex As IndexOutOfRangeException
-                    Utils.EventLogger.Log(Messages.ConfigError, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                    Utils.EventLogger.Log(Messages.ConfigError, Reflection.MethodBase.GetCurrentMethod().Name)
                 End Try
             Else
-                Utils.EventLogger.Log(Messages.NoConfigFile, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                Utils.EventLogger.Log(Messages.NoConfigFile, Reflection.MethodBase.GetCurrentMethod().Name)
                 Try
                     System.IO.File.Create(path.ToString).Close()
                 Catch ex As System.IO.IOException
-                    Utils.EventLogger.Log(Messages.NewConfigFileError, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                    Utils.EventLogger.Log(Messages.NewConfigFileError, Reflection.MethodBase.GetCurrentMethod().Name)
                 End Try
             End If
 
@@ -182,7 +182,7 @@ Namespace WikiBot
                 Try
                     System.IO.File.WriteAllText(path.GetPath, configstr)
                 Catch ex As System.IO.IOException
-                    Utils.EventLogger.Log(Messages.SaveConfigError, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                    Utils.EventLogger.Log(Messages.SaveConfigError, Reflection.MethodBase.GetCurrentMethod().Name)
                 End Try
             End If
 
@@ -193,12 +193,12 @@ Namespace WikiBot
                 _apiUri = New Uri(WPAPI)
                 _wikiUri = New Uri(WPSite)
             Catch ex As ArgumentException
-                Utils.EventLogger.Log(Messages.InvalidUrl, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                Utils.EventLogger.Log(Messages.InvalidUrl, Reflection.MethodBase.GetCurrentMethod().Name)
                 System.IO.File.Delete(path.GetPath)
                 Utils.WaitSeconds(5)
                 Return False
             Catch ex2 As UriFormatException
-                Utils.EventLogger.Log(Messages.InvalidUrl, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                Utils.EventLogger.Log(Messages.InvalidUrl, Reflection.MethodBase.GetCurrentMethod().Name)
                 System.IO.File.Delete(path.GetPath)
                 Utils.PressKeyTimeout(5)
                 Return False
@@ -252,7 +252,7 @@ Namespace WikiBot
         ''' <param name="pageNames">Array con nombres de paginas unicos.</param>
         ''' <remarks></remarks>
         Function GetLastRevIds(ByVal pageNames As String()) As SortedList(Of String, Integer)
-            Utils.EventLogger.Debug_Log(String.Format(Messages.GetLastrevIDs, pageNames.Count), "GetLastRevIds", SStrings.LocalSource)
+            Utils.EventLogger.Debug_Log(String.Format(Messages.GetLastrevIDs, pageNames.Count), Reflection.MethodBase.GetCurrentMethod().Name)
             Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
             Dim PageList As List(Of List(Of String)) = Utils.SplitStringArrayIntoChunks(PageNamesList.ToArray, 50)
@@ -299,7 +299,7 @@ Namespace WikiBot
                     End If
                 Next
             Next
-            Utils.EventLogger.Debug_Log(String.Format(Messages.DoneXPagesReturned, PagenameAndLastId.Count), "GetLastRevIDs", SStrings.LocalSource)
+            Utils.EventLogger.Debug_Log(String.Format(Messages.DoneXPagesReturned, PagenameAndLastId.Count), Reflection.MethodBase.GetCurrentMethod().Name)
             Return PagenameAndLastId
         End Function
 
@@ -373,7 +373,7 @@ Namespace WikiBot
 
                     If m.Value.Contains("error") Then
 
-                        Utils.EventLogger.Debug_Log(String.Format(Messages.OresQueryError, EditID_str), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                        Utils.EventLogger.Debug_Log(String.Format(Messages.OresQueryError, EditID_str), Reflection.MethodBase.GetCurrentMethod().Name)
                         EditAndScoreList.Add(EditID, {0, 0})
                     Else
                         Try
@@ -381,10 +381,10 @@ Namespace WikiBot
                             Dim GoodFaithScore_str As String = Utils.TextInBetween(m.Value, """true"": ", "}")(1).Replace(".", DecimalSeparator)
                             Dim DMGScore As Double = Double.Parse(DMGScore_str) * 100
                             Dim GoodFaithScore As Double = Double.Parse(GoodFaithScore_str) * 100
-                            Utils.EventLogger.Debug_Log(String.Format(Messages.OresQueryResult, EditID_str, GoodFaithScore.ToString, DMGScore.ToString), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                            Utils.EventLogger.Debug_Log(String.Format(Messages.OresQueryResult, EditID_str, GoodFaithScore.ToString, DMGScore.ToString), Reflection.MethodBase.GetCurrentMethod().Name)
                             EditAndScoreList.Add(EditID, {DMGScore, GoodFaithScore})
                         Catch ex As IndexOutOfRangeException
-                            Utils.EventLogger.Debug_Log(String.Format(Messages.OresQueryEx, EditID_str, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                            Utils.EventLogger.Debug_Log(String.Format(Messages.OresQueryEx, EditID_str, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name)
                             EditAndScoreList.Add(EditID, {0, 0})
                         End Try
                     End If
@@ -617,7 +617,7 @@ Namespace WikiBot
         ''' <param name="pageNames">Array con nombres de página unicos.</param>
         ''' <remarks></remarks>
         Private Function BOTGetPagesExtract(ByVal pageNames As String(), charLimit As Integer, wiki As Boolean) As SortedList(Of String, String)
-            Utils.EventLogger.Log(String.Format(Messages.GetPagesExtract, pageNames.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+            Utils.EventLogger.Log(String.Format(Messages.GetPagesExtract, pageNames.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name)
             If pageNames Is Nothing Then Return Nothing
             Dim PageNamesList As List(Of String) = pageNames.ToList
             PageNamesList.Sort()
@@ -827,7 +827,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <returns></returns>
         Function CheckUsers() As IRCMessage()
-            Utils.EventLogger.Log(Messages.CheckingUsers, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+            Utils.EventLogger.Log(Messages.CheckingUsers, Reflection.MethodBase.GetCurrentMethod().Name)
             Dim MessagesList As New List(Of IRCMessage)
             Try
                 For Each UserdataLine As String() In Utils.EventLogger.LogUserData
@@ -899,22 +899,22 @@ Namespace WikiBot
         ''' <param name="user">Usuario de Wiki</param>
         ''' <returns></returns>
         Private Function ValidUser(ByVal user As WikiUser) As Boolean
-            Utils.EventLogger.Debug_Log(String.Format(Messages.CheckingUser, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+            Utils.EventLogger.Debug_Log(String.Format(Messages.CheckingUser, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
             'Verificar si el usuario existe
             If Not user.Exists Then
-                Utils.EventLogger.Log(String.Format(Messages.UserInexistent, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                Utils.EventLogger.Log(String.Format(Messages.UserInexistent, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
                 Return False
             End If
 
             'Verificar si el usuario está bloqueado.
             If user.Blocked Then
-                Utils.EventLogger.Log(String.Format(Messages.UserBlocked, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                Utils.EventLogger.Log(String.Format(Messages.UserBlocked, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
                 Return False
             End If
 
             'Verificar si el usuario editó hace al menos 4 días.
             If Date.Now.Subtract(user.LastEdit).Days >= 4 Then
-                Utils.EventLogger.Log(String.Format(Messages.UserInactive, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                Utils.EventLogger.Log(String.Format(Messages.UserInactive, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
                 Return False
             End If
             Return True
@@ -1000,7 +1000,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <returns></returns>
         Public Function UpdatePageExtracts(ByVal pageName As String) As Boolean
-            Utils.EventLogger.Log(String.Format(Messages.GetPageExtract, pageName), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+            Utils.EventLogger.Log(String.Format(Messages.GetPageExtract, pageName), Reflection.MethodBase.GetCurrentMethod().Name)
             Dim NewResumes As New SortedList(Of String, String)
             Dim OldResumes As New SortedList(Of String, String)
             Dim FinalList As New List(Of String)
@@ -1016,7 +1016,7 @@ Namespace WikiBot
 
             Dim templatelist As List(Of String) = Template.GetTemplateTextArray(ResumePageText)
             Dim ResumeTemplate As New Template(templatelist(0), False)
-            Utils.EventLogger.Debug_Log(String.Format(Messages.LoadingOldExtracts, ResumeTemplate.Parameters.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+            Utils.EventLogger.Debug_Log(String.Format(Messages.LoadingOldExtracts, ResumeTemplate.Parameters.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name)
             Dim PageNames As New List(Of String)
 
             For Each PageResume As Tuple(Of String, String) In ResumeTemplate.Parameters
@@ -1031,7 +1031,7 @@ Namespace WikiBot
             PageNames.Sort()
             Dim IDLIST As SortedList(Of String, Integer) = GetLastRevIds(PageNames.ToArray)
 
-            Utils.EventLogger.Debug_Log(String.Format(Messages.LoadingNewExtracts, PageNames.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+            Utils.EventLogger.Debug_Log(String.Format(Messages.LoadingNewExtracts, PageNames.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name)
             '============================================================================================
             ' Adding New resumes to list
             Dim Page_Resume_pair As SortedList(Of String, String) = GetPagesExtract(PageNames.ToArray, 660, True)
@@ -1059,7 +1059,7 @@ Namespace WikiBot
 
             '==========================================================================================
             'Choose between a old resume and a new resume depending if new resume is safe to use
-            Utils.EventLogger.Debug_Log(Messages.RecreatingText, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+            Utils.EventLogger.Debug_Log(Messages.RecreatingText, Reflection.MethodBase.GetCurrentMethod().Name)
             For Each s As String In PageNames.ToArray
                 Try
                     If (EditScoreList(IDLIST(s))(0) < 20) And (Utils.CountCharacter(NewResumes(s), CType("[", Char)) = Utils.CountCharacter(NewResumes(s), CType("]", Char))) Then
@@ -1084,7 +1084,7 @@ Namespace WikiBot
             Next
             '==========================================================================================
             NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & "}}" & Environment.NewLine & "<noinclude>{{documentación}}</noinclude>"
-            Utils.EventLogger.Debug_Log(String.Format(Messages.TryingToSave, ResumePage.Title), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+            Utils.EventLogger.Debug_Log(String.Format(Messages.TryingToSave, ResumePage.Title), Reflection.MethodBase.GetCurrentMethod().Name)
 
             Try
                 Dim EditSummary As String = String.Format(Messages.UpdatedExtracts, Safepages.ToString)
@@ -1108,15 +1108,15 @@ Namespace WikiBot
                 Dim Result As EditResults = ResumePage.Save(NewResumePageText, EditSummary, False, True)
 
                 If Result = EditResults.Edit_successful Then
-                    Utils.EventLogger.Log(Messages.SuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                    Utils.EventLogger.Log(Messages.SuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name)
                     Return True
                 Else
-                    Utils.EventLogger.Log(Messages.UnsuccessfulOperation & " (" & [Enum].GetName(GetType(EditResults), Result) & ").", Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                    Utils.EventLogger.Log(Messages.UnsuccessfulOperation & " (" & [Enum].GetName(GetType(EditResults), Result) & ").", Reflection.MethodBase.GetCurrentMethod().Name)
                     Return False
                 End If
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.Log(Messages.UnsuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
-                Utils.EventLogger.Debug_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                Utils.EventLogger.Log(Messages.UnsuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name)
+                Utils.EventLogger.Debug_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name)
                 Return False
             End Try
 
@@ -1255,7 +1255,7 @@ Namespace WikiBot
                     Dim User As New WikiUser(Me, Username)
                     'Validar usuario
                     If Not ValidUser(User) Then
-                        Utils.EventLogger.Log(String.Format(Messages.InvalidUser, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name, SStrings.LocalSource)
+                        Utils.EventLogger.Log(String.Format(Messages.InvalidUser, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
                         Continue For
                     End If
 

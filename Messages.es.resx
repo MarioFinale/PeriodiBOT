@@ -363,4 +363,22 @@
   <data name="UpdatingBoxSumm" xml:space="preserve">
     <value>(Bot) Actualizando caja de archivos.</value>
   </data>
+  <data name="CreatingConnection" xml:space="preserve">
+    <value>Creando conexión.</value>
+  </data>
+  <data name="JoiningChannel" xml:space="preserve">
+    <value>Entrando al canal {0}.</value>
+  </data>
+  <data name="NickervAuth" xml:space="preserve">
+    <value>Intentando autenticar via nickserv.</value>
+  </data>
+  <data name="SetName" xml:space="preserve">
+    <value>Estableciendo nombre.</value>
+  </data>
+  <data name="SetNick" xml:space="preserve">
+    <value>Estableciendo nickname.</value>
+  </data>
+  <data name="StartingIRCClient" xml:space="preserve">
+    <value>Iniciando cliente IRC.</value>
+  </data>
 </root>

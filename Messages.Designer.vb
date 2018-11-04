@@ -191,6 +191,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Creating Connection..
+        '''</summary>
+        Friend Shared ReadOnly Property CreatingConnection() As String
+            Get
+                Return ResourceManager.GetString("CreatingConnection", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Done, {0} pages returned..
         '''</summary>
         Friend Shared ReadOnly Property DoneXPagesReturned() As String
@@ -268,6 +277,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property InvalidUserArchive() As String
             Get
                 Return ResourceManager.GetString("InvalidUserArchive", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Joining channel {0}..
+        '''</summary>
+        Friend Shared ReadOnly Property JoiningChannel() As String
+            Get
+                Return ResourceManager.GetString("JoiningChannel", resourceCulture)
             End Get
         End Property
         
@@ -452,6 +470,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Attempting nickserv auth..
+        '''</summary>
+        Friend Shared ReadOnly Property NickervAuth() As String
+            Get
+                Return ResourceManager.GetString("NickervAuth", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a No config file.
         '''</summary>
         Friend Shared ReadOnly Property NoConfigFile() As String
@@ -605,11 +632,38 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Setting name..
+        '''</summary>
+        Friend Shared ReadOnly Property SetName() As String
+            Get
+                Return ResourceManager.GetString("SetName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Setting nickname..
+        '''</summary>
+        Friend Shared ReadOnly Property SetNick() As String
+            Get
+                Return ResourceManager.GetString("SetNick", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Signing in.
         '''</summary>
         Friend Shared ReadOnly Property SigninIn() As String
             Get
                 Return ResourceManager.GetString("SigninIn", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Starting IRC client..
+        '''</summary>
+        Friend Shared ReadOnly Property StartingIRCClient() As String
+            Get
+                Return ResourceManager.GetString("StartingIRCClient", resourceCulture)
             End Get
         End Property
         

@@ -83,7 +83,7 @@ Namespace IRC
 
 
         Public Async Sub StartClient()
-            Utils.EventLogger.Log("Starting IRCclient", "IRC", _sNickName)
+            Utils.EventLogger.Log(Messages.StartingIRCClient, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
             Dim sIsInvisible As String = String.Empty
             Dim sCommand As String = String.Empty 'linea recibida
             Dim Lastdate As DateTime = DateTime.Now
@@ -97,7 +97,7 @@ Namespace IRC
             Do Until HasExited
                 Try
                     'Start the main connection to the IRC server.
-                    Utils.EventLogger.Log("Creating Connection", "IRC", BotCodename)
+                    Utils.EventLogger.Log(Messages.CreatingConnection, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     _tcpClient = New TcpClient(_sServer, _lPort)
                     With _tcpClient
                         .ReceiveTimeout = 300000
@@ -117,24 +117,24 @@ Namespace IRC
 
                     'Attempt nickserv auth (freenode server pass method)
                     If Not String.IsNullOrEmpty(_sPass) Then
-                        Utils.EventLogger.Log("Attempting nickserv auth", "IRC", BotCodename)
+                        Utils.EventLogger.Log(Messages.NickervAuth, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                         _streamWriter.WriteLine(String.Format("PASS {0}:{1}", _sNickName, _sPass))
                         _streamWriter.Flush()
                     End If
 
                     'Create nickname.
-                    Utils.EventLogger.Log("Setting Nickname", "IRC", BotCodename)
+                    Utils.EventLogger.Log(Messages.SetNick, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     _streamWriter.WriteLine(String.Format(String.Format("NICK {0}", _sNickName)))
                     _streamWriter.Flush()
 
-                    'Send in information
-                    Utils.EventLogger.Log("Setting up name", "IRC", BotCodename)
+                    'Set name and status
+                    Utils.EventLogger.Log(Messages.SetName, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     _streamWriter.WriteLine(String.Format("USER {0} {1} * :{2}", _sUserName, sIsInvisible, _sRealName))
                     _streamWriter.Flush()
 
                     'Connect to the channels.
                     For Each chan As String In _sChannels
-                        Utils.EventLogger.Log("Joining Room """ & chan & """", "IRC", BotCodename)
+                        Utils.EventLogger.Log(String.Format(Messages.JoiningChannel, chan), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                         _streamWriter.WriteLine(String.Format("JOIN {0}", chan))
                         _streamWriter.Flush()
                     Next
