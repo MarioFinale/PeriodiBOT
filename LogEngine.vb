@@ -12,7 +12,7 @@ Class LogEngine
     Private _logging As Boolean
     Private _defaultUser As String
     Private _Debug As Boolean
-    Private _maxLogLenght As Integer = 5000
+    Private _maxLogLenght As Integer = 8000
 #End Region
 
 #Region "Properties"
@@ -277,7 +277,8 @@ Class LogEngine
 
             Dim totallines As String() = IO.File.ReadAllLines(filepath)
             If totallines.Count > _maxLogLenght Then
-                IO.File.WriteAllLines(filepath, Utils.SplitStringArrayIntoChunks(totallines, _maxLogLenght).Last.ToArray)
+                Dim newarr As String() = Utils.GetSubArray(totallines, totallines.Count - _maxLogLenght)
+                IO.File.WriteAllLines(filepath, newarr)
             End If
             Return True
         Catch ex As IO.IOException
@@ -313,7 +314,7 @@ Class LogEngine
     End Function
 
     ''' <summary>
-    ''' Añade línteas a un archivo de texto
+    ''' Añade líneas a un archivo de texto.
     ''' </summary>
     ''' <param name="FilePath">Ruta y nombre del archivo</param>
     ''' <param name="Lines">Líneas a añadir</param>

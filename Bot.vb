@@ -1105,7 +1105,7 @@ Namespace WikiBot
                     NumbText = String.Format(NumbText, NotSafepages)
                     EditSummary = EditSummary & NumbText
                 End If
-                Dim Result As EditResults = ResumePage.Save(NewResumePageText, EditSummary, False, True)
+                Dim Result As EditResults = ResumePage.Save(NewResumePageText, EditSummary, True, True)
 
                 If Result = EditResults.Edit_successful Then
                     Utils.EventLogger.Log(Messages.SuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name)
@@ -1198,6 +1198,7 @@ Namespace WikiBot
         End Function
 
         Function AddMissingSignature(ByVal tpage As Page, newthreads As Boolean, minor As Boolean) As Boolean
+            If tpage.Lastuser = _userName Then Return False 'No completar firma en páginas en las que haya editado
             Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection(tpage, newthreads)
             If UnsignedSectionInfo Is Nothing Then Return False
             Dim pagetext As String = tpage.Content
@@ -1295,8 +1296,25 @@ Namespace WikiBot
 
             Dim templatetext As String = "{{Noart|1=<div style=""position:absolute; z-index:100; right:10px; top:5px;"" class=""metadata"">" & Environment.NewLine & t.Text
             templatetext = templatetext & Environment.NewLine & "</div>}}" & Environment.NewLine & "<noinclude>" & "{{documentación}}" & "</noinclude>"
-            pageToSave.Save(templatetext, "Bot: Actualizando lista.")
+            pageToSave.Save(templatetext, "Bot: Actualizando lista.", True, True, False)
 
+        End Sub
+
+
+        Sub MessageDelivery(ByVal userList As String(), messageTitle As String, messageContent As String, editSummary As String)
+            For Each u As String In userList
+                Dim user As New WikiUser(Me, u)
+                If Not user.Exists Then
+                    Utils.EventLogger.Log(String.Format(Messages.UserInexistent, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
+                    Continue For
+                End If
+                If user.Blocked Then
+                    Utils.EventLogger.Log(String.Format(Messages.UserBlocked, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
+                    Continue For
+                End If
+                Dim userTalkPage As Page = user.TalkPage
+                userTalkPage.AddSection(messageTitle, messageContent, editSummary, False)
+            Next
         End Sub
 
 #End Region

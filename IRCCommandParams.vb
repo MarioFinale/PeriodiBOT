@@ -72,8 +72,8 @@ Namespace IRC
 #End Region
 
         Sub New(ByVal cimputline As String, commandResolver As IRC_Client, rWorkerbot As Bot)
-            If commandResolver Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
-            If rWorkerbot Is Nothing Then Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
+            If commandResolver Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name)
+            If rWorkerbot Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name)
 
             _source = String.Empty
             _realname = String.Empty
@@ -129,14 +129,11 @@ Namespace IRC
 
         Private Function GetParamString(ByVal message As String) As String
             If message.Contains(":") Then
-                Try
-                    Dim StringToRemove As String = Utils.TextInBetweenInclusive(message, ":", " :")(0)
-                    Dim Paramstring As String = message.Replace(StringToRemove, String.Empty)
-                    Return Paramstring
-                Catch ex As IndexOutOfRangeException
-                    Utils.EventLogger.EX_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _client.NickName)
-                    Return String.Empty
-                End Try
+                Dim matchedstrings As String() = Utils.TextInBetweenInclusive(message, ":", " :")
+                If matchedstrings.Count = 0 Then Return String.Empty
+                Dim stringtoremove As String = matchedstrings(0)
+                Dim paramstring As String = message.Replace(StringToRemove, String.Empty)
+                Return paramstring
             Else
                 Return String.Empty
             End If

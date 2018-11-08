@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddThread" xml:space="preserve">
+    <value>format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;section=new&amp;sectiontitle={3}&amp;text={4}&amp;token={5}</value>
+  </data>
   <data name="AssertBotData" xml:space="preserve">
     <value>action=query&amp;assert=bot&amp;format=json</value>
   </data>
@@ -144,11 +147,20 @@ IRCBotNickName="{6}"
 IRCBotPassword="{7}"
 IRCChannel="{8}"</value>
   </data>
+  <data name="EditToken" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;meta=tokens</value>
+  </data>
   <data name="GetDiffQuery" xml:space="preserve">
     <value>format=json&amp;action=compare&amp;fromrev={0}&amp;torev={1}</value>
   </data>
   <data name="GetLastRevIds" xml:space="preserve">
     <value>format=json&amp;action=query&amp;prop=revisions&amp;titles=</value>
+  </data>
+  <data name="GetLastTimestamp" xml:space="preserve">
+    <value>format=json&amp;maxlag=5&amp;action=query&amp;prop=revisions&amp;rvprop=timestamp&amp;titles={0}</value>
+  </data>
+  <data name="GetOresScore" xml:space="preserve">
+    <value>https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&amp;format=json&amp;revids=</value>
   </data>
   <data name="GetPageInclusions" xml:space="preserve">
     <value>format=json&amp;action=query&amp;list=embeddedin&amp;eilimit=1000&amp;eititle=</value>
@@ -158,6 +170,9 @@ IRCChannel="{8}"</value>
   </data>
   <data name="GetPagesImage" xml:space="preserve">
     <value>format=json&amp;action=query&amp;formatversion=2&amp;prop=pageimages&amp;titles=</value>
+  </data>
+  <data name="GetPageViews" xml:space="preserve">
+    <value>https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{0}/all-access/all-agents/{1}/daily/{2}{4}{6}00/{3}{5}{7}00</value>
   </data>
   <data name="GetWikiToken" xml:space="preserve">
     <value>format=json&amp;action=query&amp;meta=tokens&amp;type=login</value>
@@ -185,11 +200,23 @@ IRCChannel="{8}"</value>
   <data name="Login" xml:space="preserve">
     <value>format=json&amp;action=login&amp;lgname={0}&amp;lgpassword={1}&amp;lgdomain=&amp;lgtoken={2}</value>
   </data>
+  <data name="LongestThreads" xml:space="preserve">
+    <value>Usuario:PeriodiBOT/Curiosidades/Hilos más largos en la historia del café</value>
+  </data>
   <data name="OresScoresApiQueryUrl" xml:space="preserve">
     <value>https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&amp;format=json&amp;revids=</value>
   </data>
+  <data name="PageInfo" xml:space="preserve">
+    <value>format=json&amp;maxlag=5&amp;action=query&amp;prop=revisions|pageimages|categories|extracts&amp;rvprop=user|timestamp|size|content|ids&amp;exlimit=1&amp;explaintext&amp;exintro&amp;titles={0}</value>
+  </data>
+  <data name="PageInfoRevid" xml:space="preserve">
+    <value>format=json&amp;maxlag=5&amp;action=query&amp;prop=revisions|pageimages|categories|extracts&amp;rvprop=user|timestamp|size|content|ids&amp;exlimit=1&amp;explaintext&amp;exintro&amp;revids={0}</value>
+  </data>
   <data name="PrefixSearchQuery" xml:space="preserve">
     <value>format=json&amp;action=query&amp;pslimit=max&amp;list=prefixsearch&amp;pssearch=</value>
+  </data>
+  <data name="SavePage" xml:space="preserve">
+    <value>format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;text={4}&amp;token={3}</value>
   </data>
   <data name="Search" xml:space="preserve">
     <value>format=json&amp;action=query&amp;list=search&amp;utf8=1&amp;srsearch=</value>

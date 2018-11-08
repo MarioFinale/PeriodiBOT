@@ -8,6 +8,7 @@ Namespace IRC
 
         Property HasExited As Boolean = False
         Property FloodDelay As Integer = 700
+        Property ReconTime As Integer = 5
 
         Private _sServer As String = String.Empty
         Private _sChannels As String()
@@ -152,7 +153,7 @@ Namespace IRC
                                                End SyncLock
 
                                                If Not _tcpClient.Connected Then
-                                                   Utils.EventLogger.Debug_Log("IRC: DISCONNECTED", "IRC", _sNickName)
+                                                   Utils.EventLogger.Debug_Log(Messages.NotConnected, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                                                    Exit While
                                                End If
 
@@ -167,16 +168,16 @@ Namespace IRC
 
                                            End While
                                        Catch IOEX As System.IO.IOException
-                                           Utils.EventLogger.Log("IRC: Error Connecting: " + IOEX.Message, "IRC", _sNickName)
+                                           Utils.EventLogger.Log(String.Format(Messages.ConnectionError, IOEX.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                                        Catch OtherEx As Exception
-                                           Utils.EventLogger.Log("IRC: Error Connecting: " + OtherEx.Message, "IRC", _sNickName)
+                                           Utils.EventLogger.Log(String.Format(Messages.UnexpectedEX, OtherEx.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                                        End Try
 
                                    End Sub)
 
                 Catch ex As SocketException
                     'No connection, catch and retry
-                    Utils.EventLogger.EX_Log("IRC: Error Connecting: " + ex.Message, "IRC", _sNickName)
+                    Utils.EventLogger.EX_Log(String.Format(Messages.ConnectionError, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     Try
                         'close connections
                         _streamReader.Dispose()
@@ -185,9 +186,8 @@ Namespace IRC
                     Catch exex As Exception
                     End Try
                 Catch ex As Exception
-
                     'In case of something goes wrong
-                    Utils.EventLogger.EX_Log("IRC: Error: " + ex.Message, "IRC", _sNickName)
+                    Utils.EventLogger.Log(String.Format(Messages.UnexpectedEX, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     Try
                         _streamWriter.WriteLine("QUIT :FATAL ERROR.")
                         _streamWriter.Flush()
@@ -197,16 +197,14 @@ Namespace IRC
                         _networkStream.Dispose()
                     Catch ex2 As Exception
                         'In case of something really bad happens
-                        Utils.EventLogger.EX_Log("IRC: Error ex2: " + ex2.Message, "IRC", _sNickName)
+                        Utils.EventLogger.Log(String.Format(Messages.UnexpectedEX, ex2.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     End Try
-
                 End Try
                 If HasExited Then
                     Utils.ExitProgram()
                 End If
-
-                Utils.EventLogger.Log("Lost connection, retrying on 5 seconds...", "IRC", _sNickName)
-                System.Threading.Thread.Sleep(5000)
+                Utils.EventLogger.Log(String.Format(Messages.LostConnectionRET, ReconTime), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                System.Threading.Thread.Sleep(ReconTime * 1000)
             Loop
 
         End Sub
@@ -268,34 +266,34 @@ Namespace IRC
 
         Sub LoadConfig()
             OPlist = New List(Of String)
-            If System.IO.File.Exists(_opFilePath.GetPath) Then
-                Utils.EventLogger.Log("Loading operators", SStrings.LocalSource)
-                Dim opstr As String() = System.IO.File.ReadAllLines(_opFilePath.GetPath)
+            If File.Exists(_opFilePath.GetPath) Then
+                Utils.EventLogger.Log(Messages.LoadingOPs, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                Dim opstr As String() = File.ReadAllLines(_opFilePath.GetPath)
                 Try
                     For Each op As String In opstr
                         OPlist.Add(op)
                     Next
                 Catch ex As IndexOutOfRangeException
-                    Utils.EventLogger.Log("Malformed OpList", SStrings.LocalSource)
+                    Utils.EventLogger.Log(Messages.MalformedOPs, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 End Try
             Else
-                Utils.EventLogger.Log("No Ops file", SStrings.LocalSource)
+                Utils.EventLogger.Log(Messages.NoOpsFile, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 Try
-                    System.IO.File.Create(_opFilePath.GetPath).Close()
-                Catch ex As System.IO.IOException
-                    Utils.EventLogger.Log("Error creating ops file", SStrings.LocalSource)
+                    File.Create(_opFilePath.GetPath).Close()
+                Catch ex As IOException
+                    Utils.EventLogger.Log(String.Format(Messages.FileCreateErr, _opFilePath), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 End Try
 
             End If
 
             If OPlist.Count = 0 Then
-                Utils.EventLogger.Log("Warning: No Ops defined!", SStrings.LocalSource)
-                Console.WriteLine("IRC OP (Nickname!hostname): ")
+                Utils.EventLogger.Log(Messages.NoOp, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                Console.WriteLine(Messages.NewOp)
                 Dim MainOp As String = Console.ReadLine
                 Try
-                    System.IO.File.WriteAllText(_opFilePath.GetPath, MainOp)
-                Catch ex As System.IO.IOException
-                    Utils.EventLogger.Log("Error saving ops file", SStrings.LocalSource)
+                    File.WriteAllText(_opFilePath.GetPath, MainOp)
+                Catch ex As IOException
+                    Utils.EventLogger.Log(String.Format(Messages.FileSaveErr, _opFilePath), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 End Try
             End If
 
@@ -316,10 +314,10 @@ Namespace IRC
                 If IsOp(message, source, user) Then
                     OPlist.Add(Param)
                     Try
-                        System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
+                        File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
                         Return True
-                    Catch ex As System.IO.IOException
-                        Utils.EventLogger.Log("Error saving ops file", SStrings.LocalSource)
+                    Catch ex As IOException
+                        Utils.EventLogger.Log(String.Format(Messages.FileSaveErr, _opFilePath), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                         Return False
                     End Try
                 Else
@@ -347,10 +345,10 @@ Namespace IRC
                 If OPlist.Contains(Param) Then
                     OPlist.Remove(Param)
                     Try
-                        System.IO.File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
+                        File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
-                        Utils.EventLogger.Log("Error saving ops file", SStrings.LocalSource)
+                        Utils.EventLogger.Log(String.Format(Messages.FileSaveErr, _opFilePath), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                         Return False
                     End Try
                 Else
@@ -374,17 +372,17 @@ Namespace IRC
                 Dim Scommand0 As String = message.Split(" "c)(0)
                 Dim Nickname As String = Utils.GetUserFromChatresponse(message)
                 Dim Hostname As String = Scommand0.Split(CType("@", Char()))(1)
-                Utils.EventLogger.Log(String.Format("Checking if user {0} on host {1} is OP", Nickname, Hostname), source, user)
+                Utils.EventLogger.Log(String.Format(Messages.CheckOp, Nickname, Hostname), source, user)
                 Dim OpString As String = Nickname & "!" & Hostname
                 If OPlist.Contains(OpString) Then
-                    Utils.EventLogger.Log(String.Format("User {0} on host {1} is OP", Nickname, Hostname), source, user)
+                    Utils.EventLogger.Log(String.Format(Messages.UserOP, Nickname, Hostname), source, user)
                     Return True
                 Else
-                    Utils.EventLogger.Log(String.Format("User {0} on host {1} is not OP", Nickname, Hostname), source, user)
+                    Utils.EventLogger.Log(String.Format(Messages.UserNotOP, Nickname, Hostname), source, user)
                     Return False
                 End If
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.Log("EX Checking if user is OP : " & ex.Message, source, user)
+                Utils.EventLogger.Log(String.Format(Messages.UnexpectedEX, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 Return False
             End Try
         End Function

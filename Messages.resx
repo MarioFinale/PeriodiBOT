@@ -363,14 +363,80 @@
   <data name="UpdatingBoxSumm" xml:space="preserve">
     <value>(Bot) Updating archive box.</value>
   </data>
+  <data name="AbuseFilter" xml:space="preserve">
+    <value>Abuse filter triggered on '{0}'.</value>
+  </data>
+  <data name="CheckOp" xml:space="preserve">
+    <value>Checking if user {0} on host {1} is OP.</value>
+  </data>
+  <data name="ConnectionError" xml:space="preserve">
+    <value>Connection error EX: {0}</value>
+  </data>
   <data name="CreatingConnection" xml:space="preserve">
     <value>Creating Connection.</value>
+  </data>
+  <data name="DefaultSumm" xml:space="preserve">
+    <value>Bot edit.</value>
+  </data>
+  <data name="EditConflict" xml:space="preserve">
+    <value>Edit conflit on '{0}'.</value>
+  </data>
+  <data name="FileCreateErr" xml:space="preserve">
+    <value>Error creating file '{0}'.</value>
+  </data>
+  <data name="FileSaveErr" xml:space="preserve">
+    <value>Error saving '{0}'.</value>
   </data>
   <data name="JoiningChannel" xml:space="preserve">
     <value>Joining channel {0}.</value>
   </data>
+  <data name="LoadingOPs" xml:space="preserve">
+    <value>Loading operators.</value>
+  </data>
+  <data name="LoadingOres" xml:space="preserve">
+    <value>Loading ORES score from revid {0}.</value>
+  </data>
+  <data name="LostConnectionRET" xml:space="preserve">
+    <value>Connection losr. Retrying in {0} seconds.</value>
+  </data>
+  <data name="MalformedOPs" xml:space="preserve">
+    <value>Op config file malformed.</value>
+  </data>
+  <data name="MaxRetryCount" xml:space="preserve">
+    <value>Max retry count reached on {0}.</value>
+  </data>
+  <data name="NewOp" xml:space="preserve">
+    <value>IRC OP (Nickname!hostname):</value>
+  </data>
   <data name="NickervAuth" xml:space="preserve">
     <value>Attempting nickserv auth.</value>
+  </data>
+  <data name="NoBots" xml:space="preserve">
+    <value>This bot cannot edit on '{0}'.</value>
+  </data>
+  <data name="NoOp" xml:space="preserve">
+    <value>No Op defined.</value>
+  </data>
+  <data name="NoOpsFile" xml:space="preserve">
+    <value>No op config file.</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Not connected.</value>
+  </data>
+  <data name="OresFailed" xml:space="preserve">
+    <value>Cannot get ORES score of revid {0}. EX: {1}</value>
+  </data>
+  <data name="OresLoaded" xml:space="preserve">
+    <value>ORES score from revid {0}. DMG:{1} /GF:{2} </value>
+  </data>
+  <data name="PageDoesNotExist" xml:space="preserve">
+    <value>Warning: The page '{0}' does not exist yet!</value>
+  </data>
+  <data name="POSTEX" xml:space="preserve">
+    <value>POST exception on '{0}'. EX: {1}</value>
+  </data>
+  <data name="PRevLoaded" xml:space="preserve">
+    <value>Page with revid {0} loaded.</value>
   </data>
   <data name="SetName" xml:space="preserve">
     <value>Setting name.</value>
@@ -378,7 +444,22 @@
   <data name="SetNick" xml:space="preserve">
     <value>Setting nickname.</value>
   </data>
+  <data name="SpamBlackList" xml:space="preserve">
+    <value>Anti spam abuse filter triggered on '{0}'.</value>
+  </data>
   <data name="StartingIRCClient" xml:space="preserve">
     <value>Starting IRC client.</value>
+  </data>
+  <data name="SuccessfulEdit" xml:space="preserve">
+    <value>Edit on '{0}' successful.</value>
+  </data>
+  <data name="UnexpectedEX" xml:space="preserve">
+    <value>Unexpected exception: {0}</value>
+  </data>
+  <data name="UserNotOP" xml:space="preserve">
+    <value>User {0} on host {1} is not OP.</value>
+  </data>
+  <data name="UserOP" xml:space="preserve">
+    <value>User {0} on host {1} is OP.</value>
   </data>
 </root>

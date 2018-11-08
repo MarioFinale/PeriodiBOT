@@ -256,7 +256,7 @@
     <value>Operación exitosa.</value>
   </data>
   <data name="TextReplaced" xml:space="preserve">
-    <value>(Bot) Reemplazando '{0}' con '{1}' {2}.</value>
+    <value>Bot: Reemplazando '{0}' con '{1}' {2}.</value>
   </data>
   <data name="TokenObtained" xml:space="preserve">
     <value>Token obtenido</value>
@@ -265,13 +265,13 @@
     <value>Intentando guardar '{0}'.</value>
   </data>
   <data name="UnsignedSumm" xml:space="preserve">
-    <value>(Bot) Añadiendo firma faltante de '{0}'.</value>
+    <value>Bot: Añadiendo firma faltante de '{0}'.</value>
   </data>
   <data name="UnsuccessfulOperation" xml:space="preserve">
     <value>La operación ha fallado.</value>
   </data>
   <data name="UpdatedExtracts" xml:space="preserve">
-    <value>(Bot) {0} resúmenes actualizados.</value>
+    <value>Bot: {0} resúmenes actualizados.</value>
   </data>
   <data name="UserBlocked" xml:space="preserve">
     <value>El usuario {0} está bloqueado.</value>
@@ -316,16 +316,16 @@
     <value>Error en un hilo de la página '{0}'. Hilo número {1}. EX: {2}</value>
   </data>
   <data name="ArchivedThreadDestSumm" xml:space="preserve">
-    <value>(Bot) Archivando {0} hilo con más de {1} días de antigüedad desde [[{2}]].</value>
+    <value>Bot: Archivando {0} hilo con más de {1} días de antigüedad desde [[{2}]].</value>
   </data>
   <data name="ArchivedThreadsDestSumm" xml:space="preserve">
-    <value>(Bot) Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].</value>
+    <value>Bot: Archivando {0} hilos con más de {1} días de antigüedad desde [[{2}]].</value>
   </data>
   <data name="ArchivedThreadsSumm" xml:space="preserve">
-    <value>(Bot) Archivando {0} hilos con más de {1} días de antigüedad.</value>
+    <value>Bot: Archivando {0} hilos con más de {1} días de antigüedad.</value>
   </data>
   <data name="ArchivedThreadSumm" xml:space="preserve">
-    <value>(Bot) Archivando {0} hilo con más de {1} días de antigüedad.</value>
+    <value>Bot: Archivando {0} hilo con más de {1} días de antigüedad.</value>
   </data>
   <data name="ArchivingInclusions" xml:space="preserve">
     <value>Archivando todas las páginas que incluyan la plantilla '{0}'.</value>
@@ -361,7 +361,10 @@
     <value>Error al actualizar la caja de archivos en '{0}'. EX: {1}</value>
   </data>
   <data name="UpdatingBoxSumm" xml:space="preserve">
-    <value>(Bot) Actualizando caja de archivos.</value>
+    <value>Bot: Actualizando caja de archivos.</value>
+  </data>
+  <data name="ConnectionError" xml:space="preserve">
+    <value>Error de conexión. EX: {0}</value>
   </data>
   <data name="CreatingConnection" xml:space="preserve">
     <value>Creando conexión.</value>
@@ -369,8 +372,20 @@
   <data name="JoiningChannel" xml:space="preserve">
     <value>Entrando al canal {0}.</value>
   </data>
+  <data name="LoadingOPs" xml:space="preserve">
+    <value>Cargando operadores.</value>
+  </data>
+  <data name="LostConnectionRET" xml:space="preserve">
+    <value>Conexión perdida. Reintentando en {0} segundos.</value>
+  </data>
+  <data name="MalformedOPs" xml:space="preserve">
+    <value>Archivo de operadores malformado.</value>
+  </data>
   <data name="NickervAuth" xml:space="preserve">
     <value>Intentando autenticar via nickserv.</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>No conectado.</value>
   </data>
   <data name="SetName" xml:space="preserve">
     <value>Estableciendo nombre.</value>
@@ -380,5 +395,72 @@
   </data>
   <data name="StartingIRCClient" xml:space="preserve">
     <value>Iniciando cliente IRC.</value>
+  </data>
+  <data name="UnexpectedEX" xml:space="preserve">
+    <value>Excepción inesperada: {0}</value>
+  </data>
+  <data name="AbuseFilter" xml:space="preserve">
+    <value>Filtro de abusos desencadenado en '{0}'.</value>
+  </data>
+  <data name="CheckOp" xml:space="preserve">
+    <value>Verificando si el usuario {0} en el host {1} es OP.</value>
+  </data>
+  <data name="DefaultSumm" xml:space="preserve">
+    <value>Edición de bot.</value>
+  </data>
+  <data name="EditConflict" xml:space="preserve">
+    <value>Conflicto de edición en '{0}'.</value>
+  </data>
+  <data name="FileCreateErr" xml:space="preserve">
+    <value>Error al crear el archivo '{0}'.</value>
+  </data>
+  <data name="FileSaveErr" xml:space="preserve">
+    <value>Error al guardar el archivo '{0}'.</value>
+  </data>
+  <data name="LoadingOres" xml:space="preserve">
+    <value>Cargando puntaje ORES del revid {0}.</value>
+  </data>
+  <data name="MaxRetryCount" xml:space="preserve">
+    <value>Máximo número de reintentos alcanzado en '{0}'.</value>
+  </data>
+  <data name="NewOp" xml:space="preserve">
+    <value>Operador IRC (Nickname!hostname):</value>
+  </data>
+  <data name="NoBots" xml:space="preserve">
+    <value>Este bot no puede editar en '{0}'.</value>
+  </data>
+  <data name="NoOp" xml:space="preserve">
+    <value>No se ha definido ningun operador.</value>
+  </data>
+  <data name="NoOpsFile" xml:space="preserve">
+    <value>El archivo de operadores no existe.</value>
+  </data>
+  <data name="OresFailed" xml:space="preserve">
+    <value>No se pudo obtener el puntaje ORES del revid {0}. EX: {1}</value>
+  </data>
+  <data name="OresLoaded" xml:space="preserve">
+    <value>Puntaje ORES del revid {0}:  DMG:{1} /GF:{2}</value>
+  </data>
+  <data name="PageDoesNotExist" xml:space="preserve">
+    <value>Cuidado: La página '{0}' no existe aún.</value>
+  </data>
+  <data name="POSTEX" xml:space="preserve">
+    <value>Error en la solicitud POST en '{0}'. EX: {1}</value>
+  </data>
+  <data name="PRevLoaded" xml:space="preserve">
+    <value>Página con el revid {0} cargada.</value>
+  </data>
+  <data name="SpamBlackList" xml:space="preserve">
+    <value>Filtro de abusos anti spam desencadenado en '{0}'.</value>
+  </data>
+  <data name="SuccessfulEdit" xml:space="preserve">
+    <value>Edición en '{0}' exitosa.</value>
+  </data>
+  <data name="UserNotOp" xml:space="preserve">
+    <value>El usuario {0} en el host {1} no es OP.</value>
+    <comment> </comment>
+  </data>
+  <data name="UserOP" xml:space="preserve">
+    <value>El usuario {0} en el host {1} es OP.</value>
   </data>
 </root>

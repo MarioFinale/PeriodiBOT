@@ -802,8 +802,8 @@ NotInheritable Class Utils
 
             Else
                 Dim threadtitle As String = mc(i).Value
-
                 Dim ThreadPos As Integer = temptext.IndexOf(threadtitle)
+                If ThreadPos = -1 Then Continue For
                 Dim threadlenght As Integer = temptext.Length - temptext.Substring(0, ThreadPos).Length
                 Dim threadtext As String = temptext.Substring(ThreadPos, threadlenght)
                 threadlist.Add(threadtext)
@@ -1104,6 +1104,16 @@ NotInheritable Class Utils
         Dim dstring As String = tDate.Hour.ToString("00") & ":" & tDate.Minute.ToString("00") & " " & tDate.Day.ToString & " " & mstring & " " & tDate.Year.ToString & " (UTC)"
         Return dstring
     End Function
+
+    Public Shared Function GetSubArray(ByVal str As String(), index As Integer) As String()
+        If str.Count = 0 Then Return str
+        Dim l As New List(Of String)
+        For i As Integer = index To str.Count - 1
+            l.Add(str(i))
+        Next
+        Return l.ToArray
+    End Function
+
 #End Region
 
 End Class

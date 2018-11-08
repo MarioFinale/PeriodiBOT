@@ -1,8 +1,9 @@
 ﻿Option Strict On
 Option Explicit On
-Imports PeriodiBOT_IRC
+Imports PeriodiBOT_IRC.My.Resources
 Imports System.Text.RegularExpressions
 Imports System.Text
+
 
 Namespace WikiBot
     Public Class WikiTopicList
@@ -230,6 +231,7 @@ Namespace WikiBot
             Dim threadlist As New SortedList(Of Integer, List(Of Tuple(Of String, String, Date)))
             Dim Pages As String() = _bot.PrefixSearch("Wikipedia:Café/")
             Dim TotalThreadCount As Integer = 0
+
             For Each CPage As String In Pages
                 Dim wPage As Page = _bot.Getpage(CPage)
                 For Each thread As String In wPage.Threads
@@ -243,8 +245,10 @@ Namespace WikiBot
                     threadlist(ThreadSize).Add(New Tuple(Of String, String, Date)(TitleAndLink.Item1, TitleAndLink.Item2, ThreadDate))
                 Next
             Next
+
             Dim threadcount As Integer = threadlist.Count
             Dim Top100 As New HashSet(Of Tuple(Of Integer, String, String, Date))
+
             For i As Integer = threadcount - 1 To threadcount - 101 Step -1
                 For Each t As Tuple(Of String, String, Date) In threadlist(threadlist.Keys(i))
                     Top100.Add(New Tuple(Of Integer, String, String, Date)(threadlist.Keys(i), t.Item1, t.Item2, t.Item3))
@@ -254,16 +258,20 @@ Namespace WikiBot
             For i As Integer = 0 To 10
                 PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & Utils.GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & Utils.GetSizeAsString(Top100(i).Item1) & "." & Environment.NewLine
             Next
+
             PageText = PageText & Environment.NewLine & "== Más hilos grandes ==" & Environment.NewLine
             For i As Integer = 11 To Top100.Count - 1
                 PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & Utils.GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & Utils.GetSizeAsString(Top100(i).Item1) & "." & Environment.NewLine
             Next
-            Dim tPage As Page = _bot.Getpage("Usuario:PeriodiBOT/Curiosidades/Hilos más largos en la historia del café")
+
+            Dim tPage As Page = _bot.Getpage(SStrings.LongestThreads)
+
             If tPage.Save(PageText, "Bot: Generando lista.", True, True) = EditResults.Edit_successful Then
                 Return True
             Else
                 Return False
             End If
+
         End Function
     End Class
 End Namespace

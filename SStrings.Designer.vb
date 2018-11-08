@@ -65,6 +65,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;section=new&amp;sectiontitle={3}&amp;text={4}&amp;token={5}.
+        '''</summary>
+        Friend Shared ReadOnly Property AddThread() As String
+            Get
+                Return ResourceManager.GetString("AddThread", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a action=query&amp;assert=bot&amp;format=json.
         '''</summary>
         Friend Shared ReadOnly Property AssertBotData() As String
@@ -128,6 +137,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;meta=tokens.
+        '''</summary>
+        Friend Shared ReadOnly Property EditToken() As String
+            Get
+                Return ResourceManager.GetString("EditToken", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a format=json&amp;action=compare&amp;fromrev={0}&amp;torev={1}.
         '''</summary>
         Friend Shared ReadOnly Property GetDiffQuery() As String
@@ -142,6 +160,24 @@ Namespace My.Resources
         Friend Shared ReadOnly Property GetLastRevIds() As String
             Get
                 Return ResourceManager.GetString("GetLastRevIds", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;maxlag=5&amp;action=query&amp;prop=revisions&amp;rvprop=timestamp&amp;titles={0}.
+        '''</summary>
+        Friend Shared ReadOnly Property GetLastTimestamp() As String
+            Get
+                Return ResourceManager.GetString("GetLastTimestamp", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&amp;format=json&amp;revids=.
+        '''</summary>
+        Friend Shared ReadOnly Property GetOresScore() As String
+            Get
+                Return ResourceManager.GetString("GetOresScore", resourceCulture)
             End Get
         End Property
         
@@ -169,6 +205,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property GetPagesImage() As String
             Get
                 Return ResourceManager.GetString("GetPagesImage", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{0}/all-access/all-agents/{1}/daily/{2}{4}{6}00/{3}{5}{7}00.
+        '''</summary>
+        Friend Shared ReadOnly Property GetPageViews() As String
+            Get
+                Return ResourceManager.GetString("GetPageViews", resourceCulture)
             End Get
         End Property
         
@@ -247,6 +292,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Usuario:PeriodiBOT/Curiosidades/Hilos más largos en la historia del café.
+        '''</summary>
+        Friend Shared ReadOnly Property LongestThreads() As String
+            Get
+                Return ResourceManager.GetString("LongestThreads", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&amp;format=json&amp;revids=.
         '''</summary>
         Friend Shared ReadOnly Property OresScoresApiQueryUrl() As String
@@ -256,11 +310,38 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;maxlag=5&amp;action=query&amp;prop=revisions|pageimages|categories|extracts&amp;rvprop=user|timestamp|size|content|ids&amp;exlimit=1&amp;explaintext&amp;exintro&amp;titles={0}.
+        '''</summary>
+        Friend Shared ReadOnly Property PageInfo() As String
+            Get
+                Return ResourceManager.GetString("PageInfo", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;maxlag=5&amp;action=query&amp;prop=revisions|pageimages|categories|extracts&amp;rvprop=user|timestamp|size|content|ids&amp;exlimit=1&amp;explaintext&amp;exintro&amp;revids={0}.
+        '''</summary>
+        Friend Shared ReadOnly Property PageInfoRevid() As String
+            Get
+                Return ResourceManager.GetString("PageInfoRevid", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;pslimit=max&amp;list=prefixsearch&amp;pssearch=.
         '''</summary>
         Friend Shared ReadOnly Property PrefixSearchQuery() As String
             Get
                 Return ResourceManager.GetString("PrefixSearchQuery", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;text={4}&amp;token={3}.
+        '''</summary>
+        Friend Shared ReadOnly Property SavePage() As String
+            Get
+                Return ResourceManager.GetString("SavePage", resourceCulture)
             End Get
         End Property
         
