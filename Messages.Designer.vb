@@ -767,6 +767,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Notice: The page &apos;{0}&apos; does not have a thumbnail..
+        '''</summary>
+        Friend Shared ReadOnly Property PageNoThumb() As String
+            Get
+                Return ResourceManager.GetString("PageNoThumb", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a POST exception on &apos;{0}&apos;. EX: {1}.
         '''</summary>
         Friend Shared ReadOnly Property POSTEX() As String

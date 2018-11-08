@@ -444,6 +444,9 @@
   <data name="PageDoesNotExist" xml:space="preserve">
     <value>Cuidado: La página '{0}' no existe aún.</value>
   </data>
+  <data name="PageNoThumb" xml:space="preserve">
+    <value>Aviso: La página '{0}' no posee una imagen de previsualización.</value>
+  </data>
   <data name="POSTEX" xml:space="preserve">
     <value>Error en la solicitud POST en '{0}'. EX: {1}</value>
   </data>

@@ -638,7 +638,7 @@ Namespace WikiBot
             If Utils.TextInBetween(QueryText, """pageimage"":""", """").Count >= 1 Then
                 PageImage = Utils.TextInBetween(QueryText, """pageimage"":""", """")(0)
             Else
-                Utils.EventLogger.Debug_Log("The page '" & pageName & "' doesn't have any thumbnail", Reflection.MethodBase.GetCurrentMethod().Name, _username)
+                Utils.EventLogger.Debug_Log(String.Format(Messages.PageNoThumb, pageName), Reflection.MethodBase.GetCurrentMethod().Name, _username)
             End If
 
             For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")
@@ -696,13 +696,13 @@ Namespace WikiBot
                 PRevID = Utils.TextInBetween(QueryText, """revid"":", ",""")(0)
                 PExtract = Utils.NormalizeUnicodetext(Utils.TextInBetween(QueryText, """extract"":""", """}")(0))
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.Log("Warning: The page '" & PTitle & "' doesn't exist yet!", Reflection.MethodBase.GetCurrentMethod().Name, _username)
+                Utils.EventLogger.Log(String.Format(Messages.PageDoesNotExist, Revid.ToString), Reflection.MethodBase.GetCurrentMethod().Name, _username)
             End Try
 
             If Utils.TextInBetween(QueryText, """pageimage"":""", """").Count >= 1 Then
                 PageImage = Utils.TextInBetween(QueryText, """pageimage"":""", """")(0)
             Else
-                Utils.EventLogger.Debug_Log("The page '" & PTitle & "' doesn't have any thumbnail", Reflection.MethodBase.GetCurrentMethod().Name, _username)
+                Utils.EventLogger.Debug_Log(String.Format(Messages.PageNoThumb, Revid.ToString), Reflection.MethodBase.GetCurrentMethod().Name, _username)
             End If
 
             For Each m As Match In Regex.Matches(QueryText, "title"":""[Cc][a][t][\S\s]+?(?=""})")

@@ -432,6 +432,9 @@
   <data name="PageDoesNotExist" xml:space="preserve">
     <value>Warning: The page '{0}' does not exist yet!</value>
   </data>
+  <data name="PageNoThumb" xml:space="preserve">
+    <value>Notice: The page '{0}' does not have a thumbnail.</value>
+  </data>
   <data name="POSTEX" xml:space="preserve">
     <value>POST exception on '{0}'. EX: {1}</value>
   </data>
