@@ -83,43 +83,42 @@ Public Class IRCCommands
         Dim source As String = args.Source
         Dim responsestring As New List(Of String)
         If Not IsNumeric(taskindex) Then
-            Return New IRCMessage(source, "Ingrese el número de la tarea.")
+            Return New IRCMessage(source, Messages.EnterTaskNumber)
         End If
         If Not Utils.TaskAdm.TaskList.Count >= 1 Then
-            Return New IRCMessage(source, "No hay tareas ejecutándose.")
+            Return New IRCMessage(source, Messages.NoRunningTasks)
         End If
         If taskindex.Length > 5 Then
-            Return New IRCMessage(source, "El valor es demasiado grande.")
+            Return New IRCMessage(source, Messages.ValueTooBig)
         End If
         Dim tindex As Integer = Integer.Parse(taskindex)
         If Not tindex > 0 Then
-            Return New IRCMessage(source, "El valor debe ser mayor a 0.")
+            Return New IRCMessage(source, String.Format(Messages.MustBeGreaterThan, 0))
         End If
         If tindex > Utils.TaskAdm.TaskList.Count Then
-            Return New IRCMessage(source, "La tarea no existe.")
+            Return New IRCMessage(source, Messages.TaskNotExist)
         End If
         Dim tinfo As TaskInfo = Utils.TaskAdm.TaskList(tindex - 1)
         Dim tstype As String = String.Empty
         Dim timeinterval As String = String.Empty
         If tinfo.Scheduledtask Then
-            tstype = "Programada"
+            tstype = Messages.Sheduled
             timeinterval = tinfo.ScheduledTime.ToString("c", CultureInfo.InvariantCulture()) & " GMT"
         Else
-            tstype = "Periódica"
-            timeinterval = "Cada " & (tinfo.Interval / 1000).ToString & " segundos."
+            tstype = Messages.Periodic
+            timeinterval = String.Format(Messages.EverySec, (tinfo.Interval / 1000).ToString)
         End If
-        responsestring.Add("Nombre          : " & Utils.ColoredText(tinfo.Name, 4))
-        responsestring.Add("Autor           : " & Utils.ColoredText(tinfo.Author, 4))
-        responsestring.Add("Estado          : " & Utils.ColoredText(tinfo.Status, 4))
-        responsestring.Add("Tipo            : " & Utils.ColoredText(tstype, 4))
-        responsestring.Add("Hora/intervalo  : " & Utils.ColoredText(timeinterval, 4))
-        responsestring.Add("Infinita        : " & Utils.ColoredText(tinfo.Infinite.ToString, 4))
-        responsestring.Add("Cancelada       : " & Utils.ColoredText(tinfo.Canceled.ToString, 4))
-        responsestring.Add("Pausada         : " & Utils.ColoredText(tinfo.Paused.ToString, 4))
-        responsestring.Add("Ejecuciones     : " & Utils.ColoredText(tinfo.Runcount.ToString, 4))
-        responsestring.Add("Errores         : " & Utils.ColoredText(tinfo.ExCount.ToString, 4))
-        responsestring.Add("Crítica         : " & Utils.ColoredText(tinfo.Critical.ToString, 4))
-
+        responsestring.Add(Messages.Name & Utils.ColoredText(tinfo.Name, 4))
+        responsestring.Add(Messages.Author & Utils.ColoredText(tinfo.Author, 4))
+        responsestring.Add(Messages.Status & Utils.ColoredText(tinfo.Status, 4))
+        responsestring.Add(Messages.Type & Utils.ColoredText(tstype, 4))
+        responsestring.Add(Messages.TimeOrInterval & Utils.ColoredText(timeinterval, 4))
+        responsestring.Add(Messages.Infinite & Utils.ColoredText(tinfo.Infinite.ToString, 4))
+        responsestring.Add(Messages.Cancelled & Utils.ColoredText(tinfo.Canceled.ToString, 4))
+        responsestring.Add(Messages.Paused & Utils.ColoredText(tinfo.Paused.ToString, 4))
+        responsestring.Add(Messages.Executions & Utils.ColoredText(tinfo.Runcount.ToString, 4))
+        responsestring.Add(Messages.Errors & Utils.ColoredText(tinfo.ExCount.ToString, 4))
+        responsestring.Add(Messages.Critical & Utils.ColoredText(tinfo.Critical.ToString, 4))
         Return New IRCMessage(source, responsestring.ToArray)
     End Function
 
@@ -131,34 +130,34 @@ Public Class IRCCommands
             Dim user As String = args.Realname
 
             If Not IsNumeric(taskindex) Then
-                Return New IRCMessage(source, "Ingrese el número de la tarea.")
+                Return New IRCMessage(source, Messages.EnterTaskNumber)
             End If
             If Not Utils.TaskAdm.TaskList.Count >= 1 Then
-                Return New IRCMessage(source, "No hay tareas ejecutándose.")
+                Return New IRCMessage(source, Messages.NoRunningTasks)
             End If
             If taskindex.Length > 5 Then
-                Return New IRCMessage(source, "El valor es demasiado grande.")
+                Return New IRCMessage(source, Messages.ValueTooBig)
             End If
             Dim tindex As Integer = Integer.Parse(taskindex)
             If Not tindex > 0 Then
-                Return New IRCMessage(source, "El valor debe ser mayor a 0.")
+                Return New IRCMessage(source, String.Format(Messages.MustBeGreaterThan, 0))
             End If
             If tindex > Utils.TaskAdm.TaskList.Count Then
-                Return New IRCMessage(source, "La tarea no existe.")
+                Return New IRCMessage(source, Messages.TaskNotExist)
             End If
             Dim tinfo As TaskInfo = Utils.TaskAdm.TaskList(tindex - 1)
             If Not tinfo.Critical Then
                 If tinfo.Paused Then
                     tinfo.Paused = False
-                    Utils.EventLogger.Log("Task """ & tinfo.Name & """ unpaused.", "IRC", user)
-                    Return New IRCMessage(source, "Se ha renaudado la tarea.")
+                    Utils.EventLogger.Log(String.Format(Messages.UnpausedTask, tinfo.Name), "IRC", user)
+                    Return New IRCMessage(source, String.Format(Messages.UnpausedTask, tinfo.Name))
                 Else
                     tinfo.Paused = True
-                    Utils.EventLogger.Log("Task """ & tinfo.Name & """ paused.", "IRC", user)
-                    Return New IRCMessage(source, "Se ha pausado la tarea.")
+                    Utils.EventLogger.Log(String.Format(Messages.PausedTask, tinfo.Name), "IRC", user)
+                    Return New IRCMessage(source, String.Format(Messages.PausedTask, tinfo.Name))
                 End If
             Else
-                Return New IRCMessage(source, "No se puede pausar una tarea crítica.")
+                Return New IRCMessage(source, String.Format(Messages.CannotPause, tinfo.Name))
             End If
         Else
             Return Nothing
@@ -169,7 +168,7 @@ Public Class IRCCommands
         If args Is Nothing Then Return Nothing
         Dim source As String = args.Source
         Dim responsestring As String = String.Empty
-        responsestring = "La hora del sistema es " & Utils.ColoredText(Date.Now.TimeOfDay.ToString("hh\:mm\:ss", CultureInfo.InvariantCulture()), 4) & " (" & Utils.ColoredText(Date.UtcNow.TimeOfDay.ToString("hh\:mm\:ss", CultureInfo.InvariantCulture()), 4) & " UTC)."
+        responsestring = Messages.SystemTime & Utils.ColoredText(Date.Now.TimeOfDay.ToString("hh\:mm\:ss", CultureInfo.InvariantCulture()), 4) & " (" & Utils.ColoredText(Date.UtcNow.TimeOfDay.ToString("hh\:mm\:ss", CultureInfo.InvariantCulture()), 4) & " UTC)."
         Return New IRCMessage(source, responsestring)
     End Function
 
@@ -179,10 +178,10 @@ Public Class IRCCommands
         Dim responsestring As String = String.Empty
         If Utils.EventLogger.Debug Then
             Utils.EventLogger.Debug = False
-            responsestring = Utils.ColoredText("Registro de eventos con el tag ""DEBUG"" desactivado.", 4)
+            responsestring = Utils.ColoredText(Messages.DebugDisabled, 4)
         Else
             Utils.EventLogger.Debug = True
-            responsestring = Utils.ColoredText("Registro de eventos con el tag ""DEBUG"" activado.", 4)
+            responsestring = Utils.ColoredText(Messages.DebugEnabled, 4)
         End If
         Return New IRCMessage(source, responsestring)
     End Function
@@ -200,13 +199,13 @@ Public Class IRCCommands
             If Utils.CountCharacter(param, CChar("!")) = 1 Then
                 Dim requestedop As String = param.Split(CType("!", Char()))(0)
                 If Client.AddOP(message, source, realname) Then
-                    responsestring = "El usuario " & requestedop & " se añadió como operador"
+                    responsestring = String.Format(Messages.OpAdded, requestedop)
 
                 Else
-                    responsestring = "El usuario " & requestedop & " no se añadió como operador"
+                    responsestring = String.Format(Messages.OpNotAdded, requestedop)
                 End If
             Else
-                responsestring = "Parámetro mal ingresado."
+                responsestring = Messages.InvalidParameter
             End If
             Return New IRCMessage(source, responsestring)
         Else
@@ -229,12 +228,12 @@ Public Class IRCCommands
 
                 Dim requestedop As String = param.Split(CType("!", Char()))(0)
                 If Client.DelOP(message, source, realname) Then
-                    responsestring = "El usuario " & requestedop & " se ha eliminado como operador"
+                    responsestring = String.Format(Messages.OpRemoved, requestedop)
                 Else
-                    responsestring = "El usuario " & requestedop & " no se ha eliminado como operador"
+                    responsestring = String.Format(Messages.OpNotRemoved, requestedop)
                 End If
             Else
-                responsestring = "Parámetro mal ingresado."
+                responsestring = Messages.InvalidParameter
             End If
             Return New IRCMessage(source, responsestring)
         Else
@@ -258,9 +257,9 @@ Public Class IRCCommands
         If args.IsOp Then
             Dim command As String = String.Format("JOIN {0}", args.CParam)
             args.Client.SendText(command)
-            Dim responsestring As String = Utils.ColoredText("Entrando a sala solicitada", 4)
+            Dim responsestring As String = Utils.ColoredText(String.Format(Messages.EnteringRoom, args.CParam), 4)
             Dim mes As New IRCMessage(args.Source, responsestring)
-            Utils.EventLogger.Log("Joined room " & args.CParam, "IRC", args.Realname)
+            Utils.EventLogger.Log(String.Format(Messages.EnteringRoom, args.CParam), "IRC", args.Realname)
             Return mes
         Else
             Return Nothing
@@ -270,11 +269,11 @@ Public Class IRCCommands
     Function LeaveRoom(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            Dim responsestring As String = Utils.ColoredText("Saliendo de la sala solicitada", 4)
+            Dim responsestring As String = Utils.ColoredText(String.Format(Messages.LeavingRoom, args.CParam), 4)
             Dim command As String = String.Format("PART {0}", args.CParam)
             args.Client.SendText(command)
             Dim mes As New IRCMessage(args.Source, responsestring)
-            Utils.EventLogger.Log("Joined room " & args.CParam, "IRC", args.Realname)
+            Utils.EventLogger.Log(String.Format(Messages.LeavingRoom, args.CParam), "IRC", args.Realname)
             Return mes
         Else
             Return Nothing
@@ -284,10 +283,10 @@ Public Class IRCCommands
     Function Quit(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            Dim responsestring As String = Utils.ColoredText("OK, voy saliendo...", 4)
+            Dim responsestring As String = Utils.ColoredText(Messages.ExitMessage, 4)
             Dim mes As New IRCMessage(args.Source, responsestring)
             args.Client.Sendmessage(mes)
-            Dim command As String = "Solicitado por un operador."
+            Dim command As String = Messages.RequestedByOp
             args.Client.Quit(command)
             Utils.EventLogger.Log("QUIT", "IRC", args.Realname)
             Return mes
@@ -299,10 +298,10 @@ Public Class IRCCommands
     Function Div0(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Utils.EventLogger.Log("Div0 requested", args.Source, args.Realname)
-        Dim mes1 As New IRCMessage(args.Source, "OK, dividiendo 1 por 0...")
+        Dim mes1 As New IRCMessage(args.Source, Messages.Div0)
         args.Client.Sendmessage(mes1)
         Dim i As Double = (1 / 0)
-        Dim res As String = "Al parecer el resultado es """ & i.ToString & """"
+        Dim res As String = String.Format(Messages.ApparentResult, i.ToString)
         Dim mes As New IRCMessage(args.Source, res)
         Utils.EventLogger.Log("Div0 completed", args.Source, args.Realname)
         Return mes

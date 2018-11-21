@@ -92,6 +92,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Apparently the result is {0}..
+        '''</summary>
+        Friend Shared ReadOnly Property ApparentResult() As String
+            Get
+                Return ResourceManager.GetString("ApparentResult", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a (Bot) Archiving {0} thread with more than {1} days old from [[&apos;{2}&apos;]]..
         '''</summary>
         Friend Shared ReadOnly Property ArchivedThreadDestSumm() As String
@@ -137,6 +146,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Author		: .
+        '''</summary>
+        Friend Shared ReadOnly Property Author() As String
+            Get
+                Return ResourceManager.GetString("Author", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Autoarchiving &apos;{0}&apos;..
         '''</summary>
         Friend Shared ReadOnly Property AutoArchive() As String
@@ -160,6 +178,24 @@ Namespace My.Resources
         Friend Shared ReadOnly Property BotEngine() As String
             Get
                 Return ResourceManager.GetString("BotEngine", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Cancelled		: .
+        '''</summary>
+        Friend Shared ReadOnly Property Cancelled() As String
+            Get
+                Return ResourceManager.GetString("Cancelled", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a The critical task &apos;{0}&apos; cannot be paused..
+        '''</summary>
+        Friend Shared ReadOnly Property CannotPause() As String
+            Get
+                Return ResourceManager.GetString("CannotPause", resourceCulture)
             End Get
         End Property
         
@@ -236,11 +272,47 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Critical		: .
+        '''</summary>
+        Friend Shared ReadOnly Property Critical() As String
+            Get
+                Return ResourceManager.GetString("Critical", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Debug log disabled..
+        '''</summary>
+        Friend Shared ReadOnly Property DebugDisabled() As String
+            Get
+                Return ResourceManager.GetString("DebugDisabled", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Debug log enabled..
+        '''</summary>
+        Friend Shared ReadOnly Property DebugEnabled() As String
+            Get
+                Return ResourceManager.GetString("DebugEnabled", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Bot edit..
         '''</summary>
         Friend Shared ReadOnly Property DefaultSumm() As String
             Get
                 Return ResourceManager.GetString("DefaultSumm", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Dividing by 0....
+        '''</summary>
+        Friend Shared ReadOnly Property Div0() As String
+            Get
+                Return ResourceManager.GetString("Div0", resourceCulture)
             End Get
         End Property
         
@@ -259,6 +331,60 @@ Namespace My.Resources
         Friend Shared ReadOnly Property EditConflict() As String
             Get
                 Return ResourceManager.GetString("EditConflict", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Entering {0}..
+        '''</summary>
+        Friend Shared ReadOnly Property EnteringRoom() As String
+            Get
+                Return ResourceManager.GetString("EnteringRoom", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Enter the task number..
+        '''</summary>
+        Friend Shared ReadOnly Property EnterTaskNumber() As String
+            Get
+                Return ResourceManager.GetString("EnterTaskNumber", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Errors		: .
+        '''</summary>
+        Friend Shared ReadOnly Property Errors() As String
+            Get
+                Return ResourceManager.GetString("Errors", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Every {0} seconds..
+        '''</summary>
+        Friend Shared ReadOnly Property EverySec() As String
+            Get
+                Return ResourceManager.GetString("EverySec", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Executions	: .
+        '''</summary>
+        Friend Shared ReadOnly Property Executions() As String
+            Get
+                Return ResourceManager.GetString("Executions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a OK, I&apos;m leaving....
+        '''</summary>
+        Friend Shared ReadOnly Property ExitMessage() As String
+            Get
+                Return ResourceManager.GetString("ExitMessage", resourceCulture)
             End Get
         End Property
         
@@ -317,11 +443,29 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Infinite		: .
+        '''</summary>
+        Friend Shared ReadOnly Property Infinite() As String
+            Get
+                Return ResourceManager.GetString("Infinite", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a The namespace of &apos;{0}&apos; ({1}) is invalid..
         '''</summary>
         Friend Shared ReadOnly Property InvalidNamespace() As String
             Get
                 Return ResourceManager.GetString("InvalidNamespace", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Invalid parameter..
+        '''</summary>
+        Friend Shared ReadOnly Property InvalidParameter() As String
+            Get
+                Return ResourceManager.GetString("InvalidParameter", resourceCulture)
             End Get
         End Property
         
@@ -358,6 +502,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property JoiningChannel() As String
             Get
                 Return ResourceManager.GetString("JoiningChannel", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Leaving {0}..
+        '''</summary>
+        Friend Shared ReadOnly Property LeavingRoom() As String
+            Get
+                Return ResourceManager.GetString("LeavingRoom", resourceCulture)
             End Get
         End Property
         
@@ -475,6 +628,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property MustBeGreaterThan() As String
             Get
                 Return ResourceManager.GetString("MustBeGreaterThan", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Name		: .
+        '''</summary>
+        Friend Shared ReadOnly Property Name() As String
+            Get
+                Return ResourceManager.GetString("Name", resourceCulture)
             End Get
         End Property
         
@@ -740,6 +902,42 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a The user {0} has been added as an operator..
+        '''</summary>
+        Friend Shared ReadOnly Property OpAdded() As String
+            Get
+                Return ResourceManager.GetString("OpAdded", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a The user {0} has not been added as an operator..
+        '''</summary>
+        Friend Shared ReadOnly Property OpNotAdded() As String
+            Get
+                Return ResourceManager.GetString("OpNotAdded", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a User {0} is not an operator..
+        '''</summary>
+        Friend Shared ReadOnly Property OpNotRemoved() As String
+            Get
+                Return ResourceManager.GetString("OpNotRemoved", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a User {0} is not longer an operator..
+        '''</summary>
+        Friend Shared ReadOnly Property OpRemoved() As String
+            Get
+                Return ResourceManager.GetString("OpRemoved", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Cannot get ORES score of revid {0}. EX: {1}.
         '''</summary>
         Friend Shared ReadOnly Property OresFailed() As String
@@ -821,6 +1019,33 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Paused		: .
+        '''</summary>
+        Friend Shared ReadOnly Property Paused() As String
+            Get
+                Return ResourceManager.GetString("Paused", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Task &apos;{0}&apos; paused..
+        '''</summary>
+        Friend Shared ReadOnly Property PausedTask() As String
+            Get
+                Return ResourceManager.GetString("PausedTask", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Periodic.
+        '''</summary>
+        Friend Shared ReadOnly Property Periodic() As String
+            Get
+                Return ResourceManager.GetString("Periodic", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a POST exception on &apos;{0}&apos;. EX: {1}.
         '''</summary>
         Friend Shared ReadOnly Property POSTEX() As String
@@ -875,6 +1100,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Requested by an operator..
+        '''</summary>
+        Friend Shared ReadOnly Property RequestedByOp() As String
+            Get
+                Return ResourceManager.GetString("RequestedByOp", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Requesting token.
         '''</summary>
         Friend Shared ReadOnly Property RequestingToken() As String
@@ -920,6 +1154,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Sheduled.
+        '''</summary>
+        Friend Shared ReadOnly Property Sheduled() As String
+            Get
+                Return ResourceManager.GetString("Sheduled", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Signing in.
         '''</summary>
         Friend Shared ReadOnly Property SigninIn() As String
@@ -947,6 +1190,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Status		: .
+        '''</summary>
+        Friend Shared ReadOnly Property Status() As String
+            Get
+                Return ResourceManager.GetString("Status", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Edit on &apos;{0}&apos; successful..
         '''</summary>
         Friend Shared ReadOnly Property SuccessfulEdit() As String
@@ -965,6 +1217,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a The system time is: .
+        '''</summary>
+        Friend Shared ReadOnly Property SystemTime() As String
+            Get
+                Return ResourceManager.GetString("SystemTime", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a {0}: {1} by {2}. Status: {3}..
         '''</summary>
         Friend Shared ReadOnly Property TaskInfo() As String
@@ -974,11 +1235,29 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a The task does not exist..
+        '''</summary>
+        Friend Shared ReadOnly Property TaskNotExist() As String
+            Get
+                Return ResourceManager.GetString("TaskNotExist", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a (Bot) Replacing &apos;{0}&apos; with &apos;{1}&apos; {2}..
         '''</summary>
         Friend Shared ReadOnly Property TextReplaced() As String
             Get
                 Return ResourceManager.GetString("TextReplaced", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Time or interval	: .
+        '''</summary>
+        Friend Shared ReadOnly Property TimeOrInterval() As String
+            Get
+                Return ResourceManager.GetString("TimeOrInterval", resourceCulture)
             End Get
         End Property
         
@@ -1001,6 +1280,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Type		: .
+        '''</summary>
+        Friend Shared ReadOnly Property Type() As String
+            Get
+                Return ResourceManager.GetString("Type", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a Unauthorized.
         '''</summary>
         Friend Shared ReadOnly Property Unauthorized() As String
@@ -1015,6 +1303,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property UnexpectedEX() As String
             Get
                 Return ResourceManager.GetString("UnexpectedEX", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Task &apos;{0}&apos; unpaused..
+        '''</summary>
+        Friend Shared ReadOnly Property UnpausedTask() As String
+            Get
+                Return ResourceManager.GetString("UnpausedTask", resourceCulture)
             End Get
         End Property
         
@@ -1177,6 +1474,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property UserOP() As String
             Get
                 Return ResourceManager.GetString("UserOP", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a The value is too big..
+        '''</summary>
+        Friend Shared ReadOnly Property ValueTooBig() As String
+            Get
+                Return ResourceManager.GetString("ValueTooBig", resourceCulture)
             End Get
         End Property
         

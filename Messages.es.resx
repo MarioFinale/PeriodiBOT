@@ -471,8 +471,59 @@
   <data name="CommandIssued" xml:space="preserve">
     <value>Comando '{0}' ingresado por '{1}'. Argumentos: '{2}'</value>
   </data>
+  <data name="ApparentResult" xml:space="preserve">
+    <value>Aparentemente el resultado es {0}.</value>
+  </data>
+  <data name="Author" xml:space="preserve">
+    <value>Autor		: </value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelada		: </value>
+  </data>
+  <data name="CannotPause" xml:space="preserve">
+    <value>La tarea crítica '{0}' no puede ser pausada.</value>
+  </data>
+  <data name="Critical" xml:space="preserve">
+    <value>Crítica		: </value>
+  </data>
+  <data name="DebugDisabled" xml:space="preserve">
+    <value>Log debug desactivado.</value>
+  </data>
+  <data name="DebugEnabled" xml:space="preserve">
+    <value>Log debug activado.</value>
+  </data>
+  <data name="EnteringRoom" xml:space="preserve">
+    <value>Entrando a {0}.</value>
+  </data>
+  <data name="EnterTaskNumber" xml:space="preserve">
+    <value>Ingrese el número de la tarea.</value>
+  </data>
+  <data name="Errors" xml:space="preserve">
+    <value>Errores		: </value>
+  </data>
+  <data name="EverySec" xml:space="preserve">
+    <value>Cada {0} segundos.</value>
+  </data>
+  <data name="Executions" xml:space="preserve">
+    <value>Eejcuciones	: </value>
+  </data>
+  <data name="ExitMessage" xml:space="preserve">
+    <value>OK, me voy...</value>
+  </data>
+  <data name="Infinite" xml:space="preserve">
+    <value>Infinita		: </value>
+  </data>
+  <data name="InvalidParameter" xml:space="preserve">
+    <value>Parámetro inválido.</value>
+  </data>
+  <data name="LeavingRoom" xml:space="preserve">
+    <value>Saliendo de {0}.</value>
+  </data>
   <data name="MustBeGreaterThan" xml:space="preserve">
     <value>El valor debe ser superior a {0}.</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre		: </value>
   </data>
   <data name="NoDateMatch" xml:space="preserve">
     <value>No se ha encontrado texto con formato de fecha.</value>
@@ -483,14 +534,62 @@
   <data name="NumericValue" xml:space="preserve">
     <value>Ingrese un valor numérico</value>
   </data>
+  <data name="OpAdded" xml:space="preserve">
+    <value>El usuario {0} ha sido añadido como operador.</value>
+  </data>
+  <data name="OpNotAdded" xml:space="preserve">
+    <value>El usuario {0} no ha sido añadido como operador.</value>
+  </data>
+  <data name="OpNotRemoved" xml:space="preserve">
+    <value>{0} no es un operador.</value>
+  </data>
+  <data name="OpRemoved" xml:space="preserve">
+    <value>{0} ya no es un operador.</value>
+  </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Pausada		: </value>
+  </data>
+  <data name="PausedTask" xml:space="preserve">
+    <value>Tarea '{0}' pausada.</value>
+  </data>
+  <data name="Periodic" xml:space="preserve">
+    <value>Periódica</value>
+  </data>
+  <data name="RequestedByOp" xml:space="preserve">
+    <value>Solicitado por un operador.</value>
+  </data>
   <data name="RunningTasks" xml:space="preserve">
     <value>Hay {0} tareas ejecutándose en este momento.</value>
+  </data>
+  <data name="Sheduled" xml:space="preserve">
+    <value>Programada</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado		: </value>
+  </data>
+  <data name="SystemTime" xml:space="preserve">
+    <value>La hora del sistema es: </value>
   </data>
   <data name="TaskInfo" xml:space="preserve">
     <value>{0}: {1} por {2}. Estado: {3}.</value>
   </data>
+  <data name="TaskNotExist" xml:space="preserve">
+    <value>La tarea no existe.</value>
+  </data>
+  <data name="TimeOrInterval" xml:space="preserve">
+    <value>Tiempo/Intervalo	: </value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tipo		: </value>
+  </data>
   <data name="Unauthorized" xml:space="preserve">
     <value>No autorizado.</value>
+  </data>
+  <data name="UnpausedTask" xml:space="preserve">
+    <value>Tarea '{0}' despausada.</value>
+  </data>
+  <data name="ValueTooBig" xml:space="preserve">
+    <value>El valor es demasiado grande.</value>
   </data>
   <data name="WaitingTime" xml:space="preserve">
     <value>Tiempo de espera: {0}ms.</value>
