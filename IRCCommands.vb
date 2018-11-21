@@ -3,6 +3,7 @@ Option Explicit On
 Imports System.Globalization
 Imports PeriodiBOT_IRC.IRC
 Imports PeriodiBOT_IRC.WikiBot
+Imports PeriodiBOT_IRC.My.Resources
 
 Public Class IRCCommands
 
@@ -12,10 +13,10 @@ Public Class IRCCommands
         Dim source As String = args.Source
         If args.IsOp Then
             Dim responsestring As String = String.Empty
-            responsestring = "Tiempo de espera entre líneas: " & Utils.ColoredText(Client.FloodDelay.ToString, 4) & " milisegundos."
+            responsestring = String.Format(Messages.WaitingTime, Utils.ColoredText(Client.FloodDelay.ToString, 4))
             Return New IRCMessage(source, responsestring.ToArray)
         Else
-            Return New IRCMessage(source, "No autorizado.")
+            Return New IRCMessage(source, Messages.Unauthorized)
         End If
     End Function
 
@@ -27,17 +28,17 @@ Public Class IRCCommands
         If args.IsOp Then
             Dim responsestring As String = String.Empty
             If Not IsNumeric(value) Then
-                Return New IRCMessage(source, "Ingrese un número válido.")
+                Return New IRCMessage(source, Messages.NumericValue)
             End If
             Dim resdelay As Integer = Integer.Parse(value)
             If resdelay <= 0 Then
-                Return New IRCMessage(source, "El valor debe ser mayor a 0.")
+                Return New IRCMessage(source, String.Format(Messages.MustBeGreaterThan, 0))
             End If
             client.FloodDelay = resdelay
-            responsestring = "Tiempo de espera entre líneas establecido a: " & Utils.ColoredText(value, 4) & " milisegundos."
+            responsestring = String.Format(Messages.WaitingTime, Utils.ColoredText(value, 4))
             Return New IRCMessage(source, responsestring.ToArray)
         Else
-            Return New IRCMessage(source, "No autorizado.")
+            Return New IRCMessage(source, Messages.Unauthorized)
         End If
     End Function
 
@@ -45,16 +46,14 @@ Public Class IRCCommands
         If args Is Nothing Then Return Nothing
         Dim source As String = args.Source
         Dim responsestring As New List(Of String)
-        If Not Utils.TaskAdm.TaskList.Count >= 1 Then
-            Return New IRCMessage(source, "No hay tareas ejecutándose.")
+        Dim tasklist As ICollection(Of TaskInfo) = Utils.TaskAdm.TaskList
+        If Not tasklist.Count >= 1 Then
+            Return New IRCMessage(source, Messages.NoRunningTasks)
         End If
-        Dim threadnames As New List(Of Tuple(Of String, String, String))
-        For Each t As TaskInfo In Utils.TaskAdm.TaskList
-            threadnames.Add(New Tuple(Of String, String, String)(t.Name, t.Author, t.Status))
-        Next
-        responsestring.Add("Hay " & Utils.ColoredText(Utils.TaskAdm.TaskList.Count.ToString, 4) & " tareas ejecutándose en este momento:")
-        For i As Integer = 0 To threadnames.Count - 1
-            responsestring.Add((i + 1).ToString & ": """ & threadnames(i).Item1 & """ por """ & threadnames(i).Item2 & """. Estado: " & Utils.ColoredText(threadnames(i).Item3, 4))
+        responsestring.Add(String.Format(Messages.RunningTasks, Utils.ColoredText(tasklist.Count.ToString, 4)))
+        For i As Integer = 0 To tasklist.Count - 1
+            Dim tline As String = String.Format(Messages.TaskInfo, (i + 1).ToString, tasklist(i).Name, tasklist(i).Author, Utils.ColoredText(tasklist(i).Status, 4))
+            responsestring.Add(tline)
         Next
         Return New IRCMessage(source, responsestring.ToArray)
     End Function
@@ -74,7 +73,7 @@ Public Class IRCCommands
                                                                                                         End Function), 1, False)
             Return New IRCMessage(args.Source, "Generando videos.")
         End If
-        Return New IRCMessage(args.Source, "No autorizado.")
+        Return New IRCMessage(args.Source, Messages.Unauthorized)
     End Function
 
 

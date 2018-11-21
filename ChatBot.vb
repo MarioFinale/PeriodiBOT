@@ -16,8 +16,8 @@ Namespace IRC
             Return New ChatMessage(source, user, text, _wBot)
         End Function
 
-        Function GetPossiblePage(ByVal starts As String, ByVal message As ChatMessage) As WikiBot.Page
-            If String.IsNullOrWhiteSpace(starts) Or message Is Nothing Then Throw New ArgumentNullException("message")
+        Function GetPossiblePage(ByVal starts As String(), ByVal message As ChatMessage) As WikiBot.Page
+            If starts Is Nothing Or message Is Nothing Then Throw New ArgumentNullException()
             For Each svar As String In starts
                 If message.NormalizedMessage.ToLower.StartsWith(svar.ToLower) Then
                     Dim resline As String = message.NormalizedMessage.ToLower
@@ -41,6 +41,17 @@ Namespace IRC
             Dim divisor As String = _botName.ToLower
             Return tline.Contains(divisor)
         End Function
+
+
+        Function CheckLine() As Boolean
+
+
+            Return True
+        End Function
+
+
+
+
 
     End Class
 

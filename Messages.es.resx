@@ -453,6 +453,9 @@
   <data name="PRevLoaded" xml:space="preserve">
     <value>Página con el revid {0} cargada.</value>
   </data>
+  <data name="RemovingRefs" xml:space="preserve">
+    <value>Eliminando todas las referencias que contengan '{0}'.</value>
+  </data>
   <data name="SpamBlackList" xml:space="preserve">
     <value>Filtro de abusos anti spam desencadenado en '{0}'.</value>
   </data>
@@ -461,9 +464,35 @@
   </data>
   <data name="UserNotOp" xml:space="preserve">
     <value>El usuario {0} en el host {1} no es OP.</value>
-    <comment> </comment>
   </data>
   <data name="UserOP" xml:space="preserve">
     <value>El usuario {0} en el host {1} es OP.</value>
+  </data>
+  <data name="CommandIssued" xml:space="preserve">
+    <value>Comando '{0}' ingresado por '{1}'. Argumentos: '{2}'</value>
+  </data>
+  <data name="MustBeGreaterThan" xml:space="preserve">
+    <value>El valor debe ser superior a {0}.</value>
+  </data>
+  <data name="NoDateMatch" xml:space="preserve">
+    <value>No se ha encontrado texto con formato de fecha.</value>
+  </data>
+  <data name="NoRunningTasks" xml:space="preserve">
+    <value>No hay tareas en ejecución.</value>
+  </data>
+  <data name="NumericValue" xml:space="preserve">
+    <value>Ingrese un valor numérico</value>
+  </data>
+  <data name="RunningTasks" xml:space="preserve">
+    <value>Hay {0} tareas ejecutándose en este momento.</value>
+  </data>
+  <data name="TaskInfo" xml:space="preserve">
+    <value>{0}: {1} por {2}. Estado: {3}.</value>
+  </data>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>No autorizado.</value>
+  </data>
+  <data name="WaitingTime" xml:space="preserve">
+    <value>Tiempo de espera: {0}ms.</value>
   </data>
 </root>

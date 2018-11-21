@@ -12,7 +12,6 @@ Public NotInheritable Class Initializer
 
     Public Shared Sub Init()
         Uptime = DateTime.Now
-        Utils.EventLogger.Log("Starting...", My.Resources.SStrings.LocalSource)
         ESWikiBOT = New Bot(New ConfigFile(ConfigFilePath))
         BotIRC = New IRC_Client(ESWikiBOT.IrcUrl, ESWikiBOT.IrcChannels, ESWikiBOT.IrcNickName, 6667, False, ESWikiBOT.IrcPassword, New ConfigFile(IrcOpPath))
         BotIRC.StartClient()

@@ -1256,7 +1256,7 @@ Namespace WikiBot
                     Dim User As New WikiUser(Me, Username)
                     'Validar usuario
                     If Not ValidUser(User) Then
-                        Utils.EventLogger.Log(String.Format(Messages.InvalidUser, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
+                        Utils.EventLogger.Debug_Log(String.Format(Messages.InvalidUser, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
                         Continue For
                     End If
 

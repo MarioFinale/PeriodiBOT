@@ -673,7 +673,7 @@ NotInheritable Class Utils
             Return total
 
         Catch ex As IndexOutOfRangeException
-            EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "CommFuncs")
+            EventLogger.EX_Log("EX: " & ex.Message, Reflection.MethodBase.GetCurrentMethod().Name)
             Return 0
         End Try
     End Function
@@ -747,7 +747,7 @@ NotInheritable Class Utils
         For Each m As Match In Regex.Matches(text, signpattern)
             Dim TheDate As DateTime = ESWikiDatetime(m.Value)
             Datelist.Add(TheDate)
-            EventLogger.Log("AllDateTimes: Adding " & TheDate.ToString, SStrings.LocalSource)
+            EventLogger.Debug_Log("Adding " & TheDate.ToString, Reflection.MethodBase.GetCurrentMethod().Name)
         Next
         Return Datelist.ToArray
     End Function
@@ -918,7 +918,7 @@ NotInheritable Class Utils
     ''' <returns></returns>
     Public Shared Function LastParagraphDateTime(ByVal text As String) As DateTime
         If String.IsNullOrEmpty(text) Then
-            Throw New ArgumentException("Empty var", "text")
+            Throw New ArgumentException("Empty parameter", "text")
         End If
         text = text.Trim(CType(vbCrLf, Char())) & " "
         Dim lastparagraph As String = Regex.Match(text, ".+[\s\s]+(?===.+==|$)").Value
@@ -952,7 +952,7 @@ NotInheritable Class Utils
         End If
 
         Dim TheDate As DateTime = ESWikiDatetime(lastparagraph)
-        EventLogger.Debug_Log("LastParagraphDateTime: Returning " & TheDate.ToString, SStrings.LocalSource)
+        EventLogger.Debug_Log("Returning " & TheDate.ToString, Reflection.MethodBase.GetCurrentMethod().Name)
         Return TheDate
     End Function
 
@@ -966,7 +966,7 @@ NotInheritable Class Utils
         Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
         If matchc.Count = 0 Then
-            EventLogger.Debug_Log("No date match", "ESWikiDateTime")
+            EventLogger.Debug_Log(Messages.NoDateMatch, Reflection.MethodBase.GetCurrentMethod().Name)
             Return New Date(9999, 12, 31, 23, 59, 59)
         End If
 
@@ -990,14 +990,11 @@ NotInheritable Class Utils
 
                 Dim dat As New DateTime(dates(4), dates(3), dates(2), dates(0), dates(1), 0)
                 TheDate = dat
-                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", SStrings.LocalSource)
             Catch ex As System.FormatException
-                EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
+                EventLogger.Debug_Log("EX: " & ex.Message, Reflection.MethodBase.GetCurrentMethod().Name)
             End Try
-
         Next
         Return TheDate
-
     End Function
 
 
@@ -1011,7 +1008,7 @@ NotInheritable Class Utils
         Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
 
         If matchc.Count = 0 Then
-            EventLogger.Debug_Log("No date match", "ESWikiDateTime")
+            EventLogger.Debug_Log(Messages.NoDateMatch, Reflection.MethodBase.GetCurrentMethod().Name)
             Return New DateTime(9999, 12, 31, 23, 59, 59)
         End If
 
@@ -1034,15 +1031,12 @@ NotInheritable Class Utils
                 Next
                 Dim dat As New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
                 dates.Add(dat)
-                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & dat.ToShortDateString & """", SStrings.LocalSource)
             Catch ex As System.FormatException
-                EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
+                EventLogger.Debug_Log("EX: " & ex.Message, Reflection.MethodBase.GetCurrentMethod().Name)
             End Try
-
         Next
         dates.Sort()
         Return dates.Last
-
     End Function
 
     ''' <summary>
@@ -1054,7 +1048,7 @@ NotInheritable Class Utils
         Dim matchc As MatchCollection = Regex.Matches(text, signpattern)
         Dim tdat As New DateTime(9999, 12, 31, 23, 59, 59)
         If matchc.Count = 0 Then
-            EventLogger.Debug_Log("No date match", "ESWikiDateTime")
+            EventLogger.Debug_Log(Messages.NoDateMatch, Reflection.MethodBase.GetCurrentMethod().Name)
             Return tdat
         End If
 
@@ -1076,9 +1070,8 @@ NotInheritable Class Utils
                     End If
                 Next
                 tdat = New DateTime(datesInt(4), datesInt(3), datesInt(2), datesInt(0), datesInt(1), 0)
-                EventLogger.Debug_Log("GetLastDateTime parse string: """ & parsedtxt & """" & " to """ & tdat.ToShortDateString & """", SStrings.LocalSource)
             Catch ex As System.FormatException
-                EventLogger.Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "TextFunctions")
+                EventLogger.Debug_Log("EX: " & ex.Message, Reflection.MethodBase.GetCurrentMethod().Name)
             End Try
             Return tdat
         Next

@@ -202,7 +202,7 @@
     <value>IRC Nickserv/Server password: </value>
   </data>
   <data name="NewUserName" xml:space="preserve">
-    <value>Wiki username: </value>
+    <value>Wiki user name: </value>
   </data>
   <data name="NewWikiMainApiUrl" xml:space="preserve">
     <value>Wiki API Url: </value>
@@ -441,6 +441,9 @@
   <data name="PRevLoaded" xml:space="preserve">
     <value>Page with revid {0} loaded.</value>
   </data>
+  <data name="RemovingRefs" xml:space="preserve">
+    <value>Removing all references to '{0}'.</value>
+  </data>
   <data name="SetName" xml:space="preserve">
     <value>Setting name.</value>
   </data>
@@ -464,5 +467,32 @@
   </data>
   <data name="UserOP" xml:space="preserve">
     <value>User {0} on host {1} is OP.</value>
+  </data>
+  <data name="CommandIssued" xml:space="preserve">
+    <value>Command '{0}' issued by '{1}'.  Arguments: '{2}'</value>
+  </data>
+  <data name="MustBeGreaterThan" xml:space="preserve">
+    <value>The value must be greater than {0}.</value>
+  </data>
+  <data name="NoDateMatch" xml:space="preserve">
+    <value>No text with date format found</value>
+  </data>
+  <data name="NoRunningTasks" xml:space="preserve">
+    <value>There are no running tasks.</value>
+  </data>
+  <data name="NumericValue" xml:space="preserve">
+    <value>Enter a numeric value</value>
+  </data>
+  <data name="RunningTasks" xml:space="preserve">
+    <value>There are {0} tasks running at this time.</value>
+  </data>
+  <data name="TaskInfo" xml:space="preserve">
+    <value>{0}: {1} by {2}. Status: {3}.</value>
+  </data>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>Unauthorized</value>
+  </data>
+  <data name="WaitingTime" xml:space="preserve">
+    <value>Waiting time: {0}ms.</value>
   </data>
 </root>

@@ -1,6 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
 Imports PeriodiBOT_IRC.WikiBot
+Imports PeriodiBOT_IRC.My.Resources
 
 Namespace IRC
     Class IRCCommandResolver
@@ -18,10 +19,12 @@ Namespace IRC
             _bot = WorkerBot
             Dim arg As New IRCCommandParams(imputline, Client, _bot)
             If Not BeginsWithPrefix(CommandPrefixes, arg.MessageLine) Then Return Nothing
+
+
             Dim requestedCommand As String = RemovePrefix(arg.CommandName)
             For Each Command As IRCCommand In Clist
                 If Command.Aliases.Contains(requestedCommand) Then
-                    Utils.EventLogger.Log("Command """ & requestedCommand & """ issued, parameter/s: """ & arg.CParam & """", arg.Source, arg.Realname)
+                    Utils.EventLogger.Log(String.Format(Messages.CommandIssued, requestedCommand, arg.Realname, arg.CParam), arg.Source, arg.Realname)
                     Return Command.ComFunc(arg)
                 End If
             Next

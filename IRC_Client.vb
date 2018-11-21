@@ -93,7 +93,7 @@ Namespace IRC
             Dim ResolveMessages As New Func(Of Boolean)(Function()
                                                             Return SendMessagequeue(MsgQueue)
                                                         End Function)
-            Utils.TaskAdm.NewTask("Resolver mensajes en IRC", BotCodename, ResolveMessages, 10, True, True)
+            Utils.TaskAdm.NewTask("IRC client message resolver", BotCodename, ResolveMessages, 10, True, True)
 
             Do Until HasExited
                 Try

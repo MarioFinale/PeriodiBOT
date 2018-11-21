@@ -501,7 +501,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Private Function AddSectionPage(ByVal sectionTitle As String, ByVal sectionContent As String, ByVal editSummary As String, ByVal isMinor As Boolean) As EditResults
             Dim additionalParameters As String = String.Empty
-            If String.IsNullOrEmpty(sectionContent) Or String.IsNullOrWhiteSpace(sectionContent) Then
+            If String.IsNullOrEmpty(sectionContent) Or String.IsNullOrEmpty(sectionTitle) Then
                 Throw New ArgumentNullException(System.Reflection.MethodBase.GetCurrentMethod().Name)
             End If
 
@@ -776,14 +776,11 @@ Namespace WikiBot
                 pageregex = pageregex & "[" & c.ToString.ToUpper & c.ToString.ToLower & "]"
             Next
 
-            If Not (requestedPage.Title.ToLower.Contains("usuario:") Or requestedPage.Title.ToLower.Contains("wikipedia:") Or
-            requestedPage.Title.ToLower.Contains("usuaria:") Or requestedPage.Title.ToLower.Contains("especial:") Or
-             requestedPage.Title.ToLower.Contains("wikiproyecto:") Or requestedPage.Title.ToLower.Contains("discusión:") Or
-              requestedPage.Title.ToLower.Contains("discusion:")) Then
+            If requestedPage.PageNamespace = 0 Then
                 For Each m As Match In Regex.Matches(PageText, "(<[REFref]+>)([^<]+?)" & pageregex & ".+?(<[/REFref]+>)")
                     PageText = PageText.Replace(m.Value, "")
                 Next
-                requestedPage.CheckAndSave(PageText, "(Bot): Removiendo referencias que contengan '" & requestedRef & "' según solicitud", False, True)
+                requestedPage.CheckAndSave(PageText, String.Format(Messages.RemovingRefs, requestedRef), False, True)
                 Return True
             Else
                 Return False

@@ -96,56 +96,56 @@ Class LogEngine
     ''' <summary>
     ''' Registra un evento normal.
     ''' </summary>
-    ''' <param name="text">Texto del evento</param>
+    ''' <param name="message">Texto del evento</param>
     ''' <param name="source">origen del evento</param>
     ''' <returns></returns>
-    Function Log(ByVal text As String, source As String) As Boolean
-        Return Log(text, source, BotCodename)
+    Function Log(ByVal message As String, source As String) As Boolean
+        Return Log(message, source, BotCodename)
     End Function
 
     ''' <summary>
     ''' Registra un evento de tipo debug.
     ''' </summary>
-    ''' <param name="text">Texto del evento</param>
+    ''' <param name="message">Texto del evento</param>
     ''' <param name="source">origen del evento</param>
     ''' <returns></returns>
-    Function Debug_Log(ByVal text As String, source As String) As Boolean
-        Return Debug_Log(text, source, BotCodename)
+    Function Debug_Log(ByVal message As String, source As String) As Boolean
+        Return Debug_Log(message, source, BotCodename)
     End Function
 
     ''' <summary>
     ''' Registra una excepción.
     ''' </summary>
-    ''' <param name="text">Texto del evento</param>
+    ''' <param name="message">Texto del evento</param>
     ''' <param name="source">origen del evento</param>
     ''' <returns></returns>
-    Function EX_Log(ByVal text As String, source As String) As Boolean
-        Return EX_Log(text, source, BotCodename)
+    Function EX_Log(ByVal message As String, source As String) As Boolean
+        Return EX_Log(message, source, BotCodename)
     End Function
 
     ''' <summary>
     ''' Inicia otro thread para guardar un evento de log
     ''' </summary>
-    ''' <param name="text">Texto a registrar</param>
+    ''' <param name="message">Texto a registrar</param>
     ''' <param name="source">Fuente del evento</param>
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
-    Public Function Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
-        AddEvent(text, source, user, "LOG")
-        Utils.WriteLine("LOG", source, user & ": " & text)
+    Public Function Log(ByVal message As String, ByVal source As String, ByVal user As String) As Boolean
+        AddEvent(message, source, user, "LOG")
+        Utils.WriteLine("LOG", source, user & ": " & message)
         Return True
     End Function
 
     ''' <summary>
     ''' Inicia otro thread para guardar un evento de log (debug)
     ''' </summary>
-    ''' <param name="text">Texto a registrar</param>
+    ''' <param name="message">Texto a registrar</param>
     ''' <param name="source">Fuente del evento</param>
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
-    Public Function Debug_Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
+    Public Function Debug_Log(ByVal message As String, ByVal source As String, ByVal user As String) As Boolean
         If _Debug Then
-            AddEvent(text, source, user, "DEBUG")
+            AddEvent(message, source, user, "DEBUG")
         End If
         Return True
     End Function
@@ -153,13 +153,13 @@ Class LogEngine
     ''' <summary>
     ''' Inicia otro thread para guardar un evento de log
     ''' </summary>
-    ''' <param name="text">Texto a registrar</param>
+    ''' <param name="message">Texto a registrar</param>
     ''' <param name="source">Fuente del evento</param>
     ''' <param name="user">Usuario origen del evento</param>
     ''' <returns></returns>
-    Public Function EX_Log(ByVal text As String, ByVal source As String, ByVal user As String) As Boolean
-        AddEvent(text, source, user, "EX")
-        Utils.WriteLine("EX", source, user & ": " & text)
+    Public Function EX_Log(ByVal message As String, ByVal source As String, ByVal user As String) As Boolean
+        AddEvent(message, source, user, "EX")
+        Utils.WriteLine("EX", source, user & ": " & message)
         Return True
     End Function
 
@@ -184,7 +184,7 @@ Class LogEngine
             LoadUsers()
             Return True
         Catch ex As IO.IOException
-            Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
+            Debug_Log(Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             'Do something, idk...\
             LoadUsers()
             Return False
@@ -227,7 +227,7 @@ Class LogEngine
             SaveUsersToFile()
             Return True
         Catch ex As IndexOutOfRangeException
-            Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
+            Debug_Log(Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             Return False
         End Try
 
@@ -242,7 +242,7 @@ Class LogEngine
             _userData = GetUsersFromFile()
             Return True
         Catch ex As IndexOutOfRangeException
-            Debug_Log(System.Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
+            Debug_Log(Reflection.MethodBase.GetCurrentMethod().Name & " EX: " & ex.Message, "IRC", _defaultUser)
             Return False
         End Try
     End Function
@@ -272,7 +272,7 @@ Class LogEngine
         Try
             Do Until _queue.Count = 0
                 AppendLinesToText(filepath, SafeDequeue(_queue))
-                System.Threading.Thread.Sleep(10)
+                Threading.Thread.Sleep(10)
             Loop
 
             Dim totallines As String() = IO.File.ReadAllLines(filepath)
@@ -282,7 +282,7 @@ Class LogEngine
             End If
             Return True
         Catch ex As IO.IOException
-            EX_Log(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, _defaultUser)
+            EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _defaultUser)
             Return False
         End Try
     End Function
@@ -297,6 +297,7 @@ Class LogEngine
     ''' <returns></returns>
     Private Function AddEvent(ByVal text As String, Source As String, User As String, Type As String) As Boolean
         Dim CurrDate As String = Date.Now().ToString("dd/MM/yyyy HH:mm:ss")
+        text = Utils.PsvSafeEncode(text)
         SafeEnqueue(LogQueue, {CurrDate, text, Source, User, Type})
         Return True
     End Function
@@ -325,7 +326,7 @@ Class LogEngine
             If Not IO.File.Exists(FilePath) Then
                 IO.File.Create(FilePath).Close()
             End If
-            Using Writer As New System.IO.StreamWriter(FilePath, True)
+            Using Writer As New IO.StreamWriter(FilePath, True)
                 Dim LineStr As String = String.Empty
                 For Each item As String In Lines
                     LineStr = LineStr & item & "|"
@@ -346,11 +347,11 @@ Class LogEngine
     ''' <returns></returns>
     Private Function GetUsersFromFile() As List(Of String())
         Dim UserList As New List(Of String())
-        If Not System.IO.File.Exists(User_Filepath) Then
-            System.IO.File.Create(User_Filepath).Close()
+        If Not IO.File.Exists(User_Filepath) Then
+            IO.File.Create(User_Filepath).Close()
             Return UserList
         Else
-            For Each line As String In System.IO.File.ReadAllLines(User_Filepath)
+            For Each line As String In IO.File.ReadAllLines(User_Filepath)
                 Dim Encodedline As New List(Of String)
                 For Each s As String In line.Split(CType("|", Char))
                     Encodedline.Add(Utils.PsvSafeDecode(s))
