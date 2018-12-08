@@ -74,6 +74,24 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Destino.
+        '''</summary>
+        Friend Shared ReadOnly Property ArchiveDestiny() As String
+            Get
+                Return ResourceManager.GetString("ArchiveDestiny", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a /Archivo-00-índice.
+        '''</summary>
+        Friend Shared ReadOnly Property ArchiveIndex() As String
+            Get
+                Return ResourceManager.GetString("ArchiveIndex", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a action=query&amp;assert=bot&amp;format=json.
         '''</summary>
         Friend Shared ReadOnly Property AssertBotData() As String
@@ -110,6 +128,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a  *[Ff]irma automática.
+        '''</summary>
+        Friend Shared ReadOnly Property AutoSignatureTemplateInsideRegex() As String
+            Get
+                Return ResourceManager.GetString("AutoSignatureTemplateInsideRegex", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a &lt;!-- Caja generada por PeriodiBOT, puedes editarla cuanto quieras, pero los nuevos enlaces siempre se añadirán al final. --&gt;.
         '''</summary>
         Friend Shared ReadOnly Property BoxMessage() As String
@@ -128,11 +155,26 @@ Namespace My.Resources
         '''IRCNetwork=&quot;{5}&quot;
         '''IRCBotNickName=&quot;{6}&quot;
         '''IRCBotPassword=&quot;{7}&quot;
-        '''IRCChannel=&quot;{8}&quot;.
+        '''IRCChannel=&quot;{8}&quot;
+        '''AutoArchiveTemplatePagename=&quot;{9}&quot;
+        '''AutoSignatureTemplatePageName=&quot;{10}&quot;
+        '''AutoArchiveProgrammedArchivePageName=&quot;{11}&quot;
+        '''AutoArchiveDoNotArchivePageName=&quot;{12}&quot;
+        '''ArchiveBoxTemplate=&quot;{13}&quot;
+        '''ArchiveMessageTemplate=&quot;{14}&quot;.
         '''</summary>
         Friend Shared ReadOnly Property ConfigTemplate() As String
             Get
                 Return ResourceManager.GetString("ConfigTemplate", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Días a mantener.
+        '''</summary>
+        Friend Shared ReadOnly Property DaysTokeep() As String
+            Get
+                Return ResourceManager.GetString("DaysTokeep", resourceCulture)
             End Get
         End Property
         
@@ -274,6 +316,24 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a MantenerCajaDeArchivos.
+        '''</summary>
+        Friend Shared ReadOnly Property KeepFileBox() As String
+            Get
+                Return ResourceManager.GetString("KeepFileBox", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a FirmaEnÚltimoPárrafo.
+        '''</summary>
+        Friend Shared ReadOnly Property LastPSignature() As String
+            Get
+                Return ResourceManager.GetString("LastPSignature", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a LOCAL.
         '''</summary>
         Friend Shared ReadOnly Property LocalSource() As String
@@ -297,6 +357,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property LongestThreads() As String
             Get
                 Return ResourceManager.GetString("LongestThreads", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a FirmaMásRecienteEnLaSección.
+        '''</summary>
+        Friend Shared ReadOnly Property MostRecentSignature() As String
+            Get
+                Return ResourceManager.GetString("MostRecentSignature", resourceCulture)
             End Get
         End Property
         
@@ -337,7 +406,7 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Busca una cadena traducida similar a format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;text={4}&amp;token={3}.
+        '''  Busca una cadena traducida similar a format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;text={3}&amp;token={4}.
         '''</summary>
         Friend Shared ReadOnly Property SavePage() As String
             Get
@@ -360,6 +429,42 @@ Namespace My.Resources
         Friend Shared ReadOnly Property SearchForUser() As String
             Get
                 Return ResourceManager.GetString("SearchForUser", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Estrategia.
+        '''</summary>
+        Friend Shared ReadOnly Property Strategy() As String
+            Get
+                Return ResourceManager.GetString("Strategy", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Avisar al archivar.
+        '''</summary>
+        Friend Shared ReadOnly Property WarnArchiving() As String
+            Get
+                Return ResourceManager.GetString("WarnArchiving", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a si.
+        '''</summary>
+        Friend Shared ReadOnly Property YES() As String
+            Get
+                Return ResourceManager.GetString("YES", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a sí.
+        '''</summary>
+        Friend Shared ReadOnly Property YES2() As String
+            Get
+                Return ResourceManager.GetString("YES2", resourceCulture)
             End Get
         End Property
     End Class

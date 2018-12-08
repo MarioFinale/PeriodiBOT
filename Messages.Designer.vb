@@ -648,6 +648,60 @@ Namespace My.Resources
                 Return ResourceManager.GetString("NetworkError", resourceCulture)
             End Get
         End Property
+
+        '''<summary>
+        '''  Busca una cadena traducida similar a Archive box page name (with namespace):.
+        '''</summary>
+        Friend Shared ReadOnly Property NewArchiveBoxTemplate() As String
+            Get
+                Return ResourceManager.GetString("NewArchiveBoxTemplate", resourceCulture)
+            End Get
+        End Property
+
+        '''<summary>
+        '''  Busca una cadena traducida similar a Archive page message (with namespace):.
+        '''</summary>
+        Friend Shared ReadOnly Property NewArchiveMessageTemplate() As String
+            Get
+                Return ResourceManager.GetString("NewArchiveMessageTemplate", resourceCulture)
+            End Get
+        End Property
+
+        '''<summary>
+        '''  Busca una cadena traducida similar a Auto archive &apos;do not archive&apos; page name (with namespace):.
+        '''</summary>
+        Friend Shared ReadOnly Property NewAutoArchiveDoNotArchivePageName() As String
+            Get
+                Return ResourceManager.GetString("NewAutoArchiveDoNotArchivePageName", resourceCulture)
+            End Get
+        End Property
+
+        '''<summary>
+        '''  Busca una cadena traducida similar a Auto archive &apos;programmed archive&apos; page name (with namespace):.
+        '''</summary>
+        Friend Shared ReadOnly Property NewAutoArchiveProgrammedArchivePageName() As String
+            Get
+                Return ResourceManager.GetString("NewAutoArchiveProgrammedArchivePageName", resourceCulture)
+            End Get
+        End Property
+
+        '''<summary>
+        '''  Busca una cadena traducida similar a Auto archive template page name (with namespace): .
+        '''</summary>
+        Friend Shared ReadOnly Property NewAutoArchiveTemplatePagename() As String
+            Get
+                Return ResourceManager.GetString("NewAutoArchiveTemplatePagename", resourceCulture)
+            End Get
+        End Property
+
+        '''<summary>
+        '''  Busca una cadena traducida similar a Auto signature template page name (with namespace):.
+        '''</summary>
+        Friend Shared ReadOnly Property NewAutoSignatureTemplatePageName() As String
+            Get
+                Return ResourceManager.GetString("NewAutoSignatureTemplatePageName", resourceCulture)
+            End Get
+        End Property
         
         '''<summary>
         '''  Busca una cadena traducida similar a Bot name: .
@@ -1348,6 +1402,15 @@ Namespace My.Resources
         Friend Shared ReadOnly Property UpdatedExtracts() As String
             Get
                 Return ResourceManager.GetString("UpdatedExtracts", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Updating archive box..
+        '''</summary>
+        Friend Shared ReadOnly Property UpdatingArchiveBox() As String
+            Get
+                Return ResourceManager.GetString("UpdatingArchiveBox", resourceCulture)
             End Get
         End Property
         

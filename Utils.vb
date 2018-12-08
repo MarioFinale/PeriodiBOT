@@ -610,7 +610,7 @@ NotInheritable Class Utils
     ''' </summary>
     ''' <typeparam name="T"></typeparam>
     ''' <param name="arg1"></param>
-    ''' <param name="arg2"></param>
+    ''' <param name="arg2"></param>;
     Sub Swap(Of T)(ByRef arg1 As T, ByRef arg2 As T)
         Dim temp As T = arg1
         arg1 = arg2

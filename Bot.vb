@@ -96,6 +96,12 @@ Namespace WikiBot
             End Get
         End Property
 
+        Public Property AutoArchiveTemplatePageName As String
+        Public Property AutoSignatureTemplatePageName As String
+        Public Property AutoArchiveProgrammedArchivePageName As String
+        Public Property AutoArchiveDoNotArchivePageName As String
+        Public Property ArchiveBoxTemplate As String
+        Public Property ArchiveMessageTemplate As String
 #End Region
 
 #Region "Init"
@@ -127,6 +133,13 @@ Namespace WikiBot
             Dim IRCBotPassword As String = String.Empty
             Dim MainIRCNetwork As String = String.Empty
             Dim IRCChannels As String() = {String.Empty}
+            Dim _autoArchiveTemplatePagename As String = String.Empty
+            Dim _autoSignatureTemplatePageName As String = String.Empty
+            Dim _autoArchiveProgrammedArchivePageName As String = String.Empty
+            Dim _autoArchiveDoNotArchivePageName As String = String.Empty
+            Dim _archiveBoxTemplate As String = String.Empty
+            Dim _doNotArchiveTemplate As String = String.Empty
+            Dim _archiveMessageTemplate As String = String.Empty
             Dim ConfigOK As Boolean = False
             Console.WriteLine(String.Format(Messages.GreetingMsg, Version))
             Utils.EventLogger.Debug_Log(Messages.BotEngine & Version, Reflection.MethodBase.GetCurrentMethod().Name)
@@ -143,6 +156,12 @@ Namespace WikiBot
                     IRCBotNickName = Utils.TextInBetween(Configstr, "IRCBotNickName=""", """")(0)
                     IRCBotPassword = Utils.TextInBetween(Configstr, "IRCBotPassword=""", """")(0)
                     IRCChannels = Utils.TextInBetween(Configstr, "IRCChannel=""", """")(0).Split("|"c)
+                    _autoArchiveTemplatePagename = Utils.TextInBetween(Configstr, "AutoArchiveTemplatePagename=""", """")(0)
+                    _autoSignatureTemplatePageName = Utils.TextInBetween(Configstr, "AutoSignatureTemplatePageName=""", """")(0)
+                    _autoArchiveProgrammedArchivePageName = Utils.TextInBetween(Configstr, "AutoArchiveProgrammedArchivePageName=""", """")(0)
+                    _autoArchiveDoNotArchivePageName = Utils.TextInBetween(Configstr, "AutoArchiveDoNotArchivePageName=""", """")(0)
+                    _archiveBoxTemplate = Utils.TextInBetween(Configstr, "ArchiveBoxTemplate=""", """")(0)
+                    _archiveMessageTemplate = Utils.TextInBetween(Configstr, "ArchiveMessageTemplate=""", """")(0)
                     ConfigOK = True
                 Catch ex As IndexOutOfRangeException
                     Utils.EventLogger.Log(Messages.ConfigError, Reflection.MethodBase.GetCurrentMethod().Name)
@@ -177,14 +196,36 @@ Namespace WikiBot
                 IRCBotPassword = Console.ReadLine
                 Console.WriteLine(Messages.NewIrcNetworkChannels)
                 IRCChannels = {Console.ReadLine}
+                Console.WriteLine(Messages.NewAutoArchiveTemplatePagename)
+                _AutoArchiveTemplatePagename = Console.ReadLine
+                Console.WriteLine(Messages.NewAutoSignatureTemplatePageName)
+                _AutoSignatureTemplatePageName = Console.ReadLine
+                Console.WriteLine(Messages.NewAutoArchiveProgrammedArchivePageName)
+                _AutoArchiveProgrammedArchivePageName = Console.ReadLine
+                Console.WriteLine(Messages.NewAutoArchiveDoNotArchivePageName)
+                _AutoArchiveDoNotArchivePageName = Console.ReadLine
+                Console.WriteLine(Messages.NewArchiveBoxTemplate)
+                _archiveBoxTemplate = Console.ReadLine
+                Console.WriteLine(Messages.NewArchiveMessageTemplate)
+                _archiveMessageTemplate = Console.ReadLine
 
-                Dim configstr As String = String.Format(SStrings.ConfigTemplate, MainBotName, WPBotUserName, WPBotPassword, WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, String.Join("|"c, IRCChannels))
+                Dim configstr As String = String.Format(SStrings.ConfigTemplate, MainBotName, WPBotUserName, WPBotPassword,
+                                                        WPSite, WPAPI, MainIRCNetwork, IRCBotNickName, IRCBotPassword, String.Join("|"c, IRCChannels),
+                                                        _autoArchiveTemplatePagename, _autoSignatureTemplatePageName, _autoArchiveProgrammedArchivePageName,
+                                                        _autoArchiveDoNotArchivePageName, _archiveBoxTemplate, _archiveMessageTemplate)
                 Try
                     System.IO.File.WriteAllText(path.GetPath, configstr)
                 Catch ex As System.IO.IOException
                     Utils.EventLogger.Log(Messages.SaveConfigError, Reflection.MethodBase.GetCurrentMethod().Name)
                 End Try
             End If
+
+            AutoArchiveTemplatePageName = _autoArchiveTemplatePagename
+            AutoSignatureTemplatePageName = _autoSignatureTemplatePageName
+            AutoArchiveProgrammedArchivePageName = _autoArchiveProgrammedArchivePageName
+            AutoArchiveDoNotArchivePageName = _autoArchiveDoNotArchivePageName
+            ArchiveBoxTemplate = _archiveBoxTemplate
+            ArchiveMessageTemplate = _archiveMessageTemplate
 
             _localName = MainBotName
             _botUserName = WPBotUserName

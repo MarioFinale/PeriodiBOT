@@ -145,7 +145,13 @@ ApiURL="{4}"
 IRCNetwork="{5}"
 IRCBotNickName="{6}"
 IRCBotPassword="{7}"
-IRCChannel="{8}"</value>
+IRCChannel="{8}"
+AutoArchiveTemplatePagename="{9}"
+AutoSignatureTemplatePageName="{10}"
+AutoArchiveProgrammedArchivePageName="{11}"
+AutoArchiveDoNotArchivePageName="{12}"
+ArchiveBoxTemplate="{13}"
+ArchiveMessageTemplate="{14}"</value>
   </data>
   <data name="EditToken" xml:space="preserve">
     <value>format=json&amp;action=query&amp;meta=tokens</value>
@@ -216,12 +222,45 @@ IRCChannel="{8}"</value>
     <value>format=json&amp;action=query&amp;pslimit=max&amp;list=prefixsearch&amp;pssearch=</value>
   </data>
   <data name="SavePage" xml:space="preserve">
-    <value>format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;text={4}&amp;token={3}</value>
+    <value>format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;text={3}&amp;token={4}</value>
   </data>
   <data name="Search" xml:space="preserve">
     <value>format=json&amp;action=query&amp;list=search&amp;utf8=1&amp;srsearch=</value>
   </data>
   <data name="SearchForUser" xml:space="preserve">
     <value>format=json&amp;action=query&amp;list=search&amp;utf8=1&amp;srnamespace=2&amp;srsearch=</value>
+  </data>
+  <data name="ArchiveDestiny" xml:space="preserve">
+    <value>Destino</value>
+  </data>
+  <data name="ArchiveIndex" xml:space="preserve">
+    <value>/Archivo-00-índice</value>
+  </data>
+  <data name="AutoSignatureTemplateInsideRegex" xml:space="preserve">
+    <value> *[Ff]irma automática</value>
+  </data>
+  <data name="DaysTokeep" xml:space="preserve">
+    <value>Días a mantener</value>
+  </data>
+  <data name="KeepFileBox" xml:space="preserve">
+    <value>MantenerCajaDeArchivos</value>
+  </data>
+  <data name="LastPSignature" xml:space="preserve">
+    <value>FirmaEnÚltimoPárrafo</value>
+  </data>
+  <data name="MostRecentSignature" xml:space="preserve">
+    <value>FirmaMásRecienteEnLaSección</value>
+  </data>
+  <data name="Strategy" xml:space="preserve">
+    <value>Estrategia</value>
+  </data>
+  <data name="WarnArchiving" xml:space="preserve">
+    <value>Avisar al archivar</value>
+  </data>
+  <data name="YES" xml:space="preserve">
+    <value>si</value>
+  </data>
+  <data name="YES2" xml:space="preserve">
+    <value>sí</value>
   </data>
 </root>

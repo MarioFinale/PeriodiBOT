@@ -8,5 +8,6 @@
         SpamBlacklist
         No_bots
         Unexpected_Result
+        ProtectedPage
     End Enum
 End Namespace

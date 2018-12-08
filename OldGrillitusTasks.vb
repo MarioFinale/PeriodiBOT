@@ -79,21 +79,21 @@ Namespace WikiBot
             End If
             'Estrategia
             If String.IsNullOrEmpty(Params(3)) Then
-                strategy = "FirmaEnÚltimoPárrafo"
+                strategy = SStrings.LastPSignature
             Else
-                If Params(3) = "FirmaEnÚltimoPárrafo" Then
-                    strategy = "FirmaEnÚltimoPárrafo"
-                ElseIf Params(3) = "FirmaMásRecienteEnLaSección" Then
-                    strategy = "FirmaMásRecienteEnLaSección"
+                If Params(3) = SStrings.LastPSignature Then
+                    strategy = SStrings.LastPSignature
+                ElseIf Params(3) = SStrings.MostRecentSignature Then
+                    strategy = SStrings.MostRecentSignature
                 Else
-                    strategy = "FirmaEnÚltimoPárrafo"
+                    strategy = SStrings.LastPSignature
                 End If
             End If
             'Usar caja de archivos
             If String.IsNullOrEmpty(Params(4)) Then
                 useBox = False
             Else
-                If Params(4).ToLower.Contains("si") Or Params(4).ToLower.Contains("sí") Then
+                If Params(4).ToLower.Contains(SStrings.YES) Or Params(4).ToLower.Contains(SStrings.YES2) Then
                     useBox = True
                 Else
                     useBox = False
@@ -143,7 +143,7 @@ Namespace WikiBot
         Function AutoArchive(ByVal PageToArchive As Page) As Boolean
             Utils.EventLogger.Log(String.Format(Messages.AutoArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name)
             If PageToArchive Is Nothing Then Return False
-            Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & "/Archivo-00-índice")
+            Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & SStrings.ArchiveIndex)
             Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
 
             If Not ValidPage(PageToArchive, ArchiveCfg) Then Return False
@@ -195,8 +195,8 @@ Namespace WikiBot
                     ArchivePageText = ArchivePageText & ThreadText
 
                     'Añadir la plantilla de archivo
-                    If Not Regex.Match(ArchivePageText, "{{ *[Aa]rchivo *}}").Success Then
-                        ArchivePageText = "{{Archivo}}" & Environment.NewLine & ArchivePageText
+                    If Not SimpleTemplateNoParamIsPresent(ArchivePageText, _bot.ArchiveMessageTemplate) Then
+                        ArchivePageText = ArchiveMessage() & Environment.NewLine & ArchivePageText
                     End If
 
                     'Si se usa la caja de archivos
@@ -227,7 +227,7 @@ Namespace WikiBot
                     'Si debe tener caja de archivos...
                     If useBox Then
                         If Not Regex.Match(Newpagetext, "{{" & IndexPage.Title & "}}", RegexOptions.IgnoreCase).Success Then
-                            Dim Archivetemplate As String = Regex.Match(PageToArchive.Content, "{{ *[Aa]rchivado automático[\s\S]+?}}").Value
+                            Dim Archivetemplate As String = GetArchiveTemplate(PageToArchive.Content)
                             Newpagetext = Newpagetext.Replace(Archivetemplate, Archivetemplate & Environment.NewLine & "{{" & IndexPage.Title & "}}" & Environment.NewLine)
                         End If
                     End If
@@ -239,7 +239,6 @@ Namespace WikiBot
                     End If
                     PageToArchive.Save(Newpagetext, Summary, isminor, True)
                 End If
-
             Else
                 Utils.EventLogger.Log(String.Format(Messages.NothingToArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name)
             End If
@@ -247,6 +246,8 @@ Namespace WikiBot
             Utils.EventLogger.Log(String.Format(Messages.AutoArchiveDone, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name)
             Return True
         End Function
+
+
 
 
         Private Function CheckAndArchiveThreads(ByVal Pagename As String, ByVal threads As String(), pagetext As String, strategy As String, ConfigDest As String, maxDays As Integer) As Tuple(Of SortedList(Of String, String), String, Integer)
@@ -259,9 +260,9 @@ Namespace WikiBot
                 Dim thread As String = threads(i)
                 Try
                     Dim tDate As Date
-                    If strategy = "FirmaMásRecienteEnLaSección" Then
+                    If strategy = SStrings.MostRecentSignature Then
                         tDate = Utils.MostRecentDate(thread)
-                    ElseIf strategy = "FirmaEnÚltimoPárrafo" Then
+                    ElseIf strategy = SStrings.LastPSignature Then
                         tDate = Utils.LastParagraphDateTime(thread)
                     Else
                         Continue For
@@ -286,16 +287,109 @@ Namespace WikiBot
         End Function
 
 
+        Private Function DoNotArchiveTemplatePresent(ByVal text As String) As Boolean
+            Return SimpleTemplateMatch(text, _bot.AutoArchiveDoNotArchivePageName)
+        End Function
+        Private Function ProgrammedArchiveTemplatePresent(ByVal text As String) As Boolean
+            Return SimpleTemplateMatch(text, _bot.AutoArchiveProgrammedArchivePageName)
+        End Function
+        Private Function GetProgrammedArchiveTemplate(ByVal text As String) As String
+            Return GetTemplate(text, _bot.AutoArchiveProgrammedArchivePageName)
+        End Function
+        Private Function ArchiveBoxTemplate() As String
+            Return _bot.ArchiveBoxTemplate.Split(":"c)(1).Trim
+        End Function
+
+        Private Function ArchiveMessage() As String
+            Return _bot.ArchiveMessageTemplate.Split(":"c)(1).Trim
+        End Function
+
+        Private Function ArchiveBoxTemplatePresent(ByVal text As String) As Boolean
+            Return SimpleTemplateMatch(text, _bot.ArchiveBoxTemplate)
+        End Function
+
+        Private Function ContainsArchiveTemplate(ByVal text As String) As Boolean
+            Dim TempRegex As String = "[" & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(0, 1).ToUpper & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(0, 1).ToLower & "]" & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(1)
+            Dim FullRegex As String = "{{ *" & TempRegex & "[\s\S]+?}}"
+            Dim result As Boolean = Regex.Match(text, FullRegex).Success
+            Return result
+        End Function
+
+        Private Function GetArchiveTemplate(ByVal text As String) As String
+            Dim TempRegex As String = "[" & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(0, 1).ToUpper & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(0, 1).ToLower & "]" & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(1)
+            Dim FullRegex As String = "{{ *" & TempRegex & "[\s\S]+?}}"
+            Dim result As String = Regex.Match(text, FullRegex).Value
+            Return result
+        End Function
+
+        Private Function GetArchiveBoxTemplate(ByVal text As String) As String
+            Dim TempRegex As String = "[" & _bot.ArchiveBoxTemplate.Split(":"c)(1).Trim.Substring(0, 1).ToUpper & _bot.ArchiveBoxTemplate.Split(":"c)(1).Trim.Substring(0, 1).ToLower & "]" & _bot.ArchiveBoxTemplate.Split(":"c)(1).Trim.Substring(1)
+            Dim FullRegex As String = "{{ *" & TempRegex & "[\s\S]+?}}"
+            Dim result As String = Regex.Match(text, FullRegex).Value
+            Return result
+        End Function
+
+        Function SimpleTemplateNoParamIsPresent(ByVal text As String, templatename As String) As Boolean
+            Dim PageNameWithoutNamespace As String = templatename.Split(":"c)(1).Trim
+            Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0).ToUpper & PageNameWithoutNamespace.Substring(0).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+            Dim templateregex As String = "{{ *" & PageNameRegex & " *}}"
+            Dim IsPresent As Boolean = Regex.Match(text, templateregex).Success
+            Return IsPresent
+        End Function
+
+        Function GetSimpleTemplateNoParam(ByVal text As String, templatename As String) As String
+            Dim PageNameWithoutNamespace As String = templatename.Split(":"c)(1).Trim
+            Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0).ToUpper & PageNameWithoutNamespace.Substring(0).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+            Dim templateregex As String = "{{ *" & PageNameRegex & " *}}"
+            Dim tTemplate As String = Regex.Match(text, templateregex).Value
+            Return tTemplate
+        End Function
+
+
+        ''' <summary>
+        ''' Entrega el comienzo de la plantilla (sin su espacio de nombres) si se encuentra en el texto
+        ''' </summary>
+        ''' <param name="text">Texto a analizar</param>
+        ''' <param name="PageName">Nombre de la plantilla (con su espacio de nombres, para funcionar correctamente debe estar en "Template" o su equivalente en la wiki.</param>
+        ''' <returns></returns>
+        Function GetTemplate(ByVal text As String, PageName As String) As String
+            Dim templatelist As List(Of Template) = Template.GetTemplates(text)
+            For Each temp As Template In templatelist
+                Dim PageNameWithoutNamespace As String = PageName.Split(":"c)(1).Trim
+                Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0).ToUpper & PageNameWithoutNamespace.Substring(0).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+                Dim templateregex As String = "{{ *" & PageNameRegex & " *"
+                Dim IsPresent As Boolean = Regex.Match(temp.Text, templateregex).Success
+                If IsPresent Then
+                    Return Regex.Match(temp.Text, templateregex).Value
+                End If
+            Next
+            Return String.Empty
+        End Function
+
+        ''' <summary>
+        ''' Indica sólamente si la plantilla esta en el texto (consume menos recursos que analizarla)
+        ''' </summary>
+        ''' <param name="text">Texto a analizar</param>
+        ''' <param name="PageName">Nombre de la plantilla (con su espacio de nombres, para funcionar correctamente debe estar en "Template" o su equivalente en la wiki.</param>
+        ''' <returns></returns>
+        Function SimpleTemplateMatch(ByVal text As String, PageName As String) As Boolean
+            Dim PageNameWithoutNamespace As String = PageName.Split(":"c)(1).Trim
+            Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0).ToUpper & PageNameWithoutNamespace.Substring(0).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+            Dim templateregex As String = "{{ *" & PageNameRegex & " *"
+            Dim IsPresent As Boolean = Regex.Match(text, templateregex).Success
+            Return IsPresent
+        End Function
+
         Private Function CheckAndArchiveThread(ByVal threadtext As String, threaddate As Date, limitdate As Date, pagetext As String, ConfigDestination As String) As Tuple(Of Tuple(Of String, String), String)
 
-            Dim ProgrammedMatch As Match = Regex.Match(threadtext, "{{ *[Aa]rchivo programado *\| *fecha\=")
-            Dim DoNotArchiveMatch As Match = Regex.Match(threadtext, "{{ *[Nn]o archivar *")
+            Dim ProgrammedTemplate As String = GetProgrammedArchiveTemplate(threadtext)
+            Dim DoNotArchive As Boolean = DoNotArchiveTemplatePresent(threadtext)
 
-            If Not DoNotArchiveMatch.Success Then
+            If Not DoNotArchive Then
 
                 'Archivado programado
-                If ProgrammedMatch.Success Then
-                    Dim fechastr As String = Utils.TextInBetween(threadtext, ProgrammedMatch.Value, "}}")(0)
+                If Not String.IsNullOrWhiteSpace(ProgrammedTemplate) Then
+                    Dim fechastr As String = Utils.TextInBetween(threadtext, ProgrammedTemplate, "}}")(0)
                     fechastr = " " & fechastr & " "
                     fechastr = fechastr.Replace(" 1-", "01-").Replace(" 2-", "02-").Replace(" 3-", "03-").Replace(" 4-", "04-") _
                         .Replace(" 5-", "05-").Replace(" 6-", "06-").Replace(" 7-", "07-").Replace(" 8-", "08-").Replace(" 9-", "09-") _
@@ -348,7 +442,7 @@ Namespace WikiBot
             Try
                 'Verificar si está creada la página de archivo, si no, la crea.
                 If Not Indexpage.Exists Then
-                    Dim newtext As String = boxstring & Environment.NewLine & "{{caja archivos|" & Environment.NewLine
+                    Dim newtext As String = boxstring & Environment.NewLine & ArchiveBoxTemplate() & Environment.NewLine
 
                     For Each p As String In ArchivePages
                         If Not newtext.Contains(p) Then
@@ -366,11 +460,11 @@ Namespace WikiBot
                     Indexpage.Save(newtext, Messages.CreatingBoxSumm)
 
                 Else
-                    Utils.EventLogger.Debug_Log("UpdateBox: Updating Box", Reflection.MethodBase.GetCurrentMethod().Name)
-                    Dim ArchiveBoxMatch As Match = Regex.Match(Indexpage.Content, "{{[Cc]aja (de)* *archivos[\s\S]+?}}")
-                    If ArchiveBoxMatch.Success Then
-                        Dim temptxt As String = ArchiveBoxMatch.Value
-                        Dim temp As New Template(ArchiveBoxMatch.Value, False)
+                    Utils.EventLogger.Debug_Log(Messages.UpdatingArchiveBox, Reflection.MethodBase.GetCurrentMethod().Name)
+                    If ArchiveBoxTemplatePresent(Indexpage.Content) Then
+                        Dim ArchiveBoxtext As String = GetArchiveBoxTemplate(Indexpage.Content)
+                        Dim temptxt As String = ArchiveBoxtext
+                        Dim temp As New Template(ArchiveBoxtext, False)
                         For Each t As Tuple(Of String, String) In temp.Parameters
                             'Buscar el item 1 de la plantilla de caja de archivos
                             If t.Item1 = "1" Then                                'Generar links en caja de archivos:
@@ -388,13 +482,12 @@ Namespace WikiBot
                                 Exit For
                             End If
                         Next
-                        Dim newtext As String = Indexpage.Content.Replace(ArchiveBoxMatch.Value, temptxt)
+                        Dim newtext As String = Indexpage.Content.Replace(ArchiveBoxtext, temptxt)
                         Indexpage.Save(newtext, Messages.UpdatingBoxSumm, True, True)
 
                     Else 'No contiene una plantilla de caja de archivo, en ese caso se crea una nueva por sobre el contenido de la pagina
 
-                        Dim newtext As String = boxstring & Environment.NewLine & "{{caja archivos|" & Environment.NewLine
-
+                        Dim newtext As String = boxstring & Environment.NewLine & ArchiveBoxTemplate() & Environment.NewLine
                         For Each p As String In ArchivePages
                             If Not newtext.Contains(p) Then
                                 Dim ArchiveBoxLink As String = "[[" & p & "]]"
@@ -409,7 +502,6 @@ Namespace WikiBot
                         Next
                         newtext = newtext & "}}" & Environment.NewLine
                         Indexpage.Save(newtext & Indexpage.Content, Messages.OverwritingBoxSumm)
-
                     End If
                 End If
 
@@ -438,7 +530,7 @@ Namespace WikiBot
             Dim UseBox As String = String.Empty
 
             For Each tup As Tuple(Of String, String) In ArchiveTemplate.Parameters
-                If tup.Item1 = "Destino" Then
+                If tup.Item1 = SStrings.ArchiveDestiny Then
                     Destination = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim()
                     If Destination.Contains(":") Then
                         Dim destNamespace As String = Destination.Split(":"c)(0)
@@ -448,16 +540,16 @@ Namespace WikiBot
                         Destination = destParsedNamespace & ":" & destParsedPagename
                     End If
                 End If
-                If tup.Item1 = "Días a mantener" Then
+                If tup.Item1 = SStrings.DaysTokeep Then
                     Days = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
                 End If
-                If tup.Item1 = "Avisar al archivar" Then
+                If tup.Item1 = SStrings.WarnArchiving Then
                     Notify = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
                 End If
-                If tup.Item1 = "Estrategia" Then
+                If tup.Item1 = SStrings.Strategy Then
                     Strategy = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
                 End If
-                If tup.Item1 = "MantenerCajaDeArchivos" Then
+                If tup.Item1 = SStrings.KeepFileBox Then
                     UseBox = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
                 End If
             Next
@@ -474,7 +566,7 @@ Namespace WikiBot
             Dim templist As List(Of Template) = Template.GetTemplates(Template.GetTemplateTextArray(PageToGet.Content))
             Dim Archtemp As New Template
             For Each t As Template In templist
-                If Regex.Match(t.Name, " *[Aa]rchivado automático").Success Then
+                If ContainsArchiveTemplate(t.Text) Then
                     Archtemp = t
                     Exit For
                 End If
@@ -487,7 +579,7 @@ Namespace WikiBot
         ''' </summary>
         ''' <returns></returns>
         Function ArchiveAllInclusions() As Boolean
-            Dim templatePageName As String = "Plantilla:Archivado automático"
+            Dim templatePageName As String = _bot.AutoArchiveTemplatePageName
             Dim includedpages As String() = _bot.GetallInclusions(templatePageName)
             Utils.EventLogger.Log(String.Format(Messages.ArchivingInclusions, templatePageName), Reflection.MethodBase.GetCurrentMethod().Name)
             For Each pa As String In includedpages
@@ -512,7 +604,7 @@ Namespace WikiBot
             Dim templist As List(Of Template) = Template.GetTemplates(Template.GetTemplateTextArray(PageToGet.Content))
             Dim signtemp As New Template
             For Each t As Template In templist
-                If Regex.Match(t.Name, " *[Ff]irma automática").Success Then
+                If Regex.Match(t.Name, SStrings.AutoSignatureTemplateInsideRegex).Success Then
                     signtemp = t
                     Exit For
                 End If
@@ -525,10 +617,10 @@ Namespace WikiBot
         ''' </summary>
         ''' <returns></returns>
         Function SignAllInclusions() As Boolean
-            Dim includedpages As String() = _bot.GetallInclusions("Plantilla:Firma_automática")
+            Dim includedpages As String() = _bot.GetallInclusions(_bot.AutoSignatureTemplatePageName)
             For Each pa As String In includedpages
                 Try
-                    Utils.EventLogger.Debug_Log("SignAllInclusions: Page " & pa, Reflection.MethodBase.GetCurrentMethod().Name)
+                    Utils.EventLogger.Debug_Log("Checking page " & pa, Reflection.MethodBase.GetCurrentMethod().Name)
                     Dim _Page As Page = _bot.Getpage(pa)
                     If _Page.Exists Then
                         If Not ValidNamespace(_Page) Then Continue For

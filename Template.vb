@@ -42,6 +42,7 @@ Namespace WikiBot
             End Get
             Set(value As List(Of Tuple(Of String, String)))
                 _parameters = value
+                _text = CreateTemplatetext(_name, _parameters, True)
             End Set
         End Property
 

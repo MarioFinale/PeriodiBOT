@@ -117,7 +117,7 @@ Namespace WikiBot
                         Return lresult
                     End If
                     Return lresult
-                Catch ex2 As System.Net.WebException
+                Catch ex2 As WebException
                     Utils.EventLogger.Log(Messages.NetworkError & ex2.Message, SStrings.LocalSource)
                 End Try
                 Console.WriteLine(Environment.NewLine)
@@ -211,13 +211,16 @@ Namespace WikiBot
                     postreq.CookieContainer = tempcookies
                     postreq.UserAgent = _userAgent
                     postreq.ContentType = "application/x-www-form-urlencoded"
-                    Dim postresponse As HttpWebResponse
-                    postresponse = DirectCast(postreq.GetResponse, HttpWebResponse)
+                    Dim postresponse As HttpWebResponse = DirectCast(postreq.GetResponse, HttpWebResponse)
                     tempcookies.Add(postresponse.Cookies)
                     Dim postreqreader As New StreamReader(postresponse.GetResponseStream())
                     cookies = tempcookies
                     Return postreqreader.ReadToEnd
                 Catch ex As ProtocolViolationException 'Catch para los headers erróneos que a veces entrega la API de MediaWiki
+                    Utils.EventLogger.EX_Log(ex.Message, ex.TargetSite.Name)
+                    Utils.EventLogger.Debug_Log(ex.StackTrace, ex.Source)
+                    tryCount += 1
+                Catch ex As WebException
                     Utils.EventLogger.EX_Log(ex.Message, ex.TargetSite.Name)
                     Utils.EventLogger.Debug_Log(ex.StackTrace, ex.Source)
                     tryCount += 1

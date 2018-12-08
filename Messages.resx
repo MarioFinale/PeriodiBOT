@@ -591,10 +591,31 @@
   <data name="UnpausedTask" xml:space="preserve">
     <value>Task '{0}' unpaused.</value>
   </data>
+  <data name="UpdatingArchiveBox" xml:space="preserve">
+    <value>Updating archive box.</value>
+  </data>
   <data name="ValueTooBig" xml:space="preserve">
     <value>The value is too big.</value>
   </data>
   <data name="WaitingTime" xml:space="preserve">
     <value>Waiting time: {0}ms.</value>
+  </data>
+  <data name="NewArchiveBoxTemplate" xml:space="preserve">
+    <value>Archive box page name (with namespace):</value>
+  </data>
+  <data name="NewArchiveMessageTemplate" xml:space="preserve">
+    <value>Archive page message (with namespace):</value>
+  </data>
+  <data name="NewAutoArchiveDoNotArchivePageName" xml:space="preserve">
+    <value>Auto archive 'do not archive' page name (with namespace):</value>
+  </data>
+  <data name="NewAutoArchiveProgrammedArchivePageName" xml:space="preserve">
+    <value>Auto archive 'programmed archive' page name (with namespace):</value>
+  </data>
+  <data name="NewAutoArchiveTemplatePagename" xml:space="preserve">
+    <value>Auto archive template page name (with namespace): </value>
+  </data>
+  <data name="NewAutoSignatureTemplatePageName" xml:space="preserve">
+    <value>Auto signature template page name (with namespace):</value>
   </data>
 </root>

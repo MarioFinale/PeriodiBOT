@@ -318,8 +318,16 @@ Namespace WikiBot
                 Throw New ArgumentNullException("pageContent", "Empty parameter")
             End If
 
-            Dim ntimestamp As String = GetLastTimeStamp()
+            Dim EditToken As String = String.Empty
+            Try
+                EditToken = GetEditToken()
+            Catch ex As WebException
+                Utils.EventLogger.EX_Log(String.Format(Messages.POSTEX, _title, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _username)
+                Return EditResults.POST_error
+            End Try
 
+
+            Dim ntimestamp As String = GetLastTimeStamp()
             If Not ntimestamp = _timestamp Then
                 Utils.EventLogger.Log(String.Format(Messages.EditConflict, _title), Reflection.MethodBase.GetCurrentMethod().Name, _username)
                 Return EditResults.Edit_conflict
@@ -336,18 +344,23 @@ Namespace WikiBot
                 additionalParams = additionalParams & "&bot="
             End If
 
-            Dim postdata As String = String.Format(SStrings.SavePage, additionalParams, _title, Utils.UrlWebEncode(EditSummary), Utils.UrlWebEncode(pageContent), Utils.UrlWebEncode(GetEditToken()))
+            Dim postdata As String = String.Format(SStrings.SavePage, additionalParams, _title, Utils.UrlWebEncode(EditSummary), Utils.UrlWebEncode(pageContent), Utils.UrlWebEncode(EditToken))
             Dim postresult As String = String.Empty
 
             Try
                 postresult = _bot.POSTQUERY(postdata)
-                Threading.Thread.Sleep(1000) 'Some time to the server to process the data
+                Threading.Thread.Sleep(1000) 'Some time for the server to process the data
                 Load() 'Update page data
             Catch ex As IO.IOException
-                Utils.EventLogger.Log(String.Format(Messages.POSTEX, _title, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _username)
+                Utils.EventLogger.EX_Log(String.Format(Messages.POSTEX, _title, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _username)
+                Return EditResults.POST_error
+            Catch ex As WebException
+                Utils.EventLogger.EX_Log(String.Format(Messages.POSTEX, _title, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _username)
+                Return EditResults.POST_error
             End Try
 
             If String.IsNullOrWhiteSpace(postresult) Then
+                Utils.EventLogger.EX_Log(String.Format(Messages.POSTEX, _title, Utils.PsvSafeEncode(postresult)), Reflection.MethodBase.GetCurrentMethod().Name, _username)
                 Return EditResults.POST_error
             End If
 
@@ -379,7 +392,13 @@ Namespace WikiBot
                 End If
             End If
 
-            'Unexpected result, retry
+            If postresult.ToLower.Contains("protectedpage") Then
+                Return EditResults.ProtectedPage
+            End If
+
+            'Unexpected result, log and retry
+            Utils.EventLogger.EX_Log(Utils.PsvSafeEncode(postresult), Reflection.MethodBase.GetCurrentMethod().Name, _username)
+
             If Not RetryCount > MaxRetry Then
                 'Refresh credentials, retry
                 _bot.Relogin()
@@ -388,7 +407,6 @@ Namespace WikiBot
                 Utils.EventLogger.Log(String.Format(Messages.SpamBlackList, _title), Reflection.MethodBase.GetCurrentMethod().Name, _username)
                 Return EditResults.Max_retry_count
             End If
-
             Return EditResults.Unexpected_Result
         End Function
 
@@ -520,9 +538,15 @@ Namespace WikiBot
             End If
 
             Dim postdata As String = String.Format(SStrings.AddThread, additionalParameters, Utils.UrlWebEncode(_title), Utils.UrlWebEncode(editSummary), Utils.UrlWebEncode(sectionTitle), Utils.UrlWebEncode(sectionContent), Utils.UrlWebEncode(GetEditToken()))
-            Dim postresult As String = _bot.POSTQUERY(postdata)
-            System.Threading.Thread.Sleep(1000) 'Some time to the server to process the data
-            Load() 'Update page data
+            Dim postresult As String = String.Empty
+            Try
+                postresult = _bot.POSTQUERY(postdata)
+                Threading.Thread.Sleep(1000) 'Some time to the server to process the data
+                Load() 'Update page data
+            Catch ex As WebException
+                Utils.EventLogger.EX_Log(String.Format(Messages.POSTEX, _title, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _username)
+                Return EditResults.POST_error
+            End Try
 
             If postresult.Contains("""result"":""Success""") Then
                 Utils.EventLogger.Log(String.Format(Messages.SuccessfulEdit, _title), Reflection.MethodBase.GetCurrentMethod().Name, _username)
@@ -735,10 +759,12 @@ Namespace WikiBot
         ''' <returns></returns>
         Private Function GetLastTimeStamp() As String
             Dim querystring As String = String.Format(SStrings.GetLastTimestamp, _title)
-            Dim QueryText As String = _bot.POSTQUERY(querystring)
             Try
+                Dim QueryText As String = _bot.POSTQUERY(querystring)
                 Return Utils.TextInBetween(QueryText, """timestamp"":""", """")(0)
             Catch ex As IndexOutOfRangeException
+                Return ""
+            Catch ex As WebException
                 Return ""
             End Try
         End Function
