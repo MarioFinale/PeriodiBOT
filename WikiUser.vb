@@ -130,12 +130,10 @@ Namespace WikiBot
 
         Public ReadOnly Property IsBot As Boolean
             Get
-                Dim postdata As String = SStrings.AssertBotData
-                Dim postresponse As String = _workerBot.POSTQUERY(postdata)
-                If postresponse.Contains(SStrings.AssertBotFailed) Then
-                    Return False
-                Else
+                If _groups.Contains("bot") Then
                     Return True
+                Else
+                    Return False
                 End If
             End Get
         End Property
@@ -187,7 +185,7 @@ Namespace WikiBot
                 End If
 
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.EX_Log("Wikiuser LoadInfo" & ex.Message, SStrings.LocalSource)
+                Utils.EventLogger.EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name)
             End Try
 
         End Sub
