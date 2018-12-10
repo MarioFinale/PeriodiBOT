@@ -1240,6 +1240,8 @@ Namespace WikiBot
 
         Function AddMissingSignature(ByVal tpage As Page, newthreads As Boolean, minor As Boolean) As Boolean
             If tpage.Lastuser = _userName Then Return False 'No completar firma en páginas en las que haya editado
+            Dim LastUser As WikiUser = New WikiUser(Me, tpage.Lastuser)
+            If LastUser.IsBot Then Return False
             Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection(tpage, newthreads)
             If UnsignedSectionInfo Is Nothing Then Return False
             Dim pagetext As String = tpage.Content

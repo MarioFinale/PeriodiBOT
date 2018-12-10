@@ -127,6 +127,18 @@ Namespace WikiBot
                 Return _userPage
             End Get
         End Property
+
+        Public ReadOnly Property IsBot As Boolean
+            Get
+                Dim postdata As String = SStrings.AssertBotData
+                Dim postresponse As String = _workerBot.POSTQUERY(postdata)
+                If postresponse.Contains(SStrings.AssertBotFailed) Then
+                    Return False
+                Else
+                    Return True
+                End If
+            End Get
+        End Property
 #End Region
 
         Sub New(ByVal wikiBot As Bot, userName As String)
