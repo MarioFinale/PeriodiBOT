@@ -1017,7 +1017,7 @@ Namespace WikiBot
         Function GetResumeRequests(ByVal pageName As String) As SortedList(Of String, String())
             Dim slist As SortedList(Of String, String()) = GetAllRequestedpages(pageName)
             Dim Reqlist As New SortedList(Of String, String())
-            Dim ResumePage As Page = Getpage(ResumePageName)
+            Dim ResumePage As Page = Getpage(SStrings.ResumePageName)
             Dim rtext As String = ResumePage.Content
 
             For Each pair As KeyValuePair(Of String, String()) In slist
@@ -1165,8 +1165,8 @@ Namespace WikiBot
 
         Function CheckInformalMediation() As Boolean
             Dim newThreads As Boolean = False
-            Dim membPage As Page = Getpage(InformalMediationMembers)
-            Dim MedPage As Page = Getpage(InfMedPage)
+            Dim membPage As Page = Getpage(SStrings.InformalMediationMembers)
+            Dim MedPage As Page = Getpage(SStrings.InfMedPage)
             Dim subthreads As String() = Utils.GetPageSubThreads(membPage.Content)
             Dim uTempList As List(Of Template) = Template.GetTemplates(subthreads(0))
             Dim userList As New List(Of String)

@@ -179,6 +179,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a PeriodiBOT/Sabias que.
+        '''</summary>
+        Friend Shared ReadOnly Property DidYouKnowPageName() As String
+            Get
+                Return ResourceManager.GetString("DidYouKnowPageName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a format=json&amp;action=query&amp;meta=tokens.
         '''</summary>
         Friend Shared ReadOnly Property EditToken() As String
@@ -280,6 +289,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Wikipedia:Mediación informal/Solicitudes.
+        '''</summary>
+        Friend Shared ReadOnly Property InfMedPage() As String
+            Get
+                Return ResourceManager.GetString("InfMedPage", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a InformalMediationLastThreadCount.
         '''</summary>
         Friend Shared ReadOnly Property InfMedSettingsName() As String
@@ -307,6 +325,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Wikipedia:Mediación informal/Participantes/Lista.
+        '''</summary>
+        Friend Shared ReadOnly Property InformalMediationMembers() As String
+            Get
+                Return ResourceManager.GetString("InformalMediationMembers", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a IRC.
         '''</summary>
         Friend Shared ReadOnly Property IrcSource() As String
@@ -330,6 +357,24 @@ Namespace My.Resources
         Friend Shared ReadOnly Property LastPSignature() As String
             Get
                 Return ResourceManager.GetString("LastPSignature", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a action=query&amp;list=usercontribs&amp;uclimit=1&amp;format=json&amp;ucuser=.
+        '''</summary>
+        Friend Shared ReadOnly Property LastUserEditQuery() As String
+            Get
+                Return ResourceManager.GetString("LastUserEditQuery", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a action=query&amp;format=json&amp;list=users&amp;usprop=blockinfo|groups|editcount|registration|gender&amp;ususers=.
+        '''</summary>
+        Friend Shared ReadOnly Property LoadUserQuery() As String
+            Get
+                Return ResourceManager.GetString("LoadUserQuery", resourceCulture)
             End Get
         End Property
         
@@ -406,6 +451,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Busca una cadena traducida similar a Usuario:PeriodiBOT/Resumen página.
+        '''</summary>
+        Friend Shared ReadOnly Property ResumePageName() As String
+            Get
+                Return ResourceManager.GetString("ResumePageName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Busca una cadena traducida similar a format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;text={3}&amp;token={4}.
         '''</summary>
         Friend Shared ReadOnly Property SavePage() As String
@@ -438,6 +492,33 @@ Namespace My.Resources
         Friend Shared ReadOnly Property Strategy() As String
             Get
                 Return ResourceManager.GetString("Strategy", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Wikipedia:Café por tema/Grupos.
+        '''</summary>
+        Friend Shared ReadOnly Property TopicGroupsPage() As String
+            Get
+                Return ResourceManager.GetString("TopicGroupsPage", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Wikipedia:Café por tema.
+        '''</summary>
+        Friend Shared ReadOnly Property TopicPageName() As String
+            Get
+                Return ResourceManager.GetString("TopicPageName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca una cadena traducida similar a Plantilla:Tema.
+        '''</summary>
+        Friend Shared ReadOnly Property TopicTemplate() As String
+            Get
+                Return ResourceManager.GetString("TopicTemplate", resourceCulture)
             End Get
         End Property
         

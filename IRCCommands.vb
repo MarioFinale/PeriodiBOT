@@ -244,7 +244,7 @@ Public Class IRCCommands
     Function UpdateExtracts(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            Dim Upexfcn As New Func(Of Boolean)(Function() args.Workerbot.UpdatePageExtracts(ResumePageName))
+            Dim Upexfcn As New Func(Of Boolean)(Function() args.Workerbot.UpdatePageExtracts(SStrings.ResumePageName))
             Utils.TaskAdm.NewTask("Actualizar extractos a solicitud", args.Realname, Upexfcn, 1, False)
             Return New IRCMessage(args.Source, args.Realname & ": Se ha creado la tarea.")
         Else

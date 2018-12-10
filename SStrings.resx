@@ -263,4 +263,31 @@ ArchiveMessageTemplate="{14}"</value>
   <data name="YES2" xml:space="preserve">
     <value>sí</value>
   </data>
+  <data name="DidYouKnowPageName" xml:space="preserve">
+    <value>PeriodiBOT/Sabias que</value>
+  </data>
+  <data name="InfMedPage" xml:space="preserve">
+    <value>Wikipedia:Mediación informal/Solicitudes</value>
+  </data>
+  <data name="InformalMediationMembers" xml:space="preserve">
+    <value>Wikipedia:Mediación informal/Participantes/Lista</value>
+  </data>
+  <data name="LastUserEditQuery" xml:space="preserve">
+    <value>action=query&amp;list=usercontribs&amp;uclimit=1&amp;format=json&amp;ucuser=</value>
+  </data>
+  <data name="LoadUserQuery" xml:space="preserve">
+    <value>action=query&amp;format=json&amp;list=users&amp;usprop=blockinfo|groups|editcount|registration|gender&amp;ususers=</value>
+  </data>
+  <data name="ResumePageName" xml:space="preserve">
+    <value>Usuario:PeriodiBOT/Resumen página</value>
+  </data>
+  <data name="TopicGroupsPage" xml:space="preserve">
+    <value>Wikipedia:Café por tema/Grupos</value>
+  </data>
+  <data name="TopicPageName" xml:space="preserve">
+    <value>Wikipedia:Café por tema</value>
+  </data>
+  <data name="TopicTemplate" xml:space="preserve">
+    <value>Plantilla:Tema</value>
+  </data>
 </root>

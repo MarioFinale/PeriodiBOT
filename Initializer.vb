@@ -1,10 +1,8 @@
 ﻿Option Strict On
 Option Explicit On
-Imports System.Net
-Imports System.Text.RegularExpressions
-Imports System.Threading
 Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.IRC
+Imports PeriodiBOT_IRC.My.Resources
 Public NotInheritable Class Initializer
 
     Private Sub New()
@@ -49,7 +47,7 @@ Public NotInheritable Class Initializer
         Utils.TaskAdm.NewTask("Actualizar la lista con los hilos más grandes del café.", BotCodename, BiggestThreadsFunc, New TimeSpan(9, 0, 0), True)
 
         'Tarea para actualizar extractos
-        Dim UpdateExtractFunc As New Func(Of Boolean)(Function() ESWikiBOT.UpdatePageExtracts(ResumePageName))
+        Dim UpdateExtractFunc As New Func(Of Boolean)(Function() ESWikiBOT.UpdatePageExtracts(SStrings.ResumePageName))
         Utils.TaskAdm.NewTask("Actualizar extractos", BotCodename, UpdateExtractFunc, 3600000, True)
 
         'Tarea para completar firmas

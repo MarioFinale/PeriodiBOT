@@ -20,14 +20,6 @@ Module GlobalVars
     Public ConfigFilePath As String = Exepath & "Config.cfg"
     Public IrcOpPath As String = Exepath & "OPs.cfg"
     Public SettingsPath As String = Exepath & "Settings.psv"
-
-    Public Const ResumePageName As String = "Usuario:PeriodiBOT/Resumen página"
-    Public Const DidYouKnowPageName As String = "PeriodiBOT/Sabias que"
-    Public Const TopicPageName As String = "Wikipedia:Café por tema"
-    Public Const TopicTemplate As String = "Plantilla:Tema"
-    Public Const TopicGroupsPage As String = "Wikipedia:Café por tema/Grupos"
-    Public Const InformalMediationMembers As String = "Wikipedia:Mediación informal/Participantes/Lista"
-    Public Const InfMedPage As String = "Wikipedia:Mediación informal/Solicitudes"
     Public Const MaxRetry As Integer = 3
     Public Uptime As DateTime
     Public ESWikiBOT As Bot

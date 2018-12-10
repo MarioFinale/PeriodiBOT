@@ -147,7 +147,7 @@ Namespace WikiBot
         End Sub
 
         Sub LoadInfo()
-            Dim queryresponse As String = _workerBot.POSTQUERY("action=query&format=json&list=users&usprop=blockinfo|groups|editcount|registration|gender&ususers=" & _userName)
+            Dim queryresponse As String = _workerBot.POSTQUERY(SStrings.LoadUserQuery & _userName)
             Try
                 _userName = Utils.NormalizeUnicodetext(Utils.TextInBetween(queryresponse, """name"":""", """")(0))
 
@@ -197,7 +197,7 @@ Namespace WikiBot
         ''' <returns></returns>
         Function GetLastEditTimestampUser(ByVal user As String) As DateTime
             user = Utils.UrlWebEncode(user)
-            Dim qtest As String = _workerBot.POSTQUERY("action=query&list=usercontribs&uclimit=1&format=json&ucuser=" & user)
+            Dim qtest As String = _workerBot.POSTQUERY(SStrings.LastUserEditQuery & user)
 
             If qtest.Contains("""usercontribs"":[]") Then
                 Dim fec As DateTime = DateTime.ParseExact("1111-11-11|11:11:11", "yyyy-MM-dd|HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
