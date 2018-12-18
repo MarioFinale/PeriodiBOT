@@ -29,7 +29,7 @@ Public NotInheritable Class Initializer
                                                    Dim igen As New VideoGen(ESWikiBOT)
                                                    Return igen.CheckEfe
                                                End Function)
-        TaskAdm.NewTask("Generar video con las efemérides del día", BotCodename, efevidfunc, New TimeSpan(15, 0, 0), True)
+        TaskAdm.NewTask("Generar video con las efemérides del día", ESWikiBOT.UserName, efevidfunc, New TimeSpan(15, 0, 0), True)
 
 
         'Tarea para revisar si hay solicitudes en mediacion informal
