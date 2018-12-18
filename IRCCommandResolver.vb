@@ -1,7 +1,8 @@
 ﻿Option Strict On
 Option Explicit On
-Imports PeriodiBOT_IRC.WikiBot
-Imports PeriodiBOT_IRC.My.Resources
+Imports MWBot.net.WikiBot
+Imports MWBot.net
+Imports MWBot.net.My.Resources
 
 Namespace IRC
     Class IRCCommandResolver
@@ -14,7 +15,7 @@ Namespace IRC
             Clist = CommandList()
         End Sub
 
-        Function ResolveCommand(ByVal imputline As String, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client, WorkerBot As Bot) As IRCMessage
+        Function ResolveCommand(ByVal imputline As String, ByVal BOTIRCNickName As String, ByRef IRCCLient As IRC_Client, ByRef WorkerBot As Bot) As IRCMessage
             Client = IRCCLient
             _bot = WorkerBot
             Dim arg As New IRCCommandParams(imputline, Client, _bot)
@@ -24,7 +25,7 @@ Namespace IRC
             Dim requestedCommand As String = RemovePrefix(arg.CommandName)
             For Each Command As IRCCommand In Clist
                 If Command.Aliases.Contains(requestedCommand) Then
-                    Utils.EventLogger.Log(String.Format(Messages.CommandIssued, requestedCommand, arg.Realname, arg.CParam), arg.Source, arg.Realname)
+                    Utils.EventLogger.Log(String.Format(BotMessages.CommandIssued, requestedCommand, arg.Realname, arg.CParam), arg.Source, arg.Realname)
                     Return Command.ComFunc(arg)
                 End If
             Next

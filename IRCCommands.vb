@@ -2,9 +2,12 @@
 Option Explicit On
 Imports System.Globalization
 Imports PeriodiBOT_IRC.IRC
-Imports PeriodiBOT_IRC.WikiBot
 Imports PeriodiBOT_IRC.My.Resources
-
+Imports PeriodiBOT_IRC.Initializer
+Imports MWBot.net
+Imports MWBot.net.WikiBot
+Imports MWBot.net.GlobalVars
+Imports MWBot.net.My.Resources
 Public Class IRCCommands
 
     Function GetFloodDelay(ByVal args As IRCCommandParams) As IRCMessage
@@ -13,10 +16,10 @@ Public Class IRCCommands
         Dim source As String = args.Source
         If args.IsOp Then
             Dim responsestring As String = String.Empty
-            responsestring = String.Format(Messages.WaitingTime, Utils.ColoredText(Client.FloodDelay.ToString, 4))
+            responsestring = String.Format(BotMessages.WaitingTime, Utils.ColoredText(Client.FloodDelay.ToString, 4))
             Return New IRCMessage(source, responsestring.ToArray)
         Else
-            Return New IRCMessage(source, Messages.Unauthorized)
+            Return New IRCMessage(source, BotMessages.Unauthorized)
         End If
     End Function
 
@@ -28,17 +31,17 @@ Public Class IRCCommands
         If args.IsOp Then
             Dim responsestring As String = String.Empty
             If Not IsNumeric(value) Then
-                Return New IRCMessage(source, Messages.NumericValue)
+                Return New IRCMessage(source, BotMessages.NumericValue)
             End If
             Dim resdelay As Integer = Integer.Parse(value)
             If resdelay <= 0 Then
-                Return New IRCMessage(source, String.Format(Messages.MustBeGreaterThan, 0))
+                Return New IRCMessage(source, String.Format(BotMessages.MustBeGreaterThan, 0))
             End If
             client.FloodDelay = resdelay
-            responsestring = String.Format(Messages.WaitingTime, Utils.ColoredText(value, 4))
+            responsestring = String.Format(BotMessages.WaitingTime, Utils.ColoredText(value, 4))
             Return New IRCMessage(source, responsestring.ToArray)
         Else
-            Return New IRCMessage(source, Messages.Unauthorized)
+            Return New IRCMessage(source, BotMessages.Unauthorized)
         End If
     End Function
 
@@ -46,13 +49,13 @@ Public Class IRCCommands
         If args Is Nothing Then Return Nothing
         Dim source As String = args.Source
         Dim responsestring As New List(Of String)
-        Dim tasklist As ICollection(Of TaskInfo) = Utils.TaskAdm.TaskList
+        Dim tasklist As ICollection(Of TaskInfo) = TaskAdm.TaskList
         If Not tasklist.Count >= 1 Then
-            Return New IRCMessage(source, Messages.NoRunningTasks)
+            Return New IRCMessage(source, BotMessages.NoRunningTasks)
         End If
-        responsestring.Add(String.Format(Messages.RunningTasks, Utils.ColoredText(tasklist.Count.ToString, 4)))
+        responsestring.Add(String.Format(BotMessages.RunningTasks, Utils.ColoredText(tasklist.Count.ToString, 4)))
         For i As Integer = 0 To tasklist.Count - 1
-            Dim tline As String = String.Format(Messages.TaskInfo, (i + 1).ToString, tasklist(i).Name, tasklist(i).Author, Utils.ColoredText(tasklist(i).Status, 4))
+            Dim tline As String = String.Format(BotMessages.TaskInfo, (i + 1).ToString, tasklist(i).Name, tasklist(i).Author, Utils.ColoredText(tasklist(i).Status, 4))
             responsestring.Add(tline)
         Next
         Return New IRCMessage(source, responsestring.ToArray)
@@ -62,7 +65,7 @@ Public Class IRCCommands
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
 
-            Utils.TaskAdm.NewTask("Generar imágenes de efemérides", args.Realname, New Func(Of Boolean)(Function()
+            TaskAdm.NewTask("Generar imágenes de efemérides", args.Realname, New Func(Of Boolean)(Function()
                                                                                                             Dim imggen As New VideoGen(args.Workerbot)
                                                                                                             If imggen.CheckEfe Then
                                                                                                                 args.Client.Sendmessage(New IRCMessage(args.Source, "Se ha generado el video."))
@@ -73,7 +76,7 @@ Public Class IRCCommands
                                                                                                         End Function), 1, False)
             Return New IRCMessage(args.Source, "Generando videos.")
         End If
-        Return New IRCMessage(args.Source, Messages.Unauthorized)
+        Return New IRCMessage(args.Source, BotMessages.Unauthorized)
     End Function
 
 
@@ -83,42 +86,42 @@ Public Class IRCCommands
         Dim source As String = args.Source
         Dim responsestring As New List(Of String)
         If Not IsNumeric(taskindex) Then
-            Return New IRCMessage(source, Messages.EnterTaskNumber)
+            Return New IRCMessage(source, BotMessages.EnterTaskNumber)
         End If
-        If Not Utils.TaskAdm.TaskList.Count >= 1 Then
-            Return New IRCMessage(source, Messages.NoRunningTasks)
+        If Not TaskAdm.TaskList.Count >= 1 Then
+            Return New IRCMessage(source, BotMessages.NoRunningTasks)
         End If
         If taskindex.Length > 5 Then
-            Return New IRCMessage(source, Messages.ValueTooBig)
+            Return New IRCMessage(source, BotMessages.ValueTooBig)
         End If
         Dim tindex As Integer = Integer.Parse(taskindex)
         If Not tindex > 0 Then
-            Return New IRCMessage(source, String.Format(Messages.MustBeGreaterThan, 0))
+            Return New IRCMessage(source, String.Format(BotMessages.MustBeGreaterThan, 0))
         End If
-        If tindex > Utils.TaskAdm.TaskList.Count Then
-            Return New IRCMessage(source, Messages.TaskNotExist)
+        If tindex > TaskAdm.TaskList.Count Then
+            Return New IRCMessage(source, BotMessages.TaskNotExist)
         End If
-        Dim tinfo As TaskInfo = Utils.TaskAdm.TaskList(tindex - 1)
+        Dim tinfo As TaskInfo = TaskAdm.TaskList(tindex - 1)
         Dim tstype As String = String.Empty
         Dim timeinterval As String = String.Empty
         If tinfo.Scheduledtask Then
-            tstype = Messages.Sheduled
+            tstype = BotMessages.Sheduled
             timeinterval = tinfo.ScheduledTime.ToString("c", CultureInfo.InvariantCulture()) & " GMT"
         Else
-            tstype = Messages.Periodic
-            timeinterval = String.Format(Messages.EverySec, (tinfo.Interval / 1000).ToString)
+            tstype = BotMessages.Periodic
+            timeinterval = String.Format(BotMessages.EverySec, (tinfo.Interval / 1000).ToString)
         End If
-        responsestring.Add(Messages.Name & Utils.ColoredText(tinfo.Name, 4))
-        responsestring.Add(Messages.Author & Utils.ColoredText(tinfo.Author, 4))
-        responsestring.Add(Messages.Status & Utils.ColoredText(tinfo.Status, 4))
-        responsestring.Add(Messages.Type & Utils.ColoredText(tstype, 4))
-        responsestring.Add(Messages.TimeOrInterval & Utils.ColoredText(timeinterval, 4))
-        responsestring.Add(Messages.Infinite & Utils.ColoredText(tinfo.Infinite.ToString, 4))
-        responsestring.Add(Messages.Cancelled & Utils.ColoredText(tinfo.Canceled.ToString, 4))
-        responsestring.Add(Messages.Paused & Utils.ColoredText(tinfo.Paused.ToString, 4))
-        responsestring.Add(Messages.Executions & Utils.ColoredText(tinfo.Runcount.ToString, 4))
-        responsestring.Add(Messages.Errors & Utils.ColoredText(tinfo.ExCount.ToString, 4))
-        responsestring.Add(Messages.Critical & Utils.ColoredText(tinfo.Critical.ToString, 4))
+        responsestring.Add(BotMessages.Name & Utils.ColoredText(tinfo.Name, 4))
+        responsestring.Add(BotMessages.Author & Utils.ColoredText(tinfo.Author, 4))
+        responsestring.Add(BotMessages.Status & Utils.ColoredText(tinfo.Status, 4))
+        responsestring.Add(BotMessages.Type & Utils.ColoredText(tstype, 4))
+        responsestring.Add(BotMessages.TimeOrInterval & Utils.ColoredText(timeinterval, 4))
+        responsestring.Add(BotMessages.Infinite & Utils.ColoredText(tinfo.Infinite.ToString, 4))
+        responsestring.Add(BotMessages.Cancelled & Utils.ColoredText(tinfo.Canceled.ToString, 4))
+        responsestring.Add(BotMessages.Paused & Utils.ColoredText(tinfo.Paused.ToString, 4))
+        responsestring.Add(BotMessages.Executions & Utils.ColoredText(tinfo.Runcount.ToString, 4))
+        responsestring.Add(BotMessages.Errors & Utils.ColoredText(tinfo.ExCount.ToString, 4))
+        responsestring.Add(BotMessages.Critical & Utils.ColoredText(tinfo.Critical.ToString, 4))
         Return New IRCMessage(source, responsestring.ToArray)
     End Function
 
@@ -130,34 +133,34 @@ Public Class IRCCommands
             Dim user As String = args.Realname
 
             If Not IsNumeric(taskindex) Then
-                Return New IRCMessage(source, Messages.EnterTaskNumber)
+                Return New IRCMessage(source, BotMessages.EnterTaskNumber)
             End If
-            If Not Utils.TaskAdm.TaskList.Count >= 1 Then
-                Return New IRCMessage(source, Messages.NoRunningTasks)
+            If Not TaskAdm.TaskList.Count >= 1 Then
+                Return New IRCMessage(source, BotMessages.NoRunningTasks)
             End If
             If taskindex.Length > 5 Then
-                Return New IRCMessage(source, Messages.ValueTooBig)
+                Return New IRCMessage(source, BotMessages.ValueTooBig)
             End If
             Dim tindex As Integer = Integer.Parse(taskindex)
             If Not tindex > 0 Then
-                Return New IRCMessage(source, String.Format(Messages.MustBeGreaterThan, 0))
+                Return New IRCMessage(source, String.Format(BotMessages.MustBeGreaterThan, 0))
             End If
-            If tindex > Utils.TaskAdm.TaskList.Count Then
-                Return New IRCMessage(source, Messages.TaskNotExist)
+            If tindex > TaskAdm.TaskList.Count Then
+                Return New IRCMessage(source, BotMessages.TaskNotExist)
             End If
-            Dim tinfo As TaskInfo = Utils.TaskAdm.TaskList(tindex - 1)
+            Dim tinfo As TaskInfo = TaskAdm.TaskList(tindex - 1)
             If Not tinfo.Critical Then
                 If tinfo.Paused Then
                     tinfo.Paused = False
-                    Utils.EventLogger.Log(String.Format(Messages.UnpausedTask, tinfo.Name), "IRC", user)
-                    Return New IRCMessage(source, String.Format(Messages.UnpausedTask, tinfo.Name))
+                    Utils.EventLogger.Log(String.Format(BotMessages.UnpausedTask, tinfo.Name), "IRC", user)
+                    Return New IRCMessage(source, String.Format(BotMessages.UnpausedTask, tinfo.Name))
                 Else
                     tinfo.Paused = True
-                    Utils.EventLogger.Log(String.Format(Messages.PausedTask, tinfo.Name), "IRC", user)
-                    Return New IRCMessage(source, String.Format(Messages.PausedTask, tinfo.Name))
+                    Utils.EventLogger.Log(String.Format(BotMessages.PausedTask, tinfo.Name), "IRC", user)
+                    Return New IRCMessage(source, String.Format(BotMessages.PausedTask, tinfo.Name))
                 End If
             Else
-                Return New IRCMessage(source, String.Format(Messages.CannotPause, tinfo.Name))
+                Return New IRCMessage(source, String.Format(BotMessages.CannotPause, tinfo.Name))
             End If
         Else
             Return Nothing
@@ -168,7 +171,7 @@ Public Class IRCCommands
         If args Is Nothing Then Return Nothing
         Dim source As String = args.Source
         Dim responsestring As String = String.Empty
-        responsestring = Messages.SystemTime & Utils.ColoredText(Date.Now.TimeOfDay.ToString("hh\:mm\:ss", CultureInfo.InvariantCulture()), 4) & " (" & Utils.ColoredText(Date.UtcNow.TimeOfDay.ToString("hh\:mm\:ss", CultureInfo.InvariantCulture()), 4) & " UTC)."
+        responsestring = BotMessages.SystemTime & Utils.ColoredText(Date.Now.TimeOfDay.ToString("hh\:mm\:ss", CultureInfo.InvariantCulture()), 4) & " (" & Utils.ColoredText(Date.UtcNow.TimeOfDay.ToString("hh\:mm\:ss", CultureInfo.InvariantCulture()), 4) & " UTC)."
         Return New IRCMessage(source, responsestring)
     End Function
 
@@ -178,10 +181,10 @@ Public Class IRCCommands
         Dim responsestring As String = String.Empty
         If Utils.EventLogger.Debug Then
             Utils.EventLogger.Debug = False
-            responsestring = Utils.ColoredText(Messages.DebugDisabled, 4)
+            responsestring = Utils.ColoredText(BotMessages.DebugDisabled, 4)
         Else
             Utils.EventLogger.Debug = True
-            responsestring = Utils.ColoredText(Messages.DebugEnabled, 4)
+            responsestring = Utils.ColoredText(BotMessages.DebugEnabled, 4)
         End If
         Return New IRCMessage(source, responsestring)
     End Function
@@ -199,13 +202,13 @@ Public Class IRCCommands
             If Utils.CountCharacter(param, CChar("!")) = 1 Then
                 Dim requestedop As String = param.Split(CType("!", Char()))(0)
                 If Client.AddOP(message, source, realname) Then
-                    responsestring = String.Format(Messages.OpAdded, requestedop)
+                    responsestring = String.Format(BotMessages.OpAdded, requestedop)
 
                 Else
-                    responsestring = String.Format(Messages.OpNotAdded, requestedop)
+                    responsestring = String.Format(BotMessages.OpNotAdded, requestedop)
                 End If
             Else
-                responsestring = Messages.InvalidParameter
+                responsestring = BotMessages.InvalidParameter
             End If
             Return New IRCMessage(source, responsestring)
         Else
@@ -228,12 +231,12 @@ Public Class IRCCommands
 
                 Dim requestedop As String = param.Split(CType("!", Char()))(0)
                 If Client.DelOP(message, source, realname) Then
-                    responsestring = String.Format(Messages.OpRemoved, requestedop)
+                    responsestring = String.Format(BotMessages.OpRemoved, requestedop)
                 Else
-                    responsestring = String.Format(Messages.OpNotRemoved, requestedop)
+                    responsestring = String.Format(BotMessages.OpNotRemoved, requestedop)
                 End If
             Else
-                responsestring = Messages.InvalidParameter
+                responsestring = BotMessages.InvalidParameter
             End If
             Return New IRCMessage(source, responsestring)
         Else
@@ -244,8 +247,11 @@ Public Class IRCCommands
     Function UpdateExtracts(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            Dim Upexfcn As New Func(Of Boolean)(Function() args.Workerbot.UpdatePageExtracts(SStrings.ResumePageName))
-            Utils.TaskAdm.NewTask("Actualizar extractos a solicitud", args.Realname, Upexfcn, 1, False)
+            Dim Upexfcn As New Func(Of Boolean)(Function()
+                                                    Dim sptask As New SpecialTaks(args.Workerbot)
+                                                    Return sptask.UpdatePageExtracts(WPStrings.ResumePageName)
+                                                End Function)
+            TaskAdm.NewTask("Actualizar extractos a solicitud", args.Realname, Upexfcn, 1, False)
             Return New IRCMessage(args.Source, args.Realname & ": Se ha creado la tarea.")
         Else
             Return Nothing
@@ -257,9 +263,9 @@ Public Class IRCCommands
         If args.IsOp Then
             Dim command As String = String.Format("JOIN {0}", args.CParam)
             args.Client.SendText(command)
-            Dim responsestring As String = Utils.ColoredText(String.Format(Messages.EnteringRoom, args.CParam), 4)
+            Dim responsestring As String = Utils.ColoredText(String.Format(BotMessages.EnteringRoom, args.CParam), 4)
             Dim mes As New IRCMessage(args.Source, responsestring)
-            Utils.EventLogger.Log(String.Format(Messages.EnteringRoom, args.CParam), "IRC", args.Realname)
+            Utils.EventLogger.Log(String.Format(BotMessages.EnteringRoom, args.CParam), "IRC", args.Realname)
             Return mes
         Else
             Return Nothing
@@ -269,11 +275,11 @@ Public Class IRCCommands
     Function LeaveRoom(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            Dim responsestring As String = Utils.ColoredText(String.Format(Messages.LeavingRoom, args.CParam), 4)
+            Dim responsestring As String = Utils.ColoredText(String.Format(BotMessages.LeavingRoom, args.CParam), 4)
             Dim command As String = String.Format("PART {0}", args.CParam)
             args.Client.SendText(command)
             Dim mes As New IRCMessage(args.Source, responsestring)
-            Utils.EventLogger.Log(String.Format(Messages.LeavingRoom, args.CParam), "IRC", args.Realname)
+            Utils.EventLogger.Log(String.Format(BotMessages.LeavingRoom, args.CParam), "IRC", args.Realname)
             Return mes
         Else
             Return Nothing
@@ -283,10 +289,10 @@ Public Class IRCCommands
     Function Quit(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            Dim responsestring As String = Utils.ColoredText(Messages.ExitMessage, 4)
+            Dim responsestring As String = Utils.ColoredText(BotMessages.ExitMessage, 4)
             Dim mes As New IRCMessage(args.Source, responsestring)
             args.Client.Sendmessage(mes)
-            Dim command As String = Messages.RequestedByOp
+            Dim command As String = BotMessages.RequestedByOp
             args.Client.Quit(command)
             Utils.EventLogger.Log("QUIT", "IRC", args.Realname)
             Return mes
@@ -298,10 +304,10 @@ Public Class IRCCommands
     Function Div0(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Utils.EventLogger.Log("Div0 requested", args.Source, args.Realname)
-        Dim mes1 As New IRCMessage(args.Source, Messages.Div0)
+        Dim mes1 As New IRCMessage(args.Source, BotMessages.Div0)
         args.Client.Sendmessage(mes1)
         Dim i As Double = (1 / 0)
-        Dim res As String = String.Format(Messages.ApparentResult, i.ToString)
+        Dim res As String = String.Format(BotMessages.ApparentResult, i.ToString)
         Dim mes As New IRCMessage(args.Source, res)
         Utils.EventLogger.Log("Div0 completed", args.Source, args.Realname)
         Return mes
@@ -310,7 +316,10 @@ Public Class IRCCommands
     Function ArchiveAll(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            Utils.TaskAdm.NewTask("Archivado a solicitud", args.Realname, New Func(Of Boolean)(Function() args.Workerbot.ArchiveAllInclusions()), 1, False)
+            TaskAdm.NewTask("Archivado a solicitud", args.Realname, New Func(Of Boolean)(Function()
+                                                                                             Dim Archive As New SpecialTaks(args.Workerbot)
+                                                                                             Return Archive.ArchiveAllInclusions()
+                                                                                         End Function), 1, False)
             Return New IRCMessage(args.Source, "Se realizarará el archivado en todas las páginas.")
         Else
             Return Nothing
@@ -323,8 +332,9 @@ Public Class IRCCommands
         Dim PageName As String = args.Workerbot.SearchForPage(args.CParam)
         Dim responsestring As String = Utils.ColoredText("Archivando ", 4) & """" & PageName & """"
         Dim archf As New Func(Of Boolean)(Function()
-                                              Dim p As Page = ESWikiBOT.Getpage(PageName)
-                                              If ESWikiBOT.Archive(p) Then
+                                              Dim p As Page = args.Workerbot.Getpage(PageName)
+                                              Dim ArchiveFcn As New SpecialTaks(args.Workerbot)
+                                              If ArchiveFcn.AutoArchive(p) Then
                                                   Utils.EventLogger.Log("ArchivePage completed", args.Source, args.Realname)
                                                   Dim completedResponse As String = Utils.ColoredText("Archivado de  ", 4) & """" & PageName & """ " & Utils.ColoredText("completo", 4)
                                                   args.Client.Sendmessage(New IRCMessage(args.Source, completedResponse))
@@ -334,7 +344,7 @@ Public Class IRCCommands
                                               End If
                                               Return True
                                           End Function)
-        Utils.TaskAdm.NewTask("Archivado a solicitud", args.Realname, archf, 1, False)
+        TaskAdm.NewTask("Archivado a solicitud", args.Realname, archf, 1, False)
         Dim mes As New IRCMessage(args.Source, responsestring)
         Return mes
     End Function
@@ -380,15 +390,17 @@ Public Class IRCCommands
 
         If args.Client.IsOp(args.Imputline, args.Source, args.Realname) Then
             If Utils.GetCurrentThreads() = 0 Then
-                responsestring = String.Format("{1} Versión: {0} (Uptime: {2}; Bajo {3} (MONO)). Ordenes: %ord", Utils.ColoredText(Version, 3), args.Client.NickName, uptimestr, Utils.ColoredText(OS, 4))
+                responsestring = String.Format("{1} {0} ({4} {5}); Uptime: {2}; Plataforma: {3}", Utils.ColoredText(BotVersion, 3), args.Client.NickName, uptimestr, Utils.ColoredText(OS, 4), BotCodename, MwBotVersion)
                 Utils.EventLogger.Log("IRC: Requested info (%??)", "IRC", args.Realname)
             Else
-                responsestring = String.Format("{2} Versión: {0} (Bajo {1} ;Uptime: {3}; Tareas en ejecución: {4}; Memoria (en uso): {6}Kb, (Privada): {5}Kb). Ordenes: %ord", Utils.ColoredText(Version, 3), Utils.ColoredText(OS, 4), args.Client.NickName, uptimestr, Utils.TaskCount, Utils.PrivateMemory.ToString, Utils.UsedMemory.ToString)
+                responsestring = String.Format("{2} {0} ({7} {8}); Plataforma: {1}; Uptime: {3}; Tareas en ejecución: {4}; Memoria en uso: {6}Kb; Memoria privada: {5}Kb",
+                                               Utils.ColoredText(BotVersion, 3), Utils.ColoredText(OS, 4), args.Client.NickName, uptimestr, TaskAdm.TaskList.Count, Utils.PrivateMemory.ToString,
+                                               Utils.UsedMemory.ToString, BotCodename, MwBotVersion)
                 Utils.EventLogger.Log("IRC: Requested info (%??)", "IRC", args.Realname)
             End If
 
         Else
-            responsestring = String.Format("{1} Versión: {0}. Ordenes: %ord", Utils.ColoredText(Version, 3), args.Client.NickName)
+            responsestring = String.Format("{1} Versión: {0}. Ordenes: %ord", Utils.ColoredText(MwBotVersion, 3), args.Client.NickName)
             Utils.EventLogger.Log("IRC: Requested info (%??)", "IRC", args.Realname)
         End If
         Dim mes As New IRCMessage(args.Source, responsestring)

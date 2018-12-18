@@ -2,7 +2,11 @@
 Option Explicit On
 Imports System.IO
 Imports System.Net.Sockets
-Imports PeriodiBOT_IRC.My.Resources
+Imports MWBot.net
+Imports MWBot.net.GlobalVars
+Imports MWBot.net.My.Resources
+Imports PeriodiBOT_IRC.Initializer
+
 Namespace IRC
     Public Class IRC_Client
 
@@ -23,11 +27,13 @@ Namespace IRC
         Private _networkStream As NetworkStream = Nothing
         Private _streamWriter As StreamWriter = Nothing
         Private _streamReader As StreamReader = Nothing
-        Private _opFilePath As ConfigFile
-
+        Private _opFile As ConfigFile
+        Private _configFile As ConfigFile
         Private Commands As New IRCCommandResolver
 
         Private lastmessage As New IRCMessage("", {""})
+
+        Private _workerbot As WikiBot.Bot
 
 
 #Region "Properties"
@@ -43,48 +49,58 @@ Namespace IRC
             End Get
         End Property
 #End Region
-        Public Sub New(ByVal server As String, ByVal channel As String(), ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal realname As String, ByVal userName As String, ByVal opFilePath As ConfigFile)
-            Initialize(server, channel, nickName, port, invisible, pass, realname, userName, opFilePath)
+
+        Public Sub New(ByVal Cfile As ConfigFile, ByVal port As Int32, ByVal opFile As ConfigFile)
+            Initialize(Cfile, port, opFile)
         End Sub
 
-        Public Sub New(ByVal server As String, ByVal channel As String(), ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal opFilePath As ConfigFile)
-            Initialize(server, channel, nickName, port, invisible, pass, nickName, nickName, opFilePath)
+        Public Sub New(ByVal Cfile As ConfigFile, ByVal port As Int32, ByVal opFile As ConfigFile, ByRef bot As WikiBot.Bot)
+            _workerbot = bot
+            Initialize(Cfile, port, opFile)
         End Sub
 
-        Public Sub New(ByVal server As String, ByVal channel As String(), ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal opFilePath As ConfigFile)
-            Initialize(server, channel, nickName, port, invisible, String.Empty, nickName, nickName, opFilePath)
-        End Sub
+        Public Sub Initialize(ByVal Cfile As ConfigFile, ByVal port As Int32, ByVal opFile As ConfigFile)
+            Dim tserver As String
+            Dim tname As String
+            Dim tpass As String
+            Dim tchannels As String()
 
-        Public Sub Initialize(ByVal server As String, ByVal channel As String(), ByVal nickName As String, ByVal port As Int32,
-                          ByVal invisible As Boolean, ByVal pass As String, ByVal realName As String, ByVal userName As String, ByVal opFilePath As ConfigFile)
-            _opFilePath = opFilePath
+            If Not Cfile.Params.Count = 4 Then
+                IO.File.Delete(Cfile.Path)
+                Console.Clear()
+                Console.WriteLine(BotMessages.NoIrcConfigFile)
+                Console.WriteLine(BotMessages.NewIrcNetworkAdress)
+                tserver = Console.ReadLine
+                Console.WriteLine(BotMessages.NewIrcNetworkNickName)
+                tname = Console.ReadLine
+                Console.WriteLine(BotMessages.NewIrcNetworkPass)
+                tpass = Console.ReadLine
+                Console.WriteLine(BotMessages.NewIrcNetworkChannels)
+                tchannels = Console.ReadLine.Split("|"c)
+                IO.File.AppendAllLines(Cfile.Path, {tserver, tname, tpass, String.Join("|"c, tchannels)})
+            Else
+                tserver = Cfile.Params(0)
+                tname = Cfile.Params(1)
+                tpass = Cfile.Params(2)
+                tchannels = Cfile.Params(3).Trim.Split("|"c)
+            End If
+            _configFile = Cfile
+            _opFile = opFile
             LoadConfig()
-            _sServer = server
-            _sChannels = channel
 
-            If Not String.IsNullOrEmpty(userName) Then
-                _sUserName = userName
-            Else
-                _sUserName = nickName
-            End If
-            If Not String.IsNullOrEmpty(realName) Then
-                _sRealName = realName
-            Else
-                _sRealName = nickName
-            End If
-
-            _sNickName = nickName
-            _sPass = pass
+            _sServer = tserver
+            _sChannels = tchannels
+            _sUserName = tname
+            _sRealName = tname
+            _sNickName = tname
+            _sPass = tpass
             _lPort = port
-            _bInvisible = invisible
+            _bInvisible = False
         End Sub
 
 
         Public Async Sub StartClient()
-            Utils.EventLogger.Log(Messages.StartingIRCClient, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+            Utils.EventLogger.Log(BotMessages.StartingIRCClient, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
             Dim sIsInvisible As String = String.Empty
             Dim sCommand As String = String.Empty 'linea recibida
             Dim Lastdate As DateTime = DateTime.Now
@@ -93,12 +109,12 @@ Namespace IRC
             Dim ResolveMessages As New Func(Of Boolean)(Function()
                                                             Return SendMessagequeue(MsgQueue)
                                                         End Function)
-            Utils.TaskAdm.NewTask("IRC client message resolver", BotCodename, ResolveMessages, 10, True, True)
+            TaskAdm.NewTask("IRC client message resolver", BotCodename, ResolveMessages, 10, True, True)
 
             Do Until HasExited
                 Try
                     'Start the main connection to the IRC server.
-                    Utils.EventLogger.Log(Messages.CreatingConnection, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                    Utils.EventLogger.Log(BotMessages.CreatingConnection, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     _tcpClient = New TcpClient(_sServer, _lPort)
                     With _tcpClient
                         .ReceiveTimeout = 300000
@@ -118,24 +134,24 @@ Namespace IRC
 
                     'Attempt nickserv auth (freenode server pass method)
                     If Not String.IsNullOrEmpty(_sPass) Then
-                        Utils.EventLogger.Log(Messages.NickervAuth, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                        Utils.EventLogger.Log(BotMessages.NickervAuth, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                         _streamWriter.WriteLine(String.Format("PASS {0}:{1}", _sNickName, _sPass))
                         _streamWriter.Flush()
                     End If
 
                     'Create nickname.
-                    Utils.EventLogger.Log(Messages.SetNick, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                    Utils.EventLogger.Log(BotMessages.SetNick, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     _streamWriter.WriteLine(String.Format(String.Format("NICK {0}", _sNickName)))
                     _streamWriter.Flush()
 
                     'Set name and status
-                    Utils.EventLogger.Log(Messages.SetName, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                    Utils.EventLogger.Log(BotMessages.SetName, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     _streamWriter.WriteLine(String.Format("USER {0} {1} * :{2}", _sUserName, sIsInvisible, _sRealName))
                     _streamWriter.Flush()
 
                     'Connect to the channels.
                     For Each chan As String In _sChannels
-                        Utils.EventLogger.Log(String.Format(Messages.JoiningChannel, chan), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                        Utils.EventLogger.Log(String.Format(BotMessages.JoiningChannel, chan), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                         _streamWriter.WriteLine(String.Format("JOIN {0}", chan))
                         _streamWriter.Flush()
                     Next
@@ -146,14 +162,16 @@ Namespace IRC
                                            While True
 
                                                sCommand = _streamReader.ReadLine
+
+
                                                Dim sCommandParts As String() = sCommand.Split(CType(" ", Char()))
 
                                                SyncLock (MsgQueue)
-                                                   MsgQueue.Enqueue(New Tuple(Of String, String, IRC_Client, WikiBot.Bot)(sCommand, _sNickName, Me, ESWikiBOT))
+                                                   MsgQueue.Enqueue(New Tuple(Of String, String, IRC_Client, WikiBot.Bot)(sCommand, _sNickName, Me, _workerbot))
                                                End SyncLock
 
                                                If Not _tcpClient.Connected Then
-                                                   Utils.EventLogger.Debug_Log(Messages.NotConnected, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                                                   Utils.EventLogger.Debug_Log(BotMessages.NotConnected, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                                                    Exit While
                                                End If
 
@@ -168,16 +186,16 @@ Namespace IRC
 
                                            End While
                                        Catch IOEX As System.IO.IOException
-                                           Utils.EventLogger.Log(String.Format(Messages.ConnectionError, IOEX.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                                           Utils.EventLogger.Log(String.Format(BotMessages.ConnectionError, IOEX.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                                        Catch OtherEx As Exception
-                                           Utils.EventLogger.Log(String.Format(Messages.UnexpectedEX, OtherEx.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                                           Utils.EventLogger.Log(String.Format(BotMessages.UnexpectedEX, OtherEx.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                                        End Try
 
                                    End Sub)
 
                 Catch ex As SocketException
                     'No connection, catch and retry
-                    Utils.EventLogger.EX_Log(String.Format(Messages.ConnectionError, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                    Utils.EventLogger.EX_Log(String.Format(BotMessages.ConnectionError, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     Try
                         'close connections
                         _streamReader.Dispose()
@@ -187,7 +205,7 @@ Namespace IRC
                     End Try
                 Catch ex As Exception
                     'In case of something goes wrong
-                    Utils.EventLogger.Log(String.Format(Messages.UnexpectedEX, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                    Utils.EventLogger.Log(String.Format(BotMessages.UnexpectedEX, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     Try
                         _streamWriter.WriteLine("QUIT :FATAL ERROR.")
                         _streamWriter.Flush()
@@ -197,13 +215,13 @@ Namespace IRC
                         _networkStream.Dispose()
                     Catch ex2 As Exception
                         'In case of something really bad happens
-                        Utils.EventLogger.Log(String.Format(Messages.UnexpectedEX, ex2.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                        Utils.EventLogger.Log(String.Format(BotMessages.UnexpectedEX, ex2.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                     End Try
                 End Try
                 If HasExited Then
                     Utils.ExitProgram()
                 End If
-                Utils.EventLogger.Log(String.Format(Messages.LostConnectionRET, ReconTime), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                Utils.EventLogger.Log(String.Format(BotMessages.LostConnectionRET, ReconTime), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 System.Threading.Thread.Sleep(ReconTime * 1000)
             Loop
 
@@ -266,34 +284,35 @@ Namespace IRC
 
         Sub LoadConfig()
             OPlist = New List(Of String)
-            If File.Exists(_opFilePath.GetPath) Then
-                Utils.EventLogger.Log(Messages.LoadingOPs, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
-                Dim opstr As String() = File.ReadAllLines(_opFilePath.GetPath)
+            If File.Exists(_opFile.Path) Then
+                Utils.EventLogger.Log(BotMessages.LoadingOPs, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                Dim opstr As String() = File.ReadAllLines(_opFile.Path)
                 Try
                     For Each op As String In opstr
                         OPlist.Add(op)
                     Next
                 Catch ex As IndexOutOfRangeException
-                    Utils.EventLogger.Log(Messages.MalformedOPs, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                    Utils.EventLogger.Log(BotMessages.MalformedOPs, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 End Try
             Else
-                Utils.EventLogger.Log(Messages.NoOpsFile, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                Utils.EventLogger.Log(BotMessages.NoOpsFile, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 Try
-                    File.Create(_opFilePath.GetPath).Close()
+                    File.Create(_opFile.Path).Close()
                 Catch ex As IOException
-                    Utils.EventLogger.Log(String.Format(Messages.FileCreateErr, _opFilePath), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                    Utils.EventLogger.Log(String.Format(BotMessages.FileCreateErr, _opFile), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 End Try
 
             End If
 
             If OPlist.Count = 0 Then
-                Utils.EventLogger.Log(Messages.NoOp, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
-                Console.WriteLine(Messages.NewOp)
+                Utils.EventLogger.Log(BotMessages.NoOp, Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                Console.WriteLine(BotMessages.NewOp)
                 Dim MainOp As String = Console.ReadLine
                 Try
-                    File.WriteAllText(_opFilePath.GetPath, MainOp)
+                    File.WriteAllText(_opFile.Path, MainOp)
+                    OPlist.Add(MainOp)
                 Catch ex As IOException
-                    Utils.EventLogger.Log(String.Format(Messages.FileSaveErr, _opFilePath), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                    Utils.EventLogger.Log(String.Format(BotMessages.FileSaveErr, _opFile), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 End Try
             End If
 
@@ -314,10 +333,10 @@ Namespace IRC
                 If IsOp(message, source, user) Then
                     OPlist.Add(Param)
                     Try
-                        File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
+                        File.WriteAllLines(_opFile.Path, OPlist.ToArray)
                         Return True
                     Catch ex As IOException
-                        Utils.EventLogger.Log(String.Format(Messages.FileSaveErr, _opFilePath), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                        Utils.EventLogger.Log(String.Format(BotMessages.FileSaveErr, _opFile), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                         Return False
                     End Try
                 Else
@@ -345,10 +364,10 @@ Namespace IRC
                 If OPlist.Contains(Param) Then
                     OPlist.Remove(Param)
                     Try
-                        File.WriteAllLines(_opFilePath.GetPath, OPlist.ToArray)
+                        File.WriteAllLines(_opFile.Path, OPlist.ToArray)
                         Return True
                     Catch ex As System.IO.IOException
-                        Utils.EventLogger.Log(String.Format(Messages.FileSaveErr, _opFilePath), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                        Utils.EventLogger.Log(String.Format(BotMessages.FileSaveErr, _opFile), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                         Return False
                     End Try
                 Else
@@ -372,17 +391,17 @@ Namespace IRC
                 Dim Scommand0 As String = message.Split(" "c)(0)
                 Dim Nickname As String = Utils.GetUserFromChatresponse(message)
                 Dim Hostname As String = Scommand0.Split(CType("@", Char()))(1)
-                Utils.EventLogger.Log(String.Format(Messages.CheckOp, Nickname, Hostname), source, user)
+                Utils.EventLogger.Log(String.Format(BotMessages.CheckOp, Nickname, Hostname), source, user)
                 Dim OpString As String = Nickname & "!" & Hostname
                 If OPlist.Contains(OpString) Then
-                    Utils.EventLogger.Log(String.Format(Messages.UserOP, Nickname, Hostname), source, user)
+                    Utils.EventLogger.Log(String.Format(BotMessages.UserOP, Nickname, Hostname), source, user)
                     Return True
                 Else
-                    Utils.EventLogger.Log(String.Format(Messages.UserNotOP, Nickname, Hostname), source, user)
+                    Utils.EventLogger.Log(String.Format(BotMessages.UserNotOP, Nickname, Hostname), source, user)
                     Return False
                 End If
             Catch ex As IndexOutOfRangeException
-                Utils.EventLogger.Log(String.Format(Messages.UnexpectedEX, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
+                Utils.EventLogger.Log(String.Format(BotMessages.UnexpectedEX, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _sNickName)
                 Return False
             End Try
         End Function

@@ -17,6 +17,21 @@
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -54,6 +69,9 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MWBot.net">
+      <HintPath>..\MWBot.net\MWBot.net\bin\Debug\MWBot.net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -78,42 +96,27 @@
   <ItemGroup>
     <Compile Include="ChatBot.vb" />
     <Compile Include="ChatMessage.vb" />
-    <Compile Include="EditResults.vb" />
     <Compile Include="IRCCommandParams.vb" />
-    <Compile Include="MaxRetriesExeption.vb" />
-    <Compile Include="Messages.Designer.vb">
-      <DependentUpon>Messages.resx</DependentUpon>
+    <Compile Include="BotMessages.Designer.vb">
       <AutoGen>True</AutoGen>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DesignTime>True</DesignTime>
+      <DependentUpon>BotMessages.resx</DependentUpon>
     </Compile>
-    <Compile Include="Messages.es.Designer.vb">
+    <Compile Include="WPStrings.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Messages.es.resx</DependentUpon>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="SStrings.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SStrings.resx</DependentUpon>
+      <DependentUpon>WPStrings.resx</DependentUpon>
     </Compile>
     <Compile Include="TaskInfo.vb" />
     <Compile Include="VideoGen.vb" />
-    <Compile Include="TopicFuncs.vb" />
-    <Compile Include="APIHandler.vb" />
-    <Compile Include="Bot.vb" />
-    <Compile Include="ConfigFile.vb" />
+    <Compile Include="WikiTopicList.vb" />
     <Compile Include="Initializer.vb" />
     <Compile Include="IRCCommand.vb" />
     <Compile Include="IRCCommands.vb" />
-    <Compile Include="Utils.vb" />
-    <Compile Include="GlobalVars.vb" />
-    <Compile Include="OldGrillitusTasks.vb" />
+    <Compile Include="SpecialTaks.vb" />
     <Compile Include="IRCMessage.vb" />
     <Compile Include="IRC_Client.vb" />
     <Compile Include="IRCCommandResolver.vb" />
-    <Compile Include="LogEngine.vb" />
     <Compile Include="MainModule.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
@@ -130,31 +133,13 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Page.vb" />
-    <Compile Include="Settings.vb" />
-    <Compile Include="Template.vb" />
     <Compile Include="TaskAdmin.vb" />
-    <Compile Include="WExtract.vb" />
-    <Compile Include="WikiBotEphe.vb" />
-    <Compile Include="WikiDiff.vb" />
-    <Compile Include="WikiEphe.vb" />
-    <Compile Include="WikiEpheType.vb" />
-    <Compile Include="WikiTopic.vb" />
-    <Compile Include="WikiTopicThread.vb" />
-    <Compile Include="WikiUser.vb" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Messages.resx">
+    <EmbeddedResource Include="BotMessages.es.resx" />
+    <EmbeddedResource Include="BotMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Messages.Designer.vb</LastGenOutput>
-      <CustomToolNamespace>My.Resources</CustomToolNamespace>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Messages.es.resx">
-      <CustomToolNamespace>My.Resources</CustomToolNamespace>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Messages.es.Designer.vb</LastGenOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <LastGenOutput>BotMessages.Designer.vb</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
@@ -162,10 +147,10 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="SStrings.resx">
+    <EmbeddedResource Include="WPStrings.resx">
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>SStrings.Designer.vb</LastGenOutput>
+      <LastGenOutput>WPStrings.Designer.vb</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -179,6 +164,18 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.6.1 %28x86 y x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

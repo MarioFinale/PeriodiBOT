@@ -1,21 +1,22 @@
 ﻿Option Strict On
 Option Explicit On
 Imports PeriodiBOT_IRC.My.Resources
+Imports PeriodiBOT_IRC.Initializer
+Imports MWBot.net
+Imports MWBot.net.WikiBot
 Imports System.Text.RegularExpressions
 Imports System.Text
 
-
-Namespace WikiBot
-    Public Class WikiTopicList
+Public Class WikiTopicList
         Private _bot As Bot
-        Sub New(ByVal workerbot As Bot)
+        Sub New(ByRef workerbot As Bot)
             _bot = workerbot
         End Sub
 
         Function UpdateTopics() As Boolean
             Try
-                Dim topicpage As Page = ESWikiBOT.Getpage(SStrings.TopicPageName)
-                Dim newtext As String = GetTopicsPageText()
+            Dim topicpage As Page = _bot.Getpage(WPStrings.TopicPageName)
+            Dim newtext As String = GetTopicsPageText()
                 If Not newtext.Length = topicpage.Content.Length Then
                     topicpage.Save(newtext, "Bot: Actualizando temas", False, True)
                     Return True
@@ -79,7 +80,7 @@ Namespace WikiBot
         End Function
 
         Private Function GetTopicGroups() As SortedDictionary(Of String, List(Of String))
-            Dim GroupsPage As Page = _bot.Getpage(SStrings.TopicGroupsPage) 'Inicializar página de grupos
+            Dim GroupsPage As Page = _bot.Getpage(WPStrings.TopicGroupsPage) 'Inicializar página de grupos
             Dim Threads As String() = Utils.GetPageThreads(GroupsPage.Content) 'Obtener hilos de la página
 
             Dim Groups As New SortedDictionary(Of String, List(Of String))
@@ -130,7 +131,7 @@ Namespace WikiBot
 
         Private Function GetAllTopicThreads(ByRef inclusions As Integer) As SortedList(Of String, WikiTopic)
             Dim Topiclist As New SortedList(Of String, WikiTopic)
-            Dim pages As String() = _bot.GetallInclusions(SStrings.TopicTemplate) 'Paginas que incluyen la plantilla de tema.
+            Dim pages As String() = _bot.GetallInclusions(WPStrings.TopicTemplate) 'Paginas que incluyen la plantilla de tema.
             For Each p As String In pages 'Por cada página que incluya la plantilla tema, no se llama a GetallInclusionsPages por temas de memoria.
                 Topiclist = GetTopicsOfpage(_bot.Getpage(p), Topiclist) 'Añadir nuevos hilos
             Next
@@ -264,7 +265,7 @@ Namespace WikiBot
                 PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & Utils.GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & Utils.GetSizeAsString(Top100(i).Item1) & "." & Environment.NewLine
             Next
 
-            Dim tPage As Page = _bot.Getpage(SStrings.LongestThreads)
+            Dim tPage As Page = _bot.Getpage(WPStrings.LongestThreads)
 
             If tPage.Save(PageText, "Bot: Generando lista.", True, True) = EditResults.Edit_successful Then
                 Return True
@@ -273,5 +274,4 @@ Namespace WikiBot
             End If
 
         End Function
-    End Class
-End Namespace
+End Class

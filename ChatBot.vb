@@ -1,13 +1,13 @@
 ﻿Option Strict On
 Option Explicit On
-Imports PeriodiBOT_IRC.My.Resources
+Imports MWBot.net.WikiBot
 
 Namespace IRC
     Public Class ChatBot
         Private _botName As String
-        Private _wBot As WikiBot.Bot
+        Private _wBot As Bot
 
-        Sub New(ByVal botName As String, ByVal workerBot As WikiBot.Bot)
+        Sub New(ByVal botName As String, ByVal workerBot As Bot)
             _botName = botName
             _wBot = workerBot
         End Sub
@@ -16,7 +16,7 @@ Namespace IRC
             Return New ChatMessage(source, user, text, _wBot)
         End Function
 
-        Function GetPossiblePage(ByVal starts As String(), ByVal message As ChatMessage) As WikiBot.Page
+        Function GetPossiblePage(ByVal starts As String(), ByVal message As ChatMessage) As Page
             If starts Is Nothing Or message Is Nothing Then Throw New ArgumentNullException()
             For Each svar As String In starts
                 If message.NormalizedMessage.ToLower.StartsWith(svar.ToLower) Then

@@ -1,7 +1,8 @@
 ﻿Option Strict On
 Option Explicit On
 Imports PeriodiBOT_IRC.IRC
-Imports PeriodiBOT_IRC.WikiBot
+Imports MWBot.net.WikiBot
+Imports MWBot.net
 Namespace IRC
     Public Class IRCCommandParams
 
@@ -71,7 +72,7 @@ Namespace IRC
 
 #End Region
 
-        Sub New(ByVal cimputline As String, commandResolver As IRC_Client, rWorkerbot As Bot)
+        Sub New(ByVal cimputline As String, ByRef commandResolver As IRC_Client, ByRef rWorkerbot As Bot)
             If commandResolver Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name)
             If rWorkerbot Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name)
 

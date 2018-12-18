@@ -1,5 +1,6 @@
 ﻿Option Strict On
 Option Explicit On
+Imports MWBot.net.WikiBot
 
 Public Class ChatMessage
     Property Source As String
@@ -7,7 +8,7 @@ Public Class ChatMessage
     Property Text As String
     Property NormalizedMessage As String
 
-    Sub New(ByVal tSource As String, tUser As String, tText As String, ByVal workerBot As WikiBot.Bot)
+    Sub New(ByVal tSource As String, tUser As String, tText As String, ByVal workerBot As Bot)
         Source = tSource
         User = tUser
         tText = tText

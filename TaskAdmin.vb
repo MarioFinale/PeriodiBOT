@@ -2,8 +2,9 @@
 Option Explicit On
 Imports System.Globalization
 Imports System.Threading
+Imports MWBot.net
 
-Class TaskAdmin
+Public Class TaskAdmin
     Public TaskList As ICollection(Of TaskInfo)
 
     Sub New()
