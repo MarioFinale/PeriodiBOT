@@ -11,6 +11,8 @@ Public Class VideoGen
     Private Header As String = Exepath & "Res" & DirSeparator & "header.hres"
     Private Bottom As String = Exepath & "Res" & DirSeparator & "bottom.hres"
     Private Hfolder As String = Exepath & "hfiles" & DirSeparator
+    Private MusicFile As String = Hfolder & "music.mp3"
+    Private MusicDescFile As String = Hfolder & "desc.txt"
 
     Sub New(ByRef workingbot As Bot)
         Bot = workingbot
@@ -87,6 +89,7 @@ Public Class VideoGen
             efeinfotext = efeinfotext & ef.Page & ": "
             efeinfotext = efeinfotext & "http://es.wikipedia.org/wiki/" & Utils.UrlWebEncode(ef.Page.Replace(" "c, "_"c))
         Next
+        efeinfotext = efeinfotext & Environment.NewLine & IO.File.ReadAllText(MusicDescFile, System.Text.Encoding.UTF8)
         efeinfotext = efeinfotext & btext
         IO.File.WriteAllText(efeinfopath, efeinfotext)
         Return True
@@ -105,8 +108,13 @@ Public Class VideoGen
         Dim Tpath As String = Exepath & "Images" & DirSeparator
         Dim imagename As String = "efe"
         Dim current As Integer = Createintro(imagename, Tpath, tdate)
+
         current = CallImages(current, imagename, Tpath, tdate)
         current = Blackout(current, imagename, Tpath)
+        current = MusicInfo(current, imagename, Tpath)
+        current = Blackout(current, imagename, Tpath)
+
+
         Utils.EventLogger.Log(current.ToString & " Imágenes generadas.", "GenEfemerides")
 
         If Not EncodeVideo(Tpath, tdate) Then
@@ -138,7 +146,7 @@ Public Class VideoGen
                 Using exec As New Process
                     exec.StartInfo.FileName = "ffmpeg"
                     exec.StartInfo.UseShellExecute = True
-                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -vcodec libx264 -preset slower -crf 19 """ & Hfolder & tdatestring & ".mp4"""
+                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -i " & MusicFile & " -vcodec libx264 -preset slower -crf 19 -shortest -strict -2 """ & Hfolder & tdatestring & ".mp4"""
                     exec.Start()
                     exec.WaitForExit()
                 End Using
@@ -149,7 +157,7 @@ Public Class VideoGen
                 Using exec As New Process
                     exec.StartInfo.FileName = "avconv"
                     exec.StartInfo.UseShellExecute = True
-                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -vcodec libx264 -preset slower -crf 19 """ & Hfolder & tdatestring & ".mp4"""
+                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -i " & MusicFile & " -vcodec libx264 -preset slower -crf 19 -shortest -strict -2 """ & Hfolder & tdatestring & ".mp4"""
                     exec.Start()
                     exec.WaitForExit()
                 End Using
@@ -202,6 +210,7 @@ Public Class VideoGen
         End Using
         Return current
     End Function
+
 
     Function Blackout(ByVal current As Integer, imagename As String, path As String) As Integer
         Dim lastimg As Drawing.Image = Drawing.Image.FromFile(path & imagename & current.ToString("0000") & ".jpg")
@@ -410,6 +419,21 @@ Public Class VideoGen
 
         Return current
     End Function
+
+
+    Function MusicInfo(ByVal current As Integer, imagename As String, path As String) As Integer
+        Dim lastimg As Drawing.Image = Drawing.Image.FromFile(path & imagename & current.ToString("0000") & ".jpg")
+        Dim description As String = IO.File.ReadAllText(MusicDescFile, System.Text.Encoding.UTF8)
+
+        Using descimg As Drawing.Image = DrawText(description, New Font(FontFamily.GenericSansSerif, Convert.ToSingle(3.0! * 4.5), FontStyle.Regular), Color.White, True)
+            Using timage As Image = PasteImage(lastimg, descimg, New Point(CInt((lastimg.Width - descimg.Width) / 2), 250))
+                current = PasteFadeIn(lastimg, timage, New Point(0, 0), imagename, path, current)
+                current = Repeatimage(path, imagename, current, timage, 90)
+            End Using
+        End Using
+        Return current
+    End Function
+
 
     Public Function Repeatimage(ByVal Path As String, imagename As String, current As Integer, efimg As Image, repetitions As Integer) As Integer
         For i = 0 To repetitions
