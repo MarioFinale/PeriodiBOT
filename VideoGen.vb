@@ -183,7 +183,7 @@ Public Class VideoGen
                 Using tdrawing As Graphics = Graphics.FromImage(Bgimg)
                     tdrawing.Clear(Color.White)
                     tdrawing.Save()
-                    Dim Fecha As String = tdate.ToString("dd 'de' MMMM", New Globalization.CultureInfo("es-ES"))
+                    Dim Fecha As String = tdate.ToString("d 'de' MMMM", New Globalization.CultureInfo("es-ES"))
                     Using fechaimg As Image = DrawText(Fecha, New Font(FontFamily.GenericSansSerif, 35.0!, FontStyle.Regular), Color.Black, True)
                         current = DragRightToLeft(Bgimg, Efeimg, New Point(0, 0), 0.2F, imagename, path, 0)
                         Dim lastimg As Image = Image.FromFile(path & imagename & current.ToString("0000") & ".jpg")
