@@ -24,14 +24,6 @@ Public NotInheritable Class Initializer
         BotIRC = New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT)
         BotIRC.StartClient()
 
-        'Tarea para generar video de efemérides
-        Dim efevidfunc As New Func(Of Boolean)(Function()
-                                                   Dim igen As New VideoGen(ESWikiBOT)
-                                                   Return igen.CheckEfe
-                                               End Function)
-        TaskAdm.NewTask("Generar video con las efemérides del día", ESWikiBOT.UserName, efevidfunc, New TimeSpan(15, 0, 0), True)
-
-
         'Tarea para revisar si hay solicitudes en mediacion informal
         Dim InfMedFunc As New Func(Of Boolean)(Function()
                                                    Dim sptask As New SpecialTaks(ESWikiBOT)

@@ -107,7 +107,6 @@
       <DependentUpon>WPStrings.resx</DependentUpon>
     </Compile>
     <Compile Include="TaskInfo.vb" />
-    <Compile Include="VideoGen.vb" />
     <Compile Include="WikiTopicList.vb" />
     <Compile Include="Initializer.vb" />
     <Compile Include="IRCCommand.vb" />
