@@ -23,6 +23,28 @@ Public Class IRCCommands
         End If
     End Function
 
+    Function SetCulture(ByVal args As IRCCommandParams) As IRCMessage
+        If args Is Nothing Then Return Nothing
+        Dim Client As IRC_Client = args.Client
+        Dim source As String = args.Source
+        If args.IsOp Then
+            Dim responsestring As String = String.Empty
+
+            Threading.Thread.CurrentThread.CurrentUICulture = New Globalization.CultureInfo("es-ES")
+            Threading.Thread.CurrentThread.CurrentCulture = New Globalization.CultureInfo("es-ES")
+            Globalization.CultureInfo.CurrentCulture = New Globalization.CultureInfo("es-ES")
+            Globalization.CultureInfo.CurrentUICulture = New Globalization.CultureInfo("es-ES")
+
+
+            responsestring = String.Format(BotMessages.WaitingTime, Utils.ColoredText(Client.FloodDelay.ToString, 4))
+            Return New IRCMessage(source, responsestring.ToArray)
+        Else
+            Return New IRCMessage(source, BotMessages.Unauthorized)
+        End If
+    End Function
+
+
+
     Function SetFloodDelay(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         Dim value As String = args.CParam

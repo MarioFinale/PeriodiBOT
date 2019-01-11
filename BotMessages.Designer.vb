@@ -64,7 +64,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a  {0} new extract has been added..
+    '''  Busca una cadena traducida similar a  Se añadió {0} extracto nuevo..
     '''</summary>
     Friend Shared ReadOnly Property AddedExtract() As String
         Get
@@ -73,7 +73,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a  {0} new extracts have been added..
+    '''  Busca una cadena traducida similar a  Se añadieron {0} extractos nuevos..
     '''</summary>
     Friend Shared ReadOnly Property AddedExtracts() As String
         Get
@@ -82,7 +82,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Apparently the result is {0}..
+    '''  Busca una cadena traducida similar a Aparentemente el resultado es {0}..
     '''</summary>
     Friend Shared ReadOnly Property ApparentResult() As String
         Get
@@ -91,7 +91,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a (Bot) Archiving {0} thread with more than {1} days old from [[&apos;{2}&apos;]]..
+    '''  Busca una cadena traducida similar a Bot: Archivando {0} hilo con más de {1} días de antigüedad desde &apos;[[{2}]]&apos;..
     '''</summary>
     Friend Shared ReadOnly Property ArchivedThreadDestSumm() As String
         Get
@@ -100,7 +100,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a (Bot) Archiving {0} threads with more than {1} days old from [[&apos;{2}&apos;]]..
+    '''  Busca una cadena traducida similar a Bot: Archivando {0} hilos con más de {1} días de antigüedad desde &apos;[[{2}]]&apos;..
     '''</summary>
     Friend Shared ReadOnly Property ArchivedThreadsDestSumm() As String
         Get
@@ -109,7 +109,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a (Bot) Archiving {0} threads with more than {1} days old..
+    '''  Busca una cadena traducida similar a Bot: Archivando {0} hilos con más de {1} días de antigüedad..
     '''</summary>
     Friend Shared ReadOnly Property ArchivedThreadsSumm() As String
         Get
@@ -118,7 +118,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a (Bot) Archiving {0} thread with more than {1} days old..
+    '''  Busca una cadena traducida similar a Bot: Archivando {0} hilo con más de {1} días de antigüedad..
     '''</summary>
     Friend Shared ReadOnly Property ArchivedThreadSumm() As String
         Get
@@ -127,7 +127,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Archiving all pages that includes the template &apos;{0}&apos;..
+    '''  Busca una cadena traducida similar a Archivando todas las páginas que incluyan la plantilla &apos;{0}&apos;..
     '''</summary>
     Friend Shared ReadOnly Property ArchivingInclusions() As String
         Get
@@ -136,7 +136,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Author		: .
+    '''  Busca una cadena traducida similar a Autor		: .
     '''</summary>
     Friend Shared ReadOnly Property Author() As String
         Get
@@ -145,7 +145,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Autoarchiving &apos;{0}&apos;..
+    '''  Busca una cadena traducida similar a Autoarchivando &apos;{0}&apos;..
     '''</summary>
     Friend Shared ReadOnly Property AutoArchive() As String
         Get
@@ -154,7 +154,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Auto-archive of &apos;{0}&apos; done..
+    '''  Busca una cadena traducida similar a Autoarchivado de &apos;{0}&apos; completo..
     '''</summary>
     Friend Shared ReadOnly Property AutoArchiveDone() As String
         Get
@@ -163,7 +163,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Cancelled		: .
+    '''  Busca una cadena traducida similar a Cancelada		: .
     '''</summary>
     Friend Shared ReadOnly Property Cancelled() As String
         Get
@@ -172,7 +172,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The critical task &apos;{0}&apos; cannot be paused..
+    '''  Busca una cadena traducida similar a La tarea crítica &apos;{0}&apos; no puede ser pausada..
     '''</summary>
     Friend Shared ReadOnly Property CannotPause() As String
         Get
@@ -181,7 +181,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Checking user {0}.
+    '''  Busca una cadena traducida similar a Comprobando el usuario {0}.
     '''</summary>
     Friend Shared ReadOnly Property CheckingUser() As String
         Get
@@ -190,7 +190,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Checking if user {0} on host {1} is OP..
+    '''  Busca una cadena traducida similar a Verificando si el usuario {0} en el host {1} es OP..
     '''</summary>
     Friend Shared ReadOnly Property CheckOp() As String
         Get
@@ -199,7 +199,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Command &apos;{0}&apos; issued by &apos;{1}&apos;.  Arguments: &apos;{2}&apos;.
+    '''  Busca una cadena traducida similar a Comando &apos;{0}&apos; ingresado por &apos;{1}&apos;. Argumentos: &apos;{2}&apos;.
     '''</summary>
     Friend Shared ReadOnly Property CommandIssued() As String
         Get
@@ -208,7 +208,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Connection error EX: {0}.
+    '''  Busca una cadena traducida similar a Error de conexión. EX: {0}.
     '''</summary>
     Friend Shared ReadOnly Property ConnectionError() As String
         Get
@@ -217,7 +217,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a (Bot) Creating archive box..
+    '''  Busca una cadena traducida similar a (Bot) Creando nueva caja de archivos..
     '''</summary>
     Friend Shared ReadOnly Property CreatingBoxSumm() As String
         Get
@@ -226,7 +226,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Creating Connection..
+    '''  Busca una cadena traducida similar a Creando conexión..
     '''</summary>
     Friend Shared ReadOnly Property CreatingConnection() As String
         Get
@@ -235,7 +235,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Critical		: .
+    '''  Busca una cadena traducida similar a Crítica		: .
     '''</summary>
     Friend Shared ReadOnly Property Critical() As String
         Get
@@ -244,7 +244,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Debug log disabled..
+    '''  Busca una cadena traducida similar a Log debug desactivado..
     '''</summary>
     Friend Shared ReadOnly Property DebugDisabled() As String
         Get
@@ -253,7 +253,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Debug log enabled..
+    '''  Busca una cadena traducida similar a Log debug activado..
     '''</summary>
     Friend Shared ReadOnly Property DebugEnabled() As String
         Get
@@ -262,7 +262,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Dividing by 0....
+    '''  Busca una cadena traducida similar a Dividiendo por 0....
     '''</summary>
     Friend Shared ReadOnly Property Div0() As String
         Get
@@ -271,7 +271,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Entering {0}..
+    '''  Busca una cadena traducida similar a Entrando a {0}..
     '''</summary>
     Friend Shared ReadOnly Property EnteringRoom() As String
         Get
@@ -280,7 +280,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Enter the task number..
+    '''  Busca una cadena traducida similar a Ingrese el número de la tarea..
     '''</summary>
     Friend Shared ReadOnly Property EnterTaskNumber() As String
         Get
@@ -289,7 +289,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Errors		: .
+    '''  Busca una cadena traducida similar a Errores		: .
     '''</summary>
     Friend Shared ReadOnly Property Errors() As String
         Get
@@ -298,7 +298,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Every {0} seconds..
+    '''  Busca una cadena traducida similar a Cada {0} segundos..
     '''</summary>
     Friend Shared ReadOnly Property EverySec() As String
         Get
@@ -307,7 +307,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Executions	: .
+    '''  Busca una cadena traducida similar a Eejcuciones	: .
     '''</summary>
     Friend Shared ReadOnly Property Executions() As String
         Get
@@ -316,7 +316,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a OK, I&apos;m leaving....
+    '''  Busca una cadena traducida similar a OK, me voy....
     '''</summary>
     Friend Shared ReadOnly Property ExitMessage() As String
         Get
@@ -325,7 +325,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Error creating file &apos;{0}&apos;..
+    '''  Busca una cadena traducida similar a Error al crear el archivo &apos;{0}&apos;..
     '''</summary>
     Friend Shared ReadOnly Property FileCreateErr() As String
         Get
@@ -334,7 +334,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Error saving &apos;{0}&apos;..
+    '''  Busca una cadena traducida similar a Error al guardar el archivo &apos;{0}&apos;..
     '''</summary>
     Friend Shared ReadOnly Property FileSaveErr() As String
         Get
@@ -343,7 +343,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Loading page extract of &apos;{0}&apos;..
+    '''  Busca una cadena traducida similar a Cargando el extracto de la página &apos;{0}&apos;..
     '''</summary>
     Friend Shared ReadOnly Property GetPageExtract() As String
         Get
@@ -352,7 +352,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Loading {0} pages extract..
+    '''  Busca una cadena traducida similar a Cargando {0} extractos de páginas..
     '''</summary>
     Friend Shared ReadOnly Property GetPagesExtract() As String
         Get
@@ -361,7 +361,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Infinite		: .
+    '''  Busca una cadena traducida similar a Infinita		: .
     '''</summary>
     Friend Shared ReadOnly Property Infinite() As String
         Get
@@ -370,7 +370,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The namespace of &apos;{0}&apos; ({1}) is invalid..
+    '''  Busca una cadena traducida similar a El espacio de nombres de la página &apos;{0}&apos; ({1}) es inválido..
     '''</summary>
     Friend Shared ReadOnly Property InvalidNamespace() As String
         Get
@@ -379,7 +379,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Invalid parameter..
+    '''  Busca una cadena traducida similar a Parámetro inválido..
     '''</summary>
     Friend Shared ReadOnly Property InvalidParameter() As String
         Get
@@ -388,7 +388,16 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The user &apos;{0}&apos; doesn&apos;t meet the minimum archive requirements..
+    '''  Busca una cadena traducida similar a Invalid parameter..
+    '''</summary>
+    Friend Shared ReadOnly Property InvalidParameter1() As String
+        Get
+            Return ResourceManager.GetString("InvalidParameter1", resourceCulture)
+        End Get
+    End Property
+    
+    '''<summary>
+    '''  Busca una cadena traducida similar a El usuario &apos;{0}&apos; no cumple con los requisitos mínimos de archivado..
     '''</summary>
     Friend Shared ReadOnly Property InvalidUserArchive() As String
         Get
@@ -397,7 +406,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Joining channel {0}..
+    '''  Busca una cadena traducida similar a Entrando al canal {0}..
     '''</summary>
     Friend Shared ReadOnly Property JoiningChannel() As String
         Get
@@ -406,7 +415,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Leaving {0}..
+    '''  Busca una cadena traducida similar a Saliendo de {0}..
     '''</summary>
     Friend Shared ReadOnly Property LeavingRoom() As String
         Get
@@ -415,7 +424,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Loading {0} new extracts.
+    '''  Busca una cadena traducida similar a Cargando {0} resúmenes nuevos..
     '''</summary>
     Friend Shared ReadOnly Property LoadingNewExtracts() As String
         Get
@@ -424,7 +433,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Loading {0} old extracts.
+    '''  Busca una cadena traducida similar a Cargando {0} resúmenes antiguos..
     '''</summary>
     Friend Shared ReadOnly Property LoadingOldExtracts() As String
         Get
@@ -433,7 +442,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Loading operators..
+    '''  Busca una cadena traducida similar a Cargando operadores..
     '''</summary>
     Friend Shared ReadOnly Property LoadingOPs() As String
         Get
@@ -442,7 +451,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Connection losr. Retrying in {0} seconds..
+    '''  Busca una cadena traducida similar a Conexión perdida. Reintentando en {0} segundos..
     '''</summary>
     Friend Shared ReadOnly Property LostConnectionRET() As String
         Get
@@ -451,7 +460,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The archive template on the page &apos;{0}&apos; is malformed..
+    '''  Busca una cadena traducida similar a La plantilla de archivado en la página &apos;{0}&apos; está malformada..
     '''</summary>
     Friend Shared ReadOnly Property MalformedArchiveConfig() As String
         Get
@@ -460,7 +469,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Op config file malformed..
+    '''  Busca una cadena traducida similar a Archivo de operadores malformado..
     '''</summary>
     Friend Shared ReadOnly Property MalformedOPs() As String
         Get
@@ -469,7 +478,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The value must be greater than {0}..
+    '''  Busca una cadena traducida similar a El valor debe ser superior a {0}..
     '''</summary>
     Friend Shared ReadOnly Property MustBeGreaterThan() As String
         Get
@@ -478,7 +487,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Name		: .
+    '''  Busca una cadena traducida similar a Nombre		: .
     '''</summary>
     Friend Shared ReadOnly Property Name() As String
         Get
@@ -487,7 +496,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a IRC server main adress: .
+    '''  Busca una cadena traducida similar a Dirección del servidor de IRC principal: .
     '''</summary>
     Friend Shared ReadOnly Property NewIrcNetworkAdress() As String
         Get
@@ -496,7 +505,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a IRC channels (separated by pipes [|]): .
+    '''  Busca una cadena traducida similar a Canales de IRC (separados por pipe [|]): .
     '''</summary>
     Friend Shared ReadOnly Property NewIrcNetworkChannels() As String
         Get
@@ -505,7 +514,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a IRC nickname: .
+    '''  Busca una cadena traducida similar a Nickname en el servidor IRC: .
     '''</summary>
     Friend Shared ReadOnly Property NewIrcNetworkNickName() As String
         Get
@@ -514,7 +523,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a IRC Nickserv/Server password: .
+    '''  Busca una cadena traducida similar a Contraseña de Nickserv o de servidor: .
     '''</summary>
     Friend Shared ReadOnly Property NewIrcNetworkPass() As String
         Get
@@ -523,7 +532,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a IRC OP (Nickname!hostname):.
+    '''  Busca una cadena traducida similar a Operador IRC (Nickname!hostname):.
     '''</summary>
     Friend Shared ReadOnly Property NewOp() As String
         Get
@@ -532,7 +541,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a . The next notice will be in 5 minutes..
+    '''  Busca una cadena traducida similar a . El próximo aviso será en 5 minutos..
     '''</summary>
     Friend Shared ReadOnly Property NextNotif() As String
         Get
@@ -541,7 +550,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Attempting nickserv auth..
+    '''  Busca una cadena traducida similar a Intentando autenticar via nickserv..
     '''</summary>
     Friend Shared ReadOnly Property NickervAuth() As String
         Get
@@ -550,7 +559,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a No irc config file.
+    '''  Busca una cadena traducida similar a No existe el archivo de configuracion IRC.
     '''</summary>
     Friend Shared ReadOnly Property NoIrcConfigFile() As String
         Get
@@ -559,7 +568,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a No Op defined..
+    '''  Busca una cadena traducida similar a No se ha definido ningun operador..
     '''</summary>
     Friend Shared ReadOnly Property NoOp() As String
         Get
@@ -568,7 +577,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a No op config file..
+    '''  Busca una cadena traducida similar a El archivo de operadores no existe..
     '''</summary>
     Friend Shared ReadOnly Property NoOpsFile() As String
         Get
@@ -577,7 +586,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a There are no running tasks..
+    '''  Busca una cadena traducida similar a No hay tareas en ejecución..
     '''</summary>
     Friend Shared ReadOnly Property NoRunningTasks() As String
         Get
@@ -586,7 +595,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The page &apos;{0}&apos; is not a subpage of the main page (&apos;{1}&apos;)..
+    '''  Busca una cadena traducida similar a La página &apos;{0}&apos; no es una subpágina de la página principal (&apos;{1}&apos;)..
     '''</summary>
     Friend Shared ReadOnly Property NotASubPage() As String
         Get
@@ -595,7 +604,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Not connected..
+    '''  Busca una cadena traducida similar a No conectado..
     '''</summary>
     Friend Shared ReadOnly Property NotConnected() As String
         Get
@@ -604,7 +613,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Nothing to archive on &apos;{0}&apos;..
+    '''  Busca una cadena traducida similar a No hay hilos por archivar en &apos;{0}&apos;..
     '''</summary>
     Friend Shared ReadOnly Property NothingToArchive() As String
         Get
@@ -613,7 +622,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The parameter is null..
+    '''  Busca una cadena traducida similar a El parámetro es nulo..
     '''</summary>
     Friend Shared ReadOnly Property NullParameter() As String
         Get
@@ -622,7 +631,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Enter a numeric value.
+    '''  Busca una cadena traducida similar a Ingrese un valor numérico.
     '''</summary>
     Friend Shared ReadOnly Property NumericValue() As String
         Get
@@ -631,7 +640,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a  {0} unsafe extract has been omitted..
+    '''  Busca una cadena traducida similar a  Se omitió {0} extracto inseguro..
     '''</summary>
     Friend Shared ReadOnly Property OmittedExtract() As String
         Get
@@ -640,7 +649,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a  {0} unsafe extracts have been omitted..
+    '''  Busca una cadena traducida similar a  Se omitieron {0} extractos inseguros..
     '''</summary>
     Friend Shared ReadOnly Property OmittedExtracts() As String
         Get
@@ -649,7 +658,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The page &apos;{0}&apos; only have one thread..
+    '''  Busca una cadena traducida similar a La página &apos;{0}&apos; solo tiene un hilo..
     '''</summary>
     Friend Shared ReadOnly Property OneThreadPage() As String
         Get
@@ -658,7 +667,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The user {0} has been added as an operator..
+    '''  Busca una cadena traducida similar a El usuario {0} ha sido añadido como operador..
     '''</summary>
     Friend Shared ReadOnly Property OpAdded() As String
         Get
@@ -667,7 +676,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The user {0} has not been added as an operator..
+    '''  Busca una cadena traducida similar a El usuario {0} no ha sido añadido como operador..
     '''</summary>
     Friend Shared ReadOnly Property OpNotAdded() As String
         Get
@@ -676,7 +685,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a User {0} is not an operator..
+    '''  Busca una cadena traducida similar a {0} no es un operador..
     '''</summary>
     Friend Shared ReadOnly Property OpNotRemoved() As String
         Get
@@ -685,7 +694,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a User {0} is not longer an operator..
+    '''  Busca una cadena traducida similar a {0} ya no es un operador..
     '''</summary>
     Friend Shared ReadOnly Property OpRemoved() As String
         Get
@@ -694,7 +703,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a (Bot) Creating a new archive box over an existing one..
+    '''  Busca una cadena traducida similar a (Bot) Creando una nueva caja de archivos por sobre una ya existente..
     '''</summary>
     Friend Shared ReadOnly Property OverwritingBoxSumm() As String
         Get
@@ -703,7 +712,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Paused		: .
+    '''  Busca una cadena traducida similar a Pausada		: .
     '''</summary>
     Friend Shared ReadOnly Property Paused() As String
         Get
@@ -712,7 +721,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Task &apos;{0}&apos; paused..
+    '''  Busca una cadena traducida similar a Tarea &apos;{0}&apos; pausada..
     '''</summary>
     Friend Shared ReadOnly Property PausedTask() As String
         Get
@@ -721,7 +730,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Periodic.
+    '''  Busca una cadena traducida similar a Periódica.
     '''</summary>
     Friend Shared ReadOnly Property Periodic() As String
         Get
@@ -730,7 +739,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Recreating text..
+    '''  Busca una cadena traducida similar a Recreando texto..
     '''</summary>
     Friend Shared ReadOnly Property RecreatingText() As String
         Get
@@ -739,7 +748,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Requested by an operator..
+    '''  Busca una cadena traducida similar a Solicitado por un operador..
     '''</summary>
     Friend Shared ReadOnly Property RequestedByOp() As String
         Get
@@ -748,7 +757,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a There are {0} tasks running at this time..
+    '''  Busca una cadena traducida similar a Hay {0} tareas ejecutándose en este momento..
     '''</summary>
     Friend Shared ReadOnly Property RunningTasks() As String
         Get
@@ -757,7 +766,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Setting name..
+    '''  Busca una cadena traducida similar a Estableciendo nombre..
     '''</summary>
     Friend Shared ReadOnly Property SetName() As String
         Get
@@ -766,7 +775,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Setting nickname..
+    '''  Busca una cadena traducida similar a Estableciendo nickname..
     '''</summary>
     Friend Shared ReadOnly Property SetNick() As String
         Get
@@ -775,7 +784,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Sheduled.
+    '''  Busca una cadena traducida similar a Programada.
     '''</summary>
     Friend Shared ReadOnly Property Sheduled() As String
         Get
@@ -793,7 +802,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Status		: .
+    '''  Busca una cadena traducida similar a Estado		: .
     '''</summary>
     Friend Shared ReadOnly Property Status() As String
         Get
@@ -802,7 +811,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Successful operation..
+    '''  Busca una cadena traducida similar a Operación exitosa..
     '''</summary>
     Friend Shared ReadOnly Property SuccessfulOperation() As String
         Get
@@ -811,7 +820,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The system time is: .
+    '''  Busca una cadena traducida similar a La hora del sistema es: .
     '''</summary>
     Friend Shared ReadOnly Property SystemTime() As String
         Get
@@ -820,7 +829,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a {0}: {1} by {2}. Status: {3}..
+    '''  Busca una cadena traducida similar a {0}: {1} por {2}. Estado: {3}..
     '''</summary>
     Friend Shared ReadOnly Property TaskInfo() As String
         Get
@@ -829,7 +838,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The task does not exist..
+    '''  Busca una cadena traducida similar a La tarea no existe..
     '''</summary>
     Friend Shared ReadOnly Property TaskNotExist() As String
         Get
@@ -838,7 +847,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Time or interval	: .
+    '''  Busca una cadena traducida similar a Tiempo/Intervalo	: .
     '''</summary>
     Friend Shared ReadOnly Property TimeOrInterval() As String
         Get
@@ -847,7 +856,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Trying to save &apos;{0}&apos;..
+    '''  Busca una cadena traducida similar a Intentando guardar &apos;{0}&apos;..
     '''</summary>
     Friend Shared ReadOnly Property TryingToSave() As String
         Get
@@ -856,7 +865,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Type		: .
+    '''  Busca una cadena traducida similar a Tipo		: .
     '''</summary>
     Friend Shared ReadOnly Property Type() As String
         Get
@@ -865,7 +874,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Unauthorized.
+    '''  Busca una cadena traducida similar a No autorizado..
     '''</summary>
     Friend Shared ReadOnly Property Unauthorized() As String
         Get
@@ -874,7 +883,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Unexpected exception: {0}.
+    '''  Busca una cadena traducida similar a Excepción inesperada: {0}.
     '''</summary>
     Friend Shared ReadOnly Property UnexpectedEX() As String
         Get
@@ -883,7 +892,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Task &apos;{0}&apos; unpaused..
+    '''  Busca una cadena traducida similar a Tarea &apos;{0}&apos; despausada..
     '''</summary>
     Friend Shared ReadOnly Property UnpausedTask() As String
         Get
@@ -892,7 +901,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a (Bot) Adding {0}&apos;s missing signature..
+    '''  Busca una cadena traducida similar a Bot: Añadiendo firma faltante de &apos;{0}&apos;..
     '''</summary>
     Friend Shared ReadOnly Property UnsignedSumm() As String
         Get
@@ -901,7 +910,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Unsuccessful operation..
+    '''  Busca una cadena traducida similar a La operación ha fallado..
     '''</summary>
     Friend Shared ReadOnly Property UnsuccessfulOperation() As String
         Get
@@ -910,7 +919,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Error updating the archive box on &apos;{0}&apos;. EX: {1}.
+    '''  Busca una cadena traducida similar a Error al actualizar la caja de archivos en &apos;{0}&apos;. EX: {1}.
     '''</summary>
     Friend Shared ReadOnly Property UpdateBoxEx() As String
         Get
@@ -919,7 +928,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a (Bot) Updated {0} resumes..
+    '''  Busca una cadena traducida similar a Bot: {0} resúmenes actualizados..
     '''</summary>
     Friend Shared ReadOnly Property UpdatedExtracts() As String
         Get
@@ -928,7 +937,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Updating archive box..
+    '''  Busca una cadena traducida similar a Actualizando caja de archivos..
     '''</summary>
     Friend Shared ReadOnly Property UpdatingArchiveBox() As String
         Get
@@ -937,7 +946,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a (Bot) Updating archive box..
+    '''  Busca una cadena traducida similar a Bot: Actualizando caja de archivos..
     '''</summary>
     Friend Shared ReadOnly Property UpdatingBoxSumm() As String
         Get
@@ -946,7 +955,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a User {0} is blocked..
+    '''  Busca una cadena traducida similar a El usuario {0} está bloqueado..
     '''</summary>
     Friend Shared ReadOnly Property UserBlocked() As String
         Get
@@ -955,7 +964,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The last edit of {0} was {1} day ago..
+    '''  Busca una cadena traducida similar a La última edición de {0} fue hace {1} día..
     '''</summary>
     Friend Shared ReadOnly Property UserEditedDay() As String
         Get
@@ -964,7 +973,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The last edit of {0} was {1} days ago..
+    '''  Busca una cadena traducida similar a La última edición de {0} fue hace {1} días..
     '''</summary>
     Friend Shared ReadOnly Property UserEditedDays() As String
         Get
@@ -973,7 +982,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The last edit of {0} was {1} hour ago..
+    '''  Busca una cadena traducida similar a La última edición de {0} fue hace {1} hora..
     '''</summary>
     Friend Shared ReadOnly Property UserEditedHour() As String
         Get
@@ -982,7 +991,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The last edit of {0} was {1} hours ago..
+    '''  Busca una cadena traducida similar a La última edición de {0} fue hace {1} horas..
     '''</summary>
     Friend Shared ReadOnly Property UserEditedHours() As String
         Get
@@ -991,7 +1000,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The last edit of {0} was {1} minutes ago..
+    '''  Busca una cadena traducida similar a La última edición de {0} fue hace {1} minutos..
     '''</summary>
     Friend Shared ReadOnly Property UserEditedMinutes() As String
         Get
@@ -1000,7 +1009,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a User {0} is inactive..
+    '''  Busca una cadena traducida similar a El usuario {0} está inactivo..
     '''</summary>
     Friend Shared ReadOnly Property UserInactive() As String
         Get
@@ -1009,7 +1018,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a User {0} does not exist..
+    '''  Busca una cadena traducida similar a El usuario {0} no existe..
     '''</summary>
     Friend Shared ReadOnly Property UserInexistent() As String
         Get
@@ -1018,7 +1027,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The user {0} have not edited on this Wiki..
+    '''  Busca una cadena traducida similar a El usuario {0} no tiene ediciones en esta Wiki..
     '''</summary>
     Friend Shared ReadOnly Property UserNoEdits() As String
         Get
@@ -1027,16 +1036,16 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a User {0} on host {1} is not OP..
+    '''  Busca una cadena traducida similar a El usuario {0} en el host {1} no es OP..
     '''</summary>
-    Friend Shared ReadOnly Property UserNotOP() As String
+    Friend Shared ReadOnly Property UserNotOp() As String
         Get
-            Return ResourceManager.GetString("UserNotOP", resourceCulture)
+            Return ResourceManager.GetString("UserNotOp", resourceCulture)
         End Get
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a User {0} on host {1} is OP..
+    '''  Busca una cadena traducida similar a El usuario {0} en el host {1} es OP..
     '''</summary>
     Friend Shared ReadOnly Property UserOP() As String
         Get
@@ -1045,7 +1054,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a The value is too big..
+    '''  Busca una cadena traducida similar a El valor es demasiado grande..
     '''</summary>
     Friend Shared ReadOnly Property ValueTooBig() As String
         Get
@@ -1054,7 +1063,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Waiting time: {0}ms..
+    '''  Busca una cadena traducida similar a Tiempo de espera: {0}ms..
     '''</summary>
     Friend Shared ReadOnly Property WaitingTime() As String
         Get
@@ -1063,7 +1072,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Thread error on page &apos;{0}&apos;. Thread number: {1}. EX: {2}.
+    '''  Busca una cadena traducida similar a Error en un hilo de la página &apos;{0}&apos;. Hilo número {1}. EX: {2}.
     '''</summary>
     Friend Shared ReadOnly Property WikiThreadError() As String
         Get

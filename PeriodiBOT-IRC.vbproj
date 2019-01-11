@@ -17,6 +17,7 @@
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -29,7 +30,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -94,14 +94,14 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChatBot.vb" />
-    <Compile Include="ChatMessage.vb" />
-    <Compile Include="IRCCommandParams.vb" />
     <Compile Include="BotMessages.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>BotMessages.resx</DependentUpon>
     </Compile>
+    <Compile Include="ChatBot.vb" />
+    <Compile Include="ChatMessage.vb" />
+    <Compile Include="IRCCommandParams.vb" />
     <Compile Include="WPStrings.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -136,7 +136,6 @@
     <Compile Include="TaskAdmin.vb" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="BotMessages.es.resx" />
     <EmbeddedResource Include="BotMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>BotMessages.Designer.vb</LastGenOutput>
