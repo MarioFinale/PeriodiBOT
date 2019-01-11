@@ -99,7 +99,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>BotMessages.resx</DependentUpon>
     </Compile>
-    <Compile Include="ChatBot.vb" />
     <Compile Include="ChatMessage.vb" />
     <Compile Include="IRCCommandParams.vb" />
     <Compile Include="WPStrings.Designer.vb">
