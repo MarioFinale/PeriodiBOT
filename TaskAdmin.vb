@@ -2,20 +2,26 @@
 Option Explicit On
 Imports System.Globalization
 Imports System.Threading
+Imports MWBot.net
 
-Public Module ThreadPoolAdmin
-    Public ThreadList As New List(Of ThreadInfo)
+Public Class TaskAdmin
+    Public TaskList As ICollection(Of TaskInfo)
 
-    Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), interval As Integer, infinite As Boolean)
-        NewThread(name, author, task, interval, infinite, False)
+    Sub New()
+        TaskList = New List(Of TaskInfo)
     End Sub
 
-    Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), scheduledTime As TimeSpan, infinite As Boolean)
-        NewThread(name, author, task, scheduledTime, infinite, False)
+
+    Sub NewTask(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), interval As Integer, infinite As Boolean)
+        NewTask(name, author, task, interval, infinite, False)
     End Sub
 
-    Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), interval As Integer, infinite As Boolean, critical As Boolean)
-        Dim Tinfo As New ThreadInfo With {
+    Sub NewTask(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), scheduledTime As TimeSpan, infinite As Boolean)
+        NewTask(name, author, task, scheduledTime, infinite, False)
+    End Sub
+
+    Sub NewTask(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), interval As Integer, infinite As Boolean, critical As Boolean)
+        Dim Tinfo As New TaskInfo With {
             .Author = author,
             .Name = name,
             .Task = task,
@@ -26,12 +32,12 @@ Public Module ThreadPoolAdmin
             .Infinite = infinite,
             .Critical = critical
         }
-        ThreadList.Add(Tinfo)
+        TaskList.Add(Tinfo)
         ThreadPool.QueueUserWorkItem(New WaitCallback(AddressOf Timedmethod), Tinfo)
     End Sub
 
-    Public Sub NewThread(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), scheduledTime As TimeSpan, infinite As Boolean, critical As Boolean)
-        Dim Tinfo As New ThreadInfo With {
+    Sub NewTask(ByVal name As String, ByVal author As String, ByVal task As Func(Of Boolean), scheduledTime As TimeSpan, infinite As Boolean, critical As Boolean)
+        Dim Tinfo As New TaskInfo With {
             .Author = author,
             .Name = name,
             .Task = task,
@@ -43,12 +49,12 @@ Public Module ThreadPoolAdmin
             .ScheduledTime = scheduledTime,
             .Critical = critical
         }
-        ThreadList.Add(Tinfo)
+        TaskList.Add(Tinfo)
         ThreadPool.QueueUserWorkItem(New WaitCallback(AddressOf ScheduledMethod), Tinfo)
     End Sub
 
     Private Sub Timedmethod(ByVal state As Object)
-        Dim tinfo As ThreadInfo = CType(state, ThreadInfo)
+        Dim tinfo As TaskInfo = CType(state, TaskInfo)
         Try
             Do
                 If tinfo.Canceled Then
@@ -89,11 +95,11 @@ Public Module ThreadPoolAdmin
             tinfo.ExCount += 1
             Utils.EventLogger.EX_Log("UNHANDLED THREAD EX: """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
         End Try
-        ThreadList.Remove(tinfo)
+        TaskList.Remove(tinfo)
     End Sub
 
     Private Sub ScheduledMethod(ByVal state As Object)
-        Dim tinfo As ThreadInfo = CType(state, ThreadInfo)
+        Dim tinfo As TaskInfo = CType(state, TaskInfo)
         Try
             Do
                 If tinfo.Canceled Then
@@ -132,93 +138,10 @@ Public Module ThreadPoolAdmin
             tinfo.ExCount += 1
             Utils.EventLogger.EX_Log("TASK """ & tinfo.Name & """  EX: " & ex.Message, "THREAD", tinfo.Author)
         End Try
-        ThreadList.Remove(tinfo)
+        TaskList.Remove(tinfo)
     End Sub
 
 
-
-End Module
-
-Public Class ThreadInfo
-    ''' <summary>
-    ''' Nombre de la tarea.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Name As String
-    ''' <summary>
-    ''' Tipo de tarea.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property ThreadType As String
-    ''' <summary>
-    ''' Autor de la tarea.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Author As String
-    ''' <summary>
-    ''' Intervalo de repetición en milisegundos.
-    ''' </summary>
-    Public Property Interval As Integer
-    ''' <summary>
-    ''' Hora a la que está programada la ejecución de la tarea.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property ScheduledTime As TimeSpan
-    ''' <summary>
-    ''' Indica si la tarea está agendada para su ejecución a una hora o es periódica.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Scheduledtask As Boolean
-    ''' <summary>
-    ''' Indica si una tarea se ejecuta infinitamente.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Infinite As Boolean
-    ''' <summary>
-    ''' Indica el estado de la tarea.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Status As String
-    ''' <summary>
-    ''' Indica si la tarea está en ejecución.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Running As Boolean
-    ''' <summary>
-    ''' Función que ejecutará la tarea.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Task As Func(Of Boolean)
-    ''' <summary>
-    ''' Indica si la tarea está en estado de cancelación.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Canceled As Boolean
-    ''' <summary>
-    ''' Indica ssi la tarea está pausada.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Paused As Boolean
-    ''' <summary>
-    ''' Indica cuantes veces se ha ejecutado la función en la tarea.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Runcount As Double
-    ''' <summary>
-    ''' Datos a pasar a la tarea.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property QueueData As Object
-    ''' <summary>
-    ''' Indica cuantas excepciones ha lanzado la función en la tarea.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property ExCount As Integer
-    ''' <summary>
-    ''' Indica si la tarea es críctica. Una tarea crítica no se puede pausar.
-    ''' </summary>
-    ''' <returns></returns>
-    Public Property Critical As Boolean
 
 End Class
 

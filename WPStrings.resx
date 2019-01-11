@@ -1,0 +1,293 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AddThread" xml:space="preserve">
+    <value>format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;section=new&amp;sectiontitle={3}&amp;text={4}&amp;token={5}</value>
+  </data>
+  <data name="AssertBotData" xml:space="preserve">
+    <value>action=query&amp;assert=bot&amp;format=json</value>
+  </data>
+  <data name="AssertBotFailed" xml:space="preserve">
+    <value>assertbotfailed</value>
+  </data>
+  <data name="AssertUserData" xml:space="preserve">
+    <value>action=query&amp;assert=user&amp;format=json</value>
+  </data>
+  <data name="AssertUserFailed" xml:space="preserve">
+    <value>assertuserfailed</value>
+  </data>
+  <data name="BoxMessage" xml:space="preserve">
+    <value>&lt;!-- Caja generada por PeriodiBOT, puedes editarla cuanto quieras, pero los nuevos enlaces siempre se añadirán al final. --&gt;</value>
+  </data>
+  <data name="ConfigTemplate" xml:space="preserve">
+    <value>======================CONFIG======================
+BOTName="{0}"
+WPUserName="{1}"
+WPBotPassword="{2}"
+PageURL="{3}"
+ApiURL="{4}"
+IRCNetwork="{5}"
+IRCBotNickName="{6}"
+IRCBotPassword="{7}"
+IRCChannel="{8}"
+AutoArchiveTemplatePagename="{9}"
+AutoSignatureTemplatePageName="{10}"
+AutoArchiveProgrammedArchivePageName="{11}"
+AutoArchiveDoNotArchivePageName="{12}"
+ArchiveBoxTemplate="{13}"
+ArchiveMessageTemplate="{14}"</value>
+  </data>
+  <data name="EditToken" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;meta=tokens</value>
+  </data>
+  <data name="GetDiffQuery" xml:space="preserve">
+    <value>format=json&amp;action=compare&amp;fromrev={0}&amp;torev={1}</value>
+  </data>
+  <data name="GetLastRevIds" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;prop=revisions&amp;titles=</value>
+  </data>
+  <data name="GetLastTimestamp" xml:space="preserve">
+    <value>format=json&amp;maxlag=5&amp;action=query&amp;prop=revisions&amp;rvprop=timestamp&amp;titles={0}</value>
+  </data>
+  <data name="GetOresScore" xml:space="preserve">
+    <value>https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&amp;format=json&amp;revids=</value>
+  </data>
+  <data name="GetPageInclusions" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;list=embeddedin&amp;eilimit=1000&amp;eititle=</value>
+  </data>
+  <data name="GetPagesExtract" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;prop=extracts&amp;exintro=&amp;explaintext=&amp;titles=</value>
+  </data>
+  <data name="GetPagesImage" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;formatversion=2&amp;prop=pageimages&amp;titles=</value>
+  </data>
+  <data name="GetPageViews" xml:space="preserve">
+    <value>https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{0}/all-access/all-agents/{1}/daily/{2}{4}{6}00/{3}{5}{7}00</value>
+  </data>
+  <data name="GetWikiToken" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;meta=tokens&amp;type=login</value>
+  </data>
+  <data name="InfMedMsg" xml:space="preserve">
+    <value>¡Hola! Este mensaje es un aviso automático a todos los miembros activos de [[Wikipedia:Mediación informal/Participantes/Lista|Mediación informal]] para informar de una [[Wikipedia:Mediación informal/Solicitudes|nueva solicitud]]. Por favor, considera participar en la discusión.
+
+¡Gracias por tu atención! ~~~~</value>
+  </data>
+  <data name="InfMedSettingsName" xml:space="preserve">
+    <value>InformalMediationLastThreadCount</value>
+  </data>
+  <data name="InfMedSumm" xml:space="preserve">
+    <value>(Bot) Aviso automático de una nueva solicitud en [[Wikipedia:Mediación informal/Participantes/Lista|Mediación informal]].</value>
+  </data>
+  <data name="InfMedTitle" xml:space="preserve">
+    <value>Atención en [[Wikipedia:Mediación informal/Solicitudes|Mediación informal]]</value>
+  </data>
+  <data name="IrcSource" xml:space="preserve">
+    <value>IRC</value>
+  </data>
+  <data name="LocalSource" xml:space="preserve">
+    <value>LOCAL</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>format=json&amp;action=login&amp;lgname={0}&amp;lgpassword={1}&amp;lgdomain=&amp;lgtoken={2}</value>
+  </data>
+  <data name="LongestThreads" xml:space="preserve">
+    <value>Usuario:PeriodiBOT/Curiosidades/Hilos más largos en la historia del café</value>
+  </data>
+  <data name="OresScoresApiQueryUrl" xml:space="preserve">
+    <value>https://ores.wikimedia.org/v3/scores/eswiki/?models=damaging|goodfaith&amp;format=json&amp;revids=</value>
+  </data>
+  <data name="PageInfo" xml:space="preserve">
+    <value>format=json&amp;maxlag=5&amp;action=query&amp;prop=revisions|pageimages|categories|extracts&amp;rvprop=user|timestamp|size|content|ids&amp;exlimit=1&amp;explaintext&amp;exintro&amp;titles={0}</value>
+  </data>
+  <data name="PageInfoRevid" xml:space="preserve">
+    <value>format=json&amp;maxlag=5&amp;action=query&amp;prop=revisions|pageimages|categories|extracts&amp;rvprop=user|timestamp|size|content|ids&amp;exlimit=1&amp;explaintext&amp;exintro&amp;revids={0}</value>
+  </data>
+  <data name="PrefixSearchQuery" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;pslimit=max&amp;list=prefixsearch&amp;pssearch=</value>
+  </data>
+  <data name="SavePage" xml:space="preserve">
+    <value>format=json&amp;action=edit{0}&amp;title={1}&amp;summary={2}&amp;text={3}&amp;token={4}</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;list=search&amp;utf8=1&amp;srsearch=</value>
+  </data>
+  <data name="SearchForUser" xml:space="preserve">
+    <value>format=json&amp;action=query&amp;list=search&amp;utf8=1&amp;srnamespace=2&amp;srsearch=</value>
+  </data>
+  <data name="ArchiveDestiny" xml:space="preserve">
+    <value>Destino</value>
+  </data>
+  <data name="ArchiveIndex" xml:space="preserve">
+    <value>/Archivo-00-índice</value>
+  </data>
+  <data name="AutoSignatureTemplateInsideRegex" xml:space="preserve">
+    <value> *[Ff]irma automática</value>
+  </data>
+  <data name="DaysTokeep" xml:space="preserve">
+    <value>Días a mantener</value>
+  </data>
+  <data name="KeepFileBox" xml:space="preserve">
+    <value>MantenerCajaDeArchivos</value>
+  </data>
+  <data name="LastPSignature" xml:space="preserve">
+    <value>FirmaEnÚltimoPárrafo</value>
+  </data>
+  <data name="MostRecentSignature" xml:space="preserve">
+    <value>FirmaMásRecienteEnLaSección</value>
+  </data>
+  <data name="Strategy" xml:space="preserve">
+    <value>Estrategia</value>
+  </data>
+  <data name="WarnArchiving" xml:space="preserve">
+    <value>Avisar al archivar</value>
+  </data>
+  <data name="YES" xml:space="preserve">
+    <value>si</value>
+  </data>
+  <data name="YES2" xml:space="preserve">
+    <value>sí</value>
+  </data>
+  <data name="DidYouKnowPageName" xml:space="preserve">
+    <value>PeriodiBOT/Sabias que</value>
+  </data>
+  <data name="InfMedPage" xml:space="preserve">
+    <value>Wikipedia:Mediación informal/Solicitudes</value>
+  </data>
+  <data name="InformalMediationMembers" xml:space="preserve">
+    <value>Wikipedia:Mediación informal/Participantes/Lista</value>
+  </data>
+  <data name="LastUserEditQuery" xml:space="preserve">
+    <value>action=query&amp;list=usercontribs&amp;uclimit=1&amp;format=json&amp;ucuser=</value>
+  </data>
+  <data name="LoadUserQuery" xml:space="preserve">
+    <value>action=query&amp;format=json&amp;list=users&amp;usprop=blockinfo|groups|editcount|registration|gender&amp;ususers=</value>
+  </data>
+  <data name="ResumePageName" xml:space="preserve">
+    <value>Usuario:PeriodiBOT/Resumen página</value>
+  </data>
+  <data name="TopicGroupsPage" xml:space="preserve">
+    <value>Wikipedia:Café por tema/Grupos</value>
+  </data>
+  <data name="TopicPageName" xml:space="preserve">
+    <value>Wikipedia:Café por tema</value>
+  </data>
+  <data name="TopicTemplate" xml:space="preserve">
+    <value>Plantilla:Tema</value>
+  </data>
+</root>

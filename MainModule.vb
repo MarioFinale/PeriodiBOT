@@ -6,12 +6,13 @@ Imports System.Threading
 Module MainModule
 
     Sub Main()
+        Thread.CurrentThread.CurrentUICulture = New Globalization.CultureInfo("es")
+        Thread.CurrentThread.CurrentCulture = New Globalization.CultureInfo("es")
+        Globalization.CultureInfo.CurrentCulture = New Globalization.CultureInfo("es")
+        Globalization.CultureInfo.CurrentUICulture = New Globalization.CultureInfo("es")
+        Globalization.CultureInfo.DefaultThreadCurrentCulture = New Globalization.CultureInfo("es")
         Initializer.Init()
         Do
-            Dim command As String = Console.ReadLine()
-            If Not String.IsNullOrWhiteSpace(command) Then
-                'BotIRC.Sendmessage(command)
-            End If
             Thread.Sleep(500)
         Loop
     End Sub

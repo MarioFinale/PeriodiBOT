@@ -297,3 +297,5 @@ __pycache__/
 *.ide
 **.vs\*
 **obj\*
+ChatBot.vb
+PeriodiBOT-IRC.vbproj

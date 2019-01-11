@@ -1,6 +1,8 @@
 ﻿Option Strict On
 Option Explicit On
-Imports PeriodiBOT_IRC.WikiBot
+Imports MWBot.net.WikiBot
+Imports MWBot.net
+Imports MWBot.net.My.Resources
 
 Namespace IRC
     Class IRCCommandResolver
@@ -13,15 +15,17 @@ Namespace IRC
             Clist = CommandList()
         End Sub
 
-        Function ResolveCommand(ByVal imputline As String, ByVal BOTIRCNickName As String, IRCCLient As IRC_Client, WorkerBot As Bot) As IRCMessage
+        Function ResolveCommand(ByVal imputline As String, ByVal BOTIRCNickName As String, ByRef IRCCLient As IRC_Client, ByRef WorkerBot As Bot) As IRCMessage
             Client = IRCCLient
             _bot = WorkerBot
-            Dim arg As New CommandParams(imputline, Client, _bot)
+            Dim arg As New IRCCommandParams(imputline, Client, _bot)
             If Not BeginsWithPrefix(CommandPrefixes, arg.MessageLine) Then Return Nothing
+
+
             Dim requestedCommand As String = RemovePrefix(arg.CommandName)
             For Each Command As IRCCommand In Clist
                 If Command.Aliases.Contains(requestedCommand) Then
-                    Utils.EventLogger.Log("Command """ & requestedCommand & """ issued, parameter/s: """ & arg.CParam & """", arg.Source, arg.Realname)
+                    Utils.EventLogger.Log(String.Format(BotMessages.CommandIssued, requestedCommand, arg.Realname, arg.CParam), arg.Source, arg.Realname)
                     Return Command.ComFunc(arg)
                 End If
             Next
@@ -91,7 +95,7 @@ Namespace IRC
             _Clist.Add(DeOP)
             Dim UpdateExtracts As New IRCCommand("UpdateExtracts", ActualizarExtractos, AddressOf Commands.UpdateExtracts, "Actualiza la plantilla de extractos.", "")
             _Clist.Add(UpdateExtracts)
-            Dim Archive As New IRCCommand("Archive", Archivar, AddressOf Commands.ArchivePage, "Archiva una página específica.", " <página>")
+            Dim Archive As New IRCCommand("AutoArchive", Archivar, AddressOf Commands.ArchivePage, "Archiva una página específica.", " <página>")
             _Clist.Add(Archive)
             Dim DivBy0 As New IRCCommand("Div0", Divide0, AddressOf Commands.Div0, "Divide por cero.", "")
             _Clist.Add(DivBy0)
@@ -118,23 +122,23 @@ Namespace IRC
             Return _Clist
         End Function
 
-        Private Function CommandInfoFcn(ByVal Params As CommandParams) As IRCMessage
+        Private Function CommandInfoFcn(ByVal Params As IRCCommandParams) As IRCMessage
             For Each c As IRCCommand In Clist
                 If c.Aliases.Contains(RemovePrefix(Params.CParam).ToLower) Then
-                    Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(Utils.JoinTextArray(c.Aliases, "/"c), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
+                    Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(String.Join("/"c, c.Aliases), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
                 End If
             Next
             If String.IsNullOrWhiteSpace(Params.CParam) Then
                 For Each c As IRCCommand In Clist
                     If c.Aliases.Contains(RemovePrefix(Params.CommandName)) Then
-                        Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(Utils.JoinTextArray(c.Aliases, "/"c), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
+                        Return New IRCMessage(Params.Source, "Comando: " & Utils.ColoredText(c.Name, 4) & "| Aliases: " & Utils.ColoredText(String.Join("/"c, c.Aliases), 3) & "| Descripción: " & c.Description & "| Uso: " & Utils.ColoredText(Params.CommandName & c.Usage, 10))
                     End If
                 Next
             End If
             Return New IRCMessage(Params.Source, "No se ha encontrado el comando: """ & Params.CParam & """")
         End Function
 
-        Private Function GetCommandsFcn(ByVal Params As CommandParams) As IRCMessage
+        Private Function GetCommandsFcn(ByVal Params As IRCCommandParams) As IRCMessage
             Dim responsestring As String = "Comandos disponibles: "
             For Each c As IRCCommand In Clist
                 responsestring = responsestring & CommandPrefixes(0) & c.Name & ", "
@@ -142,7 +146,7 @@ Namespace IRC
             Return New IRCMessage(Params.Source, responsestring)
         End Function
 
-        Private Function Greetings(ByVal Args As CommandParams) As IRCMessage
+        Private Function Greetings(ByVal Args As IRCCommandParams) As IRCMessage
             If Args.Realname.ToLower.EndsWith("bot") Or Args.Realname.ToLower.StartsWith("bot") Or Args.MessageLine.Contains("*") Then
                 Return Nothing
             End If

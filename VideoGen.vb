@@ -2,17 +2,19 @@
 Imports System.Drawing
 Imports System.Net
 Imports System.Text.RegularExpressions
-Imports PeriodiBOT_IRC.IRC
+Imports MWBot.net
+Imports MWBot.net.GlobalVars
+Imports MWBot.net.WikiBot
 
-Class ImageGen
-
-    Property Bot As WikiBot.Bot
-
+Public Class VideoGen
+    Property Bot As Bot
     Private Header As String = Exepath & "Res" & DirSeparator & "header.hres"
     Private Bottom As String = Exepath & "Res" & DirSeparator & "bottom.hres"
     Private Hfolder As String = Exepath & "hfiles" & DirSeparator
+    Private MusicFile As String = Hfolder & "music.mp3"
+    Private MusicDescFile As String = Hfolder & "desc.txt"
 
-    Sub New(ByRef workingbot As WikiBot.Bot)
+    Sub New(ByRef workingbot As Bot)
         Bot = workingbot
     End Sub
 
@@ -25,7 +27,7 @@ Class ImageGen
             Dim tdate As Date = Date.UtcNow.AddDays(i)
             Dim tdatestring As String = tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00")
             Utils.EventLogger.Log("Generar efemérides " & tdatestring, "GenEfemerides")
-            Dim tef As EfeInfo = GetEfeInfo(tdate)
+            Dim tef As WikiBotEphe = GetEfeInfo(tdate)
             If Not tef.Revised Then
                 Utils.BotSettings.Set("efecheck", False.ToString)
                 Utils.EventLogger.Log("Efemérides no revisadas", "GenEfemerides")
@@ -75,18 +77,19 @@ Class ImageGen
         Dim efeinfopath As String = Hfolder & tdatestring & ".htm"
         Dim efeinfotext As String = htext & "Efemérides del " & Fecha & " en Wikipedia, la enciclopedia libre."
         efeinfotext = efeinfotext & Environment.NewLine & Environment.NewLine & "Enlaces:"
-        Dim efes As EfeInfo = GetEfeInfo(tdate)
-        For Each ef As Efe In efes.EfeDetails
+        Dim efes As WikiBotEphe = GetEfeInfo(tdate)
+        For Each ef As WikiEphe In efes.EfeDetails
             efeinfotext = efeinfotext & Environment.NewLine & "• "
-            If ef.Type = Efetype.Nacimiento Then
+            If ef.Type = WikiEpheType.Nacimiento Then
                 efeinfotext = efeinfotext & "Nacimiento de "
             End If
-            If ef.Type = Efetype.Defunción Then
+            If ef.Type = WikiEpheType.Defunción Then
                 efeinfotext = efeinfotext & "Muerte de "
             End If
             efeinfotext = efeinfotext & ef.Page & ": "
             efeinfotext = efeinfotext & "http://es.wikipedia.org/wiki/" & Utils.UrlWebEncode(ef.Page.Replace(" "c, "_"c))
         Next
+        efeinfotext = efeinfotext & Environment.NewLine & IO.File.ReadAllText(MusicDescFile, System.Text.Encoding.UTF8)
         efeinfotext = efeinfotext & btext
         IO.File.WriteAllText(efeinfopath, efeinfotext)
         Return True
@@ -105,8 +108,13 @@ Class ImageGen
         Dim Tpath As String = Exepath & "Images" & DirSeparator
         Dim imagename As String = "efe"
         Dim current As Integer = Createintro(imagename, Tpath, tdate)
+
         current = CallImages(current, imagename, Tpath, tdate)
-        current = Blackout(current, imagename, Tpath, tdate)
+        current = Blackout(current, imagename, Tpath)
+        current = MusicInfo(current, imagename, Tpath)
+        current = Blackout(current, imagename, Tpath)
+
+
         Utils.EventLogger.Log(current.ToString & " Imágenes generadas.", "GenEfemerides")
 
         If Not EncodeVideo(Tpath, tdate) Then
@@ -118,7 +126,7 @@ Class ImageGen
         For Each f As String In IO.Directory.GetFiles(Tpath)
             Try
                 IO.File.Delete(f)
-            Catch ex As Exception
+            Catch ex As IO.IOException
                 Utils.EventLogger.EX_Log("Error al eliminar el archivo """ & f & """", "GenEfemerides")
             End Try
         Next
@@ -138,7 +146,7 @@ Class ImageGen
                 Using exec As New Process
                     exec.StartInfo.FileName = "ffmpeg"
                     exec.StartInfo.UseShellExecute = True
-                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -vcodec libx264 -preset slower -crf 19 """ & Hfolder & tdatestring & ".mp4"""
+                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -i " & MusicFile & " -vcodec libx264 -preset slower -crf 19 -shortest -strict -2 """ & Hfolder & tdatestring & ".mp4"""
                     exec.Start()
                     exec.WaitForExit()
                 End Using
@@ -149,12 +157,12 @@ Class ImageGen
                 Using exec As New Process
                     exec.StartInfo.FileName = "avconv"
                     exec.StartInfo.UseShellExecute = True
-                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -vcodec libx264 -preset slower -crf 19 """ & Hfolder & tdatestring & ".mp4"""
+                    exec.StartInfo.Arguments = "-y -r 29 -i """ & tpath & "efe%04d.jpg""" & " -i " & MusicFile & " -vcodec libx264 -preset slower -crf 19 -shortest -strict -2 """ & Hfolder & tdatestring & ".mp4"""
                     exec.Start()
                     exec.WaitForExit()
                 End Using
             End If
-        Catch ex As Exception
+        Catch ex As SystemException
             Utils.EventLogger.EX_Log("EX Encoding: " & ex.Message, "EncodeVideo")
             Return False
         End Try
@@ -183,8 +191,8 @@ Class ImageGen
                 Using tdrawing As Graphics = Graphics.FromImage(Bgimg)
                     tdrawing.Clear(Color.White)
                     tdrawing.Save()
-                    Dim Fecha As String = tdate.ToString("dd 'de' MMMM", New Globalization.CultureInfo("es-ES"))
-                    Using fechaimg As Image = DrawText(Fecha, New Font(FontFamily.GenericSansSerif, 35.0!, FontStyle.Regular), Color.Black, Color.White, True)
+                    Dim Fecha As String = tdate.ToString("d 'de' MMMM", New Globalization.CultureInfo("es-ES"))
+                    Using fechaimg As Image = DrawText(Fecha, New Font(FontFamily.GenericSansSerif, 35.0!, FontStyle.Regular), Color.Black, True)
                         current = DragRightToLeft(Bgimg, Efeimg, New Point(0, 0), 0.2F, imagename, path, 0)
                         Dim lastimg As Image = Image.FromFile(path & imagename & current.ToString("0000") & ".jpg")
                         current = DragRightToLeft(lastimg, fechaimg, New Point(lastimg.Width - fechaimg.Width, 0), 0.08F, imagename, path, current)
@@ -203,7 +211,8 @@ Class ImageGen
         Return current
     End Function
 
-    Function Blackout(ByVal current As Integer, imagename As String, path As String, tDate As Date) As Integer
+
+    Function Blackout(ByVal current As Integer, imagename As String, path As String) As Integer
         Dim lastimg As Drawing.Image = Drawing.Image.FromFile(path & imagename & current.ToString("0000") & ".jpg")
         Dim outimg As Image = New Bitmap(700, 720)
         Using timg As Image = New Bitmap(700, 720)
@@ -218,7 +227,7 @@ Class ImageGen
         Return current
     End Function
 
-    Function GetEfeInfo(ByVal tdate As Date) As EfeInfo
+    Function GetEfeInfo(ByVal tdate As Date) As WikiBotEphe
         Dim efelist As New List(Of Tuple(Of String, String()))
         Dim efetxt As String() = GetEfetxt(tdate)
         Dim Varlist As New Dictionary(Of String, List(Of Tuple(Of String, String)))
@@ -245,7 +254,7 @@ Class ImageGen
             Next
         End If
 
-        Dim Efinfo As New EfeInfo
+        Dim Efinfo As New WikiBotEphe
         For Each k As String In Varlist.Keys
             If k = "revisadas" Then
                 Dim varrev As String = Varlist("revisadas")(0).Item2
@@ -264,7 +273,7 @@ Class ImageGen
                 Efinfo.Wikitext = varval
             End If
             If k.Contains("-"c) Then
-                Dim tef As New Efe
+                Dim tef As New WikiEphe
                 For Each t As Tuple(Of String, String) In Varlist(k)
                     Dim varname As String = t.Item1
                     Dim varval As String = t.Item2
@@ -286,11 +295,11 @@ Class ImageGen
                     If varname = "tipo" Then
                         Select Case varval
                             Case "F"
-                                tef.Type = Efetype.Defunción
+                                tef.Type = WikiEpheType.Defunción
                             Case "A"
-                                tef.Type = Efetype.Acontecimiento
+                                tef.Type = WikiEpheType.Acontecimiento
                             Case "N"
-                                tef.Type = Efetype.Nacimiento
+                                tef.Type = WikiEpheType.Nacimiento
                         End Select
                     End If
                 Next
@@ -302,12 +311,9 @@ Class ImageGen
 
     Function GetEfetxt(ByVal tdate As Date) As String()
         Dim fechastr As String = tdate.Year.ToString & tdate.Month.ToString("00") & tdate.Day.ToString("00")
-        Dim efetxt As String = "https://tools.wmflabs.org/jembot/ef/pub/" & fechastr & "/" & fechastr & ".txt"
+        Dim efetxt As Uri = New Uri("https://tools.wmflabs.org/jembot/ef/pub/" & fechastr & "/" & fechastr & ".txt")
         Dim txt As String = String.Empty
-        Try
-            txt = Bot.GET(efetxt)
-        Catch ex As Exception
-        End Try
+        txt = Bot.GET(efetxt)
         If String.IsNullOrWhiteSpace(txt) Then Return {""}
         Dim txtlist As List(Of String) = txt.Split(CType(vbLf, Char())).ToList
         For i As Integer = 0 To txtlist.Count - 1
@@ -318,9 +324,9 @@ Class ImageGen
 
 
     Function CallImages(ByVal current As Integer, imagename As String, path As String, tDate As Date) As Integer
-        Dim efes As EfeInfo = GetEfeInfo(tDate)
+        Dim efes As WikiBotEphe = GetEfeInfo(tDate)
         Dim c As Integer = 0
-        For Each ef As Efe In efes.EfeDetails
+        For Each ef As WikiEphe In efes.EfeDetails
             Dim año As Integer = ef.Year
             Dim Description As String = ef.Description
             Dim Commonsimg As String = "File:" & ef.Image
@@ -383,7 +389,7 @@ Class ImageGen
             End Using
         End Using
 
-        Using descimg As Drawing.Image = DrawText(description, New Font(FontFamily.GenericSansSerif, Convert.ToSingle(3.0! * textsize), FontStyle.Regular), Color.White, Color.White, True)
+        Using descimg As Drawing.Image = DrawText(description, New Font(FontFamily.GenericSansSerif, Convert.ToSingle(3.0! * textsize), FontStyle.Regular), Color.White, True)
             Using timage As Image = PasteImage(lastimg, descimg, New Point(CInt((lastimg.Width - descimg.Width) / 2), 350))
                 current = PasteFadeIn(lastimg, timage, New Point(0, 0), imagename, Path, current)
                 lastimg = Drawing.Image.FromFile(Path & imagename & current.ToString("0000") & ".jpg")
@@ -396,7 +402,7 @@ Class ImageGen
             lastimg = Drawing.Image.FromFile(Path & imagename & current.ToString("0000") & ".jpg")
         End Using
 
-        Using detailsimg As Image = DrawText(detailstext, New Font(FontFamily.GenericMonospace, 10.0!, FontStyle.Regular), Color.LightGray, Color.White, False)
+        Using detailsimg As Image = DrawText(detailstext, New Font(FontFamily.GenericMonospace, 10.0!, FontStyle.Regular), Color.LightGray, False)
             current = DragRightToLeft(lastimg, detailsimg, New Point(0, 650), 0.6F, imagename, Path, current)
             lastimg = Drawing.Image.FromFile(Path & imagename & current.ToString("0000") & ".jpg")
             current = Repeatimage(Path, imagename, current, lastimg, 120)
@@ -413,6 +419,21 @@ Class ImageGen
 
         Return current
     End Function
+
+
+    Function MusicInfo(ByVal current As Integer, imagename As String, path As String) As Integer
+        Dim lastimg As Drawing.Image = Drawing.Image.FromFile(path & imagename & current.ToString("0000") & ".jpg")
+        Dim description As String = IO.File.ReadAllText(MusicDescFile, System.Text.Encoding.UTF8)
+
+        Using descimg As Drawing.Image = DrawText(description, New Font(FontFamily.GenericSansSerif, Convert.ToSingle(3.0! * 4.5), FontStyle.Regular), Color.White, True)
+            Using timage As Image = PasteImage(lastimg, descimg, New Point(CInt((lastimg.Width - descimg.Width) / 2), 250))
+                current = PasteFadeIn(lastimg, timage, New Point(0, 0), imagename, path, current)
+                current = Repeatimage(path, imagename, current, timage, 90)
+            End Using
+        End Using
+        Return current
+    End Function
+
 
     Public Function Repeatimage(ByVal Path As String, imagename As String, current As Integer, efimg As Image, repetitions As Integer) As Integer
         For i = 0 To repetitions
@@ -479,24 +500,6 @@ Class ImageGen
         Return Counter
     End Function
 
-    Function CutImage(ByVal timg As Image, pos As Point, size As Point) As Image
-        Dim newimg As New Bitmap(size.X, size.Y)
-        Using fimg As Bitmap = CType(timg.Clone, Bitmap)
-            Dim xpos As Integer = 0
-            Dim ypos As Integer = 0
-            For y As Integer = pos.Y To size.Y - 1 + pos.Y
-                For x As Integer = pos.X To size.X - 1 + pos.X
-                    Dim tcolor As Color = fimg.GetPixel(x, y)
-                    newimg.SetPixel(xpos, ypos, tcolor)
-                    xpos += 1
-                Next
-                xpos = 0
-                ypos += 1
-            Next
-        End Using
-        Return newimg
-    End Function
-
     ''' <summary>
     ''' La imagen de fondo debe tener el mismo tamaño que la de frente
     ''' </summary>
@@ -509,18 +512,15 @@ Class ImageGen
                 For b As Integer = 0 To 30
                     Using graphic As Graphics = Graphics.FromImage(bg)
                         Dim tmatrix As Single()() = {
-                        New Single() {1, 0, 0, 0, 0},
-                        New Single() {0, 1, 0, 0, 0},
-                        New Single() {0, 0, 1, 0, 0},
-                        New Single() {0, 0, 0, Convert.ToSingle((1 / 30) * b), 0},
-                        New Single() {0, 0, 0, 0, 1}
-                        }
+                    New Single() {1, 0, 0, 0, 0},
+                    New Single() {0, 1, 0, 0, 0},
+                    New Single() {0, 0, 1, 0, 0},
+                    New Single() {0, 0, 0, Convert.ToSingle((1 / 30) * b), 0},
+                    New Single() {0, 0, 0, 0, 1}
+                    }
                         Dim cmatrix As Imaging.ColorMatrix = New Imaging.ColorMatrix(tmatrix)
                         Dim imageatt As New Imaging.ImageAttributes()
                         imageatt.SetColorMatrix(cmatrix, Imaging.ColorMatrixFlag.Default, Imaging.ColorAdjustType.Bitmap)
-
-                        Dim ignorecallback As New Graphics.DrawImageAbort(AddressOf Ignore)
-                        Dim tpoint As New Point(0, 0)
                         Dim trectangle As New Rectangle(0, 0, bg.Width, bg.Height)
                         graphic.DrawImage(orig, trectangle, 0F, 0F, bg.Width, bg.Height, GraphicsUnit.Pixel, imageatt)
                         graphic.Save()
@@ -597,12 +597,12 @@ Class ImageGen
         Return img
     End Function
 
-    Public Function DrawText(ByVal text As String, ByVal font As Font, ByVal textColor As Color, ByVal backColor As Color, ByVal center As Boolean) As Drawing.Image
+    Public Function DrawText(ByVal text As String, ByVal font As Font, ByVal textColor As Color, ByVal center As Boolean) As Drawing.Image
         Dim Lines As String() = Utils.GetLines(text)
         Dim images As New List(Of Drawing.Image)
 
         For Each line As String In Lines
-            images.Add(DrawLine(line, font, textColor, backColor))
+            images.Add(DrawLine(line, font, textColor))
         Next
 
         Dim timg As Drawing.Image = New Bitmap(1, 1)
@@ -634,41 +634,32 @@ Class ImageGen
         Return timg
     End Function
 
-    Public Function DrawLine(ByVal text As String, ByVal font As Font, ByVal textColor As Color, ByVal backColor As Color) As Drawing.Image
+    Public Function DrawLine(ByVal text As String, ByVal font As Font, ByVal textColor As Color) As Drawing.Image
         Dim img As Drawing.Image = New Bitmap(1, 1)
         text = text.Replace("'''", "") 'Ignoremos negritas
         text = text.Replace(Environment.NewLine, "").Replace(vbLf, "").Replace(vbCr, "").Replace(vbCrLf, "") 'No saltos de linea
-        Dim drawing As Graphics = Graphics.FromImage(img)
-        If String.IsNullOrEmpty(text) Then Return img
 
         Dim sf As New StringFormat With {
             .Alignment = StringAlignment.Near,
             .FormatFlags = StringFormatFlags.NoClip,
             .Trimming = StringTrimming.None,
             .HotkeyPrefix = System.Drawing.Text.HotkeyPrefix.Hide
-        }
+             }
 
-        Dim boldfont As New Font(font.FontFamily, font.Size, FontStyle.Bold)
-        Dim textSize As SizeF = drawing.MeasureString(text, font)
-        Dim boldSize As SizeF = drawing.MeasureString(text, boldfont)
+        Using drawing As Graphics = Graphics.FromImage(img)
+            If String.IsNullOrEmpty(text) Then Return img
+            Dim textSize As SizeF = drawing.MeasureString(text, font)
+            img = New Bitmap(CType(textSize.Width, Integer), CType(textSize.Height, Integer))
+        End Using
 
-        img.Dispose()
-        drawing.Dispose()
-
-        img = New Bitmap(CType(textSize.Width, Integer), CType(textSize.Height, Integer))
-        drawing = Graphics.FromImage(img)
-        'drawing.Clear(backColor)
-
-        Dim textBrush As Brush = New SolidBrush(textColor)
-        Dim textBrush2 As Brush = New SolidBrush(Color.White)
-        Dim wordSize As SizeF = drawing.MeasureString(text, font)
-        Dim tstring As String = text.Trim
-
-        drawing.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
-        drawing.DrawString(tstring, font, textBrush, 0, 0, sf)
-        drawing.Save()
-        textBrush.Dispose()
-        drawing.Dispose()
+        Using drawing As Graphics = Graphics.FromImage(img)
+            Using textBrush As Brush = New SolidBrush(textColor)
+                Dim tstring As String = text.Trim
+                drawing.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
+                drawing.DrawString(tstring, font, textBrush, 0, 0, sf)
+                drawing.Save()
+            End Using
+        End Using
         Return img
     End Function
 
@@ -710,8 +701,8 @@ Class ImageGen
         If thumburlmatches.Count > 0 Then
             img = PicFromUrl(thumburlmatches(0))
         End If
-        If String.IsNullOrWhiteSpace(author) Then
-            author = "Anónimo"
+        If String.IsNullOrWhiteSpace(author) Or (author.ToLower.Contains("unknown")) Then
+            author = "Desconocido"
         End If
         Return New Tuple(Of Image, String())(img, {licence, licenceurl, author})
     End Function
@@ -725,49 +716,10 @@ Class ImageGen
                     img = CType(Image.FromStream(stream).Clone, Image)
                 End Using
             End Using
+            Return img
         Catch ex As Exception
+            img.Dispose()
+            Return Nothing
         End Try
-        'img = Transparent2Color(img, Color.White)
-        Return img
-    End Function
-
-    Private Function Transparent2Color(ByVal bmp1 As Image, ByVal target As Color) As Bitmap
-        Dim bmp2 As Bitmap = New Bitmap(bmp1.Width, bmp1.Height)
-        Dim rect As Rectangle = New Rectangle(Point.Empty, bmp1.Size)
-        Using G As Graphics = Graphics.FromImage(bmp2)
-            G.Clear(target)
-            G.DrawImageUnscaledAndClipped(bmp1, rect)
-        End Using
-        Return bmp2
-    End Function
-
-    Private Function TransparentAndImage(bmp1 As Image, ByVal bmp2 As Image, location As Point) As Bitmap
-        Dim rect As Rectangle = New Rectangle(location, bmp1.Size)
-        Using G As Graphics = Graphics.FromImage(bmp2)
-            G.DrawImageUnscaledAndClipped(bmp1, rect)
-        End Using
-        Return CType(bmp2, Bitmap)
     End Function
 End Class
-
-Class EfeInfo
-    Property EfeDetails As New List(Of Efe)
-    Property Revised As Boolean = False
-    Property ImagePage As String
-    Property Wikitext As String
-End Class
-
-Class Efe
-    Property Page As String
-    Property Description As String
-    Property Year As Integer
-    Property Image As String
-    Property TextSize As Double
-    Property Type As Efetype
-End Class
-
-Public Enum Efetype
-    Nacimiento
-    Defunción
-    Acontecimiento
-End Enum
