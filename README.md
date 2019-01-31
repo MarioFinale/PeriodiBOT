@@ -15,4 +15,4 @@ R: Gusto personal, así se puede controlar al BOT desde cualquier lugar con cone
 
 - ¿Porque no en X lenguaje de programación?
 
-R: Me manejo más en .NET y excepto por ciertas cosas menores, C# y VB.NET son capaces de lo mismo. Elegí VB porque es más fácil de entender para principiantes en general (He de ahí BASIC: Begginers All purpose Symbolic Instruction Code, o Código de instrucciones simbólico multipropósito enfocado a principiantes). El lenguaje tiene su belleza sintáctica que lo hace perfecto para RAD (Rapid Application Development).
+R: Me manejo más en .NET y excepto por ciertas cosas menores, C# y VB.NET son capaces de lo mismo. Elegí VB porque es más fácil de entender para principiantes en general (He de ahí BASIC: Begginers All purpose Symbolic Instruction Code, o Código de instrucciones simbólico multipropósito enfocado a principiantes). Si me sucede algo es fácil para cualquier persona realizar ajustes al código.
