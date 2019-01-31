@@ -33,8 +33,9 @@ Public NotInheritable Class Initializer
 
         'Tarea para actualizar plantilla de usuario conectado
         Dim UserStatusFunc As New Func(Of Boolean)(Function()
+                                                       Dim sptask As New SpecialTaks(ESWikiBOT)
                                                        Dim p As Page = ESWikiBOT.Getpage("Plantilla:Estado usuario")
-                                                       ESWikiBOT.CheckUsersActivity(p, p)
+                                                       sptask.CheckUsersActivity(p, p)
                                                        Return True
                                                    End Function)
         TaskAdm.NewTask("Actualizar plantilla de usuario conectado", BotCodename, UserStatusFunc, 600000, True)
