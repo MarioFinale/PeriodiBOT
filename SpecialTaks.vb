@@ -197,7 +197,7 @@ Class SpecialTaks
                 ArchivePageText = ArchivePageText & ThreadText
 
                 'Añadir la plantilla de archivo
-                If Not SimpleTemplateNoParamIsPresent(ArchivePageText, _bot.ArchiveMessageTemplate) Then
+                If Not SimpleTemplateNoParamIsPresent(ArchivePageText, ArchiveMessage()) Then
                     ArchivePageText = ArchiveMessage() & Environment.NewLine & ArchivePageText
                 End If
 
@@ -303,11 +303,11 @@ Class SpecialTaks
     End Function
 
     Private Function ArchiveMessage() As String
-        Return _bot.ArchiveMessageTemplate.Split(":"c)(1).Trim
+        Return "{{" & _bot.ArchiveMessageTemplate.Split(":"c)(1).Trim & "}}"
     End Function
 
     Private Function ArchiveBoxTemplatePresent(ByVal text As String) As Boolean
-        Return SimpleTemplateMatch(text, _bot.ArchiveBoxTemplate)
+        Return SimpleTemplateMatch(text, ArchiveBoxTemplate())
     End Function
 
     Private Function ContainsArchiveTemplate(ByVal text As String) As Boolean
@@ -332,8 +332,11 @@ Class SpecialTaks
     End Function
 
     Function SimpleTemplateNoParamIsPresent(ByVal text As String, templatename As String) As Boolean
-        Dim PageNameWithoutNamespace As String = templatename.Split(":"c)(1).Trim
-        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0).ToUpper & PageNameWithoutNamespace.Substring(0).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+        Dim PageNameWithoutNamespace As String = templatename.Replace("{{", "").Replace("}}", "")
+        If templatename.Contains(":"c) Then
+            PageNameWithoutNamespace = templatename.Split(":"c)(1).Trim
+        End If
+        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
         Dim templateregex As String = "{{ *" & PageNameRegex & " *}}"
         Dim IsPresent As Boolean = Regex.Match(text, templateregex).Success
         Return IsPresent
@@ -375,8 +378,11 @@ Class SpecialTaks
     ''' <param name="PageName">Nombre de la plantilla (con su espacio de nombres, para funcionar correctamente debe estar en "Template" o su equivalente en la wiki.</param>
     ''' <returns></returns>
     Function SimpleTemplateMatch(ByVal text As String, PageName As String) As Boolean
-        Dim PageNameWithoutNamespace As String = PageName.Split(":"c)(1).Trim
-        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0).ToUpper & PageNameWithoutNamespace.Substring(0).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+        Dim PageNameWithoutNamespace As String = PageName.Replace("{{", "").Replace("}}", "")
+        If PageName.Contains(":"c) Then
+            PageNameWithoutNamespace = PageName.Split(":"c)(1).Trim
+        End If
+        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
         Dim templateregex As String = "{{ *" & PageNameRegex & " *"
         Dim IsPresent As Boolean = Regex.Match(text, templateregex).Success
         Return IsPresent
