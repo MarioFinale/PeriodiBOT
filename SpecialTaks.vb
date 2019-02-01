@@ -457,7 +457,7 @@ Class SpecialTaks
         Try
             'Verificar si está creada la página de archivo, si no, la crea.
             If Not Indexpage.Exists Then
-                Dim newtext As String = boxstring & Environment.NewLine & ArchiveBoxTemplate() & Environment.NewLine
+                Dim newtext As String = boxstring & Environment.NewLine & "{{" & ArchiveBoxTemplate() & "|" & Environment.NewLine
 
                 For Each p As String In ArchivePages
                     If Not newtext.Contains(p) Then
@@ -504,7 +504,7 @@ Class SpecialTaks
 
                 Else 'No contiene una plantilla de caja de archivo, en ese caso se crea una nueva por sobre el contenido de la pagina
 
-                    Dim newtext As String = boxstring & Environment.NewLine & "{{" & ArchiveBoxTemplate() & Environment.NewLine
+                    Dim newtext As String = boxstring & Environment.NewLine & "{{" & ArchiveBoxTemplate() & "|" & Environment.NewLine
                     For Each p As String In ArchivePages
                         If Not newtext.Contains(p) Then
                             Dim ArchiveBoxLink As String = "[[" & p & "]]"
