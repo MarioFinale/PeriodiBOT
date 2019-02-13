@@ -709,8 +709,9 @@ Class SpecialTaks
             End Try
         Next
         Return Reqlist
-
     End Function
+
+
 
     ''' <summary>
     ''' Actualiza los resúmenes de página basado en varios parámetros,
@@ -752,22 +753,23 @@ Class SpecialTaks
         Utils.EventLogger.Debug_Log(String.Format(BotMessages.LoadingNewExtracts, PageNames.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name)
         '============================================================================================
         ' Adding New resumes to list
-        Dim Page_Resume_pair As SortedList(Of String, String) = _bot.GetPagesExtract(PageNames.ToArray, 660, True)
+        Dim Page_Resume_pair As SortedList(Of String, String) = _bot.GetWikiExtractFromPageNames(PageNames.ToArray, 660)
         Dim Page_Image_pair As SortedList(Of String, String) = _bot.GetImagesExtract(PageNames.ToArray)
 
         For Each Page As String In Page_Resume_pair.Keys
-
-            If Not Page_Image_pair.Item(Page) = String.Empty Then
-                'If the page contais a image
-                NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
+            If Page_Image_pair.keys.contains(Page) Then
+                If Not Page_Image_pair.Item(Page) = String.Empty Then
+                    'If the page contais a image
+                    NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
                        & "[[File:" & Page_Image_pair(Page) & "|thumb|x120px]]" & Environment.NewLine _
                        & Page_Resume_pair.Item(Page) & Environment.NewLine _
                        & ":'''[[" & Page & "|Leer más...]]'''" & Environment.NewLine)
+                End If
             Else
                 'If the page doesn't contain a image
                 NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
-                      & Page_Resume_pair.Item(Page) & Environment.NewLine _
-                      & ":'''[[" & Page & "|Leer más...]]'''" & Environment.NewLine)
+                  & Page_Resume_pair.Item(Page) & Environment.NewLine _
+                  & ":'''[[" & Page & "|Leer más...]]'''" & Environment.NewLine)
             End If
         Next
 
