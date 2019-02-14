@@ -29,7 +29,7 @@ Public NotInheritable Class Initializer
                                                    Dim sptask As New SpecialTaks(ESWikiBOT)
                                                    Return sptask.CheckInformalMediation()
                                                End Function)
-        TaskAdm.NewTask("Verificar solicitudes en mediacion informal", BotCodename, InfMedFunc, 600000, True)
+        TaskAdm.NewTask("Verificar solicitudes en mediacion informal", ESWikiBOT.UserName, InfMedFunc, 600000, True)
 
         'Tarea para actualizar plantilla de usuario conectado
         Dim UserStatusFunc As New Func(Of Boolean)(Function()
@@ -38,7 +38,7 @@ Public NotInheritable Class Initializer
                                                        sptask.CheckUsersActivity(p, p)
                                                        Return True
                                                    End Function)
-        TaskAdm.NewTask("Actualizar plantilla de usuario conectado", BotCodename, UserStatusFunc, 600000, True)
+        TaskAdm.NewTask("Actualizar plantilla de usuario conectado", ESWikiBOT.UserName, UserStatusFunc, 600000, True)
 
 
         'Tarea para actualizar el café temático
@@ -46,35 +46,35 @@ Public NotInheritable Class Initializer
                                                   Dim topicw As New WikiTopicList(ESWikiBOT)
                                                   Return topicw.UpdateTopics
                                               End Function)
-        TaskAdm.NewTask("Actualizar el café temático", BotCodename, TopicFunc, New TimeSpan(12, 0, 0), True)
+        TaskAdm.NewTask("Actualizar el café temático", ESWikiBOT.UserName, TopicFunc, New TimeSpan(12, 0, 0), True)
 
-        'Tarea para actualizar el café temático
+        'Tarea para actualizar la lista de los hilos mas largos
         Dim BiggestThreadsFunc As New Func(Of Boolean)(Function()
                                                            Dim topicw As New WikiTopicList(ESWikiBOT)
                                                            Return topicw.BiggestThreadsEver()
                                                        End Function)
-        TaskAdm.NewTask("Actualizar la lista con los hilos más grandes del café.", BotCodename, BiggestThreadsFunc, New TimeSpan(9, 0, 0), True)
+        TaskAdm.NewTask("Actualizar la lista con los hilos más grandes del café.", ESWikiBOT.UserName, BiggestThreadsFunc, New TimeSpan(9, 0, 0), True)
 
         'Tarea para actualizar extractos
         Dim UpdateExtractFunc As New Func(Of Boolean)(Function()
                                                           Dim sptask As New SpecialTaks(ESWikiBOT)
                                                           Return sptask.UpdatePageExtracts(WPStrings.ResumePageName)
                                                       End Function)
-        TaskAdm.NewTask("Actualizar extractos", BotCodename, UpdateExtractFunc, 3600000, True)
+        TaskAdm.NewTask("Actualizar extractos", ESWikiBOT.UserName, UpdateExtractFunc, 300000, True)
 
         'Tarea para completar firmas
         Dim SignAllFunc As New Func(Of Boolean)(Function()
                                                     Dim signtask As New SpecialTaks(ESWikiBOT)
                                                     Return signtask.SignAllInclusions()
                                                 End Function)
-        TaskAdm.NewTask("Completar firmas", BotCodename, SignAllFunc, 240000, True)
+        TaskAdm.NewTask("Completar firmas", ESWikiBOT.UserName, SignAllFunc, 240000, True)
 
         'Tarea para archivar todo
         Dim ArchiveAllFunc As New Func(Of Boolean)(Function()
                                                        Dim signtask As New SpecialTaks(ESWikiBOT)
                                                        Return signtask.ArchiveAllInclusions()
                                                    End Function)
-        TaskAdm.NewTask("Archivado automático", BotCodename, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
+        TaskAdm.NewTask("Archivado automático", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
 
     End Sub
 

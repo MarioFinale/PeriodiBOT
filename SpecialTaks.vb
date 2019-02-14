@@ -19,22 +19,22 @@ Class SpecialTaks
     ''' <param name="user">Usuario de Wiki</param>
     ''' <returns></returns>
     Private Function ValidUser(ByVal user As WikiUser) As Boolean
-        Utils.EventLogger.Debug_Log(String.Format(BotMessages.CheckingUser, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, Reflection.MethodBase.GetCurrentMethod().Name)
+        Utils.EventLogger.Debug_Log(String.Format(BotMessages.CheckingUser, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         'Verificar si el usuario existe
         If Not user.Exists Then
-            Utils.EventLogger.Log(String.Format(BotMessages.UserInexistent, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.Debug_Log(String.Format(BotMessages.UserInexistent, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End If
 
         'Verificar si el usuario está bloqueado.
         If user.Blocked Then
-            Utils.EventLogger.Log(String.Format(BotMessages.UserBlocked, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.Log(String.Format(BotMessages.UserBlocked, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End If
 
         'Verificar si el usuario editó hace al menos 4 días.
         If Date.Now.Subtract(user.LastEdit).Days >= 4 Then
-            Utils.EventLogger.Log(String.Format(BotMessages.UserInactive, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.Debug_Log(String.Format(BotMessages.UserInactive, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End If
         Return True
@@ -47,7 +47,7 @@ Class SpecialTaks
     Private Function ValidNamespace(pageToCheck As Page) As Boolean
         Dim validNamespaces As Integer() = {1, 3, 4, 5, 11, 15, 101, 102, 103, 105, 447, 829}
         If Not validNamespaces.Contains(pageToCheck.PageNamespace) Then
-            Utils.EventLogger.Log(String.Format(BotMessages.InvalidNamespace, pageToCheck.Title, pageToCheck.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.Debug_Log(String.Format(BotMessages.InvalidNamespace, pageToCheck.Title, pageToCheck.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End If
         Return True
@@ -57,14 +57,14 @@ Class SpecialTaks
         If Not Params.Count >= 4 Then Return False
         'Destino
         If String.IsNullOrEmpty(Params(0)) Then
-            Utils.EventLogger.Log(String.Format(BotMessages.MalformedArchiveConfig, sourcePageName), Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.Log(String.Format(BotMessages.MalformedArchiveConfig, sourcePageName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         Else
             destination = Params(0)
         End If
         'Dias a mantener
         If String.IsNullOrEmpty(Params(1)) Then
-            Utils.EventLogger.Log(String.Format(BotMessages.MalformedArchiveConfig, sourcePageName), Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.Log(String.Format(BotMessages.MalformedArchiveConfig, sourcePageName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         Else
             maxDays = Integer.Parse(Params(1))
@@ -109,7 +109,7 @@ Class SpecialTaks
 
         'Verificar el espacio de nombres de la página se archiva
         If Not ValidNamespace(PageToArchive) Then
-            Utils.EventLogger.Log(String.Format(BotMessages.InvalidNamespace, PageToArchive.Title, PageToArchive.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.Debug_Log(String.Format(BotMessages.InvalidNamespace, PageToArchive.Title, PageToArchive.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End If
 
@@ -125,12 +125,12 @@ Class SpecialTaks
             Dim User As New WikiUser(_bot, Username)
             'Validar usuario
             If Not ValidUser(User) Then
-                Utils.EventLogger.Log(String.Format(BotMessages.InvalidUserArchive, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
+                Utils.EventLogger.Debug_Log(String.Format(BotMessages.InvalidUserArchive, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 Return False
             End If
             'Validar que destino de archivado sea una subpágina del usuario.
             If Not ArchiveCfg(0).StartsWith(PageToArchive.Title) Then
-                Utils.EventLogger.Log(String.Format(BotMessages.NotASubPage, ArchiveCfg(0), PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name)
+                Utils.EventLogger.Log(String.Format(BotMessages.NotASubPage, ArchiveCfg(0), PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 Return False
             End If
         End If
@@ -143,7 +143,7 @@ Class SpecialTaks
     ''' <param name="PageToArchive">Página a archivar</param>
     ''' <returns></returns>
     Function AutoArchive(ByVal PageToArchive As Page) As Boolean
-        Utils.EventLogger.Log(String.Format(BotMessages.AutoArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name)
+        Utils.EventLogger.Log(String.Format(BotMessages.AutoArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         If PageToArchive Is Nothing Then Return False
         Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & WPStrings.ArchiveIndex)
         Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
@@ -161,7 +161,7 @@ Class SpecialTaks
         If Not PageConfig(ArchiveCfg, pageDest, maxDays, strategy, useBox, notify, PageToArchive.Title) Then Return False
 
         If pageThreads.Count = 1 Then
-            Utils.EventLogger.Log(String.Format(BotMessages.OneThreadPage, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.Log(String.Format(BotMessages.OneThreadPage, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End If
 
@@ -184,13 +184,13 @@ Class SpecialTaks
 
                 'Verificar si la página de archivado está en el mismo espacio de nombres
                 If Not ArchPage.PageNamespace = PageToArchive.PageNamespace Then
-                    Utils.EventLogger.Log(String.Format(BotMessages.InvalidNamespace, ArchPage.Title, ArchPage.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name)
+                    Utils.EventLogger.Log(String.Format(BotMessages.InvalidNamespace, ArchPage.Title, ArchPage.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                     Return False
                 End If
 
                 'Verificar si la página de archivado es una subpágina de la raiz
                 If Not ArchPage.Title.StartsWith(PageToArchive.RootPage) Then
-                    Utils.EventLogger.Log(String.Format(BotMessages.NotASubPage, ArchPage.Title, PageToArchive.RootPage), Reflection.MethodBase.GetCurrentMethod().Name)
+                    Utils.EventLogger.Log(String.Format(BotMessages.NotASubPage, ArchPage.Title, PageToArchive.RootPage), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 End If
 
                 'Anadir los hilos al texto
@@ -242,10 +242,10 @@ Class SpecialTaks
                 PageToArchive.Save(Newpagetext, Summary, isminor, True)
             End If
         Else
-            Utils.EventLogger.Log(String.Format(BotMessages.NothingToArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.Log(String.Format(BotMessages.NothingToArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         End If
 
-        Utils.EventLogger.Log(String.Format(BotMessages.AutoArchiveDone, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name)
+        Utils.EventLogger.Log(String.Format(BotMessages.AutoArchiveDone, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         Return True
     End Function
 
@@ -282,7 +282,7 @@ Class SpecialTaks
                     archiveList.Add(ArchivePageName, ArchiveThreadText)
                 End If
             Catch ex As Exception
-                Utils.EventLogger.EX_Log(String.Format(BotMessages.WikiThreadError, Pagename, i.ToString, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name)
+                Utils.EventLogger.EX_Log(String.Format(BotMessages.WikiThreadError, Pagename, i.ToString, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             End Try
         Next
         Return New Tuple(Of SortedList(Of String, String), String, Integer)(archiveList, newText, archivedThreads)
@@ -477,7 +477,7 @@ Class SpecialTaks
             Else
                 Dim FixedPageContent As String = FixArchiveBox(Indexpage.Content)
 
-                Utils.EventLogger.Debug_Log(BotMessages.UpdatingArchiveBox, Reflection.MethodBase.GetCurrentMethod().Name)
+                Utils.EventLogger.Debug_Log(BotMessages.UpdatingArchiveBox, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 If ArchiveBoxTemplatePresent(FixedPageContent) Then
                     Dim ArchiveBoxtext As String = GetArchiveBoxTemplate(FixedPageContent)
                     Dim temptxt As String = ArchiveBoxtext
@@ -523,7 +523,7 @@ Class SpecialTaks
             End If
 
         Catch ex As Exception
-            Utils.EventLogger.EX_Log(String.Format(BotMessages.UpdateBoxEx, Indexpage.Title, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.EX_Log(String.Format(BotMessages.UpdateBoxEx, Indexpage.Title, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End Try
         Return True
@@ -598,14 +598,14 @@ Class SpecialTaks
     Function ArchiveAllInclusions() As Boolean
         Dim templatePageName As String = _bot.AutoArchiveTemplatePageName
         Dim includedpages As String() = _bot.GetallInclusions(templatePageName)
-        Utils.EventLogger.Log(String.Format(BotMessages.ArchivingInclusions, templatePageName), Reflection.MethodBase.GetCurrentMethod().Name)
+        Utils.EventLogger.Log(String.Format(BotMessages.ArchivingInclusions, templatePageName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         For Each pa As String In includedpages
             Dim _Page As Page = _bot.Getpage(pa)
             If _Page.Exists Then
                 Try
                     AutoArchive(_Page)
                 Catch ex As Exception
-                    Utils.EventLogger.EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name)
+                    Utils.EventLogger.EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 End Try
             End If
         Next
@@ -637,7 +637,7 @@ Class SpecialTaks
         Dim includedpages As String() = _bot.GetallInclusions(_bot.AutoSignatureTemplatePageName)
         For Each pa As String In includedpages
             Try
-                Utils.EventLogger.Debug_Log("Checking page " & pa, Reflection.MethodBase.GetCurrentMethod().Name)
+                Utils.EventLogger.Debug_Log("Checking page " & pa, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 Dim _Page As Page = _bot.Getpage(pa)
                 If _Page.Exists Then
                     If Not ValidNamespace(_Page) Then Continue For
@@ -654,11 +654,11 @@ Class SpecialTaks
                         End If
                     Next
                     If AddMissingSignature(_Page, newthreads, minor) Then
-                        Utils.EventLogger.Log("SignAllInclusions: Page """ & pa & """", Reflection.MethodBase.GetCurrentMethod().Name)
+                        Utils.EventLogger.Log("SignAllInclusions: Page """ & pa & """", Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                     End If
                 End If
             Catch ex As Exception
-                Utils.EventLogger.EX_Log("SignAllInclusions: Page """ & pa & """ EX: " & ex.Message, Reflection.MethodBase.GetCurrentMethod().Name)
+                Utils.EventLogger.EX_Log("SignAllInclusions: Page """ & pa & """ EX: " & ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             End Try
         Next
         Return True
@@ -719,7 +719,7 @@ Class SpecialTaks
     ''' </summary>
     ''' <returns></returns>
     Public Function UpdatePageExtracts(ByVal pageName As String) As Boolean
-        Utils.EventLogger.Log(String.Format(BotMessages.GetPageExtract, pageName), Reflection.MethodBase.GetCurrentMethod().Name)
+        Utils.EventLogger.Log(String.Format(BotMessages.GetPageExtract, pageName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         Dim NewResumes As New SortedList(Of String, String)
         Dim OldResumes As New SortedList(Of String, String)
         Dim FinalList As New List(Of String)
@@ -735,7 +735,7 @@ Class SpecialTaks
 
         Dim templatelist As List(Of String) = Template.GetTemplateTextArray(ResumePageText)
         Dim ResumeTemplate As New Template(templatelist(0), False)
-        Utils.EventLogger.Debug_Log(String.Format(BotMessages.LoadingOldExtracts, ResumeTemplate.Parameters.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name)
+        Utils.EventLogger.Debug_Log(String.Format(BotMessages.LoadingOldExtracts, ResumeTemplate.Parameters.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         Dim PageNames As New List(Of String)
 
         For Each PageResume As Tuple(Of String, String) In ResumeTemplate.Parameters
@@ -750,21 +750,25 @@ Class SpecialTaks
         PageNames.Sort()
         Dim IDLIST As SortedList(Of String, Integer) = _bot.GetLastRevIds(PageNames.ToArray)
 
-        Utils.EventLogger.Debug_Log(String.Format(BotMessages.LoadingNewExtracts, PageNames.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name)
+        Utils.EventLogger.Debug_Log(String.Format(BotMessages.LoadingNewExtracts, PageNames.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         '============================================================================================
         ' Adding New resumes to list
         Dim Page_Resume_pair As SortedList(Of String, String) = _bot.GetWikiExtractFromPageNames(PageNames.ToArray, 660)
         Dim Page_Image_pair As SortedList(Of String, String) = _bot.GetImagesExtract(PageNames.ToArray)
 
         For Each Page As String In Page_Resume_pair.Keys
-            If Page_Image_pair.keys.contains(Page) Then
+            Dim containsimage As Boolean = False
+            If Page_Image_pair.Keys.Contains(Page) Then
                 If Not Page_Image_pair.Item(Page) = String.Empty Then
-                    'If the page contais a image
-                    NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
+                    containsimage = True
+                End If
+            End If
+            If containsimage Then
+                'If the page contais a image
+                NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
                        & "[[File:" & Page_Image_pair(Page) & "|thumb|x120px]]" & Environment.NewLine _
                        & Page_Resume_pair.Item(Page) & Environment.NewLine _
                        & ":'''[[" & Page & "|Leer más...]]'''" & Environment.NewLine)
-                End If
             Else
                 'If the page doesn't contain a image
                 NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
@@ -779,18 +783,23 @@ Class SpecialTaks
 
         '==========================================================================================
         'Choose between a old resume and a new resume depending if new resume is safe to use
-        Utils.EventLogger.Debug_Log(BotMessages.RecreatingText, Reflection.MethodBase.GetCurrentMethod().Name)
+        Utils.EventLogger.Debug_Log(BotMessages.RecreatingText, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         For Each s As String In PageNames.ToArray
             Try
-                If (EditScoreList(IDLIST(s))(0) < 20) And (Utils.CountCharacter(NewResumes(s), CType("[", Char)) = Utils.CountCharacter(NewResumes(s), CType("]", Char))) Then
+                If (EditScoreList(IDLIST(s))(0) > 10) And (Utils.CountCharacter(NewResumes(s), CType("[", Char)) = Utils.CountCharacter(NewResumes(s), CType("]", Char))) Then
                     'Safe edit
                     FinalList.Add(NewResumes(s))
                     Safepages += 1
                 Else
                     'Isn't a safe edit
                     Try
-                        FinalList.Add(OldResumes(s))
                         NotSafepages += 1
+                        If OldResumes.Keys.Contains(s) Then
+                            FinalList.Add(OldResumes(s))
+                        Else
+                            FinalList.Add(NewResumes(s))
+                            NotSafePagesAdded += 1
+                        End If
                     Catch ex As KeyNotFoundException
                         FinalList.Add(NewResumes(s))
                         NotSafePagesAdded += 1
@@ -798,13 +807,18 @@ Class SpecialTaks
                 End If
             Catch ex As KeyNotFoundException
                 'If the resume doesn't exist, will try to use the old resume text
-                FinalList.Add(OldResumes(s))
+                If OldResumes.Keys.Contains(s) Then
+                    FinalList.Add(OldResumes(s))
+                Else
+                    FinalList.Add(NewResumes(s))
+                    NotSafePagesAdded += 1
+                End If
                 NotSafepages += 1
             End Try
         Next
         '==========================================================================================
         NewResumePageText = NewResumePageText & String.Join(String.Empty, FinalList) & "}}" & Environment.NewLine & "<noinclude>{{documentación}}</noinclude>"
-        Utils.EventLogger.Debug_Log(String.Format(BotMessages.TryingToSave, ResumePage.Title), Reflection.MethodBase.GetCurrentMethod().Name)
+        Utils.EventLogger.Debug_Log(String.Format(BotMessages.TryingToSave, ResumePage.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
 
         Try
             Dim EditSummary As String = String.Format(BotMessages.UpdatedExtracts, Safepages.ToString)
@@ -828,15 +842,15 @@ Class SpecialTaks
             Dim Result As EditResults = ResumePage.Save(NewResumePageText, EditSummary, True, True)
 
             If Result = EditResults.Edit_successful Then
-                Utils.EventLogger.Log(BotMessages.SuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name)
+                Utils.EventLogger.Log(BotMessages.SuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 Return True
             Else
-                Utils.EventLogger.Log(BotMessages.UnsuccessfulOperation & " (" & [Enum].GetName(GetType(EditResults), Result) & ").", Reflection.MethodBase.GetCurrentMethod().Name)
+                Utils.EventLogger.Log(BotMessages.UnsuccessfulOperation & " (" & [Enum].GetName(GetType(EditResults), Result) & ").", Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 Return False
             End If
         Catch ex As IndexOutOfRangeException
-            Utils.EventLogger.Log(BotMessages.UnsuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name)
-            Utils.EventLogger.Debug_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name)
+            Utils.EventLogger.Log(BotMessages.UnsuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+            Utils.EventLogger.Debug_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End Try
 
@@ -884,7 +898,7 @@ Class SpecialTaks
     End Function
 
     Function GetLastUnsignedSection(ByVal tpage As Page, newthreads As Boolean) As Tuple(Of String, String, Date)
-        If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name)
+        If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         Dim oldPage As Page = _bot.Getpage(tpage.ParentRevId)
         Dim currentPage As Page = tpage
 
@@ -953,7 +967,7 @@ Class SpecialTaks
                 Dim User As New WikiUser(_bot, Username)
                 'Validar usuario
                 If Not ValidUser(User) Then
-                    Utils.EventLogger.Debug_Log(String.Format(Messages.InvalidUser, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name)
+                    Utils.EventLogger.Debug_Log(String.Format(Messages.InvalidUser, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                     Continue For
                 End If
 
