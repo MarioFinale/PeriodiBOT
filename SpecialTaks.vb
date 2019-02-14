@@ -781,12 +781,18 @@ Class SpecialTaks
 
         Dim EditScoreList As SortedList(Of Integer, Double()) = _bot.GetORESScores(IDLIST.Values.ToArray)
 
+        If Not Utils.BotSettings.Contains("ORESBFThreshold") Then
+            Utils.BotSettings.NewVal("ORESBFThreshold", 51)
+        End If
+        Dim ORESBFThreshold As Integer = CInt(Utils.BotSettings.Get("ORESBFThreshold"))
+
         '==========================================================================================
         'Choose between a old resume and a new resume depending if new resume is safe to use
         Utils.EventLogger.Debug_Log(BotMessages.RecreatingText, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         For Each s As String In PageNames.ToArray
             Try
-                If (EditScoreList(IDLIST(s))(0) > 10) And (Utils.CountCharacter(NewResumes(s), CType("[", Char)) = Utils.CountCharacter(NewResumes(s), CType("]", Char))) Then
+                Dim bfscore As Double = EditScoreList(IDLIST(s))(0)
+                If (bfscore < ORESBFThreshold) And (Utils.CountCharacter(NewResumes(s), CType("[", Char)) = Utils.CountCharacter(NewResumes(s), CType("]", Char))) Then
                     'Safe edit
                     FinalList.Add(NewResumes(s))
                     Safepages += 1

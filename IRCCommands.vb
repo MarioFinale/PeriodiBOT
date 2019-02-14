@@ -586,7 +586,7 @@ Public Class IRCCommands
             End If
             Dim beginmessage As String = String.Format("Información sobre {0}: Última edición por {1}; Categorias: {2}; Visitas diarias (promedio últimos dos meses): {3}; Tamaño: {5} bytes; Puntaje ORES (Última edición): {4}",
                                        Utils.ColoredText(PageName, 3), Utils.ColoredText(pag.Lastuser, 3), Utils.ColoredText(CatString, 6), Utils.ColoredText(pag.PageViews.ToString, 13),
-                                       "Dañina: " & Utils.ColoredText(pag.ORESScores(0).ToString, 4) & " Buena fé: " & Utils.ColoredText(pag.ORESScores(1).ToString, 3), Utils.ColoredText(pag.Size.ToString, 3))
+                                       "Dañina: " & Utils.ColoredText(pag.ORESScores(0).ToString, 4) & " Buena fe: " & Utils.ColoredText(pag.ORESScores(1).ToString, 3), Utils.ColoredText(pag.Size.ToString, 3))
 
             Dim endmessage As String = "Enlace al artículo: " & Utils.ColoredText(" " & args.Workerbot.WikiUri.OriginalString & "wiki/" & PageName.Replace(" ", "_") & " ", 10)
 
