@@ -21,6 +21,9 @@ Public NotInheritable Class Initializer
         Uptime = DateTime.Now
         ESWikiBOT = New Bot(New ConfigFile(ConfigFilePath))
 
+        Dim sptask2 As New SpecialTaks(ESWikiBOT)
+        sptask2.AutoArchive(ESWikiBOT.Getpage("Wikipedia:Café/Archivo/Noticias/Actual"))
+
         BotIRC = New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT)
         BotIRC.StartClient()
 
