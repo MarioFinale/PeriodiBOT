@@ -947,6 +947,17 @@ Class SpecialTaks
         Dim pagetext As String = tpage.Content
         Dim UnsignedThread As String = UnsignedSectionInfo.Item1
         Dim Username As String = UnsignedSectionInfo.Item2
+        Dim pusername As String = String.Empty
+        If tpage.PageNamespace = 3 Then
+            If tpage.Title.Contains(":") Then
+                pusername = tpage.Title.Split(":"c)(1)
+                If pusername.Contains("/") Then
+                    pusername = pusername.Split("/"c)(0)
+                End If
+                pusername = pusername.Trim()
+            End If
+        End If
+        If pusername = Username Then Return False
         Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
         Dim dstring As String = Utils.GetSpanishTimeString(UnsignedDate)
         pagetext = pagetext.Replace(UnsignedThread, UnsignedThread & " {{sust:No firmado|" & Username & "|" & dstring & "}}")
