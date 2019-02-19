@@ -720,7 +720,6 @@ Class SpecialTaks
     ''' </summary>
     ''' <returns></returns>
     Public Function UpdatePageExtracts(ByVal pageName As String) As Boolean
-        Utils.EventLogger.Log(String.Format(BotMessages.GetPageExtract, pageName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         Dim NewResumes As New SortedList(Of String, String)
         Dim OldResumes As New SortedList(Of String, String)
         Dim FinalList As New List(Of String)
@@ -849,7 +848,7 @@ Class SpecialTaks
             Dim Result As EditResults = ResumePage.Save(NewResumePageText, EditSummary, True, True)
 
             If Result = EditResults.Edit_successful Then
-                Utils.EventLogger.Log(BotMessages.SuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+                Utils.EventLogger.Debug_Log(BotMessages.SuccessfulOperation, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 Return True
             Else
                 Utils.EventLogger.Log(BotMessages.UnsuccessfulOperation & " (" & [Enum].GetName(GetType(EditResults), Result) & ").", Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
