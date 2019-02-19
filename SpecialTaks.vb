@@ -1030,9 +1030,10 @@ Class SpecialTaks
     End Sub
 
     ''' <summary>
-    ''' Actualiza 
+    ''' Actualiza un contador segun los hilos en el macrohilo de la pagina principal
     ''' </summary>
-    ''' <param name="tpage"></param>
+    ''' <param name="tpage">Pagina a analizar.</param>
+    ''' <param name="mainthreadtocheck">Pagina a actualizar.</param>
     ''' <returns></returns>
     Function UpdateBotRecuestCount(ByVal tpage As Page, pagetoupdate As Page, mainthreadtocheck As Integer) As Boolean
         Dim mthreads As String() = Utils.GetPageMainThreads(tpage.Content)
