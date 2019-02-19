@@ -361,7 +361,7 @@ Class SpecialTaks
         Dim templatelist As List(Of Template) = Template.GetTemplates(text)
         For Each temp As Template In templatelist
             Dim PageNameWithoutNamespace As String = PageName.Split(":"c)(1).Trim
-            Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0).ToUpper & PageNameWithoutNamespace.Substring(0).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+            Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
             Dim templateregex As String = "{{ *" & PageNameRegex & " *"
             Dim IsPresent As Boolean = Regex.Match(temp.Text, templateregex).Success
             If IsPresent Then

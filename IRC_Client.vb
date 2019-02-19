@@ -397,7 +397,7 @@ Namespace IRC
                     Utils.EventLogger.Log(String.Format(BotMessages.UserOP, Nickname, Hostname), source, user)
                     Return True
                 Else
-                    Utils.EventLogger.Log(String.Format(BotMessages.UserNotOP, Nickname, Hostname), source, user)
+                    Utils.EventLogger.Log(String.Format(BotMessages.UserNotOp, Nickname, Hostname), source, user)
                     Return False
                 End If
             Catch ex As IndexOutOfRangeException

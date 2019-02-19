@@ -77,6 +77,7 @@ Public NotInheritable Class Initializer
                                                 End Function)
         TaskAdm.NewTask("Completar firmas", ESWikiBOT.UserName, SignAllFunc, 240000, True)
 
+
         'Tarea para archivar todo
         Dim ArchiveAllFunc As New Func(Of Boolean)(Function()
                                                        Dim signtask As New SpecialTaks(ESWikiBOT)
