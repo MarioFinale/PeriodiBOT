@@ -542,7 +542,7 @@ Class SpecialTaks
             Return {"", "", "", "", ""}
         End If
         Dim Destination As String = String.Empty
-        Dim Days As String = String.Empty
+        Dim Days As String = "30"
         Dim Notify As String = String.Empty
         Dim Strategy As String = String.Empty
         Dim UseBox As String = String.Empty
@@ -560,6 +560,10 @@ Class SpecialTaks
             End If
             If tup.Item1 = WPStrings.DaysTokeep Then
                 Days = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
+                Days = Utils.RemoveAllAlphas(Days)
+                If Integer.Parse(Days) < 7 Then
+                    Days = "7"
+                End If
             End If
             If tup.Item1 = WPStrings.WarnArchiving Then
                 Notify = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
