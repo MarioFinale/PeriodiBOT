@@ -60,7 +60,7 @@ Namespace IRC
             Dim Tasks As String() = {"taskl", "tasks"}
             Dim TaskInf As String() = {"taskinf", "task", "taskinfo"}
             Dim GetLocalTime As String() = {"time", "localtime", "hora", "horalocal"}
-            Dim TPause As String() = {"pause", "tpause", "taskpause", "pausetask", "pausa", "pausar"}
+            Dim TPause As String() = {"pause", "tpause", "taskpause", "pausetask", "pausa", "pausar", "ptask"}
             Dim SetFlood As String() = {"setflood", "sflood", "setflooddelay"}
             Dim GetFlood As String() = {"getflood", "gflood", "getflooddelay"}
             Dim GenEfem As String() = {"genefe", "efe", "efem"}

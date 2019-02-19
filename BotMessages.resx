@@ -456,4 +456,7 @@
   <data name="UserInexistent" xml:space="preserve">
     <value>El usuario {0} no existe.</value>
   </data>
+  <data name="UpdatingCount" xml:space="preserve">
+    <value>Bot: Actualizando contador.</value>
+  </data>
 </root>

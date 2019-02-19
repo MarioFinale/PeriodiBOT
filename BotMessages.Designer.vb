@@ -955,6 +955,15 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
+    '''  Busca una cadena traducida similar a Bot: Actualizando contador..
+    '''</summary>
+    Friend Shared ReadOnly Property UpdatingCount() As String
+        Get
+            Return ResourceManager.GetString("UpdatingCount", resourceCulture)
+        End Get
+    End Property
+    
+    '''<summary>
     '''  Busca una cadena traducida similar a El usuario {0} está bloqueado..
     '''</summary>
     Friend Shared ReadOnly Property UserBlocked() As String

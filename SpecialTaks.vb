@@ -1029,7 +1029,28 @@ Class SpecialTaks
 
     End Sub
 
-
+    ''' <summary>
+    ''' Actualiza 
+    ''' </summary>
+    ''' <param name="tpage"></param>
+    ''' <returns></returns>
+    Function UpdateBotRecuestCount(ByVal tpage As Page, pagetoupdate As Page, mainthreadtocheck As Integer) As Boolean
+        Dim mthreads As String() = Utils.GetPageMainThreads(tpage.Content)
+        If mthreads.Count >= mainthreadtocheck Then
+            Dim tthreads As String() = Utils.GetPageThreads(mthreads(mainthreadtocheck - 1))
+            Dim CountPage As Page = pagetoupdate
+            Dim tcounttexts As String() = Utils.TextInBetweenInclusive(CountPage.Content, "<onlyinclude>", "</onlyinclude>")
+            If tcounttexts.Count >= 1 Then
+                Dim newcount As String = "<onlyinclude>" & tthreads.Count & "</onlyinclude>"
+                Dim newtext As String = CountPage.Content.Replace(tcounttexts(0), newcount)
+                If (Not (newtext = CountPage.Content)) Then
+                    CountPage.Save(newtext, BotMessages.UpdatingCount, True, True)
+                    Return True
+                End If
+            End If
+        End If
+        Return False
+    End Function
 
 
 End Class
