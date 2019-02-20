@@ -45,7 +45,7 @@ Class SpecialTaks
     ''' <param name="pageToCheck"></param>
     ''' <returns></returns>
     Private Function ValidNamespace(pageToCheck As Page) As Boolean
-        Dim validNamespaces As Integer() = {1, 3, 4, 5, 11, 15, 101, 102, 103, 105, 447, 829}
+        Dim validNamespaces As Integer() = {1, 3, 4, 5, 9, 11, 13, 15, 101, 102, 103, 105, 829}
         If Not validNamespaces.Contains(pageToCheck.PageNamespace) Then
             Utils.EventLogger.Debug_Log(String.Format(BotMessages.InvalidNamespace, pageToCheck.Title, pageToCheck.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
