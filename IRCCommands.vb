@@ -319,10 +319,13 @@ Public Class IRCCommands
     Function ArchiveAll(ByVal args As IRCCommandParams) As IRCMessage
         If args Is Nothing Then Return Nothing
         If args.IsOp Then
-            TaskAdm.NewTask("Archivado a solicitud", args.Realname, New Func(Of Boolean)(Function()
-                                                                                             Dim Archive As New SpecialTaks(args.Workerbot)
-                                                                                             Return Archive.ArchiveAllInclusions()
-                                                                                         End Function), 1, False)
+            TaskAdm.NewTask("Archivado a solicitud", args.Realname, New Func(Of Boolean) _
+                            (Function()
+                                 Dim Archive As New SpecialTaks(args.Workerbot)
+                                 Return Archive.ArchiveAllInclusions(ArchiveTemplateName, DoNotArchiveTemplateName,
+                                                                     ProgrammedArchiveTemplateName, ArchiveBoxTemplateName,
+                                                                     ArchiveMessageTemplateName)
+                             End Function), 1, False)
             Return New IRCMessage(args.Source, "Se realizarará el archivado en todas las páginas.")
         Else
             Return Nothing
@@ -337,7 +340,10 @@ Public Class IRCCommands
         Dim archf As New Func(Of Boolean)(Function()
                                               Dim p As Page = args.Workerbot.Getpage(PageName)
                                               Dim ArchiveFcn As New SpecialTaks(args.Workerbot)
-                                              If ArchiveFcn.AutoArchive(p) Then
+                                              If ArchiveFcn.AutoArchive(p, ArchiveTemplateName, DoNotArchiveTemplateName,
+                                                                     ProgrammedArchiveTemplateName, ArchiveBoxTemplateName,
+                                                                     ArchiveMessageTemplateName) Then
+
                                                   Utils.EventLogger.Log("ArchivePage completed", args.Source, args.Realname)
                                                   Dim completedResponse As String = Utils.ColoredText("Archivado de  ", 4) & """" & PageName & """ " & Utils.ColoredText("completo", 4)
                                                   args.Client.Sendmessage(New IRCMessage(args.Source, completedResponse))
@@ -401,9 +407,8 @@ Public Class IRCCommands
                                                Utils.UsedMemory.ToString, BotCodename, MwBotVersion)
                 Utils.EventLogger.Log("IRC: Requested info (%??)", "IRC", args.Realname)
             End If
-
         Else
-            responsestring = String.Format("{1} Versión: {0}. Ordenes: %ord", Utils.ColoredText(MwBotVersion, 3), args.Client.NickName)
+            responsestring = String.Format("{1} Versión: {0}. Ordenes: %ord", Utils.ColoredText(BotVersion, 3), args.Client.NickName)
             Utils.EventLogger.Log("IRC: Requested info (%??)", "IRC", args.Realname)
         End If
         Dim mes As New IRCMessage(args.Source, responsestring)

@@ -138,15 +138,22 @@ Class SpecialTaks
     End Function
 
     ''' <summary>
-    ''' Realiza un archivado general siguiendo una lógica similar a la de Grillitus.
+    ''' Realiza un archivado siguiendo una lógica similar a la que seguía Grillitus.
     ''' </summary>
-    ''' <param name="PageToArchive">Página a archivar</param>
+    ''' <param name="PageToArchive">Página a archivar.</param>
+    ''' <param name="ArchiveTemplateName">Plantilla de archivado.</param>
+    ''' <param name="DoNotArchiveTemplateName">Plantilla de "No archivar".</param>
+    ''' <param name="ProgrammedArchiveTemplateName">Plantilla de archivo programado.</param>
+    ''' <param name="ArchiveBoxTemplateName">Plantilla de caja de archivos.</param>
+    ''' <param name="ArchiveMessageTemplateName">Plantilla de mensaje de archivo.</param>
     ''' <returns></returns>
-    Function AutoArchive(ByVal PageToArchive As Page) As Boolean
+    Function AutoArchive(ByVal PageToArchive As Page, ArchiveTemplateName As String, DoNotArchiveTemplateName As String,
+                          ProgrammedArchiveTemplateName As String, ArchiveBoxTemplateName As String, ArchiveMessageTemplateName As String) As Boolean
+
         Utils.EventLogger.Log(String.Format(BotMessages.AutoArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         If PageToArchive Is Nothing Then Return False
         Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & WPStrings.ArchiveIndex)
-        Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive)
+        Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive, ArchiveTemplateName)
 
         If Not ValidPage(PageToArchive, ArchiveCfg) Then Return False
 
@@ -166,7 +173,10 @@ Class SpecialTaks
         End If
 
         'Revisar hilos y archivar si corresponde
-        Dim archiveResults As Tuple(Of SortedList(Of String, String), String, Integer) = CheckAndArchiveThreads(PageToArchive.Title, pageThreads, PageToArchive.Content, strategy, pageDest, maxDays)
+        Dim archiveResults As Tuple(Of SortedList(Of String, String), String, Integer) = CheckAndArchiveThreads(PageToArchive.Title, pageThreads, PageToArchive.Content,
+                                                                                                                strategy, pageDest, maxDays, ArchiveTemplateName,
+                                                                                                                DoNotArchiveTemplateName, ProgrammedArchiveTemplateName,
+                                                                                                                ArchiveBoxTemplateName, ArchiveMessageTemplateName)
         Dim ArchivedList As SortedList(Of String, String) = archiveResults.Item1
         Dim Newpagetext As String = archiveResults.Item2
         Dim ArchivedThreads As Integer = archiveResults.Item3
@@ -197,8 +207,12 @@ Class SpecialTaks
                 ArchivePageText = ArchivePageText & ThreadText
 
                 'Añadir la plantilla de archivo
-                If Not SimpleTemplateNoParamIsPresent(ArchivePageText, ArchiveMessage()) Then
-                    ArchivePageText = ArchiveMessage() & Environment.NewLine & ArchivePageText
+                If Not SimpleTemplateNoParamIsPresent(ArchivePageText, ArchiveMessageTemplateName) Then
+                    Dim tarchivemessage As String = ArchiveMessageTemplateName
+                    If tarchivemessage.Contains(":"c) Then
+                        tarchivemessage = tarchivemessage.Split(":"c)(1).Trim
+                    End If
+                    ArchivePageText = tarchivemessage & Environment.NewLine & ArchivePageText
                 End If
 
                 'Si se usa la caja de archivos
@@ -221,7 +235,7 @@ Class SpecialTaks
 
             'Actualizar caja si corresponde
             If useBox Then
-                UpdateBox(IndexPage, ArchivePages)
+                UpdateBox(IndexPage, ArchivePages, ArchiveBoxTemplateName)
             End If
 
             'Guardar pagina principal
@@ -229,7 +243,7 @@ Class SpecialTaks
                 'Si debe tener caja de archivos...
                 If useBox Then
                     If Not Regex.Match(Newpagetext, "{{" & IndexPage.Title & "}}", RegexOptions.IgnoreCase).Success Then
-                        Dim Archivetemplate As String = GetArchiveTemplate(PageToArchive.Content)
+                        Dim Archivetemplate As String = GetSimpleTemplate(PageToArchive.Content, ArchiveTemplateName)
                         Newpagetext = Newpagetext.Replace(Archivetemplate, Archivetemplate & Environment.NewLine & "{{" & IndexPage.Title & "}}" & Environment.NewLine)
                     End If
                 End If
@@ -249,10 +263,11 @@ Class SpecialTaks
         Return True
     End Function
 
+    Private Function CheckAndArchiveThreads(ByVal Pagename As String, ByVal threads As String(), pagetext As String, strategy As String,
+                                            ConfigDest As String, maxDays As Integer, ArchiveTemplateName As String, DoNotArchiveTemplateName As String,
+                                            ProgrammedArchiveTemplateName As String, ArchiveBoxTemplateName As String,
+                                            ArchiveMessageTemplateName As String) As Tuple(Of SortedList(Of String, String), String, Integer)
 
-
-
-    Private Function CheckAndArchiveThreads(ByVal Pagename As String, ByVal threads As String(), pagetext As String, strategy As String, ConfigDest As String, maxDays As Integer) As Tuple(Of SortedList(Of String, String), String, Integer)
         Dim archiveList As New SortedList(Of String, String)
         Dim newText As String = pagetext
         Dim maxDate As Date = Date.UtcNow.AddDays(-maxDays)
@@ -269,7 +284,10 @@ Class SpecialTaks
                 Else
                     Continue For
                 End If
-                Dim threadresult As Tuple(Of Tuple(Of String, String), String) = CheckAndArchiveThread(thread, tDate, maxDate, newText, ConfigDest)
+                Dim threadresult As Tuple(Of Tuple(Of String, String), String) = CheckAndArchiveThread(thread, tDate, maxDate, newText, ConfigDest,
+                                                                                                       ArchiveTemplateName, DoNotArchiveTemplateName,
+                                                                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName,
+                                                                                                       ArchiveMessageTemplateName)
                 If threadresult Is Nothing Then Continue For
                 archivedThreads += 1
                 Dim ArchivedThreadInfo As Tuple(Of String, String) = threadresult.Item1
@@ -288,50 +306,7 @@ Class SpecialTaks
         Return New Tuple(Of SortedList(Of String, String), String, Integer)(archiveList, newText, archivedThreads)
     End Function
 
-
-    Private Function DoNotArchiveTemplatePresent(ByVal text As String) As Boolean
-        Return SimpleTemplateMatch(text, _bot.AutoArchiveDoNotArchivePageName)
-    End Function
-    Private Function ProgrammedArchiveTemplatePresent(ByVal text As String) As Boolean
-        Return SimpleTemplateMatch(text, _bot.AutoArchiveProgrammedArchivePageName)
-    End Function
-    Private Function GetProgrammedArchiveTemplate(ByVal text As String) As String
-        Return GetTemplate(text, _bot.AutoArchiveProgrammedArchivePageName)
-    End Function
-    Private Function ArchiveBoxTemplate() As String
-        Return _bot.ArchiveBoxTemplate.Split(":"c)(1).Trim
-    End Function
-
-    Private Function ArchiveMessage() As String
-        Return "{{" & _bot.ArchiveMessageTemplate.Split(":"c)(1).Trim & "}}"
-    End Function
-
-    Private Function ArchiveBoxTemplatePresent(ByVal text As String) As Boolean
-        Return SimpleTemplateMatch(text, ArchiveBoxTemplate())
-    End Function
-
-    Private Function ContainsArchiveTemplate(ByVal text As String) As Boolean
-        Dim TempRegex As String = "[" & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(0, 1).ToUpper & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(0, 1).ToLower & "]" & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(1)
-        Dim FullRegex As String = "{{ *" & TempRegex & "[\s\S]+?}}"
-        Dim result As Boolean = Regex.Match(text, FullRegex).Success
-        Return result
-    End Function
-
-    Private Function GetArchiveTemplate(ByVal text As String) As String
-        Dim TempRegex As String = "[" & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(0, 1).ToUpper & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(0, 1).ToLower & "]" & _bot.AutoArchiveTemplatePageName.Split(":"c)(1).Trim.Substring(1)
-        Dim FullRegex As String = "{{ *" & TempRegex & "[\s\S]+?}}"
-        Dim result As String = Regex.Match(text, FullRegex).Value
-        Return result
-    End Function
-
-    Private Function GetArchiveBoxTemplate(ByVal text As String) As String
-        Dim TempRegex As String = "[" & _bot.ArchiveBoxTemplate.Split(":"c)(1).Trim.Substring(0, 1).ToUpper & _bot.ArchiveBoxTemplate.Split(":"c)(1).Trim.Substring(0, 1).ToLower & "]" & _bot.ArchiveBoxTemplate.Split(":"c)(1).Trim.Substring(1)
-        Dim FullRegex As String = "{{ *" & TempRegex & "[\s\S]+?}}"
-        Dim result As String = Regex.Match(text, FullRegex).Value
-        Return result
-    End Function
-
-    Function SimpleTemplateNoParamIsPresent(ByVal text As String, templatename As String) As Boolean
+    Private Function SimpleTemplateNoParamIsPresent(ByVal text As String, templatename As String) As Boolean
         Dim PageNameWithoutNamespace As String = templatename.Replace("{{", "").Replace("}}", "")
         If templatename.Contains(":"c) Then
             PageNameWithoutNamespace = templatename.Split(":"c)(1).Trim
@@ -342,22 +317,55 @@ Class SpecialTaks
         Return IsPresent
     End Function
 
-    Function GetSimpleTemplateNoParam(ByVal text As String, templatename As String) As String
+    Private Function GetSimpleTemplateNoParam(ByVal text As String, templatename As String) As String
         Dim PageNameWithoutNamespace As String = templatename.Split(":"c)(1).Trim
-        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0).ToUpper & PageNameWithoutNamespace.Substring(0).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
         Dim templateregex As String = "{{ *" & PageNameRegex & " *}}"
         Dim tTemplate As String = Regex.Match(text, templateregex).Value
         Return tTemplate
     End Function
 
+    Private Function GetSimpleTemplate(ByVal text As String, templatename As String) As String
+        Dim PageNameWithoutNamespace As String = templatename.Split(":"c)(1).Trim
+        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+        Dim templateregex As String = "{{ *" & PageNameRegex & "[\s\S]+?}}"
+        Dim tTemplate As String = Regex.Match(text, templateregex).Value
+        Return tTemplate
+    End Function
+
+    Private Function SimpleTemplatePresent(ByVal text As String, templatename As String) As Boolean
+        Dim PageNameWithoutNamespace As String = templatename.Split(":"c)(1).Trim
+        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+        Dim templateregex As String = "{{ *" & PageNameRegex & "[\s\S]+?}}"
+        Dim ispresent As Boolean = Regex.Match(text, templateregex).Success
+        Return ispresent
+    End Function
+
+    Function GetTemplate(ByVal text As String, templatename As String, removenamespace As Boolean) As Template
+        If removenamespace Then
+            If templatename.Contains(":"c) Then
+                templatename = templatename.Split(":"c)(1)
+            End If
+        End If
+        Return GetTemplate(text, templatename)
+    End Function
+    Function GetTemplate(ByVal text As String, templatename As String) As Template
+        Dim tlist As List(Of Template) = Template.GetTemplates(text)
+        For Each t As Template In tlist
+            If t.Name = templatename Then
+                Return t
+            End If
+        Next
+        Return New Template
+    End Function
 
     ''' <summary>
     ''' Entrega el comienzo de la plantilla (sin su espacio de nombres) si se encuentra en el texto
     ''' </summary>
     ''' <param name="text">Texto a analizar</param>
-    ''' <param name="PageName">Nombre de la plantilla (con su espacio de nombres, para funcionar correctamente debe estar en "Template" o su equivalente en la wiki.</param>
+    ''' <param name="PageName">Nombre de la plantilla (con su espacio de nombres, para funcionar correctamente debe estar en el espacio de nombres "Template" o su equivalente en la wiki.</param>
     ''' <returns></returns>
-    Function GetTemplate(ByVal text As String, PageName As String) As String
+    Function GetTemplateBeggining(ByVal text As String, PageName As String) As String
         Dim templatelist As List(Of Template) = Template.GetTemplates(text)
         For Each temp As Template In templatelist
             Dim PageNameWithoutNamespace As String = PageName.Split(":"c)(1).Trim
@@ -371,27 +379,13 @@ Class SpecialTaks
         Return String.Empty
     End Function
 
-    ''' <summary>
-    ''' Indica sólamente si la plantilla esta en el texto (consume menos recursos que analizarla)
-    ''' </summary>
-    ''' <param name="text">Texto a analizar</param>
-    ''' <param name="PageName">Nombre de la plantilla (con su espacio de nombres, para funcionar correctamente debe estar en "Template" o su equivalente en la wiki.</param>
-    ''' <returns></returns>
-    Function SimpleTemplateMatch(ByVal text As String, PageName As String) As Boolean
-        Dim PageNameWithoutNamespace As String = PageName.Replace("{{", "").Replace("}}", "")
-        If PageName.Contains(":"c) Then
-            PageNameWithoutNamespace = PageName.Split(":"c)(1).Trim
-        End If
-        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
-        Dim templateregex As String = "{{ *" & PageNameRegex & " *"
-        Dim IsPresent As Boolean = Regex.Match(text, templateregex).Success
-        Return IsPresent
-    End Function
+    Private Function CheckAndArchiveThread(ByVal threadtext As String, threaddate As Date, limitdate As Date,
+                                           pagetext As String, ConfigDestination As String, ArchiveTemplateName As String,
+                                           DoNotArchiveTemplateName As String, ProgrammedArchiveTemplateName As String, ArchiveBoxTemplateName As String,
+                                           ArchiveMessageTemplateName As String) As Tuple(Of Tuple(Of String, String), String)
 
-    Private Function CheckAndArchiveThread(ByVal threadtext As String, threaddate As Date, limitdate As Date, pagetext As String, ConfigDestination As String) As Tuple(Of Tuple(Of String, String), String)
-
-        Dim ProgrammedTemplate As String = GetProgrammedArchiveTemplate(threadtext)
-        Dim DoNotArchive As Boolean = DoNotArchiveTemplatePresent(threadtext)
+        Dim ProgrammedTemplate As String = GetSimpleTemplateNoParam(threadtext, ProgrammedArchiveTemplateName)
+        Dim DoNotArchive As Boolean = SimpleTemplateNoParamIsPresent(threadtext, DoNotArchiveTemplateName)
 
         If Not DoNotArchive Then
 
@@ -453,12 +447,15 @@ Class SpecialTaks
 
 
 
-    Private Function UpdateBox(Indexpage As Page, ArchivePages As IEnumerable(Of String)) As Boolean
+    Private Function UpdateBox(Indexpage As Page, ArchivePages As IEnumerable(Of String), ArchiveBoxTemplateName As String) As Boolean
         Dim boxstring As String = WPStrings.BoxMessage
+        If ArchiveBoxTemplateName.Contains(":"c) Then
+            ArchiveBoxTemplateName = ArchiveBoxTemplateName.Split(":"c)(1)
+        End If
         Try
             'Verificar si está creada la página de archivo, si no, la crea.
             If Not Indexpage.Exists Then
-                Dim newtext As String = boxstring & Environment.NewLine & "{{" & ArchiveBoxTemplate() & "|" & Environment.NewLine
+                Dim newtext As String = boxstring & Environment.NewLine & "{{" & ArchiveBoxTemplateName & "|" & Environment.NewLine
 
                 For Each p As String In ArchivePages
                     If Not newtext.Contains(p) Then
@@ -479,8 +476,8 @@ Class SpecialTaks
                 Dim FixedPageContent As String = FixArchiveBox(Indexpage.Content)
 
                 Utils.EventLogger.Debug_Log(BotMessages.UpdatingArchiveBox, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
-                If ArchiveBoxTemplatePresent(FixedPageContent) Then
-                    Dim ArchiveBoxtext As String = GetArchiveBoxTemplate(FixedPageContent)
+                If SimpleTemplatePresent(FixedPageContent, ArchiveBoxTemplateName) Then
+                    Dim ArchiveBoxtext As String = GetSimpleTemplate(FixedPageContent, ArchiveBoxTemplateName)
                     Dim temptxt As String = ArchiveBoxtext
                     Dim temp As New Template(ArchiveBoxtext, False)
                     For Each t As Tuple(Of String, String) In temp.Parameters
@@ -505,7 +502,7 @@ Class SpecialTaks
 
                 Else 'No contiene una plantilla de caja de archivo, en ese caso se crea una nueva por sobre el contenido de la pagina
 
-                    Dim newtext As String = boxstring & Environment.NewLine & "{{" & ArchiveBoxTemplate() & "|" & Environment.NewLine
+                    Dim newtext As String = boxstring & Environment.NewLine & "{{" & ArchiveBoxTemplateName & "|" & Environment.NewLine
                     For Each p As String In ArchivePages
                         If Not newtext.Contains(p) Then
                             Dim ArchiveBoxLink As String = "[[" & p & "]]"
@@ -535,9 +532,8 @@ Class SpecialTaks
     ''' </summary>
     ''' <param name="PageToArchive">Página desde donde se busca la plantilla.</param>
     ''' <returns></returns>
-    Function GetArchiveTemplateData(PageToArchive As Page) As String()
-
-        Dim ArchiveTemplate As Template = GetArchiveTemplate(PageToArchive)
+    Function GetArchiveTemplateData(PageToArchive As Page, ArchiveTemplateName As String) As String()
+        Dim ArchiveTemplate As Template = GetTemplate(PageToArchive.Content, ArchiveTemplateName, True)
         If String.IsNullOrEmpty(ArchiveTemplate.Name) Then
             Return {"", "", "", "", ""}
         End If
@@ -580,35 +576,19 @@ Class SpecialTaks
     End Function
 
     ''' <summary>
-    ''' Obtiene la primera aparición de la plantilla de archivado en la página pasada como parámetro 
-    ''' </summary>
-    ''' <param name="PageToGet">Pagina de la cual se busca la plantilla de archivado</param>
-    ''' <returns></returns>
-    Function GetArchiveTemplate(ByVal PageToGet As Page) As Template
-        Dim templist As List(Of Template) = Template.GetTemplates(Template.GetTemplateTextArray(PageToGet.Content))
-        Dim Archtemp As New Template
-        For Each t As Template In templist
-            If ContainsArchiveTemplate(t.Text) Then
-                Archtemp = t
-                Exit For
-            End If
-        Next
-        Return Archtemp
-    End Function
-
-    ''' <summary>
     ''' Actualiza todas las paginas que incluyan la plantilla de archivado automático.
     ''' </summary>
     ''' <returns></returns>
-    Function ArchiveAllInclusions() As Boolean
-        Dim templatePageName As String = _bot.AutoArchiveTemplatePageName
-        Dim includedpages As String() = _bot.GetallInclusions(templatePageName)
-        Utils.EventLogger.Log(String.Format(BotMessages.ArchivingInclusions, templatePageName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+    Function ArchiveAllInclusions(ByVal ArchiveTemplateName As String, DoNotArchiveTemplateName As String, ProgrammedArchiveTemplateName As String,
+                                  ArchiveBoxTemplateName As String, ArchiveMessageTemplateName As String) As Boolean
+        Dim includedpages As String() = _bot.GetallInclusions(ArchiveTemplateName)
+        Utils.EventLogger.Log(String.Format(BotMessages.ArchivingInclusions, ArchiveTemplateName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         For Each pa As String In includedpages
             Dim _Page As Page = _bot.Getpage(pa)
             If _Page.Exists Then
                 Try
-                    AutoArchive(_Page)
+                    AutoArchive(_Page, ArchiveTemplateName, DoNotArchiveTemplateName, ProgrammedArchiveTemplateName,
+                                ArchiveBoxTemplateName, ArchiveMessageTemplateName)
                 Catch ex As Exception
                     Utils.EventLogger.EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 End Try
@@ -635,11 +615,12 @@ Class SpecialTaks
     End Function
 
     ''' <summary>
-    ''' Actualiza todas las paginas que incluyan la plantilla de archivado automático.
+    ''' Comprueba firmas faltantes en las páginas que contengan la plantilla de firma automática.
     ''' </summary>
+    ''' <param name="AutoSignatureTemplateName">Plantilla de firma automática.</param>
     ''' <returns></returns>
-    Function SignAllInclusions() As Boolean
-        Dim includedpages As String() = _bot.GetallInclusions(_bot.AutoSignatureTemplatePageName)
+    Function SignAllInclusions(AutoSignatureTemplateName As String) As Boolean
+        Dim includedpages As String() = _bot.GetallInclusions(AutoSignatureTemplateName)
         For Each pa As String In includedpages
             Try
                 Utils.EventLogger.Debug_Log("Checking page " & pa, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)

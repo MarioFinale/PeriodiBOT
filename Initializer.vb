@@ -14,6 +14,14 @@ Public NotInheritable Class Initializer
     Public Shared BotVersion As String = Reflection.Assembly.GetCallingAssembly.GetName.Version.ToString
     Public Shared IrcOpPath As String = Exepath & "OPs.cfg"
     Public Shared IrcConfigPath As String = Exepath & "IRC.cfg"
+    Public Shared ArchiveTemplateName As String = "Plantilla:Archivado automático"
+    Public Shared DoNotArchiveTemplateName As String = "Plantilla:No archivar"
+    Public Shared ProgrammedArchiveTemplateName As String = "Plantilla:Archivo programado"
+    Public Shared ArchiveBoxTemplateName As String = "Plantilla:Caja de archivos"
+    Public Shared ArchiveMessageTemplateName As String = "Plantilla:Archivo"
+    Public Shared AutoSignatureTemplateName As String = "Plantilla:Firma automática"
+
+
 
     Public Shared Sub Init()
         Dim BotIRC As IRC_Client
@@ -23,6 +31,31 @@ Public NotInheritable Class Initializer
 
         BotIRC = New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT)
         BotIRC.StartClient()
+
+        If Utils.BotSettings.Contains("ArchiveTemplateName") Then
+            ArchiveTemplateName = Utils.BotSettings.Get("ArchiveTemplateName").ToString() : Else
+            Utils.BotSettings.NewVal("ArchiveTemplateName", "Plantilla:Archivado automático")
+        End If
+        If Utils.BotSettings.Contains("DoNotArchiveTemplateName") Then
+            DoNotArchiveTemplateName = Utils.BotSettings.Get("DoNotArchiveTemplateName").ToString() : Else
+            Utils.BotSettings.NewVal("DoNotArchiveTemplateName", "Plantilla:No archivar")
+        End If
+        If Utils.BotSettings.Contains("ProgrammedArchiveTemplateName") Then
+            ProgrammedArchiveTemplateName = Utils.BotSettings.Get("ProgrammedArchiveTemplateName").ToString() : Else
+            Utils.BotSettings.NewVal("ProgrammedArchiveTemplateName", "Plantilla:Archivo programado")
+        End If
+        If Utils.BotSettings.Contains("ArchiveBoxTemplateName") Then
+            ArchiveBoxTemplateName = Utils.BotSettings.Get("ArchiveBoxTemplateName").ToString() : Else
+            Utils.BotSettings.NewVal("ArchiveBoxTemplateName", "Plantilla:Caja de archivos")
+        End If
+        If Utils.BotSettings.Contains("ArchiveMessageTemplateName") Then
+            ArchiveMessageTemplateName = Utils.BotSettings.Get("ArchiveMessageTemplateName").ToString() : Else
+            Utils.BotSettings.NewVal("ArchiveMessageTemplateName", "Plantilla:Archivo")
+        End If
+        If Utils.BotSettings.Contains("AutoSignatureTemplateName") Then
+            AutoSignatureTemplateName = Utils.BotSettings.Get("AutoSignatureTemplateName").ToString() : Else
+            Utils.BotSettings.NewVal("AutoSignatureTemplateName", "Plantilla:Firma automática")
+        End If
 
         'Tarea para actualizar el contador de solicitudes de autorizaciones de bots
         Dim BotCountFunc As New Func(Of Boolean)(Function()
@@ -73,16 +106,20 @@ Public NotInheritable Class Initializer
         'Tarea para completar firmas
         Dim SignAllFunc As New Func(Of Boolean)(Function()
                                                     Dim signtask As New SpecialTaks(ESWikiBOT)
-                                                    Return signtask.SignAllInclusions()
+                                                    Return signtask.SignAllInclusions(AutoSignatureTemplateName)
                                                 End Function)
         TaskAdm.NewTask("Completar firmas", ESWikiBOT.UserName, SignAllFunc, 240000, True)
 
 
         'Tarea para archivar todo
-        Dim ArchiveAllFunc As New Func(Of Boolean)(Function()
-                                                       Dim signtask As New SpecialTaks(ESWikiBOT)
-                                                       Return signtask.ArchiveAllInclusions()
-                                                   End Function)
+        Dim ArchiveAllFunc As New Func(Of Boolean) _
+            (Function()
+
+                 Dim signtask As New SpecialTaks(ESWikiBOT)
+                 Return signtask.ArchiveAllInclusions(ArchiveTemplateName, DoNotArchiveTemplateName,
+                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+             End Function)
+
         TaskAdm.NewTask("Archivado automático", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
 
     End Sub
