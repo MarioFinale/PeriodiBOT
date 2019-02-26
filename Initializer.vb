@@ -64,7 +64,6 @@ Public NotInheritable Class Initializer
                                                  End Function)
         TaskAdm.NewTask("Actualizar el contador de solicitudes de autorizaciones de bots", ESWikiBOT.UserName, BotCountFunc, 300000, True)
 
-
         'Tarea para revisar si hay solicitudes en mediacion informal
         Dim InfMedFunc As New Func(Of Boolean)(Function()
                                                    Dim sptask As New SpecialTaks(ESWikiBOT)
@@ -80,7 +79,6 @@ Public NotInheritable Class Initializer
                                                        Return True
                                                    End Function)
         TaskAdm.NewTask("Actualizar plantilla de usuario conectado", ESWikiBOT.UserName, UserStatusFunc, 600000, True)
-
 
         'Tarea para actualizar el café temático
         Dim TopicFunc As New Func(Of Boolean)(Function()
@@ -110,7 +108,6 @@ Public NotInheritable Class Initializer
                                                 End Function)
         TaskAdm.NewTask("Completar firmas", ESWikiBOT.UserName, SignAllFunc, 240000, True)
 
-
         'Tarea para archivar todo
         Dim ArchiveAllFunc As New Func(Of Boolean) _
             (Function()
@@ -121,6 +118,15 @@ Public NotInheritable Class Initializer
              End Function)
 
         TaskAdm.NewTask("Archivado automático", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
+
+        'Tarea para actualizar lista de bots
+        Dim UpdateBotsListFunc As New Func(Of Boolean) _
+            (Function()
+                 Dim signtask As New SpecialTaks(ESWikiBOT)
+                 Return signtask.UpdateBotList(ESWikiBOT.Getpage("Plantilla:Controlador"), ESWikiBOT.Getpage("Wikipedia:Bot/Bots activos"), "ficha de bot")
+             End Function)
+
+        TaskAdm.NewTask("Actualizar lista de bots", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(20, 0, 0), True)
 
     End Sub
 

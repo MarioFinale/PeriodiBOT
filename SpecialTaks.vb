@@ -34,6 +34,7 @@ Class SpecialTaks
 
         'Verificar si el usuario editó hace al menos 4 días.
         If Date.Now.Subtract(user.LastEdit).Days >= 4 Then
+
             Utils.EventLogger.Debug_Log(String.Format(BotMessages.UserInactive, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End If
@@ -352,7 +353,7 @@ Class SpecialTaks
     Function GetTemplate(ByVal text As String, templatename As String) As Template
         Dim tlist As List(Of Template) = Template.GetTemplates(text)
         For Each t As Template In tlist
-            If t.Name = templatename Then
+            If (t.Name.Trim.Substring(0, 1).ToUpper & t.Name.Trim.Substring(1).ToLower) = (templatename.Trim.Substring(0, 1).ToUpper & templatename.Trim.Substring(1).ToLower) Then
                 Return t
             End If
         Next
@@ -1037,5 +1038,22 @@ Class SpecialTaks
         Return False
     End Function
 
+    Function UpdateBotList(ByVal Controllerpage As Page, PageToUpdate As Page, BotInfoBoxTemplateName As String) As Boolean
+        Dim ttemplate As Template = Template.GetTemplates(Controllerpage.Content)(0)
+        Dim BotText As String = String.Empty
+        For Each p As Tuple(Of String, String) In ttemplate.Parameters
+            If p.Item1.Contains("#default") Then Continue For
+            Dim tpattern As String = "((<!--)[\s\S]*?(-->)|(<[nN]owiki>)([\s\S]+?)(<\/[nN]owiki>))"
+            Dim tbot As WikiUser = New WikiUser(_bot, Regex.Replace(p.Item1, tpattern, "").Trim())
+            Dim tcontroller As WikiUser = New WikiUser(_bot, Regex.Replace(p.Item2, tpattern, "").Trim())
+            BotText = BotText & Environment.NewLine & "{{/bot|nombre=" & tbot.UserName & "|controlador=" & tcontroller.UserName & "|primera=" & If(tbot.EditCount = 0, "N/A", tbot.FirstEdit.ToString("dd-MM-yyyy")) _
+            & "|última=" & If(tbot.EditCount = 0, "N/A", tbot.LastEdit.ToString("dd-MM-yyyy")) & "|días inactivo=" & If(tbot.EditCount = 0, "0", Date.UtcNow.Subtract(tbot.LastEdit).Days.ToString) & "|ediciones=" & tbot.EditCount.ToString _
+            & "|flag=" & If(tbot.Exists AndAlso tbot.IsBot, "Sí", "No") & "|ficha de bot=" & If(tbot.Exists AndAlso tbot.UserPage.Content.ToLower.Contains("{{" & BotInfoBoxTemplateName.ToLower), "Sí", "No") _
+            & "|bloqueo=" & If(tbot.Exists AndAlso tbot.Blocked, "Sí", "No") & "|bloqueo controlador=" & If(tcontroller.Exists AndAlso tcontroller.Blocked, "Sí", "No") & "}}"
+        Next
+        Dim tcontent As String = PageToUpdate.Content.Replace(Utils.TextInBetween(PageToUpdate.Content, "<!-- Marca de inicio de datos -->", "<!-- Marca de fin de datos -->")(0), BotText & Environment.NewLine)
+        PageToUpdate.Save(tcontent, "Bot: Actualizando lista según [[Plantilla:Controlador|la plantilla de controladores]].", False, True, True)
+        Return True
+    End Function
 
 End Class
