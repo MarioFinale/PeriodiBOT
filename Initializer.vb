@@ -24,13 +24,13 @@ Public NotInheritable Class Initializer
 
 
     Public Shared Sub Init()
-        Dim BotIRC As IRC_Client
-        Dim ESWikiBOT As Bot
         Uptime = DateTime.Now
-        ESWikiBOT = New Bot(New ConfigFile(ConfigFilePath))
+        Dim ESWikiBOT As New Bot(New ConfigFile(ConfigFilePath))
+        Dim BotIRC As New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT)
+        Dim tPatroller As New SignPatroller
 
-        BotIRC = New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT)
         BotIRC.StartClient()
+        tPatroller.StartPatroller(ESWikiBOT)
 
         If Utils.BotSettings.Contains("ArchiveTemplateName") Then
             ArchiveTemplateName = Utils.BotSettings.Get("ArchiveTemplateName").ToString() : Else
@@ -126,7 +126,9 @@ Public NotInheritable Class Initializer
                  Return signtask.UpdateBotList(ESWikiBOT.Getpage("Plantilla:Controlador"), ESWikiBOT.Getpage("Wikipedia:Bot/Bots activos"), "ficha de bot")
              End Function)
 
-        TaskAdm.NewTask("Actualizar lista de bots", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(20, 0, 0), True)
+        TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(20, 0, 0), True)
+
+
 
     End Sub
 

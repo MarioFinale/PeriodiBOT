@@ -136,7 +136,7 @@
     <value>Archivando todas las páginas que incluyan la plantilla '{0}'.</value>
   </data>
   <data name="Author" xml:space="preserve">
-    <value>Autor		: </value>
+    <value>Autor : </value>
   </data>
   <data name="AutoArchive" xml:space="preserve">
     <value>Autoarchivando '{0}'.</value>
@@ -145,7 +145,7 @@
     <value>Autoarchivado de '{0}' completo.</value>
   </data>
   <data name="Cancelled" xml:space="preserve">
-    <value>Cancelada		: </value>
+    <value>Cancelada :</value>
   </data>
   <data name="CannotPause" xml:space="preserve">
     <value>La tarea crítica '{0}' no puede ser pausada.</value>
@@ -166,7 +166,7 @@
     <value>Creando conexión.</value>
   </data>
   <data name="Critical" xml:space="preserve">
-    <value>Crítica		: </value>
+    <value>Crítica : </value>
   </data>
   <data name="DebugDisabled" xml:space="preserve">
     <value>Log debug desactivado.</value>
@@ -184,13 +184,13 @@
     <value>Ingrese el número de la tarea.</value>
   </data>
   <data name="Errors" xml:space="preserve">
-    <value>Errores		: </value>
+    <value>Errores : </value>
   </data>
   <data name="EverySec" xml:space="preserve">
     <value>Cada {0} segundos.</value>
   </data>
   <data name="Executions" xml:space="preserve">
-    <value>Eejcuciones	: </value>
+    <value>Eejcuciones : </value>
   </data>
   <data name="ExitMessage" xml:space="preserve">
     <value>OK, me voy...</value>
@@ -202,7 +202,7 @@
     <value>Error al guardar el archivo '{0}'.</value>
   </data>
   <data name="Infinite" xml:space="preserve">
-    <value>Infinita		: </value>
+    <value>Infinita : </value>
   </data>
   <data name="InvalidNamespace" xml:space="preserve">
     <value>El espacio de nombres de la página '{0}' ({1}) es inválido.</value>
@@ -238,7 +238,7 @@
     <value>El valor debe ser superior a {0}.</value>
   </data>
   <data name="Name" xml:space="preserve">
-    <value>Nombre		: </value>
+    <value>Nombre : </value>
   </data>
   <data name="NewIrcNetworkAdress" xml:space="preserve">
     <value>Dirección del servidor de IRC principal: </value>
@@ -310,7 +310,7 @@
     <value>{0} ya no es un operador.</value>
   </data>
   <data name="Paused" xml:space="preserve">
-    <value>Pausada		: </value>
+    <value>Pausada : </value>
   </data>
   <data name="PausedTask" xml:space="preserve">
     <value>Tarea '{0}' pausada.</value>
@@ -337,7 +337,7 @@
     <value>Starting IRC client.</value>
   </data>
   <data name="Status" xml:space="preserve">
-    <value>Estado		: </value>
+    <value>Estado : </value>
   </data>
   <data name="SystemTime" xml:space="preserve">
     <value>La hora del sistema es: </value>
@@ -349,10 +349,10 @@
     <value>La tarea no existe.</value>
   </data>
   <data name="TimeOrInterval" xml:space="preserve">
-    <value>Tiempo/Intervalo	: </value>
+    <value>Tiempo/Intervalo : </value>
   </data>
   <data name="Type" xml:space="preserve">
-    <value>Tipo		: </value>
+    <value>Tipo : </value>
   </data>
   <data name="Unauthorized" xml:space="preserve">
     <value>No autorizado.</value>
