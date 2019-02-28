@@ -28,7 +28,6 @@ Public NotInheritable Class Initializer
         Dim ESWikiBOT As New Bot(New ConfigFile(ConfigFilePath))
         Dim BotIRC As New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT)
         Dim tPatroller As New SignPatroller
-
         BotIRC.StartClient()
         tPatroller.StartPatroller(ESWikiBOT)
 
