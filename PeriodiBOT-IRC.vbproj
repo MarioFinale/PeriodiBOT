@@ -101,6 +101,7 @@
     </Compile>
     <Compile Include="ChatMessage.vb" />
     <Compile Include="IRCCommandParams.vb" />
+    <Compile Include="test.vb" />
     <Compile Include="WPStrings.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
