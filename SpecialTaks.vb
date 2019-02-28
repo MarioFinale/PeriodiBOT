@@ -1013,6 +1013,7 @@ Class SpecialTaks
         Dim pagetext As String = tpage.Content
         Dim UnsignedThread As String = UnsignedSectionInfo.Item1
         Dim lastparagraph As String = Regex.Match(UnsignedThread.TrimEnd, ".+(?=\n+==[^=].+==[^=]|$|\n+$)").Value
+        If String.IsNullOrWhiteSpace(lastparagraph) Then Return False
         If Regex.Match(lastparagraph, "\[\[(:\w{2,7}:)*(user|usuario):.+?\]\]", RegexOptions.IgnoreCase).Success Then Return False
         Dim Username As String = UnsignedSectionInfo.Item2
         Dim pusername As String = String.Empty
