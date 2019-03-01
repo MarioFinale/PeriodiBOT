@@ -88,13 +88,90 @@ Public Class SignPatroller
         If (tuser.EditCount < 500 And (Not exuserlist.Contains(tuser.UserName)) Or achecklist.Contains(tuser.UserName)) Then
             Dim tpage As Page = workerbot.Getpage(tedit.Item2)
             If Date.UtcNow.Subtract(tpage.LastEdit).Minutes < 4 Then Return False
-            Dim spt As SpecialTaks = New SpecialTaks(workerbot)
-            spt.AddMissingSignature2(tpage, False, True, "TEST (" & GlobalVars.BotCodename & " " & GlobalVars.MwBotVersion & "/" & workerbot.UserName & " " & Initializer.BotVersion & "):")
+            AddMissingSignature2(tpage, False, True, "TEST (" & GlobalVars.BotCodename & " " & GlobalVars.MwBotVersion & "/" & workerbot.UserName & " " & Initializer.BotVersion & "):", workerbot, tuser.UserName)
         End If
         Return True
     End Function
 
+    Function AddMissingSignature2(ByVal tpage As Page, newthreads As Boolean, minor As Boolean, addmsg As String, workerbot As Bot, lastusername As String) As Boolean
+        If tpage.Lastuser = workerbot.UserName Then Return False 'No completar firma en páginas en las que haya editado
+        Dim LastUser As WikiUser = New WikiUser(workerbot, tpage.Lastuser)
+        If LastUser.IsBot Then Return False
+        Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection2(tpage, newthreads, workerbot)
+        If UnsignedSectionInfo Is Nothing Then Return False
+        Dim pagetext As String = tpage.Content
+        Dim UnsignedThread As String = UnsignedSectionInfo.Item1
+        Dim lastparagraph As String = Regex.Match(UnsignedThread.TrimEnd, ".+(?=\n+==[^=].+==[^=]|$|\n+$)").Value
+        If String.IsNullOrWhiteSpace(lastparagraph) Then Return False
+        If Regex.Match(lastparagraph, "\[\[(:\w{2,7}:)*(user|usuario):.+?\]\]", RegexOptions.IgnoreCase).Success Then Return False
+        If Regex.Match(lastparagraph, Utils.signpattern).Success Then Return False
+        Dim Username As String = UnsignedSectionInfo.Item2
+        If Not Username = lastusername Then Return False
+        Dim pusername As String = String.Empty
+        If tpage.PageNamespace = 3 Then
+            If tpage.Title.Contains(":") Then
+                pusername = tpage.Title.Split(":"c)(1)
+                If pusername.Contains("/") Then
+                    pusername = pusername.Split("/"c)(0)
+                End If
+                pusername = pusername.Trim()
+            End If
+        End If
+        If pusername = Username Then Return False
+        Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
+        Dim dstring As String = Utils.GetSpanishTimeString(UnsignedDate)
+        pagetext = pagetext.Replace(UnsignedThread, UnsignedThread.TrimEnd & " {{sust:No firmado|" & Username & "|" & dstring & "}}" & Environment.NewLine)
+        If tpage.Save(pagetext, addmsg & String.Format(BotMessages.UnsignedSumm, Username), minor, True) = EditResults.Edit_successful Then Return True
+        Return False
+    End Function
 
+    Function GetLastUnsignedSection2(ByVal tpage As Page, newthreads As Boolean, workerbot As Bot) As Tuple(Of String, String, Date)
+        If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name, workerbot.UserName)
+        Dim oldPage As Page = workerbot.Getpage(tpage.ParentRevId)
+        Dim currentPage As Page = tpage
+
+        Dim oldPageThreads As String() = oldPage.Threads
+        Dim currentPageThreads As String() = currentPage.Threads
+
+        Dim LastEdit As Date = currentPage.LastEdit
+        Dim LastUser As String = currentPage.Lastuser
+        Dim editedthreads As String()
+
+        If newthreads Then
+            editedthreads = Utils.GetSecondArrayAddedDiff(oldPageThreads, currentPageThreads)
+        Else
+            If oldPageThreads.Count = currentPageThreads.Count Then
+                If oldPageThreads.Count = 0 Then
+                    editedthreads = {currentPage.Content}
+                Else
+                    editedthreads = Utils.GetChangedThreads(oldPageThreads, currentPageThreads)
+                End If
+            ElseIf oldPageThreads.Count < currentPageThreads.Count Then
+                editedthreads = Utils.GetSecondArrayAddedDiff(oldPageThreads, currentPageThreads)
+            Else
+                editedthreads = {}
+            End If
+        End If
+
+        If editedthreads.Count > 0 AndAlso (Not String.IsNullOrWhiteSpace(editedthreads.Last)) Then
+            Dim lasteditedthread As String = editedthreads.Last
+            Dim lastsign As Date = Lastpdt2(lasteditedthread)
+            If lastsign = New DateTime(9999, 12, 31, 23, 59, 59) Then
+                Return New Tuple(Of String, String, Date)(lasteditedthread, LastUser, LastEdit)
+            End If
+        End If
+        Return Nothing
+    End Function
+
+    Function Lastpdt2(ByVal text As String) As Date
+        If String.IsNullOrEmpty(text) Then
+            Throw New ArgumentException("Empty parameter", "text")
+        End If
+        Dim lastparagraph As String = Regex.Match(text, ".+(?=\n+==.+==|$|\n+$)").Value
+        Dim TheDate As Date = Utils.ESWikiDatetime(lastparagraph)
+        Utils.EventLogger.Debug_Log("Returning " & TheDate.ToString, Reflection.MethodBase.GetCurrentMethod().Name)
+        Return TheDate
+    End Function
 
 
 End Class

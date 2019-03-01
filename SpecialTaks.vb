@@ -662,14 +662,19 @@ Class SpecialTaks
     ''' </summary>
     Function GetAllRequestedpages(pageName As String) As SortedList(Of String, String())
         Dim plist As New SortedList(Of String, String())
-        For Each s As String In _bot.GetallInclusions(pageName)
-            Dim Pag As Page = _bot.Getpage(s)
-            Dim pagetext As String = Pag.Content
-            For Each s2 As String In Utils.TextInBetween(pagetext, "{{" & pageName & "|", "}}")
-                If Not plist.Keys.Contains(s2) Then
-                    plist.Add(s2, {Pag.Lastuser, Pag.Title})
-                End If
-            Next
+        Dim inclusions As String() = _bot.GetallInclusions(pageName)
+        For Each s As String In inclusions
+            Try
+                Dim Pag As Page = _bot.Getpage(s)
+                Dim pagetext As String = Pag.Content
+                For Each s2 As String In Utils.TextInBetween(pagetext.Replace("_", " "), "{{" & pageName & "|", "}}")
+                    If Not plist.Keys.Contains(s2) Then
+                        plist.Add(s2, {Pag.Lastuser, Pag.Title})
+                    End If
+                Next
+            Catch ex As Exception
+
+            End Try
         Next
         Return plist
     End Function
@@ -731,7 +736,8 @@ Class SpecialTaks
             OldResumes.Add(PageResume.Item1, "|" & PageResume.Item1 & "=" & PageResume.Item2)
         Next
 
-        For Each p As KeyValuePair(Of String, String()) In GetResumeRequests(pageName)
+        Dim ResumeRequests As SortedList(Of String, String()) = GetResumeRequests(pageName)
+        For Each p As KeyValuePair(Of String, String()) In ResumeRequests
             PageNames.Add(p.Key)
             NewPages += 1
         Next
@@ -955,94 +961,13 @@ Class SpecialTaks
         End If
     End Function
 
-    Function GetLastUnsignedSection2(ByVal tpage As Page, newthreads As Boolean) As Tuple(Of String, String, Date)
-        If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
-        Dim oldPage As Page = _bot.Getpage(tpage.ParentRevId)
-        Dim currentPage As Page = tpage
-
-        Dim oldPageThreads As String() = oldPage.Threads
-        Dim currentPageThreads As String() = currentPage.Threads
-
-        Dim LastEdit As Date = currentPage.LastEdit
-        Dim LastUser As String = currentPage.Lastuser
-        Dim editedthreads As String()
-
-        If newthreads Then
-            editedthreads = Utils.GetSecondArrayAddedDiff(oldPageThreads, currentPageThreads)
-        Else
-            If oldPageThreads.Count = currentPageThreads.Count Then
-                If oldPageThreads.Count = 0 Then
-                    editedthreads = {currentPage.Content}
-                Else
-                    editedthreads = Utils.GetChangedThreads(oldPageThreads, currentPageThreads)
-                End If
-            ElseIf oldPageThreads.Count < currentPageThreads.Count Then
-                editedthreads = Utils.GetSecondArrayAddedDiff(oldPageThreads, currentPageThreads)
-            Else
-                editedthreads = {}
-            End If
-        End If
-
-        If editedthreads.Count > 0 AndAlso (Not String.IsNullOrWhiteSpace(editedthreads.Last)) Then
-            Dim lasteditedthread As String = editedthreads.Last
-            Dim lastsign As Date = Lastpdt2(lasteditedthread)
-            If lastsign = New DateTime(9999, 12, 31, 23, 59, 59) Then
-                Return New Tuple(Of String, String, Date)(lasteditedthread, LastUser, LastEdit)
-            End If
-        End If
-        Return Nothing
-    End Function
-
-    Function Lastpdt2(ByVal text As String) As Date
-        If String.IsNullOrEmpty(text) Then
-            Throw New ArgumentException("Empty parameter", "text")
-        End If
-        Dim lastparagraph As String = Regex.Match(text, ".+(?=\n+==.+==|$|\n+$)").Value
-        Dim TheDate As Date = Utils.ESWikiDatetime(lastparagraph)
-        Utils.EventLogger.Debug_Log("Returning " & TheDate.ToString, Reflection.MethodBase.GetCurrentMethod().Name)
-        Return TheDate
-    End Function
-
-
-    Function AddMissingSignature2(ByVal tpage As Page, newthreads As Boolean, minor As Boolean, addmsg As String) As Boolean
-        If tpage.Lastuser = _bot.UserName Then Return False 'No completar firma en páginas en las que haya editado
-        Dim LastUser As WikiUser = New WikiUser(_bot, tpage.Lastuser)
-        If LastUser.IsBot Then Return False
-        Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection2(tpage, newthreads)
-        If UnsignedSectionInfo Is Nothing Then Return False
-        Dim pagetext As String = tpage.Content
-        Dim UnsignedThread As String = UnsignedSectionInfo.Item1
-        Dim lastparagraph As String = Regex.Match(UnsignedThread.TrimEnd, ".+(?=\n+==[^=].+==[^=]|$|\n+$)").Value
-        If String.IsNullOrWhiteSpace(lastparagraph) Then Return False
-        If Regex.Match(lastparagraph, "\[\[(:\w{2,7}:)*(user|usuario):.+?\]\]", RegexOptions.IgnoreCase).Success Then Return False
-        Dim Username As String = UnsignedSectionInfo.Item2
-        Dim pusername As String = String.Empty
-        If tpage.PageNamespace = 3 Then
-            If tpage.Title.Contains(":") Then
-                pusername = tpage.Title.Split(":"c)(1)
-                If pusername.Contains("/") Then
-                    pusername = pusername.Split("/"c)(0)
-                End If
-                pusername = pusername.Trim()
-            End If
-        End If
-        If pusername = Username Then Return False
-        Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
-        Dim dstring As String = Utils.GetSpanishTimeString(UnsignedDate)
-        pagetext = pagetext.Replace(UnsignedThread, UnsignedThread.TrimEnd & " {{sust:No firmado|" & Username & "|" & dstring & "}}" & Environment.NewLine)
-        If tpage.Save(pagetext, addmsg & String.Format(BotMessages.UnsignedSumm, Username), minor, True) = EditResults.Edit_successful Then
-            Return True
-        Else
-            Return False
-        End If
-    End Function
-
     Sub CheckUsersActivity(ByVal templatePage As Page, ByVal pageToSave As Page)
         If pageToSave Is Nothing Then Exit Sub
 
         Dim ActiveUsers As New Dictionary(Of String, WikiUser)
         Dim InactiveUsers As New Dictionary(Of String, WikiUser)
-        For Each p As Page In _bot.GetallInclusionsPages(templatePage)
+        Dim inclusions As Page() = _bot.GetallInclusionsPages(templatePage)
+        For Each p As Page In inclusions
 
             If (p.PageNamespace = 3) Or (p.PageNamespace = 2) Then
                 Dim Username As String = p.Title.Split(":"c)(1)
