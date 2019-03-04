@@ -210,7 +210,7 @@ Class SpecialTaks
                 ArchivePageText = ArchivePageText & ThreadText
 
                 'Añadir la plantilla de archivo
-                If Not SimpleTemplateNoParamIsPresent(ArchivePageText, ArchiveMessageTemplateName) Then
+                If Not IsTemplatePresent(ArchivePageText, ArchiveMessageTemplateName) Then
                     Dim tarchivemessage As String = ArchiveMessageTemplateName
                     If tarchivemessage.Contains(":"c) Then
                         tarchivemessage = tarchivemessage.Split(":"c)(1).Trim
@@ -246,7 +246,7 @@ Class SpecialTaks
                 'Si debe tener caja de archivos...
                 If useBox Then
                     If Not Regex.Match(Newpagetext, "{{" & IndexPage.Title & "}}", RegexOptions.IgnoreCase).Success Then
-                        Dim Archivetemplate As String = GetSimpleTemplate(PageToArchive.Content, ArchiveTemplateName)
+                        Dim Archivetemplate As String = GetTemplate(PageToArchive.Content, ArchiveTemplateName).Text
                         Newpagetext = Newpagetext.Replace(Archivetemplate, Archivetemplate & Environment.NewLine & "{{" & IndexPage.Title & "}}" & Environment.NewLine)
                     End If
                 End If
@@ -309,38 +309,6 @@ Class SpecialTaks
         Return New Tuple(Of SortedList(Of String, String), String, Integer)(archiveList, newText, archivedThreads)
     End Function
 
-    Private Function SimpleTemplateNoParamIsPresent(ByVal text As String, templatename As String) As Boolean
-        If templatename.Contains(":"c) Then templatename = templatename.Split(":"c)(1).Trim
-        Dim PageNameRegex As String = "[" & templatename.Substring(0, 1).ToUpper & templatename.Substring(0, 1).ToLower & "]" & templatename.Substring(1)
-        Dim templateregex As String = "{{ *" & PageNameRegex & " *}}"
-        Dim IsPresent As Boolean = Regex.Match(text, templateregex).Success
-        Return IsPresent
-    End Function
-
-    Private Function GetSimpleTemplateNoParam(ByVal text As String, templatename As String) As String
-        If templatename.Contains(":"c) Then templatename = templatename.Split(":"c)(1).Trim
-        Dim PageNameRegex As String = "[" & templatename.Substring(0, 1).ToUpper & templatename.Substring(0, 1).ToLower & "]" & templatename.Substring(1)
-        Dim templateregex As String = "{{ *" & PageNameRegex & " *}}"
-        Dim tTemplate As String = Regex.Match(text, templateregex).Value
-        Return tTemplate
-    End Function
-
-    Private Function GetSimpleTemplate(ByVal text As String, templatename As String) As String
-        If templatename.Contains(":"c) Then templatename = templatename.Split(":"c)(1).Trim
-        Dim PageNameRegex As String = "[" & templatename.Substring(0, 1).ToUpper & templatename.Substring(0, 1).ToLower & "]" & templatename.Substring(1)
-        Dim templateregex As String = "{{ *" & PageNameRegex & "[\s\S]+?}}"
-        Dim tTemplate As String = Regex.Match(text, templateregex).Value
-        Return tTemplate
-    End Function
-
-    Private Function SimpleTemplatePresent(ByVal text As String, templatename As String) As Boolean
-        If templatename.Contains(":"c) Then templatename = templatename.Split(":"c)(1).Trim
-        Dim PageNameRegex As String = "[" & templatename.Substring(0, 1).ToUpper & templatename.Substring(0, 1).ToLower & "]" & templatename.Substring(1)
-        Dim templateregex As String = "{{ *" & PageNameRegex & "[\s\S]+?}}"
-        Dim ispresent As Boolean = Regex.Match(text, templateregex).Success
-        Return ispresent
-    End Function
-
     Function GetTemplate(ByVal text As String, templatename As String, removenamespace As Boolean) As Template
         If removenamespace Then
             If templatename.Contains(":"c) Then
@@ -357,6 +325,20 @@ Class SpecialTaks
             End If
         Next
         Return New Template
+    End Function
+
+    Function IsTemplatePresent(ByVal text As String, templatename As String) As Boolean
+        Return IsTemplatePresent(text, templatename, True)
+    End Function
+
+    Function IsTemplatePresent(ByVal text As String, templatename As String, removenamespace As Boolean) As Boolean
+        Dim tlist As List(Of Template) = Template.GetTemplates(text)
+        For Each t As Template In tlist
+            If (t.Name.Trim.Substring(0, 1).ToUpper & t.Name.Trim.Substring(1).ToLower) = (templatename.Trim.Substring(0, 1).ToUpper & templatename.Trim.Substring(1).ToLower) Then
+                Return True
+            End If
+        Next
+        Return False
     End Function
 
     ''' <summary>
@@ -384,8 +366,8 @@ Class SpecialTaks
                                            DoNotArchiveTemplateName As String, ProgrammedArchiveTemplateName As String, ArchiveBoxTemplateName As String,
                                            ArchiveMessageTemplateName As String) As Tuple(Of Tuple(Of String, String), String)
 
-        Dim ProgrammedTemplate As String = GetSimpleTemplateNoParam(threadtext, ProgrammedArchiveTemplateName)
-        Dim DoNotArchive As Boolean = SimpleTemplateNoParamIsPresent(threadtext, DoNotArchiveTemplateName)
+        Dim ProgrammedTemplate As String = GetTemplate(threadtext, ProgrammedArchiveTemplateName).Text
+        Dim DoNotArchive As Boolean = IsTemplatePresent(threadtext, DoNotArchiveTemplateName)
 
         If Not DoNotArchive Then
 
@@ -476,8 +458,8 @@ Class SpecialTaks
                 Dim FixedPageContent As String = FixArchiveBox(Indexpage.Content)
 
                 Utils.EventLogger.Debug_Log(BotMessages.UpdatingArchiveBox, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
-                If SimpleTemplatePresent(FixedPageContent, ArchiveBoxTemplateName) Then
-                    Dim ArchiveBoxtext As String = GetSimpleTemplate(FixedPageContent, ArchiveBoxTemplateName)
+                If IsTemplatePresent(FixedPageContent, ArchiveBoxTemplateName) Then
+                    Dim ArchiveBoxtext As String = GetTemplate(FixedPageContent, ArchiveBoxTemplateName).Text
                     Dim temptxt As String = ArchiveBoxtext
                     Dim temp As New Template(ArchiveBoxtext, False)
                     For Each t As Tuple(Of String, String) In temp.Parameters
