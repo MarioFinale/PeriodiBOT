@@ -15,7 +15,6 @@ Public Class SignPatroller
                                                       Return tsing.ResolveQueue(editsqueue, workerbot)
                                                   End Function)
         TaskAdm.NewTask("Patrullar ediciones sin firma en discusiones", workerbot.UserName, QueueResolver, 250, True, False)
-
         Await Task.Run(Sub()
                            Try
                                While True
@@ -39,7 +38,7 @@ Public Class SignPatroller
                                            If Not tline.Contains("""wiki"":""eswiki""") Then Continue While
                                            If tline.Contains("""bot"":true,") Then Continue While
                                            If Not tline.Contains(",""type"":""edit"",") Then Continue While
-                                           If Not (Regex.Match(tline, """namespace"":(1|3|9|11|15|101|103|105),").Success) Then Continue While
+                                           If Not (Regex.Match(tline, """namespace"":(1|3|9|11|13|15|101|103|105|829),").Success) Then Continue While
                                            Dim tusername As String = If(Utils.TextInBetween(tline, ",""user"":""", """,").Count >= 1, Utils.TextInBetween(tline, ",""user"":""", """,")(0), "")
                                            Dim tpagename As String = If(Utils.TextInBetween(tline, ",""title"":""", """,").Count >= 1, Utils.TextInBetween(tline, ",""title"":""", """,")(0), "")
                                            Dim tdate As Date = Date.UtcNow

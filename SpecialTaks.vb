@@ -107,9 +107,7 @@ Class SpecialTaks
         Return True
     End Function
 
-
     Function ValidPage(ByVal PageToArchive As Page, ByVal ArchiveCfg As String()) As Boolean
-
         'Verificar el espacio de nombres de la página se archiva
         If Not ValidNamespace(PageToArchive) Then
             Utils.EventLogger.Debug_Log(String.Format(BotMessages.InvalidNamespace, PageToArchive.Title, PageToArchive.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
@@ -317,6 +315,7 @@ Class SpecialTaks
         End If
         Return GetTemplate(text, templatename)
     End Function
+
     Function GetTemplate(ByVal text As String, templatename As String) As Template
         Dim tlist As List(Of Template) = Template.GetTemplates(text)
         For Each t As Template In tlist
@@ -402,8 +401,6 @@ Class SpecialTaks
         Return Nothing
     End Function
 
-
-
     Private Function SetPageDestination(ByVal threaddate As Date, destination As String) As String
         Dim Threadyear As String = threaddate.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture)
         Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
@@ -422,12 +419,9 @@ Class SpecialTaks
         Return PageDestination
     End Function
 
-
     Private Function FixArchiveBox(ByVal pagetext As String) As String
         Return Regex.Replace(pagetext, "{{ *[Cc]aja (de)* *archivos", "{{Caja de archivos")
     End Function
-
-
 
     Private Function UpdateBox(Indexpage As Page, ArchivePages As IEnumerable(Of String), ArchiveBoxTemplateName As String) As Boolean
         Dim boxstring As String = WPStrings.BoxMessage
@@ -632,8 +626,6 @@ Class SpecialTaks
         Return True
     End Function
 
-
-
     ''' <summary>
     ''' Revisa todas las páginas que llamen a la página indicada y las retorna como sortedlist.
     ''' La Key es el nombre de la página en la plantilla y el valor asociado es un array donde el primer elemento es
@@ -683,8 +675,6 @@ Class SpecialTaks
         Next
         Return Reqlist
     End Function
-
-
 
     ''' <summary>
     ''' Actualiza los resúmenes de página basado en varios parámetros,
@@ -832,7 +822,6 @@ Class SpecialTaks
             Utils.EventLogger.Debug_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End Try
-
     End Function
 
     Function CheckInformalMediation() As Boolean
