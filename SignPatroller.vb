@@ -120,6 +120,8 @@ Public Class SignPatroller
         Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
         Dim dstring As String = Utils.GetSpanishTimeString(UnsignedDate)
         pagetext = pagetext.Replace(UnsignedThread, UnsignedThread.TrimEnd & " {{sust:No firmado|" & Username & "|" & dstring & "}}" & Environment.NewLine)
+        Dim scores As Double() = tpage.ORESScores
+        If scores(0) > 0.92R Then Return False
         If tpage.Save(pagetext, addmsg & String.Format(BotMessages.UnsignedSumm, Username), minor, True) = EditResults.Edit_successful Then Return True
         Return False
     End Function
