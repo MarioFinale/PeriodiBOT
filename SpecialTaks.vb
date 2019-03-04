@@ -310,35 +310,32 @@ Class SpecialTaks
     End Function
 
     Private Function SimpleTemplateNoParamIsPresent(ByVal text As String, templatename As String) As Boolean
-        Dim PageNameWithoutNamespace As String = templatename.Replace("{{", "").Replace("}}", "")
-        If templatename.Contains(":"c) Then
-            PageNameWithoutNamespace = templatename.Split(":"c)(1).Trim
-        End If
-        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+        If templatename.Contains(":"c) Then templatename = templatename.Split(":"c)(1).Trim
+        Dim PageNameRegex As String = "[" & templatename.Substring(0, 1).ToUpper & templatename.Substring(0, 1).ToLower & "]" & templatename.Substring(1)
         Dim templateregex As String = "{{ *" & PageNameRegex & " *}}"
         Dim IsPresent As Boolean = Regex.Match(text, templateregex).Success
         Return IsPresent
     End Function
 
     Private Function GetSimpleTemplateNoParam(ByVal text As String, templatename As String) As String
-        Dim PageNameWithoutNamespace As String = templatename.Split(":"c)(1).Trim
-        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+        If templatename.Contains(":"c) Then templatename = templatename.Split(":"c)(1).Trim
+        Dim PageNameRegex As String = "[" & templatename.Substring(0, 1).ToUpper & templatename.Substring(0, 1).ToLower & "]" & templatename.Substring(1)
         Dim templateregex As String = "{{ *" & PageNameRegex & " *}}"
         Dim tTemplate As String = Regex.Match(text, templateregex).Value
         Return tTemplate
     End Function
 
     Private Function GetSimpleTemplate(ByVal text As String, templatename As String) As String
-        Dim PageNameWithoutNamespace As String = templatename.Split(":"c)(1).Trim
-        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+        If templatename.Contains(":"c) Then templatename = templatename.Split(":"c)(1).Trim
+        Dim PageNameRegex As String = "[" & templatename.Substring(0, 1).ToUpper & templatename.Substring(0, 1).ToLower & "]" & templatename.Substring(1)
         Dim templateregex As String = "{{ *" & PageNameRegex & "[\s\S]+?}}"
         Dim tTemplate As String = Regex.Match(text, templateregex).Value
         Return tTemplate
     End Function
 
     Private Function SimpleTemplatePresent(ByVal text As String, templatename As String) As Boolean
-        Dim PageNameWithoutNamespace As String = templatename.Split(":"c)(1).Trim
-        Dim PageNameRegex As String = "[" & PageNameWithoutNamespace.Substring(0, 1).ToUpper & PageNameWithoutNamespace.Substring(0, 1).ToLower & "]" & PageNameWithoutNamespace.Substring(1)
+        If templatename.Contains(":"c) Then templatename = templatename.Split(":"c)(1).Trim
+        Dim PageNameRegex As String = "[" & templatename.Substring(0, 1).ToUpper & templatename.Substring(0, 1).ToLower & "]" & templatename.Substring(1)
         Dim templateregex As String = "{{ *" & PageNameRegex & "[\s\S]+?}}"
         Dim ispresent As Boolean = Regex.Match(text, templateregex).Success
         Return ispresent
@@ -453,7 +450,7 @@ Class SpecialTaks
     Private Function UpdateBox(Indexpage As Page, ArchivePages As IEnumerable(Of String), ArchiveBoxTemplateName As String) As Boolean
         Dim boxstring As String = WPStrings.BoxMessage
         If ArchiveBoxTemplateName.Contains(":"c) Then
-            ArchiveBoxTemplateName = ArchiveBoxTemplateName.Split(":"c)(1)
+            ArchiveBoxTemplateName = ArchiveBoxTemplateName.Split(":"c)(1).Trim
         End If
         Try
             'Verificar si está creada la página de archivo, si no, la crea.
