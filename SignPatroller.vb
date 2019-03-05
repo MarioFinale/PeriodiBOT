@@ -75,7 +75,7 @@ Public Class SignPatroller
 
         Dim expagethreads As String() = workerbot.Getpage("Usuario:PeriodiBOT/Paginas exentas de firma").Threads
         Dim expageslist As String() = (From tmatch In Regex.Matches(If(expagethreads.Count >= 1, expagethreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
-        If expageslist.Contains(tpagename) Then Return False
+        If expageslist.Contains(tpagename) Then : Utils.EventLogger.Log(String.Format(BotMessages.NotSigned, tpagename) & " INFO: EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue") : Return False :End if
 
         Dim exuserthreads As String() = workerbot.Getpage("Usuario:PeriodiBOT/Exentos firma").Threads
         Dim exuserlist As String() = (From tmatch In Regex.Matches(If(exuserthreads.Count >= 1, exuserthreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
@@ -83,13 +83,15 @@ Public Class SignPatroller
         Dim ackeckpagethreads As String() = workerbot.Getpage("Usuario:PeriodiBOT/Comprobar siempre firma").Threads
         Dim achecklist As String() = (From tmatch In Regex.Matches(If(ackeckpagethreads.Count >= 1, ackeckpagethreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
         Dim tuser As WikiUser = New WikiUser(workerbot, tedit.Item1)
+        Dim tpage As Page = workerbot.Getpage(tedit.Item2)
 
         If (tuser.EditCount < 500 And (Not exuserlist.Contains(tuser.UserName)) Or achecklist.Contains(tuser.UserName)) Then
-            Dim tpage As Page = workerbot.Getpage(tedit.Item2)
             If Date.UtcNow.Subtract(tpage.LastEdit).Minutes < 4 Then Return False
-            AddMissingSignature2(tpage, False, True, "TEST (" & GlobalVars.BotCodename & " " & GlobalVars.MwBotVersion & "/" & workerbot.UserName & " " & Initializer.BotVersion & "):", workerbot, tuser.UserName)
+            Return AddMissingSignature2(tpage, False, True, "TEST (" & GlobalVars.BotCodename & " " & GlobalVars.MwBotVersion & "/" & workerbot.UserName & " " & Initializer.BotVersion & "):", workerbot, tuser.UserName)
         End If
-        Return True
+        Utils.EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: EC=" & tuser.EditCount _
+                              & " EXULIST=" & exuserlist.Contains(tuser.UserName).ToString & " ACHECK=" & achecklist.Contains(tuser.UserName).ToString & " EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue")
+        Return False
     End Function
 
     Function AddMissingSignature2(ByVal tpage As Page, newthreads As Boolean, minor As Boolean, addmsg As String, workerbot As Bot, lastusername As String) As Boolean
@@ -117,12 +119,14 @@ Public Class SignPatroller
             End If
         End If
         If pusername = Username Then Return False
+        Utils.EventLogger.Log(String.Format(BotMessages.UnsignedMessageDetected, tpage.Title), "AddMissingSignature2")
         Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
         Dim dstring As String = Utils.GetSpanishTimeString(UnsignedDate)
         pagetext = pagetext.Replace(UnsignedThread, UnsignedThread.TrimEnd & " {{sust:No firmado|" & Username & "|" & dstring & "}}" & Environment.NewLine)
         Dim scores As Double() = tpage.ORESScores
-        If scores(0) > 0.92R Then Return False
+        If scores(0) > 0.89R Then : Utils.EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: ORES(0)=" & scores(0).ToString, "AddMissingSignature2") : Return False : End If
         If tpage.Save(pagetext, addmsg & String.Format(BotMessages.UnsignedSumm, Username), minor, True) = EditResults.Edit_successful Then Return True
+        Utils.EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title), "AddMissingSignature2")
         Return False
     End Function
 

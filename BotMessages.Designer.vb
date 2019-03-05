@@ -622,6 +622,15 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
+    '''  Busca una cadena traducida similar a No se ha completado la firma en &apos;{0}&apos;..
+    '''</summary>
+    Friend Shared ReadOnly Property NotSigned() As String
+        Get
+            Return ResourceManager.GetString("NotSigned", resourceCulture)
+        End Get
+    End Property
+    
+    '''<summary>
     '''  Busca una cadena traducida similar a El parámetro es nulo..
     '''</summary>
     Friend Shared ReadOnly Property NullParameter() As String
@@ -901,7 +910,16 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Bot: Añadiendo firma faltante de &apos;{0}&apos;..
+    '''  Busca una cadena traducida similar a Mensaje sin firmar detectado en &apos;{0}&apos;..
+    '''</summary>
+    Friend Shared ReadOnly Property UnsignedMessageDetected() As String
+        Get
+            Return ResourceManager.GetString("UnsignedMessageDetected", resourceCulture)
+        End Get
+    End Property
+    
+    '''<summary>
+    '''  Busca una cadena traducida similar a Bot: Añadiendo firma faltante de [[Usuario:{0}|]]..
     '''</summary>
     Friend Shared ReadOnly Property UnsignedSumm() As String
         Get
