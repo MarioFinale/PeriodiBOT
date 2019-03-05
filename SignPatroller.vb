@@ -124,7 +124,7 @@ Public Class SignPatroller
         Dim dstring As String = Utils.GetSpanishTimeString(UnsignedDate)
         pagetext = pagetext.Replace(UnsignedThread, UnsignedThread.TrimEnd & " {{sust:No firmado|" & Username & "|" & dstring & "}}" & Environment.NewLine)
         Dim scores As Double() = tpage.ORESScores
-        If scores(0) > 0.75R Then : Utils.EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: ORES(0)=" & scores(0).ToString, "AddMissingSignature2") : Return False : End If
+        If scores(0) > 0.97R Then : Utils.EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: ORES(0)=" & scores(0).ToString, "AddMissingSignature2") : Return False : End If
         If tpage.Save(pagetext, addmsg & String.Format(BotMessages.UnsignedSumm, Username), minor, True) = EditResults.Edit_successful Then Return True
         Utils.EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title), "AddMissingSignature2")
         Return False
