@@ -1,10 +1,12 @@
 ﻿Option Strict On
 Option Explicit On
-Imports PeriodiBOT_IRC.IRC
+Imports IRCCLIENT.IRC
 Imports PeriodiBOT_IRC.My.Resources
 Imports MWBot.net
 Imports MWBot.net.WikiBot
 Imports MWBot.net.GlobalVars
+Imports Utils.Utils
+
 
 Public NotInheritable Class Initializer
     Private Sub New()
@@ -20,40 +22,45 @@ Public NotInheritable Class Initializer
     Public Shared ArchiveBoxTemplateName As String = "Plantilla:Caja de archivos"
     Public Shared ArchiveMessageTemplateName As String = "Plantilla:Archivo"
     Public Shared AutoSignatureTemplateName As String = "Plantilla:Firma automática"
-
+    Public Shared BotName As String = "PeriodiBOT"
 
 
     Public Shared Sub Init()
         Uptime = DateTime.Now
         Dim ESWikiBOT As New Bot(New ConfigFile(ConfigFilePath))
-        Dim BotIRC As New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT)
+        Dim BotIRC As New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"})
+
+        Dim sptask2 As New SpecialTaks(ESWikiBOT)
+        sptask2.AutoArchive(ESWikiBOT.Getpage("Usuario discusión:MarioFinale"), ArchiveTemplateName, DoNotArchiveTemplateName,
+                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+
         Dim tPatroller As New SignPatroller
         BotIRC.StartClient()
         tPatroller.StartPatroller(ESWikiBOT)
 
-        If Utils.BotSettings.Contains("ArchiveTemplateName") Then
-            ArchiveTemplateName = Utils.BotSettings.Get("ArchiveTemplateName").ToString() : Else
-            Utils.BotSettings.NewVal("ArchiveTemplateName", "Plantilla:Archivado automático")
+        If SettingsProvider.Contains("ArchiveTemplateName") Then
+            ArchiveTemplateName = SettingsProvider.Get("ArchiveTemplateName").ToString() : Else
+            SettingsProvider.NewVal("ArchiveTemplateName", "Plantilla:Archivado automático")
         End If
-        If Utils.BotSettings.Contains("DoNotArchiveTemplateName") Then
-            DoNotArchiveTemplateName = Utils.BotSettings.Get("DoNotArchiveTemplateName").ToString() : Else
-            Utils.BotSettings.NewVal("DoNotArchiveTemplateName", "Plantilla:No archivar")
+        If SettingsProvider.Contains("DoNotArchiveTemplateName") Then
+            DoNotArchiveTemplateName = SettingsProvider.Get("DoNotArchiveTemplateName").ToString() : Else
+            SettingsProvider.NewVal("DoNotArchiveTemplateName", "Plantilla:No archivar")
         End If
-        If Utils.BotSettings.Contains("ProgrammedArchiveTemplateName") Then
-            ProgrammedArchiveTemplateName = Utils.BotSettings.Get("ProgrammedArchiveTemplateName").ToString() : Else
-            Utils.BotSettings.NewVal("ProgrammedArchiveTemplateName", "Plantilla:Archivo programado")
+        If SettingsProvider.Contains("ProgrammedArchiveTemplateName") Then
+            ProgrammedArchiveTemplateName = SettingsProvider.Get("ProgrammedArchiveTemplateName").ToString() : Else
+            SettingsProvider.NewVal("ProgrammedArchiveTemplateName", "Plantilla:Archivo programado")
         End If
-        If Utils.BotSettings.Contains("ArchiveBoxTemplateName") Then
-            ArchiveBoxTemplateName = Utils.BotSettings.Get("ArchiveBoxTemplateName").ToString() : Else
-            Utils.BotSettings.NewVal("ArchiveBoxTemplateName", "Plantilla:Caja de archivos")
+        If SettingsProvider.Contains("ArchiveBoxTemplateName") Then
+            ArchiveBoxTemplateName = SettingsProvider.Get("ArchiveBoxTemplateName").ToString() : Else
+            SettingsProvider.NewVal("ArchiveBoxTemplateName", "Plantilla:Caja de archivos")
         End If
-        If Utils.BotSettings.Contains("ArchiveMessageTemplateName") Then
-            ArchiveMessageTemplateName = Utils.BotSettings.Get("ArchiveMessageTemplateName").ToString() : Else
-            Utils.BotSettings.NewVal("ArchiveMessageTemplateName", "Plantilla:Archivo")
+        If SettingsProvider.Contains("ArchiveMessageTemplateName") Then
+            ArchiveMessageTemplateName = SettingsProvider.Get("ArchiveMessageTemplateName").ToString() : Else
+            SettingsProvider.NewVal("ArchiveMessageTemplateName", "Plantilla:Archivo")
         End If
-        If Utils.BotSettings.Contains("AutoSignatureTemplateName") Then
-            AutoSignatureTemplateName = Utils.BotSettings.Get("AutoSignatureTemplateName").ToString() : Else
-            Utils.BotSettings.NewVal("AutoSignatureTemplateName", "Plantilla:Firma automática")
+        If SettingsProvider.Contains("AutoSignatureTemplateName") Then
+            AutoSignatureTemplateName = SettingsProvider.Get("AutoSignatureTemplateName").ToString() : Else
+            SettingsProvider.NewVal("AutoSignatureTemplateName", "Plantilla:Firma automática")
         End If
 
         'Tarea para actualizar el contador de solicitudes de autorizaciones de bots

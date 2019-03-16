@@ -39,7 +39,7 @@
     <DebugType>full</DebugType>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\Comp\</OutputPath>
     <DocumentationFile>PeriodiBOT-IRC.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
@@ -69,8 +69,17 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MWBot.net">
-      <HintPath>..\MWBot.net\MWBot.net\bin\Debug\MWBot.net.dll</HintPath>
+    <Reference Include="IRCCLIENT, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Comp\IRCCLIENT.dll</HintPath>
+    </Reference>
+    <Reference Include="LogEngine, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Comp\LogEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="MWBot.net, Version=0.9.7009.23397, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Comp\MWBot.net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -81,6 +90,10 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="Utils, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Comp\Utils.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
@@ -100,22 +113,15 @@
       <DependentUpon>BotMessages.resx</DependentUpon>
     </Compile>
     <Compile Include="ChatMessage.vb" />
-    <Compile Include="IRCCommandParams.vb" />
     <Compile Include="SignPatroller.vb" />
     <Compile Include="WPStrings.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>WPStrings.resx</DependentUpon>
     </Compile>
-    <Compile Include="TaskInfo.vb" />
     <Compile Include="WikiTopicList.vb" />
     <Compile Include="Initializer.vb" />
-    <Compile Include="IRCCommand.vb" />
-    <Compile Include="IRCCommands.vb" />
     <Compile Include="SpecialTaks.vb" />
-    <Compile Include="IRCMessage.vb" />
-    <Compile Include="IRC_Client.vb" />
-    <Compile Include="IRCCommandResolver.vb" />
     <Compile Include="MainModule.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
@@ -132,7 +138,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="TaskAdmin.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="BotMessages.resx">

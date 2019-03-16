@@ -6,6 +6,7 @@ Imports MWBot.net
 Imports MWBot.net.WikiBot
 Imports System.Text.RegularExpressions
 Imports System.Text
+Imports Utils.Utils
 
 Public Class WikiTopicList
         Private _bot As Bot
@@ -24,7 +25,7 @@ Public Class WikiTopicList
                     Return False
                 End If
             Catch ex As Exception
-                Utils.EventLogger.EX_Log(ex.Message, "UpdateTopics")
+                EventLogger.EX_Log(ex.Message, "UpdateTopics")
                 Return False
             End Try
         End Function
@@ -81,7 +82,7 @@ Public Class WikiTopicList
 
         Private Function GetTopicGroups() As SortedDictionary(Of String, List(Of String))
             Dim GroupsPage As Page = _bot.Getpage(WPStrings.TopicGroupsPage) 'Inicializar página de grupos
-            Dim Threads As String() = Utils.GetPageThreads(GroupsPage.Content) 'Obtener hilos de la página
+            Dim Threads As String() = GetPageThreads(GroupsPage.Content) 'Obtener hilos de la página
 
             Dim Groups As New SortedDictionary(Of String, List(Of String))
             For Each t As String In Threads 'Por cada hilo...
@@ -89,7 +90,7 @@ Public Class WikiTopicList
                 If Not Groups.Keys.Contains(threadTitle) Then 'Si el diccionario no contiene el título del hilo...
                     Groups.Add(threadTitle, New List(Of String)) 'Añade el hilo al diccionario
                 End If
-                For Each l As String In Utils.GetLines(t, True) 'Por cada línea en el hilo...
+                For Each l As String In GetLines(t, True) 'Por cada línea en el hilo...
                     If Not Regex.Match(l, "(\n|^)(==.+==)").Success Then 'Si no es el título del hilo
                         Dim top As String = l.Trim.Trim("*"c).Trim 'Eliminar los espacios en blanco y asteriscos al principio y al final
                         Groups(threadTitle).Add(top) 'Añadirlo a la clave en el diccionario
@@ -174,7 +175,7 @@ Public Class WikiTopicList
                 threadTitle = Regex.Replace(threadTitle, "(\[{1,2}[^\|\]]+)", "").Replace("]"c, "").Replace("|"c, "")
             End If
             threadTitle = Regex.Replace(threadTitle, "<+.+?>+", "") 'Quitar etiquetas HTML
-            Dim threadTitleLink As String = Utils.UrlWebEncode(threadTitle.Trim.Replace(" ", "_").Replace("'''", "").Replace("''", ""))
+            Dim threadTitleLink As String = UrlWebEncode(threadTitle.Trim.Replace(" ", "_").Replace("'''", "").Replace("''", ""))
             Dim threadLink As String = Pagetitle & "#" & threadTitleLink 'Generar enlace al hilo específico
 
             threadTitle = Regex.Replace(threadTitle, "\{{1,2}|\}{1,2}", "") 'Quitar plantillas
@@ -192,7 +193,7 @@ Public Class WikiTopicList
                     Dim threadTitle As String = TitleAndLink.Item1
                     Dim threadLink As String = TitleAndLink.Item2
                     Dim threadResume As String = String.Empty 'Inicializa el resumen del hilo
-                    Dim lastsignature As Date = Utils.FirstDate(t) 'Firma más antigua del hilo
+                    Dim lastsignature As Date = FirstDate(t) 'Firma más antigua del hilo
                     If lastsignature.Year = 9999 Then 'Hilo con plantilla pero sin firma
                         Continue For 'No añadir hilo
                     End If
@@ -239,7 +240,7 @@ Public Class WikiTopicList
                     TotalThreadCount += 1
                     Dim TitleAndLink As Tuple(Of String, String) = GetTitleAndLink(CPage, thread)
                     Dim ThreadSize As Integer = Encoding.Unicode.GetByteCount(thread) 'bytes del hilo
-                    Dim ThreadDate As Date = Utils.FirstDate(thread)
+                    Dim ThreadDate As Date = FirstDate(thread)
                     If Not threadlist.Keys.Contains(ThreadSize) Then
                         threadlist.Add(ThreadSize, New List(Of Tuple(Of String, String, Date)))
                     End If
@@ -257,12 +258,12 @@ Public Class WikiTopicList
             Next
 
             For i As Integer = 0 To 10
-                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & Utils.GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & Utils.GetSizeAsString(Top100(i).Item1) & "." & Environment.NewLine
+                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & GetSizeAsString(Top100(i).Item1) & "." & Environment.NewLine
             Next
 
             PageText = PageText & Environment.NewLine & "== Más hilos grandes ==" & Environment.NewLine
             For i As Integer = 11 To Top100.Count - 1
-                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & Utils.GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & Utils.GetSizeAsString(Top100(i).Item1) & "." & Environment.NewLine
+                PageText = PageText & "*[[" & (Top100(i).Item3) & "|" & Top100(i).Item2 & "]]. Iniciado el " & GetSpanishTimeString(Top100(i).Item4) & " con un peso de " & GetSizeAsString(Top100(i).Item1) & "." & Environment.NewLine
             Next
 
             Dim tPage As Page = _bot.Getpage(WPStrings.LongestThreads)

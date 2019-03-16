@@ -418,7 +418,7 @@
     <value>Intentando guardar '{0}'.</value>
   </data>
   <data name="UnsignedSumm" xml:space="preserve">
-    <value>Bot: Añadiendo firma faltante de [[Usuario:{0}|]].</value>
+    <value>Bot: Añadiendo firma faltante de [[Usuario:{0}|{0}]].</value>
   </data>
   <data name="UnsuccessfulOperation" xml:space="preserve">
     <value>La operación ha fallado.</value>

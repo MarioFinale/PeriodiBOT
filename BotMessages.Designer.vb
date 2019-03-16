@@ -919,7 +919,7 @@ Friend Class BotMessages
     End Property
     
     '''<summary>
-    '''  Busca una cadena traducida similar a Bot: Añadiendo firma faltante de [[Usuario:{0}|]]..
+    '''  Busca una cadena traducida similar a Bot: Añadiendo firma faltante de [[Usuario:{0}|{0}]]..
     '''</summary>
     Friend Shared ReadOnly Property UnsignedSumm() As String
         Get
