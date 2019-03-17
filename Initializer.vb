@@ -7,7 +7,6 @@ Imports MWBot.net.WikiBot
 Imports MWBot.net.GlobalVars
 Imports Utils.Utils
 
-
 Public NotInheritable Class Initializer
     Private Sub New()
     End Sub
@@ -29,10 +28,6 @@ Public NotInheritable Class Initializer
         Uptime = DateTime.Now
         Dim ESWikiBOT As New Bot(New ConfigFile(ConfigFilePath))
         Dim BotIRC As New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"})
-
-        Dim sptask2 As New SpecialTaks(ESWikiBOT)
-        sptask2.AutoArchive(ESWikiBOT.Getpage("Usuario discusión:MarioFinale"), ArchiveTemplateName, DoNotArchiveTemplateName,
-                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
 
         Dim tPatroller As New SignPatroller
         BotIRC.StartClient()
