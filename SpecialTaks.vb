@@ -243,11 +243,10 @@ Class SpecialTaks
                 'Si debe tener caja de archivos...
                 If useBox Then
                     If Not Regex.Match(Newpagetext, "{{" & IndexPage.Title & "}}", RegexOptions.IgnoreCase).Success Then
-                        Dim Archivetemplate As String = GetTemplate(PageToArchive.Content, ArchiveTemplateName).Text
+                        Dim Archivetemplate As String = GetTemplate(PageToArchive.Content, ArchiveTemplateName, True).Text
                         Newpagetext = Newpagetext.Replace(Archivetemplate, Archivetemplate & Environment.NewLine & "{{" & IndexPage.Title & "}}" & Environment.NewLine)
                     End If
                 End If
-
                 Dim isminor As Boolean = Not notify
                 Dim Summary As String = String.Format(BotMessages.ArchivedThreadSumm, ArchivedThreads, maxDays.ToString)
                 If ArchivedThreads > 1 Then
@@ -258,7 +257,6 @@ Class SpecialTaks
         Else
             EventLogger.Log(String.Format(BotMessages.NothingToArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         End If
-
         EventLogger.Log(String.Format(BotMessages.AutoArchiveDone, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         Return True
     End Function
