@@ -5,7 +5,6 @@ Imports PeriodiBOT_IRC.My.Resources
 Imports MWBot.net.WikiBot
 Imports MWBot.net
 Imports Utils.Utils
-Imports MWBot.net.GlobalVars
 
 Class SpecialTaks
     Private _bot As Bot
