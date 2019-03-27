@@ -21,9 +21,10 @@ Public NotInheritable Class Initializer
     Public Shared ArchiveBoxTemplateName As String = "Plantilla:Caja de archivos"
     Public Shared ArchiveMessageTemplateName As String = "Plantilla:Archivo"
     Public Shared AutoSignatureTemplateName As String = "Plantilla:Firma automática"
+    Public Shared Uptime As Date
 
     Public Shared Sub Init()
-        Uptime = DateTime.Now
+        Uptime = Date.Now
         Dim ESWikiBOT As New Bot(New ConfigFile(ConfigFilePath))
         Dim BotIRC As New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"})
 

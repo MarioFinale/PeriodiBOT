@@ -168,7 +168,15 @@ Public Class SignPatroller
         If String.IsNullOrEmpty(text) Then
             Throw New ArgumentException("Empty parameter", "text")
         End If
-        Dim lastparagraph As String = Regex.Match(text, ".+(?=\n+==.+==|$|\n+$)").Value
+        Dim lastparagraph As String = String.Empty
+        For count As Integer = 0 To 2
+            lastparagraph = Regex.Match(text, ".+(?=\n+==.+==|$|\n+$)").Value
+            If lastparagraph.Count < 10 Then
+                text = Regex.Replace(text, ".+(?=\n+==.+==|$|\n+$)", "")
+            Else
+                Exit For
+            End If
+        Next
         Dim TheDate As Date = ESWikiDatetime(lastparagraph)
         EventLogger.Debug_Log("Returning " & TheDate.ToString, Reflection.MethodBase.GetCurrentMethod().Name)
         Return TheDate
