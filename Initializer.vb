@@ -28,9 +28,9 @@ Public NotInheritable Class Initializer
         Dim ESWikiBOT As New Bot(New ConfigFile(ConfigFilePath))
         Dim BotIRC As New IRC_Client(New ConfigFile(IrcConfigPath), 6667, New ConfigFile(IrcOpPath), ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"})
 
-        Dim tPatroller As New SignPatroller
+        Dim tPatroller As New SignPatroller(ESWikiBOT)
         BotIRC.StartClient()
-        tPatroller.StartPatroller(ESWikiBOT)
+        tPatroller.StartPatroller()
 
         If SettingsProvider.Contains("ArchiveTemplateName") Then
             ArchiveTemplateName = SettingsProvider.Get("ArchiveTemplateName").ToString() : Else
@@ -56,6 +56,11 @@ Public NotInheritable Class Initializer
             AutoSignatureTemplateName = SettingsProvider.Get("AutoSignatureTemplateName").ToString() : Else
             SettingsProvider.NewVal("AutoSignatureTemplateName", "Plantilla:Firma automática")
         End If
+
+        Dim signtask2 As New SpecialTaks(ESWikiBOT)
+        signtask2.AutoArchive(ESWikiBOT.Getpage("Usuario discusión:MarioFinale/test"), ArchiveTemplateName, DoNotArchiveTemplateName,
+                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+
 
         'Tarea para actualizar el contador de solicitudes de autorizaciones de bots
         Dim BotCountFunc As New Func(Of Boolean)(Function()
@@ -128,10 +133,7 @@ Public NotInheritable Class Initializer
 
         TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(20, 0, 0), True)
 
-
-
     End Sub
-
 
 
 

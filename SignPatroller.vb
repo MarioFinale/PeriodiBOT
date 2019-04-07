@@ -9,7 +9,12 @@ Imports PeriodiBOT_IRC.Initializer
 Imports Utils.Utils
 
 Public Class SignPatroller
-    Public Sub StartPatroller(ByVal workerbot As Bot)
+    ReadOnly Property WorkerBot As Bot
+    Sub New(ByRef workerbot As Bot)
+        _WorkerBot = workerbot
+    End Sub
+
+    Public Sub StartPatroller()
         Dim editsqueue As New Queue(Of Tuple(Of String, String, Date))
 
         Dim RChangesWatcher As New Func(Of Boolean)(Function()
@@ -34,30 +39,30 @@ Public Class SignPatroller
                                                                         EventLogger.Debug_Log("Edición en '" & tpagename & "'" & " por '" & tusername & "'.", "RecentChanges watcher")
                                                                     End While
                                                                 Catch ex As IOException
-                                                                    EventLogger.EX_Log(ex.Message, "AutoSignPatrol", workerbot.UserName)
+                                                                    EventLogger.EX_Log(ex.Message, "AutoSignPatrol", WorkerBot.UserName)
                                                                     Exit While
                                                                 Catch ex2 As WebException
-                                                                    EventLogger.EX_Log(ex2.Message, "AutoSignPatrol", workerbot.UserName)
+                                                                    EventLogger.EX_Log(ex2.Message, "AutoSignPatrol", WorkerBot.UserName)
                                                                     Exit While
                                                                 End Try
                                                             End While
                                                         Catch ex As Exception
-                                                            EventLogger.EX_Log("FATAL EX: " & ex.Message, "AutoSignPatrol", workerbot.UserName)
+                                                            EventLogger.EX_Log("FATAL EX: " & ex.Message, "AutoSignPatrol", WorkerBot.UserName)
                                                         End Try
                                                         Return False
                                                     End Function)
 
         Dim QueueResolver As New Func(Of Boolean)(Function()
-                                                      Dim tsing As New SignPatroller
-                                                      Return tsing.ResolveQueue(editsqueue, workerbot)
+                                                      Dim tsing As New SignPatroller(WorkerBot)
+                                                      Return tsing.ResolveQueue(editsqueue)
                                                   End Function)
 
-        TaskAdm.NewTask("RecentChanges watcher", workerbot.UserName, RChangesWatcher, 1500, True, False)
-        TaskAdm.NewTask("Patrullar ediciones sin firma en discusiones", workerbot.UserName, QueueResolver, 250, True, False)
+        TaskAdm.NewTask("RecentChanges watcher", WorkerBot.UserName, RChangesWatcher, 1500, True, False)
+        TaskAdm.NewTask("Patrullar ediciones sin firma en discusiones", WorkerBot.UserName, QueueResolver, 250, True, False)
 
     End Sub
 
-    Private Function ResolveQueue(ByRef editsqueue As Queue(Of Tuple(Of String, String, Date)), ByVal workerbot As Bot) As Boolean
+    Private Function ResolveQueue(ByRef editsqueue As Queue(Of Tuple(Of String, String, Date))) As Boolean
         Dim tedit As Tuple(Of String, String, Date)
         If editsqueue.Count = 0 Then Return False
         SyncLock editsqueue
@@ -69,32 +74,32 @@ Public Class SignPatroller
         End SyncLock
         Dim tpagename As String = tedit.Item2
 
-        Dim expagethreads As String() = workerbot.Getpage("Usuario:PeriodiBOT/Paginas exentas de firma").Threads
+        Dim expagethreads As String() = WorkerBot.Getpage("Usuario:PeriodiBOT/Paginas exentas de firma").Threads
         Dim expageslist As String() = (From tmatch In Regex.Matches(If(expagethreads.Count >= 1, expagethreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
         If expageslist.Contains(tpagename) Then : EventLogger.Log(String.Format(BotMessages.NotSigned, tpagename) & " INFO: EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue") : Return False : End If
 
-        Dim exuserthreads As String() = workerbot.Getpage("Usuario:PeriodiBOT/Exentos firma").Threads
+        Dim exuserthreads As String() = WorkerBot.Getpage("Usuario:PeriodiBOT/Exentos firma").Threads
         Dim exuserlist As String() = (From tmatch In Regex.Matches(If(exuserthreads.Count >= 1, exuserthreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
 
-        Dim ackeckpagethreads As String() = workerbot.Getpage("Usuario:PeriodiBOT/Comprobar siempre firma").Threads
+        Dim ackeckpagethreads As String() = WorkerBot.Getpage("Usuario:PeriodiBOT/Comprobar siempre firma").Threads
         Dim achecklist As String() = (From tmatch In Regex.Matches(If(ackeckpagethreads.Count >= 1, ackeckpagethreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
-        Dim tuser As WikiUser = New WikiUser(workerbot, tedit.Item1)
-        Dim tpage As Page = workerbot.Getpage(tedit.Item2)
+        Dim tuser As WikiUser = New WikiUser(WorkerBot, tedit.Item1)
+        Dim tpage As Page = WorkerBot.Getpage(tedit.Item2)
 
         If (tuser.EditCount < 500 And (Not exuserlist.Contains(tuser.UserName)) Or achecklist.Contains(tuser.UserName)) Then
             If Date.UtcNow.Subtract(tpage.LastEdit).Minutes < 4 Then Return False
-            Return AddMissingSignature2(tpage, False, True, "TEST (" & GlobalVars.Codename & " " & GlobalVars.MwBotVersion & "/" & BotName & " " & BotVersion & "):", workerbot, tuser.UserName)
+            Return AddMissingSignature2(tpage, False, True, "TEST (" & GlobalVars.Codename & " " & GlobalVars.MwBotVersion & "/" & BotName & " " & BotVersion & "):", tuser.UserName)
         End If
         EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: EC=" & tuser.EditCount _
                               & " EXULIST=" & exuserlist.Contains(tuser.UserName).ToString & " ACHECK=" & achecklist.Contains(tuser.UserName).ToString & " EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue")
         Return False
     End Function
 
-    Function AddMissingSignature2(ByVal tpage As Page, newthreads As Boolean, minor As Boolean, addmsg As String, workerbot As Bot, lastusername As String) As Boolean
-        If tpage.Lastuser = workerbot.UserName Then Return False 'No completar firma en páginas en las que haya editado
-        Dim LastUser As WikiUser = New WikiUser(workerbot, tpage.Lastuser)
+    Function AddMissingSignature2(ByVal tpage As Page, newthreads As Boolean, minor As Boolean, addmsg As String, lastusername As String) As Boolean
+        If tpage.Lastuser = WorkerBot.UserName Then Return False 'No completar firma en páginas en las que haya editado
+        Dim LastUser As WikiUser = New WikiUser(WorkerBot, tpage.Lastuser)
         If LastUser.IsBot Then Return False
-        Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection2(tpage, newthreads, workerbot)
+        Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection2(tpage, newthreads)
         If UnsignedSectionInfo Is Nothing Then Return False
         Dim pagetext As String = tpage.Content
         Dim UnsignedThread As String = UnsignedSectionInfo.Item1
@@ -126,9 +131,9 @@ Public Class SignPatroller
         Return False
     End Function
 
-    Function GetLastUnsignedSection2(ByVal tpage As Page, newthreads As Boolean, workerbot As Bot) As Tuple(Of String, String, Date)
-        If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name, workerbot.UserName)
-        Dim oldPage As Page = workerbot.Getpage(tpage.ParentRevId)
+    Function GetLastUnsignedSection2(ByVal tpage As Page, newthreads As Boolean) As Tuple(Of String, String, Date)
+        If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name, WorkerBot.UserName)
+        Dim oldPage As Page = WorkerBot.Getpage(tpage.ParentRevId)
         Dim currentPage As Page = tpage
 
         Dim oldPageThreads As String() = oldPage.Threads
@@ -178,7 +183,7 @@ Public Class SignPatroller
             End If
         Next
         Dim TheDate As Date = ESWikiDatetime(lastparagraph)
-        EventLogger.Debug_Log("Returning " & TheDate.ToString, Reflection.MethodBase.GetCurrentMethod().Name)
+        EventLogger.Debug_Log("Returning " & TheDate.ToString, Reflection.MethodBase.GetCurrentMethod().Name, WorkerBot.UserName)
         Return TheDate
     End Function
 
