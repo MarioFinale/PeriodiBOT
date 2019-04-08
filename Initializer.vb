@@ -27,7 +27,6 @@ Public NotInheritable Class Initializer
         Uptime = Date.Now
         Dim ESWikiBOT As New Bot(ConfigFilePath)
         Dim BotIRC As New IRC_Client(IrcConfigPath, 6667, IrcOpPath, ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"})
-
         Dim tPatroller As New SignPatroller(ESWikiBOT)
         BotIRC.StartClient()
         tPatroller.StartPatroller()

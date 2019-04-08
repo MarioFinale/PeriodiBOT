@@ -119,7 +119,8 @@ Public Class SignPatroller
                 pusername = pusername.Trim()
             End If
         End If
-        If pusername = Username Then Return False
+        If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar reversiones, nunca.
+        If pusername = Username Then Return False 'No firmar ediciones del usuario dueño de la página.
         EventLogger.Log(String.Format(BotMessages.UnsignedMessageDetected, tpage.Title), "AddMissingSignature2")
         Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
         Dim dstring As String = GetSpanishTimeString(UnsignedDate)
