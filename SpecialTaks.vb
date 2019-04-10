@@ -172,10 +172,12 @@ Class SpecialTaks
         End If
 
         'Revisar hilos y archivar si corresponde
-        Dim archiveResults As Tuple(Of SortedList(Of String, String), String, Integer) = CheckAndArchiveThreads(PageToArchive.Title, pageThreads, PageToArchive.Content,
-                                                                                                                strategy, pageDest, maxDays, ArchiveTemplateName,
-                                                                                                                DoNotArchiveTemplateName, ProgrammedArchiveTemplateName,
-                                                                                                                ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+        Dim archiveResults As Tuple(Of SortedList(Of String, String), String, Integer) =
+            CheckAndArchiveThreads(PageToArchive.Title, pageThreads, PageToArchive.Content,
+                                   strategy, pageDest, maxDays, ArchiveTemplateName,
+                                   DoNotArchiveTemplateName, ProgrammedArchiveTemplateName,
+                                   ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+
         Dim ArchivedList As SortedList(Of String, String) = archiveResults.Item1
         Dim Newpagetext As String = archiveResults.Item2
         Dim ArchivedThreads As Integer = archiveResults.Item3
@@ -281,10 +283,12 @@ Class SpecialTaks
                 Else
                     Continue For
                 End If
-                Dim threadresult As Tuple(Of Tuple(Of String, String), String) = CheckAndArchiveThread(thread, tDate, maxDate, newText, ConfigDest,
-                                                                                                       ArchiveTemplateName, DoNotArchiveTemplateName,
-                                                                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName,
-                                                                                                       ArchiveMessageTemplateName)
+                Dim threadresult As Tuple(Of Tuple(Of String, String), String) =
+                    CheckAndArchiveThread(thread, tDate, maxDate, newText, ConfigDest,
+                                          ArchiveTemplateName, DoNotArchiveTemplateName,
+                                          ProgrammedArchiveTemplateName, ArchiveBoxTemplateName,
+                                          ArchiveMessageTemplateName)
+
                 If threadresult Is Nothing Then Continue For
                 archivedThreads += 1
                 Dim ArchivedThreadInfo As Tuple(Of String, String) = threadresult.Item1

@@ -17,40 +17,41 @@ Public Class SignPatroller
     Public Sub StartPatroller()
         Dim editsqueue As New Queue(Of Tuple(Of String, String, Date))
 
-        Dim RChangesWatcher As New Func(Of Boolean)(Function()
-                                                        Try
-                                                            While True
-                                                                Try
-                                                                    Dim tclient As WebClient = New WebClient()
-                                                                    Dim tstream As Stream = tclient.OpenRead(New Uri("https://stream.wikimedia.org/v2/stream/recentchange"))
-                                                                    Dim tstreamreader As StreamReader = New StreamReader(tstream)
-                                                                    While True
-                                                                        Dim tline As String = tstreamreader.ReadLine
-                                                                        If Not tline.Contains("""wiki"":""eswiki""") Then Continue While
-                                                                        If tline.Contains("""bot"":true,") Then Continue While
-                                                                        If Not tline.Contains(",""type"":""edit"",") Then Continue While
-                                                                        If Not (Regex.Match(tline, """namespace"":(1|3|9|11|13|15|101|103|105|829),").Success) Then Continue While
-                                                                        Dim tusername As String = If(TextInBetween(tline, ",""user"":""", """,").Count >= 1, TextInBetween(tline, ",""user"":""", """,")(0), "")
-                                                                        Dim tpagename As String = If(TextInBetween(tline, ",""title"":""", """,").Count >= 1, TextInBetween(tline, ",""title"":""", """,")(0), "")
-                                                                        Dim tdate As Date = Date.UtcNow
-                                                                        SyncLock editsqueue
-                                                                            editsqueue.Enqueue(New Tuple(Of String, String, Date)(tusername, tpagename, tdate))
-                                                                        End SyncLock
-                                                                        EventLogger.Debug_Log("Edición en '" & tpagename & "'" & " por '" & tusername & "'.", "RecentChanges watcher")
-                                                                    End While
-                                                                Catch ex As IOException
-                                                                    EventLogger.EX_Log(ex.Message, "AutoSignPatrol", WorkerBot.UserName)
-                                                                    Exit While
-                                                                Catch ex2 As WebException
-                                                                    EventLogger.EX_Log(ex2.Message, "AutoSignPatrol", WorkerBot.UserName)
-                                                                    Exit While
-                                                                End Try
-                                                            End While
-                                                        Catch ex As Exception
-                                                            EventLogger.EX_Log("FATAL EX: " & ex.Message, "AutoSignPatrol", WorkerBot.UserName)
-                                                        End Try
-                                                        Return False
-                                                    End Function)
+        Dim RChangesWatcher As New Func(Of Boolean) _
+            (Function()
+                 Try
+                     While True
+                         Try
+                             Dim tclient As WebClient = New WebClient()
+                             Dim tstream As Stream = tclient.OpenRead(New Uri("https://stream.wikimedia.org/v2/stream/recentchange"))
+                             Dim tstreamreader As StreamReader = New StreamReader(tstream)
+                             While True
+                                 Dim tline As String = tstreamreader.ReadLine
+                                 If Not tline.Contains("""wiki"":""eswiki""") Then Continue While
+                                 If tline.Contains("""bot"":true,") Then Continue While
+                                 If Not tline.Contains(",""type"":""edit"",") Then Continue While
+                                 If Not (Regex.Match(tline, """namespace"":(1|3|9|11|13|15|101|103|105|829),").Success) Then Continue While
+                                 Dim tusername As String = If(TextInBetween(tline, ",""user"":""", """,").Count >= 1, TextInBetween(tline, ",""user"":""", """,")(0), "")
+                                 Dim tpagename As String = If(TextInBetween(tline, ",""title"":""", """,").Count >= 1, TextInBetween(tline, ",""title"":""", """,")(0), "")
+                                 Dim tdate As Date = Date.UtcNow
+                                 SyncLock editsqueue
+                                     editsqueue.Enqueue(New Tuple(Of String, String, Date)(tusername, tpagename, tdate))
+                                 End SyncLock
+                                 EventLogger.Debug_Log("Edición en '" & tpagename & "'" & " por '" & tusername & "'.", "RecentChanges watcher")
+                             End While
+                         Catch ex As IOException
+                             EventLogger.EX_Log(ex.Message, "AutoSignPatrol", WorkerBot.UserName)
+                             Exit While
+                         Catch ex2 As WebException
+                             EventLogger.EX_Log(ex2.Message, "AutoSignPatrol", WorkerBot.UserName)
+                             Exit While
+                         End Try
+                     End While
+                 Catch ex As Exception
+                     EventLogger.EX_Log("FATAL EX: " & ex.Message, "AutoSignPatrol", WorkerBot.UserName)
+                 End Try
+                 Return False
+             End Function)
 
         Dim QueueResolver As New Func(Of Boolean)(Function()
                                                       Dim tsing As New SignPatroller(WorkerBot)
@@ -76,7 +77,7 @@ Public Class SignPatroller
 
         Dim expagethreads As String() = WorkerBot.Getpage("Usuario:PeriodiBOT/Paginas exentas de firma").Threads
         Dim expageslist As String() = (From tmatch In Regex.Matches(If(expagethreads.Count >= 1, expagethreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
-        If expageslist.Contains(tpagename) Then : EventLogger.Log(String.Format(BotMessages.NotSigned, tpagename) & " INFO: EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue") : Return False : End If
+        If expageslist.Contains(tpagename) Then : EventLogger.Log(String.Format(BotMessages.NotSigned, tpagename) & " INFO: EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue", WorkerBot.UserName) : Return False : End If
 
         Dim exuserthreads As String() = WorkerBot.Getpage("Usuario:PeriodiBOT/Exentos firma").Threads
         Dim exuserlist As String() = (From tmatch In Regex.Matches(If(exuserthreads.Count >= 1, exuserthreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
@@ -91,7 +92,7 @@ Public Class SignPatroller
             Return AddMissingSignature2(tpage, False, True, "TEST (" & GlobalVars.Codename & " " & GlobalVars.MwBotVersion & "/" & BotName & " " & BotVersion & "):", tuser.UserName)
         End If
         EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: EC=" & tuser.EditCount _
-                              & " EXULIST=" & exuserlist.Contains(tuser.UserName).ToString & " ACHECK=" & achecklist.Contains(tuser.UserName).ToString & " EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue")
+                              & " EXULIST=" & exuserlist.Contains(tuser.UserName).ToString & " ACHECK=" & achecklist.Contains(tuser.UserName).ToString & " EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue", WorkerBot.UserName)
         Return False
     End Function
 
@@ -121,14 +122,14 @@ Public Class SignPatroller
         End If
         If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar reversiones, nunca.
         If pusername = Username Then Return False 'No firmar ediciones del usuario dueño de la página.
-        EventLogger.Log(String.Format(BotMessages.UnsignedMessageDetected, tpage.Title), "AddMissingSignature2")
+        EventLogger.Log(String.Format(BotMessages.UnsignedMessageDetected, tpage.Title), "AddMissingSignature2", WorkerBot.UserName)
         Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
         Dim dstring As String = GetSpanishTimeString(UnsignedDate)
         pagetext = pagetext.Replace(UnsignedThread, UnsignedThread.TrimEnd & " {{sust:No firmado|" & Username & "|" & dstring & "}}" & Environment.NewLine)
         Dim scores As Double() = tpage.ORESScores
         If scores(0) > 97.0R Then : EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: ORES(0)=" & scores(0).ToString, "AddMissingSignature2") : Return False : End If
         If tpage.Save(pagetext, addmsg & String.Format(BotMessages.UnsignedSumm, Username), minor, True) = EditResults.Edit_successful Then Return True
-        EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title), "AddMissingSignature2")
+        EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title), "AddMissingSignature2", WorkerBot.UserName)
         Return False
     End Function
 
@@ -160,7 +161,7 @@ Public Class SignPatroller
             End If
         End If
 
-        If editedthreads.Count > 0 AndAlso (Not String.IsNullOrWhiteSpace(editedthreads.Last)) Then
+        If (editedthreads.Count > 0) AndAlso (Not String.IsNullOrWhiteSpace(editedthreads.Last)) Then
             Dim lasteditedthread As String = editedthreads.Last
             Dim lastsign As Date = Lastpdt2(lasteditedthread)
             If lastsign = New DateTime(9999, 12, 31, 23, 59, 59) Then
