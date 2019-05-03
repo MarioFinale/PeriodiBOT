@@ -376,7 +376,7 @@ Class SpecialTaks
         If Not DoNotArchive Then
             'Archivado programado
             If ProgrammedArchive Then
-                Dim ProgrammedTemplate As Template = GetTemplate(threadtext, ProgrammedArchiveTemplateName)
+                Dim ProgrammedTemplate As Template = GetTemplate(threadtext, ProgrammedArchiveTemplateName, True)
                 Dim fechastr As String = String.Empty
                 For Each t As Tuple(Of String, String) In ProgrammedTemplate.Parameters
                     If t.Item1.ToLower.Trim = "fecha" Or t.Item1.ToLower.Trim = "1" Then
@@ -464,7 +464,7 @@ Class SpecialTaks
 
                 EventLogger.Debug_Log(BotMessages.UpdatingArchiveBox, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 If IsTemplatePresent(FixedPageContent, ArchiveBoxTemplateName) Then
-                    Dim ArchiveBoxtext As String = GetTemplate(FixedPageContent, ArchiveBoxTemplateName).Text
+                    Dim ArchiveBoxtext As String = GetTemplate(FixedPageContent, ArchiveBoxTemplateName, True).Text
                     Dim temptxt As String = ArchiveBoxtext
                     Dim temp As New Template(ArchiveBoxtext, False)
                     For Each t As Tuple(Of String, String) In temp.Parameters
@@ -1043,5 +1043,25 @@ Class SpecialTaks
         PageToUpdate.Save(tcontent, "Bot: Actualizando lista según [[Plantilla:Controlador|la plantilla de controladores]].", False, True, True)
         Return True
     End Function
+
+    Function FixRefs(ByVal tpage As Page) As Boolean
+        Dim ttext As String = tpage.Content
+        Dim tmatches As String() = Regex.Matches(ttext, "<[Rr][Ee][Ff]>.+?<\/[Rr][Ee][Ff]>").OfType(Of Match)().Select(Function(x) x.Value).Where(Function(x) (Not x.Contains("{")) AndAlso (Not x.Contains("["))).ToArray() 'temporal, luego lo simplifico para hacerlo mas legible
+
+        Dim twebpages As String() = tmatches.OfType(Of String)().Select(Function(x) Regex.Replace(x, "(<[Rr][Ee][Ff]>|<\/[Rr][Ee][Ff]>)", "").Trim()).Where(Function(x) Uri.TryCreate(x, UriKind.Absolute, Nothing)).ToArray()
+        Dim pageslist As New List(Of String)
+        For Each webpage As String In twebpages
+            Dim tp As String = _bot.GET(New Uri(webpage))
+            Dim pagename As String = ""
+
+        Next
+
+        Dim a As Integer = 1
+
+
+        Return False
+    End Function
+
+
 
 End Class

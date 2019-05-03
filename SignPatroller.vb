@@ -89,7 +89,7 @@ Public Class SignPatroller
 
         If (tuser.EditCount < 500 And (Not exuserlist.Contains(tuser.UserName)) Or achecklist.Contains(tuser.UserName)) Then
             If Date.UtcNow.Subtract(tpage.LastEdit).Minutes < 4 Then Return False
-            Return AddMissingSignature2(tpage, False, True, "TEST (" & GlobalVars.Codename & " " & GlobalVars.MwBotVersion & "/" & BotName & " " & BotVersion & "):", tuser.UserName)
+            Return AddMissingSignature2(tpage, False, True, "", tuser.UserName) '"TEST (" & GlobalVars.Codename & " " & GlobalVars.MwBotVersion & "/" & BotName & " " & BotVersion & "):"
         End If
         EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: EC=" & tuser.EditCount _
                               & " EXULIST=" & exuserlist.Contains(tuser.UserName).ToString & " ACHECK=" & achecklist.Contains(tuser.UserName).ToString & " EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue", WorkerBot.UserName)

@@ -32,6 +32,13 @@ Public NotInheritable Class Initializer
         BotIRC.StartClient()
         tPatroller.StartPatroller()
 
+        '======================================== TEST ===========================================
+        'Dim sp2 As New SpecialTaks(ESWikiBOT)
+        'sp2.AutoArchive(ESWikiBOT.Getpage("Usuario discusión:MarioFinale"), ArchiveTemplateName, DoNotArchiveTemplateName,
+        '                                               ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+        'sp2.FixRefs(ESWikiBOT.Getpage("Rogelio Romano"))
+        '==========================================================================================
+
         'Tarea para actualizar el contador de solicitudes de autorizaciones de bots
         Dim BotCountFunc As New Func(Of Boolean) _
             (Function()
