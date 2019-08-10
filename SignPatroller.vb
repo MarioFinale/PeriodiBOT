@@ -9,6 +9,9 @@ Imports PeriodiBOT_IRC.Initializer
 Imports Utils.Utils
 
 Public Class SignPatroller
+
+    Public OresThreshold As Double = 97.0#
+
     ReadOnly Property WorkerBot As Bot
     Sub New(ByRef workerbot As Bot)
         _WorkerBot = workerbot
@@ -89,51 +92,86 @@ Public Class SignPatroller
 
         If (tuser.EditCount < 500 And (Not exuserlist.Contains(tuser.UserName)) Or achecklist.Contains(tuser.UserName)) Then
             If Date.UtcNow.Subtract(tpage.LastEdit).Minutes < 4 Then Return False
-            Return AddMissingSignature2(tpage, False, True, "", tuser.UserName) '"TEST (" & GlobalVars.Codename & " " & GlobalVars.MwBotVersion & "/" & BotName & " " & BotVersion & "):"
+            Return AddMissingSignature2(tpage, False, True, String.Empty) '"TEST (" & GlobalVars.Codename & " " & GlobalVars.MwBotVersion & "/" & BotName & " " & BotVersion & "):"
         End If
         EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: EC=" & tuser.EditCount _
                               & " EXULIST=" & exuserlist.Contains(tuser.UserName).ToString & " ACHECK=" & achecklist.Contains(tuser.UserName).ToString & " EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue", WorkerBot.UserName)
         Return False
     End Function
 
-    Function AddMissingSignature2(ByVal tpage As Page, newthreads As Boolean, minor As Boolean, addmsg As String, lastusername As String) As Boolean
-        If tpage.Lastuser = WorkerBot.UserName Then Return False 'No completar firma en páginas en las que haya editado
-        Dim LastUser As WikiUser = New WikiUser(WorkerBot, tpage.Lastuser)
-        If LastUser.IsBot Then Return False
+
+    Function AddMissingSignature2(ByRef tpage As Page, newthreads As Boolean, minor As Boolean, addmsg As String) As Boolean
+        If Not PageIsAutoSignable(tpage) Then Return False 'Verificar si la pagina puede firmarse.
+
         Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection2(tpage, newthreads)
         If UnsignedSectionInfo Is Nothing Then Return False
-        Dim pagetext As String = tpage.Content
+
         Dim UnsignedThread As String = UnsignedSectionInfo.Item1
         Dim lastparagraph As String = Regex.Match(UnsignedThread.TrimEnd, ".+(?=\n+==[^=].+==[^=]|$|\n+$)").Value
         If String.IsNullOrWhiteSpace(lastparagraph) Then Return False
         If Regex.Match(lastparagraph, "\[\[(:\w{2,7}:)*(user|usuario):.+?\]\]", RegexOptions.IgnoreCase).Success Then Return False
         If Regex.Match(lastparagraph, signpattern).Success Then Return False
+
         Dim Username As String = UnsignedSectionInfo.Item2
-        If Not Username = lastusername Then Return False
-        Dim pusername As String = String.Empty
-        If tpage.PageNamespace = 3 Then
-            If tpage.Title.Contains(":") Then
-                pusername = tpage.Title.Split(":"c)(1)
-                If pusername.Contains("/") Then
-                    pusername = pusername.Split("/"c)(0)
-                End If
-                pusername = pusername.Trim()
-            End If
-        End If
-        If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar reversiones, nunca.
-        If pusername = Username Then Return False 'No firmar ediciones del usuario dueño de la página.
         EventLogger.Log(String.Format(BotMessages.UnsignedMessageDetected, tpage.Title), "AddMissingSignature2", WorkerBot.UserName)
+
         Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
         Dim dstring As String = GetSpanishTimeString(UnsignedDate)
-        pagetext = pagetext.Replace(UnsignedThread, UnsignedThread.TrimEnd & " {{sust:No firmado|" & Username & "|" & dstring & "}}" & Environment.NewLine)
-        Dim scores As Double() = tpage.ORESScores
-        If scores(0) > 97.0R Then : EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: ORES(0)=" & scores(0).ToString, "AddMissingSignature2") : Return False : End If
-        If tpage.Save(pagetext, addmsg & String.Format(BotMessages.UnsignedSumm, Username), minor, True) = EditResults.Edit_successful Then Return True
+        Dim newText As String = tpage.Content.Replace(UnsignedThread, UnsignedThread.TrimEnd & " {{sust:No firmado|" & Username & "|" & dstring & "}}" & Environment.NewLine)
+
+        If tpage.Save(newText, addmsg & String.Format(BotMessages.UnsignedSumm, Username), minor, True) = EditResults.Edit_successful Then Return True
         EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title), "AddMissingSignature2", WorkerBot.UserName)
         Return False
     End Function
 
-    Function GetLastUnsignedSection2(ByVal tpage As Page, newthreads As Boolean) As Tuple(Of String, String, Date)
+    Function PageIsAutoSignable(ByRef tpage As Page) As Boolean
+        If tpage.Lastuser = WorkerBot.UserName Then Return False 'No completar firma en páginas en las que el mismo bot haya editado.
+        If LastUserIsBot(tpage) Then Return False 'No firmar ediciones de bot.
+        If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar reversiones, nunca.
+        If tpage.Comment.ToLower.Contains("deshecha la edición") Then Return False 'No firmar ediciones deshechas, nunca.
+        If EditedByOwner(tpage) Then Return False 'No completar firma en páginas de usuario en las que el mismo usuario haya editado.
+        If GetThreadCountDiffLastEdit(tpage) >= 2 Then Return False 'Si el usuario edita 2 o mas hilos de golpe ignorar el edit.
+        If IsOverORESThreshold(tpage) Then Return False 'Si el edit tiene un puntaje ores 'damaging' sobre el limite ignorarlo.
+        Return True
+    End Function
+
+    Function IsOverORESThreshold(ByRef tpage As Page) As Boolean
+        Return tpage.ORESScores(0) < OresThreshold
+    End Function
+
+    Function EditedByOwner(ByRef tpage As Page) As Boolean
+        Dim tusername As String = String.Empty
+        If tpage.PageNamespace = 3 Then
+            If tpage.Title.Contains(":") Then
+                tusername = tpage.Title.Split(":"c)(1)
+                If tusername.Contains("/") Then
+                    tusername = tusername.Split("/"c)(0)
+                End If
+                tusername = tusername.Trim()
+            End If
+        End If
+        If tpage.Lastuser = tusername Then Return True
+        Return False
+    End Function
+
+    Function LastUserIsBot(ByRef tpage As Page) As Boolean
+        Return New WikiUser(WorkerBot, tpage.Lastuser).IsBot
+    End Function
+
+    ''' <summary>
+    ''' Retorna la diferencia en la cantidad de hilos entre la edicion actual y la anterior.
+    ''' </summary>
+    ''' <param name="tpage">Pagina a evaluar.</param>
+    ''' <returns>Diferencia de hilos.</returns>
+    Function GetThreadCountDiffLastEdit(ByRef tpage As Page) As Integer
+        If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name, WorkerBot.UserName)
+        Dim oldPage As Page = WorkerBot.Getpage(tpage.ParentRevId)
+        Dim oldThreadsCount As Integer = oldPage.Threads.Count()
+        Dim currentThreadsCount As Integer = tpage.Threads.Count()
+        Return oldThreadsCount - currentThreadsCount
+    End Function
+
+    Function GetLastUnsignedSection2(ByRef tpage As Page, newthreads As Boolean) As Tuple(Of String, String, Date)
         If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name, WorkerBot.UserName)
         Dim oldPage As Page = WorkerBot.Getpage(tpage.ParentRevId)
         Dim currentPage As Page = tpage
