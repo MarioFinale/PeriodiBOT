@@ -54,7 +54,9 @@ Class SpecialTaks
         Return True
     End Function
 
-    Private Function PageConfig(ByVal Params As String(), ByRef destination As String, ByRef maxDays As Integer, ByRef strategy As String, ByRef useBox As Boolean, ByRef notify As Boolean, sourcePageName As String) As Boolean
+    Private Function PageConfig(ByVal Params As String(), ByRef destination As String, ByRef maxDays As Integer,
+                                ByRef strategy As String, ByRef useBox As Boolean, ByRef notify As Boolean, sourcePageName As String) As Boolean
+
         If Not Params.Count >= 4 Then Return False
         'Destino
         If String.IsNullOrEmpty(Params(0)) Then
@@ -655,7 +657,7 @@ Class SpecialTaks
                     End If
                 Next
             Catch ex As Exception
-
+                EventLogger.EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             End Try
         Next
         Return plist
@@ -974,26 +976,27 @@ Class SpecialTaks
             End If
         Next
 
-        Dim t As New Template
-        t.Name = "#switch:{{{1|}}}"
-        t.Parameters.Add(New Tuple(Of String, String)("", "'''Error''': No se ha indicado usuario."))
-        t.Parameters.Add(New Tuple(Of String, String)("#default", "[[Archivo:WX circle red.png|10px|link=]]&nbsp;<span style=""color:red;"">'''Desconectado'''</span>"))
+        Dim nousertext As String = "'''Error''': No se ha indicado usuario."
+        Dim nouserstatus As String = "[[Archivo:WX circle red.png|10px|link=]]&nbsp;<span style=""color:red;"">'''Desconectado'''</span>"
+
+        Dim t As New Template With {.Name = "#switch:{{{1|}}}"}
+        t.Parameters.Add(New Tuple(Of String, String)("", nousertext))
+        t.Parameters.Add(New Tuple(Of String, String)("#default", nouserstatus))
 
         For Each u As WikiUser In ActiveUsers.Values
-            Dim gendertext As String = "Conectado"
-            If u.Gender = "female" Then
-                gendertext = "Conectada"
-            End If
-            t.Parameters.Add(New Tuple(Of String, String)(u.UserName, "[[Archivo:WX circle green.png|10px|link=]]&nbsp;<span style=""color:green;"">'''" & gendertext & "'''</span>"))
+            Dim gendertext As String = If(u.Gender = "female", "Conectada", "Conectado")
+            Dim linetext As String = "[[Archivo:WX circle green.png|10px|link=]]&nbsp;<span style=""color:green;"">'''" & gendertext & "'''</span>"
+            t.Parameters.Add(New Tuple(Of String, String)(u.UserName, linetext))
         Next
 
         For Each u As WikiUser In InactiveUsers.Values
-            Dim gendertext As String = "Desconectado"
-            If u.Gender = "female" Then
-                gendertext = "Desconectada"
-            End If
-            Dim lastedit As Date = u.LastEdit
-            t.Parameters.Add(New Tuple(Of String, String)(u.UserName, "[[Archivo:WX circle red.png|10px|link=|Última edición el " & Integer.Parse(lastedit.ToString("dd")).ToString & lastedit.ToString(" 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) & "]]&nbsp;<span style=""color:red;"">'''" & gendertext & "'''</span>"))
+            Dim gendertext As String = If(u.Gender = "female", "Desconectada", "Desconectado")
+            Dim linetext As String = "[[Archivo:WX circle red.png|10px|link=|Última edición el " _
+                & Integer.Parse(u.LastEdit.ToString("dd")).ToString _
+                & u.LastEdit.ToString(" 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) _
+                & "]]&nbsp;<span style=""color:red;"">'''" & gendertext & "'''</span>"
+
+            t.Parameters.Add(New Tuple(Of String, String)(u.UserName, linetext ))
         Next
 
         Dim templatetext As String = "{{Noart|1=<div style=""position:absolute; z-index:100; right:10px; top:5px;"" class=""metadata"">" & Environment.NewLine & t.Text
@@ -1046,22 +1049,160 @@ Class SpecialTaks
 
     Function FixRefs(ByVal tpage As Page) As Boolean
         Dim ttext As String = tpage.Content
-        Dim tmatches As String() = Regex.Matches(ttext, "<[Rr][Ee][Ff]>.+?<\/[Rr][Ee][Ff]>").OfType(Of Match)().Select(Function(x) x.Value).Where(Function(x) (Not x.Contains("{")) AndAlso (Not x.Contains("["))).ToArray() 'temporal, luego lo simplifico para hacerlo mas legible
+        Dim refmatches As MatchCollection = Regex.Matches(ttext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
+        Dim tmatches As String() = FixRefs_FilterRefs(refmatches)
+        If tmatches.Count <= 0 Then Return False
+        Dim turist As New List(Of Tuple(Of String, Uri, String))
+        For Each ref As String In tmatches
+            If Regex.Match(ref, "\[.+\]").Success Then
+                Dim tref As String = Regex.Match(ref, "\[.+\]").Value
+                tref = tref.Substring(1, tref.Length - 1).Trim()
+                tref = ReplaceFirst(tref, "]", "")
+                Dim refinfo As String() = {tref.Split(" "c)(0), tref.Replace(tref.Split(" "c)(0), "").Trim()}
+                Dim tur As New Uri("http://x.z") : Uri.TryCreate(refinfo(0).Trim(), UriKind.Absolute, tur)
+                Dim refdesc As String = Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase)
+                refdesc = ReplaceFirst(refdesc, "[", "").Replace(tur.OriginalString, "").Trim()
+                If refdesc(refdesc.Length - 1) = "]"c Then
+                    refdesc = refdesc.Substring(0, refdesc.Length - 1)
+                Else
+                    refdesc = ReplaceFirst(refdesc, "]", "")
+                End If
+                refdesc = ReplaceFirst(refdesc, "]", "-").Trim()
+                If tur Is Nothing Then Continue For
+                turist.Add(New Tuple(Of String, Uri, String)(ref, tur, refdesc))
+            Else
+                Dim tref As New Uri("http://x.z") : Uri.TryCreate(Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase), UriKind.Absolute, tref)
+                If tref Is Nothing Then Continue For
+                turist.Add(New Tuple(Of String, Uri, String)(ref, tref, ""))
+            End If
+        Next
+        If turist.Count <= 0 Then Return False
 
-        Dim twebpages As String() = tmatches.OfType(Of String)().Select(Function(x) Regex.Replace(x, "(<[Rr][Ee][Ff]>|<\/[Rr][Ee][Ff]>)", "").Trim()).Where(Function(x) Uri.TryCreate(x, UriKind.Absolute, Nothing)).ToArray()
         Dim pageslist As New List(Of String)
-        For Each webpage As String In twebpages
-            Dim tp As String = _bot.GET(New Uri(webpage))
-            Dim pagename As String = ""
+        Dim UrlAndDateList As New HashSet(Of Tuple(Of Uri, Date, String, String))
+        Dim temppage = tpage
+        Dim lasttimestamp As Date = temppage.EditDate
+
+        While True
+            If temppage.ParentRevId <= 0 Then
+                For Each tref As Tuple(Of String, Uri, String) In turist
+                    UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(tref.Item2, lasttimestamp, tref.Item3, tref.Item1))
+                Next
+                Exit While
+            End If
+
+            temppage = _bot.Getpage(temppage.ParentRevId)
+            Dim tempuris As Tuple(Of String, Uri, String)() = turist.ToArray
+            Dim Allmissing As Boolean = True
+            For Each tref As Tuple(Of String, Uri, String) In tempuris
+                If temppage.Content.Contains(tref.Item2.OriginalString) Then
+                    lasttimestamp = temppage.EditDate
+                    Allmissing = False
+                Else
+                    UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(tref.Item2, lasttimestamp, tref.Item3, tref.Item1))
+                    turist.Remove(tref)
+                End If
+            Next
+            If Allmissing Then Exit While
+        End While
+
+        Dim datlist As New List(Of Tuple(Of String, String, String, String, String, Boolean, String))
+
+        For Each tup As Tuple(Of Uri, Date, String, String) In UrlAndDateList
+            Dim tp As String
+            Try
+                tp = _bot.GET(tup.Item1)
+            Catch ex As MaxRetriesExeption
+                tp = ""
+            End Try
+            Dim pageDown As Boolean = String.IsNullOrWhiteSpace(tp)
+            Dim pagename As String = Regex.Replace(Regex.Replace(Regex.Match(tp, "<title>[\s\S]+?<\/title>", RegexOptions.IgnoreCase).Value.Trim(), "(<title>|<\/title>)", "", RegexOptions.IgnoreCase), "[\n\r]", "").Trim()
+            If Not String.IsNullOrWhiteSpace(tup.Item3) Then pagename = Regex.Replace(tup.Item3.Trim(), "[\n\r]", "")
+            If String.IsNullOrWhiteSpace(pagename) Then
+                If Regex.IsMatch(tup.Item1.OriginalString, "\/[^\/\s]+\.pdf", RegexOptions.IgnoreCase) Then
+                    pagename = Regex.Match(tup.Item1.OriginalString, "\/[^\/\s]+\.pdf", RegexOptions.IgnoreCase).Value
+                    pagename = UrlWebDecode(pagename.Replace("/", "").Replace(".pdf", ""))
+                Else
+                    pagename = tup.Item1.Authority
+                End If
+            End If
+            Dim lang As String = ""
+            If Regex.IsMatch(tp, "<html[^\>]+?lang=""\w{2}""", RegexOptions.IgnoreCase) Then
+                lang = TextInBetween(Regex.Match(tp, "<html[^\>]+?lang=""\w{2}""", RegexOptions.IgnoreCase).Value, "lang=""", """").DefaultIfEmpty("").FirstOrDefault()
+            End If
+
+            Dim langpattern As String = "(\(en )([\wñ]{2,}(es|és|ano|an|án|ino|so|nio|ol))(\))"
+            Dim tmatch As Match = Regex.Match(pagename, langpattern, RegexOptions.IgnoreCase)
+            If tmatch.Success Then
+                Dim gr As Group = tmatch.Groups(2)
+                lang = gr.Value
+                pagename = Regex.Replace(pagename, langpattern, "", RegexOptions.IgnoreCase)
+            End If
+
+            pagename = pagename.Replace("|", "-").Replace(" .", ".")
+            pagename = Regex.Replace(pagename, "<.+?>", "")
+            pagename = RemoveExcessOfSpaces(pagename)
+            pagename = UppercaseFirstCharacter(pagename).Trim()
+            Dim pageroot As String = tup.Item1.Authority
+            Dim tdate As String = tup.Item2.ToString("dddd d 'de' MMMM 'del' yyyy", New Globalization.CultureInfo("es-ES"))
+            datlist.Add(New Tuple(Of String, String, String, String, String, Boolean, String)(tup.Item1.OriginalString, pagename, tdate, pageroot, tup.Item4, pageDown, lang))
 
         Next
+        Dim cref As Integer = 0
+        Dim bref As Integer = 0
+        Dim tlist As New HashSet(Of Tuple(Of String, String))
 
-        Dim a As Integer = 1
+        For Each nref As Tuple(Of String, String, String, String, String, Boolean, String) In datlist
+            If nref.Item6 = True Then 'Ok se que es redundante pero igual
+                Dim tstring As String = String.Format("{{{{Enlace roto |1={0} |2={1} |fechaacceso={2} |bot={3} }}}}", nref.Item2, nref.Item1, nref.Item3, _bot.UserName)
+                tlist.Add(New Tuple(Of String, String)(nref.Item5, tstring))
+                bref += 1
+            Else
+                Dim tstring As String = String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}}",
+                                                      nref.Item1, nref.Item2, nref.Item3, nref.Item4, If(Not String.IsNullOrWhiteSpace(nref.Item7), " |idioma=" & nref.Item7, ""))
 
+                tlist.Add(New Tuple(Of String, String)(nref.Item5, tstring))
+                cref += 1
+            End If
+        Next
+
+        Dim newtext As String = tpage.Content
+        For Each ref As Tuple(Of String, String) In tlist
+            Dim reftags As MatchCollection = Regex.Matches(ref.Item1, "(<ref( name *=.+?)*>)|(<\/ref>)", RegexOptions.IgnoreCase)
+            Dim newref As String = reftags(0).Value & ref.Item2 & reftags(1).Value
+            newtext = newtext.Replace(ref.Item1, newref)
+        Next
+
+        Dim summary As String = Fixref_GenSummary(cref, bref)
+        If cref > 0 OrElse bref > 0 Then
+            Return (tpage.Save(newtext, summary, False, True) = EditResults.Edit_successful)
+        End If
 
         Return False
     End Function
 
+    Private Function Fixref_GenSummary(ByVal fixedCount As Integer, ByVal brokenCount As Integer) As String
+        Dim ChangedSumm As String = String.Format("Completando {0} referencia{1}", fixedCount, If(fixedCount > 1, "s", ""))
+        Dim BrokenSumm As String = String.Format("arcando {0} referencia{1} como rota{2}", brokenCount, If(brokenCount > 1, "s", ""), If(brokenCount > 1, "s", ""))
+        Dim TestPfx As String = String.Format(". (TEST) #PeriodiBOT {0}", Initializer.BotVersion)
+        Dim summary As String = "Bot: " & If(fixedCount > 0, ChangedSumm, "") & If(brokenCount > 0 AndAlso fixedCount > 0, " y m", "") _
+                              & If(fixedCount = 0 AndAlso brokenCount >= 1, "M", "") & If(brokenCount > 0, BrokenSumm, "") & TestPfx
+        Return summary
+    End Function
+
+    Private Function FixRefs_FilterRefs(ByVal matc As MatchCollection) As String()
+        Return matc.OfType(Of Match)().Select(Function(x) x.Value).Where(Function(x)
+                                                                             Return (Not x.Contains("{{") _
+                                                                             AndAlso Not x.Contains("]]") _
+                                                                             AndAlso Not x.ToLower.Contains("<cite") _
+                                                                             AndAlso Not x.ToLower.Contains("consultado el") _
+                                                                             AndAlso Not x.ToLower.Contains("consultada el") _
+                                                                             AndAlso Not Regex.IsMatch(x, "acces(o|sed) \w{1,2}", RegexOptions.IgnoreCase) _
+                                                                             AndAlso Not Regex.IsMatch(x, "retrieved \w{1,2}", RegexOptions.IgnoreCase) _
+                                                                             AndAlso Not Regex.IsMatch(x, "(\[.+?\]).+?(\[.+?\])") _
+                                                                             AndAlso Not CountCharacter(x, "]"c) > 1)
+                                                                         End Function).ToArray()
+    End Function
 
 
 End Class
