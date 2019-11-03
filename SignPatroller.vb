@@ -29,18 +29,13 @@ Public Class SignPatroller
                              Dim tstream As Stream = tclient.OpenRead(New Uri("https://stream.wikimedia.org/v2/stream/recentchange"))
                              Dim tstreamreader As StreamReader = New StreamReader(tstream)
                              While True
-                                 Dim tline As String = tstreamreader.ReadLine
-                                 If Not tline.Contains("""wiki"":""eswiki""") Then Continue While
-                                 If tline.Contains("""bot"":true,") Then Continue While
-                                 If Not tline.Contains(",""type"":""edit"",") Then Continue While
-                                 If Not (Regex.Match(tline, """namespace"":(1|3|9|11|13|15|101|103|105|829),").Success) Then Continue While
-                                 Dim tusername As String = If(TextInBetween(tline, ",""user"":""", """,").Count >= 1, TextInBetween(tline, ",""user"":""", """,")(0), "")
-                                 Dim tpagename As String = If(TextInBetween(tline, ",""title"":""", """,").Count >= 1, TextInBetween(tline, ",""title"":""", """,")(0), "")
-                                 Dim tdate As Date = Date.UtcNow
+                                 Dim currentLine As String = tstreamreader.ReadLine
+                                 If Not EditIsValid(currentLine) Then Continue While
+                                 Dim editInfo As Tuple(Of String, String, Date) = GetEditInfoFromStreamLine(currentLine)
                                  SyncLock editsqueue
-                                     editsqueue.Enqueue(New Tuple(Of String, String, Date)(tusername, tpagename, tdate))
+                                     editsqueue.Enqueue(editInfo)
                                  End SyncLock
-                                 EventLogger.Debug_Log("Edición en '" & tpagename & "'" & " por '" & tusername & "'.", "RecentChanges watcher")
+                                 EventLogger.Debug_Log("Edición en '" & editInfo.Item2 & "'" & " por '" & editInfo.Item1 & "'.", "RecentChanges watcher")
                              End While
                          Catch ex As IOException
                              EventLogger.EX_Log(ex.Message, "AutoSignPatrol", WorkerBot.UserName)
@@ -65,6 +60,21 @@ Public Class SignPatroller
         TaskAdm.NewTask("Patrullar ediciones sin firma en discusiones", WorkerBot.UserName, QueueResolver, 250, True, False)
 
     End Sub
+
+    Function GetEditInfoFromStreamLine(ByRef tline As String) As Tuple(Of String, String, Date)
+        Dim tusername As String = If(TextInBetween(tline, ",""user"":""", """,").Count >= 1, TextInBetween(tline, ",""user"":""", """,")(0), "")
+        Dim tpagename As String = If(TextInBetween(tline, ",""title"":""", """,").Count >= 1, TextInBetween(tline, ",""title"":""", """,")(0), "")
+        Dim tdate As Date = Date.UtcNow
+        Return New Tuple(Of String, String, Date)(tusername, tpagename, tdate)
+    End Function
+
+    Function EditIsValid(ByRef tline As String) As Boolean
+        If Not tline.Contains("""wiki"":""eswiki""") Then Return False
+        If tline.Contains("""bot"":true,") Then Return False
+        If Not tline.Contains(",""type"":""edit"",") Then Return False
+        If Not (Regex.Match(tline, """namespace"":(1|3|9|11|13|15|101|103|105|829),").Success) Then Return False
+        Return True
+    End Function
 
     Private Function ResolveQueue(ByRef editsqueue As Queue(Of Tuple(Of String, String, Date))) As Boolean
         Dim tedit As Tuple(Of String, String, Date)
