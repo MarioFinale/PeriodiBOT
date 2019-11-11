@@ -604,42 +604,6 @@ Class SpecialTaks
     End Function
 
     ''' <summary>
-    ''' Comprueba firmas faltantes en las páginas que contengan la plantilla de firma automática.
-    ''' </summary>
-    ''' <param name="AutoSignatureTemplateName">Plantilla de firma automática.</param>
-    ''' <returns></returns>
-    Function SignAllInclusions(AutoSignatureTemplateName As String) As Boolean
-        Dim includedpages As String() = _bot.GetallInclusions(AutoSignatureTemplateName)
-        For Each pa As String In includedpages
-            Try
-                EventLogger.Debug_Log("Checking page " & pa, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
-                Dim _Page As Page = _bot.Getpage(pa)
-                If _Page.Exists Then
-                    If Not ValidNamespace(_Page) Then Continue For
-                    If (Date.UtcNow - _Page.LastEdit) < (New TimeSpan(0, 15, 0)) Then Continue For
-                    Dim SignTemplate As Template = GetSignTemplate(_Page)
-                    Dim minor As Boolean = True
-                    Dim newthreads As Boolean = False
-                    For Each tup As Tuple(Of String, String) In SignTemplate.Parameters
-                        If tup.Item1 = "Avisar al completar firma" Then
-                            minor = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char())).ToLower = "no"
-                        End If
-                        If tup.Item1 = "Estrategia" Then
-                            newthreads = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char())).ToLower = "NuevaSecciónSinFirmar"
-                        End If
-                    Next
-                    If AddMissingSignature(_Page, newthreads, minor) Then
-                        EventLogger.Log("SignAllInclusions: Page """ & pa & """", Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
-                    End If
-                End If
-            Catch ex As Exception
-                EventLogger.EX_Log("SignAllInclusions: Page """ & pa & """ EX: " & ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
-            End Try
-        Next
-        Return True
-    End Function
-
-    ''' <summary>
     ''' Revisa todas las páginas que llamen a la página indicada y las retorna como sortedlist.
     ''' La Key es el nombre de la página en la plantilla y el valor asociado es un array donde el primer elemento es
     ''' el último usuario que la editó y el segundo el título real de la página.
@@ -878,69 +842,6 @@ Class SpecialTaks
         Return True
     End Function
 
-    Function GetLastUnsignedSection(ByVal tpage As Page, newthreads As Boolean) As Tuple(Of String, String, Date)
-        If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
-        Dim oldPage As Page = _bot.Getpage(tpage.ParentRevId)
-        Dim currentPage As Page = tpage
-
-        Dim oldPageThreads As String() = oldPage.Threads
-        Dim currentPageThreads As String() = currentPage.Threads
-
-        Dim LastEdit As Date = currentPage.LastEdit
-        Dim LastUser As String = currentPage.Lastuser
-        Dim editedthreads As String()
-
-        If newthreads Then
-            editedthreads = GetSecondArrayAddedDiff(oldPageThreads, currentPageThreads)
-        Else
-            If oldPageThreads.Count = currentPageThreads.Count Then
-                editedthreads = GetChangedThreads(oldPageThreads, currentPageThreads)
-            ElseIf oldPageThreads.Count < currentPageThreads.Count Then
-                editedthreads = GetSecondArrayAddedDiff(oldPageThreads, currentPageThreads)
-            Else
-                editedthreads = {}
-            End If
-        End If
-
-        If editedthreads.Count > 0 Then
-            Dim lasteditedthread As String = editedthreads.Last
-            Dim lastsign As Date = LastParagraphDateTime(lasteditedthread)
-            If lastsign = New DateTime(9999, 12, 31, 23, 59, 59) Then
-                Return New Tuple(Of String, String, Date)(lasteditedthread, LastUser, LastEdit)
-            End If
-        End If
-        Return Nothing
-    End Function
-
-    Function AddMissingSignature(ByVal tpage As Page, newthreads As Boolean, minor As Boolean) As Boolean
-        If tpage.Lastuser = _bot.UserName Then Return False 'No completar firma en páginas en las que haya editado
-        Dim LastUser As WikiUser = New WikiUser(_bot, tpage.Lastuser)
-        If LastUser.IsBot Then Return False
-        Dim UnsignedSectionInfo As Tuple(Of String, String, Date) = GetLastUnsignedSection(tpage, newthreads)
-        If UnsignedSectionInfo Is Nothing Then Return False
-        Dim pagetext As String = tpage.Content
-        Dim UnsignedThread As String = UnsignedSectionInfo.Item1
-        Dim Username As String = UnsignedSectionInfo.Item2
-        Dim pusername As String = String.Empty
-        If tpage.PageNamespace = 3 Then
-            If tpage.Title.Contains(":") Then
-                pusername = tpage.Title.Split(":"c)(1)
-                If pusername.Contains("/") Then
-                    pusername = pusername.Split("/"c)(0)
-                End If
-                pusername = pusername.Trim()
-            End If
-        End If
-        If pusername = Username Then Return False
-        Dim UnsignedDate As Date = UnsignedSectionInfo.Item3
-        Dim dstring As String = GetSpanishTimeString(UnsignedDate)
-        pagetext = pagetext.Replace(UnsignedThread, UnsignedThread & " {{sust:No firmado|" & Username & "|" & dstring & "}}")
-        If tpage.Save(pagetext, String.Format(BotMessages.UnsignedSumm, Username), minor, True) = EditResults.Edit_successful Then
-            Return True
-        Else
-            Return False
-        End If
-    End Function
 
     Sub CheckUsersActivity(ByVal templatePage As Page, ByVal pageToSave As Page)
         If pageToSave Is Nothing Then Exit Sub
@@ -1047,12 +948,19 @@ Class SpecialTaks
         Return True
     End Function
 
+
+
     Function FixRefs(ByVal tpage As Page) As Boolean
-        Dim ttext As String = tpage.Content
-        Dim refmatches As MatchCollection = Regex.Matches(ttext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
+        Dim newtext As String = tpage.Content
+        Dim irrecoverable As Integer = 0
+        Dim duplicatesCount As Integer = 0
+        Dim removedDuplicates As Tuple(Of String, Integer) = Fixref_RemoveDuplicates(newtext)
+        If Not removedDuplicates Is Nothing Then newtext = removedDuplicates.Item1
+        If Not removedDuplicates Is Nothing Then duplicatesCount = removedDuplicates.Item2
+        Dim refmatches As MatchCollection = Regex.Matches(newtext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
         Dim tmatches As String() = FixRefs_FilterRefs(refmatches)
         If tmatches.Count <= 0 Then Return False
-        Dim turist As New List(Of Tuple(Of String, Uri, String))
+        Dim turist As New List(Of Tuple(Of String, Uri, String)) 'ref original, uri de la ref, nombre de la ref
         For Each ref As String In tmatches
             If Regex.Match(ref, "\[.+\]").Success Then
                 Dim tref As String = Regex.Match(ref, "\[.+\]").Value
@@ -1076,7 +984,7 @@ Class SpecialTaks
                 turist.Add(New Tuple(Of String, Uri, String)(ref, tref, ""))
             End If
         Next
-        If turist.Count <= 0 Then Return False
+        If turist.Count <= 0 And duplicatesCount <= 0 Then Return False
 
         Dim pageslist As New List(Of String)
         Dim UrlAndDateList As New HashSet(Of Tuple(Of Uri, Date, String, String))
@@ -1090,7 +998,6 @@ Class SpecialTaks
                 Next
                 Exit While
             End If
-
             temppage = _bot.Getpage(temppage.ParentRevId)
             Dim tempuris As Tuple(Of String, Uri, String)() = turist.ToArray
             Dim Allmissing As Boolean = True
@@ -1145,7 +1052,7 @@ Class SpecialTaks
             pagename = UppercaseFirstCharacter(pagename).Trim()
             Dim pageroot As String = tup.Item1.Authority
             Dim tdate As String = tup.Item2.ToString("dddd d 'de' MMMM 'del' yyyy", New Globalization.CultureInfo("es-ES"))
-            datlist.Add(New Tuple(Of String, String, String, String, String, Boolean, String)(tup.Item1.OriginalString, pagename, tdate, pageroot, tup.Item4, pageDown, lang))
+            datlist.Add(New Tuple(Of String, String, String, String, String, Boolean, String)(tup.Item1.OriginalString.Trim().Split(" "c)(0), pagename, tdate, pageroot, tup.Item4, pageDown, lang))
 
         Next
         Dim cref As Integer = 0
@@ -1154,7 +1061,14 @@ Class SpecialTaks
 
         For Each nref As Tuple(Of String, String, String, String, String, Boolean, String) In datlist
             If nref.Item6 = True Then 'Ok se que es redundante pero igual
+                'Verificar si está disponible ne Internet Archive
+                Dim WayBackResponse As String = _bot.GET(New Uri("http://archive.org/wayback/available?url=" & nref.Item1))
+                Dim Unavaliable As Boolean = WayBackResponse.Contains("""archived_snapshots"": {}")
                 Dim tstring As String = String.Format("{{{{Enlace roto |1={0} |2={1} |fechaacceso={2} |bot={3} }}}}", nref.Item2, nref.Item1, nref.Item3, _bot.UserName)
+                If Unavaliable Then
+                    tstring &= " <small>enlace irrecuperable</small>"
+                    irrecoverable += 1
+                End If
                 tlist.Add(New Tuple(Of String, String)(nref.Item5, tstring))
                 bref += 1
             Else
@@ -1166,29 +1080,93 @@ Class SpecialTaks
             End If
         Next
 
-        Dim newtext As String = tpage.Content
         For Each ref As Tuple(Of String, String) In tlist
             Dim reftags As MatchCollection = Regex.Matches(ref.Item1, "(<ref( name *=.+?)*>)|(<\/ref>)", RegexOptions.IgnoreCase)
             Dim newref As String = reftags(0).Value & ref.Item2 & reftags(1).Value
             newtext = newtext.Replace(ref.Item1, newref)
         Next
 
-        Dim summary As String = Fixref_GenSummary(cref, bref)
-        If cref > 0 OrElse bref > 0 Then
+        Dim summary As String = Fixref_GenSummary(cref, bref, duplicatesCount, irrecoverable)
+        If cref > 0 OrElse bref > 0 OrElse duplicatesCount > 0 Then
             Return (tpage.Save(newtext, summary, False, True) = EditResults.Edit_successful)
         End If
 
         Return False
     End Function
 
-    Private Function Fixref_GenSummary(ByVal fixedCount As Integer, ByVal brokenCount As Integer) As String
-        Dim ChangedSumm As String = String.Format("Completando {0} referencia{1}", fixedCount, If(fixedCount > 1, "s", ""))
-        Dim BrokenSumm As String = String.Format("arcando {0} referencia{1} como rota{2}", brokenCount, If(brokenCount > 1, "s", ""), If(brokenCount > 1, "s", ""))
+
+    Private Function Fixref_RemoveDuplicates(ByVal pagetext As String) As Tuple(Of String, Integer)
+        Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
+        Dim tmatches As String() = FixRefs_FilterRefs(refmatches)
+        Dim refs As New HashSet(Of String)
+        Dim duplicatesCount As Integer = 0
+        If Not (tmatches.Distinct().Count = tmatches.Count) Then
+            Dim duplicates As String() = tmatches.GroupBy(Function(p) p).Where(Function(g) g.Count > 1).Select(Function(g) g.Key).ToArray
+            duplicatesCount = duplicates.Count
+            If duplicatesCount = 0 Then Return Nothing
+            For Each ref As String In duplicates
+                Dim refname As String = "<ref name=AutoGen-1>"
+                Dim refnameindex As Integer = 1
+                If Regex.Match(ref, "<ref name *=.+?>", RegexOptions.IgnoreCase).Success Then
+                    refname = Regex.Match(ref, "<ref name *=.+?>", RegexOptions.IgnoreCase).Value
+                Else
+                    While True
+                        If Not Regex.Match(ref, "<ref name *=AutoGen-" & refnameindex & ">").Success Then Exit While
+                        refnameindex += 1
+                    End While
+                    refname = "<ref name=AutoGen-" & refnameindex & ">"
+                End If
+                Dim actualRefName As String = Regex.Match(ref, "(<ref>|<ref name *=[^\/]+?>)").Value
+                Dim newMainRef As String = ReplaceFirst(ref, actualRefName, refname)
+                Dim newSecondaryRef As String = ReplaceLast(refname, ">", "/>")
+                pagetext = ReplaceFirst(pagetext, ref, newMainRef)
+                If refname.Contains("ref name=AutoGen") Then
+                    pagetext = pagetext.Replace(ref, newSecondaryRef)
+                Else
+                    pagetext = ReplaceEveryOneButFirst(pagetext, ref, newSecondaryRef)
+                End If
+
+            Next
+        End If
+        Return New Tuple(Of String, Integer)(pagetext, duplicatesCount)
+    End Function
+
+
+    Private Function Fixref_GenSummary(ByVal fixedCount As Integer, ByVal brokenCount As Integer, ByVal duplicatesCount As Integer, ByVal irrecoverable As Integer) As String
+        Dim ChangedSumm As String = String.Format("Completando {0} referencia{1}", If(fixedCount = 1, "una", fixedCount.ToString), If(fixedCount > 1, "s", ""))
+        Dim BrokenSumm As String = String.Format("arcando {0} referencia{1} como rota{1}", If(brokenCount = 1, "una", brokenCount.ToString), If(brokenCount > 1, "s", ""))
+        Dim DuplicatesSumm As String = String.Format("niendo {0} referencia{1} repetida{1}", If(duplicatesCount = 1, "una", duplicatesCount.ToString), If(duplicatesCount > 1, "s", ""))
+        Dim IrrecoverableSumm As String = String.Format(" ({0}{2} irrecuperable{1})", If(irrecoverable = 1, "una", irrecoverable.ToString), If(irrecoverable > 1, "s", ""), If(irrecoverable > 1, " de ellas", ""))
         Dim TestPfx As String = String.Format(". (TEST) #PeriodiBOT {0}", Initializer.BotVersion)
-        Dim summary As String = "Bot: " & If(fixedCount > 0, ChangedSumm, "") & If(brokenCount > 0 AndAlso fixedCount > 0, " y m", "") _
-                              & If(fixedCount = 0 AndAlso brokenCount >= 1, "M", "") & If(brokenCount > 0, BrokenSumm, "") & TestPfx
+        Dim summary As String = "Bot: "
+        summary = "Bot: "
+        If fixedCount > 0 Then
+            summary &= ChangedSumm
+        End If
+        If brokenCount > 0 Then
+            If fixedCount = 0 Then summary &= "M"
+            If fixedCount > 0 And duplicatesCount = 0 Then summary &= " y m"
+            If fixedCount > 0 And duplicatesCount > 0 Then summary &= ", m"
+            summary &= BrokenSumm
+            If irrecoverable > 0 Then
+                If brokenCount > 1 Then
+                    summary &= IrrecoverableSumm
+                Else
+                    summary &= " (irrecuperable)"
+                End If
+
+            End If
+        End If
+        If duplicatesCount > 0 Then
+            If fixedCount = 0 And brokenCount = 0 Then summary &= "U"
+            If fixedCount > 0 Or brokenCount > 0 Then summary &= " y u"
+            summary &= DuplicatesSumm
+        End If
+        summary &= TestPfx
         Return summary
     End Function
+
+
 
     Private Function FixRefs_FilterRefs(ByVal matc As MatchCollection) As String()
         Return matc.OfType(Of Match)().Select(Function(x) x.Value).Where(Function(x)

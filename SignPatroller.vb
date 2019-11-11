@@ -10,7 +10,7 @@ Imports Utils.Utils
 
 Public Class SignPatroller
 
-    Public OresThreshold As Double = 97.0#
+    Public OresThreshold As Double = 96.8#
 
     ReadOnly Property WorkerBot As Bot
     Sub New(ByRef workerbot As Bot)
@@ -57,7 +57,7 @@ Public Class SignPatroller
                                                   End Function)
 
         TaskAdm.NewTask("RecentChanges watcher", WorkerBot.UserName, RChangesWatcher, 1500, True, False)
-        TaskAdm.NewTask("Patrullar ediciones sin firma en discusiones", WorkerBot.UserName, QueueResolver, 250, True, False)
+        TaskAdm.NewTask("Patrullar ediciones sin firma en discusiones con plantilla de firma", WorkerBot.UserName, QueueResolver, 250, True, False)
 
     End Sub
 
@@ -66,6 +66,10 @@ Public Class SignPatroller
         Dim tpagename As String = If(TextInBetween(tline, ",""title"":""", """,").Count >= 1, TextInBetween(tline, ",""title"":""", """,")(0), "")
         Dim tdate As Date = Date.UtcNow
         Return New Tuple(Of String, String, Date)(tusername, tpagename, tdate)
+    End Function
+
+    Function ContainsAutosignatureTemplate(ByRef pageContent As String) As Boolean
+        Return Regex.IsMatch(pageContent, "(\{\{[Pp]lantilla:[Ff]irma automática)([\s\S]+?\}\})")
     End Function
 
     Function EditIsValid(ByRef tline As String) As Boolean
@@ -142,6 +146,7 @@ Public Class SignPatroller
         If EditedByOwner(tpage) Then Return False 'No completar firma en páginas de usuario en las que el mismo usuario haya editado.
         If GetThreadCountDiffLastEdit(tpage) >= 2 Then Return False 'Si el usuario edita 2 o mas hilos de golpe ignorar el edit.
         If IsOverORESThreshold(tpage) Then Return False 'Si el edit tiene un puntaje ores 'damaging' sobre el limite ignorarlo.
+        If Not ContainsAutosignatureTemplate(tpage.Content) Then Return False 'De momento solo firmar las páginas con la plantilla de firma automática.
         Return True
     End Function
 
