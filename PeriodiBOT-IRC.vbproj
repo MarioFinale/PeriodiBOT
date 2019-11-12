@@ -115,6 +115,7 @@
     <Compile Include="ChatMessage.vb" />
     <Compile Include="SignPatroller.vb" />
     <Compile Include="Vars.vb" />
+    <Compile Include="WikiWebReference.vb" />
     <Compile Include="WPStrings.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

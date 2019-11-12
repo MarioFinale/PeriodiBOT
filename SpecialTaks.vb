@@ -5,6 +5,7 @@ Imports PeriodiBOT_IRC.My.Resources
 Imports MWBot.net.WikiBot
 Imports MWBot.net
 Imports Utils.Utils
+Imports System.Net
 
 Class SpecialTaks
     Private _bot As Bot
@@ -897,7 +898,7 @@ Class SpecialTaks
                 & u.LastEdit.ToString(" 'de' MMMM 'de' yyyy 'a las' HH:mm '(UTC)'", New System.Globalization.CultureInfo("es-ES")) _
                 & "]]&nbsp;<span style=""color:red;"">'''" & gendertext & "'''</span>"
 
-            t.Parameters.Add(New Tuple(Of String, String)(u.UserName, linetext ))
+            t.Parameters.Add(New Tuple(Of String, String)(u.UserName, linetext))
         Next
 
         Dim templatetext As String = "{{Noart|1=<div style=""position:absolute; z-index:100; right:10px; top:5px;"" class=""metadata"">" & Environment.NewLine & t.Text
@@ -949,11 +950,23 @@ Class SpecialTaks
     End Function
 
 
+    Private Function redirectionAllowed(ByVal turi As Uri) As Boolean
+        Dim exceptions As String() = {"fishbase.org", "blogspot.com.ar", "blogspot.com.pe", "blogspot.com.bo", "blogspot.com.co"}
+        For Each exception As String In exceptions
+            If turi.Authority.Contains(exception) Then
+                Return True
+            End If
+        Next
+        Return False
+    End Function
 
     Function FixRefs(ByVal tpage As Page) As Boolean
         Dim newtext As String = tpage.Content
         Dim irrecoverable As Integer = 0
+        Dim recovered As Integer = 0
         Dim duplicatesCount As Integer = 0
+        Dim cref As Integer = 0
+        Dim bref As Integer = 0
         Dim removedDuplicates As Tuple(Of String, Integer) = Fixref_RemoveDuplicates(newtext)
         If Not removedDuplicates Is Nothing Then newtext = removedDuplicates.Item1
         If Not removedDuplicates Is Nothing Then duplicatesCount = removedDuplicates.Item2
@@ -1013,12 +1026,34 @@ Class SpecialTaks
             If Allmissing Then Exit While
         End While
 
-        Dim datlist As New List(Of Tuple(Of String, String, String, String, String, Boolean, String))
+        Dim datlist As New List(Of WikiWebReference)
+
 
         For Each tup As Tuple(Of Uri, Date, String, String) In UrlAndDateList
             Dim tp As String
             Try
                 tp = _bot.GET(tup.Item1)
+                Try
+                    Dim request As Net.HttpWebRequest = DirectCast(HttpWebRequest.Create(tup.Item1), HttpWebRequest)
+                    request.Timeout = 30000
+                    request.Method = "GET"
+                    request.UserAgent = _bot.BotApiHandler.UserAgent
+                    request.ContentType = "application/x-www-form-urlencoded"
+                    Dim location As String = ""
+                    Using response As Net.WebResponse = request.GetResponse
+                        location = response.ResponseUri.OriginalString
+                    End Using
+                    If Not location = tup.Item1.OriginalString Then
+                        If Not redirectionAllowed(tup.Item1) Then
+                            If tup.Item1.OriginalString.Substring(0, 5) = location.Substring(0, 5) Then
+                                tp = ""
+                            End If
+                        End If
+                    End If
+                Catch ex As Exception
+
+                End Try
+
             Catch ex As MaxRetriesExeption
                 tp = ""
             End Try
@@ -1051,31 +1086,56 @@ Class SpecialTaks
             pagename = RemoveExcessOfSpaces(pagename)
             pagename = UppercaseFirstCharacter(pagename).Trim()
             Dim pageroot As String = tup.Item1.Authority
-            Dim tdate As String = tup.Item2.ToString("dddd d 'de' MMMM 'del' yyyy", New Globalization.CultureInfo("es-ES"))
-            datlist.Add(New Tuple(Of String, String, String, String, String, Boolean, String)(tup.Item1.OriginalString.Trim().Split(" "c)(0), pagename, tdate, pageroot, tup.Item4, pageDown, lang))
+            Dim tdate As String = tup.Item2.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
+            Dim Reference As New WikiWebReference With {
+                .PageUrl = tup.Item1.OriginalString.Trim().Split(" "c)(0),
+                .PageName = pagename,
+                .SpokenDate = tdate,
+                .PageRoot = pageroot,
+                .OriginalRef = tup.Item4,
+                .PageIsDown = pageDown,
+                .Language = lang,
+                .RefDate = tup.Item2
+            }
 
+            Dim i As Integer = 1
+
+
+            datlist.Add(Reference)
         Next
-        Dim cref As Integer = 0
-        Dim bref As Integer = 0
         Dim tlist As New HashSet(Of Tuple(Of String, String))
 
-        For Each nref As Tuple(Of String, String, String, String, String, Boolean, String) In datlist
-            If nref.Item6 = True Then 'Ok se que es redundante pero igual
-                'Verificar si está disponible ne Internet Archive
-                Dim WayBackResponse As String = _bot.GET(New Uri("http://archive.org/wayback/available?url=" & nref.Item1))
+        For Each nref As WikiWebReference In datlist
+            If nref.PageIsDown = True Then 'Ok se que es redundante pero igual
+                'Verificar si está disponible en Internet Archive
+                Dim datestring As String = nref.RefDate.ToString("yyyyMMddHHmmss", New Globalization.CultureInfo("es-ES"))
+                Dim WayBackResponse As String = _bot.GET(New Uri("http://archive.org/wayback/available?" & "timestamp=" & datestring & "&url=" & nref.PageUrl))
                 Dim Unavaliable As Boolean = WayBackResponse.Contains("""archived_snapshots"": {}")
-                Dim tstring As String = String.Format("{{{{Enlace roto |1={0} |2={1} |fechaacceso={2} |bot={3} }}}}", nref.Item2, nref.Item1, nref.Item3, _bot.UserName)
+                Dim tstring As String = ""
                 If Unavaliable Then
+                    tstring = String.Format("{{{{Enlace roto |1={0} |2={1} |fechaacceso={2} |bot={3} }}}}", nref.PageName, nref.PageUrl, nref.SpokenDate, _bot.UserName)
                     tstring &= " <small>enlace irrecuperable</small>"
                     irrecoverable += 1
+                Else
+                    Dim timestamp As String = RemoveAllAlphas(TextInBetween(WayBackResponse, """timestamp"": """, """,").DefaultIfEmpty(datestring).LastOrDefault())
+                    Dim archivedate As Date = New Date(Integer.Parse(timestamp.Substring(0, 4)), Integer.Parse(timestamp.Substring(4, 2)), Integer.Parse(timestamp.Substring(6, 2)))
+                    Dim archiveSpokenDate As String = archivedate.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
+                    Dim archiveuri As String = {Regex.Match(WayBackResponse, "(?:""url"": "")(http:\/\/web\.archive\.org\/web\/.+?)(?:"")").Groups(1).Value}.DefaultIfEmpty("https://web.archive.org/web/*/" & nref.PageUrl).FirstOrDefault
+                    tstring = String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4} |urlarchivo={5}|fechaarchivo={6}}}}}",
+                                                      nref.PageUrl, nref.PageName, nref.SpokenDate, nref.PageRoot, If(Not String.IsNullOrWhiteSpace(nref.Language), " |idioma=" & nref.Language, ""),
+                                                      archiveuri, archiveSpokenDate)
+                    recovered += 1
                 End If
-                tlist.Add(New Tuple(Of String, String)(nref.Item5, tstring))
+                tlist.Add(New Tuple(Of String, String)(nref.OriginalRef, tstring))
                 bref += 1
             Else
-                Dim tstring As String = String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}}",
-                                                      nref.Item1, nref.Item2, nref.Item3, nref.Item4, If(Not String.IsNullOrWhiteSpace(nref.Item7), " |idioma=" & nref.Item7, ""))
+                _bot.POST(New Uri("https://pragma.archivelab.org"), "{""url"": """ & nref.PageUrl & """, ""annotation"": {""id"": ""lst-ib"", ""message"": """ _
+                          & "Respaldo automático de referencia para el artículo '" & tpage.Title & "' de Wikipedia en español por PeriodiBOT (https://es.wikipedia.org/wiki/Usuario:PeriodiBOT).") 'Aprovechar de respaldarla en internet archive
 
-                tlist.Add(New Tuple(Of String, String)(nref.Item5, tstring))
+                Dim tstring As String = String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}}",
+                                                      nref.PageUrl, nref.PageName, nref.SpokenDate, nref.PageRoot, If(Not String.IsNullOrWhiteSpace(nref.Language), " |idioma=" & nref.Language, ""))
+
+                tlist.Add(New Tuple(Of String, String)(nref.OriginalRef, tstring))
                 cref += 1
             End If
         Next
@@ -1086,12 +1146,62 @@ Class SpecialTaks
             newtext = newtext.Replace(ref.Item1, newref)
         Next
 
-        Dim summary As String = Fixref_GenSummary(cref, bref, duplicatesCount, irrecoverable)
+        Dim normalizedDates As Tuple(Of String, Integer) = Fixref_NormalizeDates(newtext)
+        newtext = normalizedDates.Item1
+        cref += normalizedDates.Item2
+
+        Dim summary As String = Fixref_GenSummary(cref, bref, duplicatesCount, irrecoverable, recovered)
         If cref > 0 OrElse bref > 0 OrElse duplicatesCount > 0 Then
             Return (tpage.Save(newtext, summary, False, True) = EditResults.Edit_successful)
         End If
 
         Return False
+    End Function
+
+    Function Fixref_NormalizeDates(ByVal pagetext As String) As Tuple(Of String, Integer)
+        Dim matches As MatchCollection = Regex.Matches(pagetext, "(\|[\s]*?[fF]echa)(acceso)?( *=)([\s]*?)(\d{1,2} ?- ?\d{1,2} ?- ?(?:\d{2}){1,2})([\s]*?)(\|)")
+        Dim modifiedDates As Integer = 0
+        If matches.Count > 0 Then
+            For Each match As Match In matches
+                Dim mdate As String() = match.Groups(5).Value.Split("-"c).Select(Function(s As String)
+                                                                                     s = s.Replace(" "c, "")
+                                                                                     s = s.Trim()
+                                                                                     Dim i As Integer = Integer.Parse(s)
+                                                                                     s = i.ToString("00")
+                                                                                     Return s
+                                                                                 End Function).ToArray
+                If Integer.Parse(mdate(1)) > 12 Then
+                    Dim ns As String() = {mdate(1), mdate(0), mdate(2)}
+                    mdate = ns
+                End If
+                If Integer.Parse(mdate(2)) < 1800 Then
+                    Dim year As Integer = Integer.Parse(mdate(2))
+                    Dim realyear As Integer = 0
+                    If mdate(2).Length = 2 Then
+                        If year < 22 Then
+                            realyear = Integer.Parse("20" & mdate(2))
+                        Else
+                            realyear = Integer.Parse("19" & mdate(2))
+                        End If
+                    Else
+                        Continue For
+                    End If
+                    Dim ns As String() = {mdate(1), mdate(0), realyear.ToString}
+                    mdate = ns
+                End If
+
+                Dim newdate As String = New Date(Integer.Parse(mdate(2)), Integer.Parse(mdate(1)), Integer.Parse(mdate(0))).ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
+                pagetext = pagetext.Replace(match.Value, match.Groups(1).Value & match.Groups(2).Value _
+                                             & match.Groups(3).Value & match.Groups(4).Value & newdate _
+                                             & match.Groups(6).Value & match.Groups(7).Value)
+                modifiedDates += 1
+            Next
+            Return New Tuple(Of String, Integer)(pagetext, modifiedDates)
+        Else
+            Return New Tuple(Of String, Integer)(pagetext, 0)
+        End If
+
+
     End Function
 
 
@@ -1132,36 +1242,68 @@ Class SpecialTaks
     End Function
 
 
-    Private Function Fixref_GenSummary(ByVal fixedCount As Integer, ByVal brokenCount As Integer, ByVal duplicatesCount As Integer, ByVal irrecoverable As Integer) As String
+    Private Function Fixref_GenSummary(ByVal fixedCount As Integer, ByVal brokenCount As Integer, ByVal duplicatesCount As Integer, ByVal irrecoverable As Integer, ByVal recovered As Integer) As String
         Dim ChangedSumm As String = String.Format("Completando {0} referencia{1}", If(fixedCount = 1, "una", fixedCount.ToString), If(fixedCount > 1, "s", ""))
         Dim BrokenSumm As String = String.Format("arcando {0} referencia{1} como rota{1}", If(brokenCount = 1, "una", brokenCount.ToString), If(brokenCount > 1, "s", ""))
         Dim DuplicatesSumm As String = String.Format("niendo {0} referencia{1} repetida{1}", If(duplicatesCount = 1, "una", duplicatesCount.ToString), If(duplicatesCount > 1, "s", ""))
-        Dim IrrecoverableSumm As String = String.Format(" ({0}{2} irrecuperable{1})", If(irrecoverable = 1, "una", irrecoverable.ToString), If(irrecoverable > 1, "s", ""), If(irrecoverable > 1, " de ellas", ""))
+        Dim RecoveredSumm As String = String.Format("{0} recuperada{1}", If(irrecoverable = 1, "una", recovered.ToString), If(recovered > 1, "s", ""))
+        Dim IrrecoverableSumm As String = String.Format("{0} irrecuperable{1}", If(irrecoverable = 1, "una", irrecoverable.ToString), If(irrecoverable > 1, "s", ""))
         Dim TestPfx As String = String.Format(". (TEST) #PeriodiBOT {0}", Initializer.BotVersion)
         Dim summary As String = "Bot: "
         summary = "Bot: "
-        If fixedCount > 0 Then
-            summary &= ChangedSumm
-        End If
-        If brokenCount > 0 Then
-            If fixedCount = 0 Then summary &= "M"
-            If fixedCount > 0 And duplicatesCount = 0 Then summary &= " y m"
-            If fixedCount > 0 And duplicatesCount > 0 Then summary &= ", m"
-            summary &= BrokenSumm
-            If irrecoverable > 0 Then
-                If brokenCount > 1 Then
-                    summary &= IrrecoverableSumm
-                Else
-                    summary &= " (irrecuperable)"
-                End If
 
-            End If
-        End If
-        If duplicatesCount > 0 Then
-            If fixedCount = 0 And brokenCount = 0 Then summary &= "U"
-            If fixedCount > 0 Or brokenCount > 0 Then summary &= " y u"
-            summary &= DuplicatesSumm
-        End If
+        Select Case True
+            Case fixedCount > 0 And brokenCount = 0 And duplicatesCount = 0
+                summary &= ChangedSumm
+                '========================
+            Case fixedCount = 0 And duplicatesCount = 0 And brokenCount > 0 And irrecoverable = 0 And recovered = 1
+                summary &= "M" & BrokenSumm & " (recuperada)"
+            Case fixedCount = 0 And duplicatesCount = 0 And brokenCount > 0 And irrecoverable = 0 And recovered = brokenCount
+                summary &= "M" & BrokenSumm & " (recuperadas)"
+            Case fixedCount = 0 And duplicatesCount = 0 And brokenCount > 0 And irrecoverable = 1 And recovered = 0
+                summary &= "M" & BrokenSumm & " (irrecuperable)"
+            Case fixedCount = 0 And duplicatesCount = 0 And brokenCount > 0 And irrecoverable = brokenCount And recovered = 0
+                summary &= "M" & BrokenSumm & " (irrecuperables)"
+            Case fixedCount = 0 And duplicatesCount = 0 And brokenCount > 0 And irrecoverable > 0 And recovered > 0
+                summary &= "M" & BrokenSumm & " (" & RecoveredSumm & " y " & IrrecoverableSumm & ")"
+                '========================
+            Case fixedCount > 0 And duplicatesCount = 0 And brokenCount > 0 And irrecoverable = 0 And recovered = 1
+                summary &= ChangedSumm & " y m" & BrokenSumm & " (recuperada)"
+            Case fixedCount > 0 And duplicatesCount = 0 And brokenCount > 0 And irrecoverable = 0 And recovered = brokenCount
+                summary &= ChangedSumm & " y m" & BrokenSumm & " (recuperadas)"
+            Case fixedCount > 0 And duplicatesCount = 0 And brokenCount > 0 And irrecoverable = 1 And recovered = 0
+                summary &= ChangedSumm & " y m" & BrokenSumm & " (irrecuperable)"
+            Case fixedCount > 0 And duplicatesCount = 0 And brokenCount > 0 And irrecoverable = brokenCount And recovered = 0
+                summary &= ChangedSumm & " y m" & BrokenSumm & " (irrecuperables)"
+            Case fixedCount > 0 And duplicatesCount = 0 And brokenCount > 0 And irrecoverable > 0 And recovered > 0
+                summary &= ChangedSumm & " y m" & BrokenSumm & " (" & RecoveredSumm & " y " & IrrecoverableSumm & ")"
+                '========================
+            Case fixedCount > 0 And duplicatesCount > 0 And brokenCount > 0 And irrecoverable = 0 And recovered = 1
+                summary &= ChangedSumm & ", " & "u" & DuplicatesSumm & " y m" & BrokenSumm & " (recuperada)"
+            Case fixedCount > 0 And duplicatesCount > 0 And brokenCount > 0 And irrecoverable = 0 And recovered = brokenCount
+                summary &= ChangedSumm & ", " & "u" & DuplicatesSumm & " y m" & BrokenSumm & " (recuperadas)"
+            Case fixedCount > 0 And duplicatesCount > 0 And brokenCount > 0 And irrecoverable = 1 And recovered = 0
+                summary &= ChangedSumm & ", " & "u" & DuplicatesSumm & " y m" & BrokenSumm & " (irrecuperable)"
+            Case fixedCount > 0 And duplicatesCount > 0 And brokenCount > 0 And irrecoverable = brokenCount And recovered = 0
+                summary &= ChangedSumm & ", " & "u" & DuplicatesSumm & " y m" & BrokenSumm & " (irrecuperables)"
+            Case fixedCount > 0 And duplicatesCount > 0 And brokenCount > 0 And irrecoverable > 0 And recovered > 0
+                summary &= ChangedSumm & ", " & "u" & DuplicatesSumm & " y m" & BrokenSumm & " (" & RecoveredSumm & " y " & IrrecoverableSumm & ")"
+                '========================
+            Case fixedCount = 0 And duplicatesCount > 0 And brokenCount > 0 And irrecoverable = 0 And recovered = 1
+                summary &= "U" & DuplicatesSumm & " y m" & BrokenSumm & " (recuperada)"
+            Case fixedCount = 0 And duplicatesCount > 0 And brokenCount > 0 And irrecoverable = 0 And recovered = brokenCount
+                summary &= "U" & DuplicatesSumm & " y m" & BrokenSumm & " (recuperadas)"
+            Case fixedCount = 0 And duplicatesCount > 0 And brokenCount > 0 And irrecoverable = 1 And recovered = 0
+                summary &= "U" & DuplicatesSumm & " y m" & BrokenSumm & " (irrecuperable)"
+            Case fixedCount = 0 And duplicatesCount > 0 And brokenCount > 0 And irrecoverable = brokenCount And recovered = 0
+                summary &= "U" & DuplicatesSumm & " y m" & BrokenSumm & " (irrecuperables)"
+            Case fixedCount = 0 And duplicatesCount > 0 And brokenCount > 0 And irrecoverable > 0 And recovered > 0
+                summary &= "U" & DuplicatesSumm & " y m" & BrokenSumm & " (" & RecoveredSumm & " y " & IrrecoverableSumm & ")"
+                '========================
+            Case Else
+                summary &= "Ajustando " & fixedCount + brokenCount + duplicatesCount & " referencias"
+        End Select
+
         summary &= TestPfx
         Return summary
     End Function
@@ -1183,4 +1325,6 @@ Class SpecialTaks
     End Function
 
 
+
 End Class
+
