@@ -950,7 +950,7 @@ Class SpecialTaks
 
 
     Private Function RedirectionAllowed(ByVal turi As Uri) As Boolean
-        Dim exceptions As String() = {"fishbase.org", "blogspot.com.ar", "blogspot.com.pe", "blogspot.com.bo", "blogspot.com.co"}
+        Dim exceptions As String() = {"fishbase.org", "blogspot.com.ar", "blogspot.com.pe", "blogspot.com.bo", "blogspot.com.co", "parliament.uk"}
         For Each exception As String In exceptions
             If turi.Authority.Contains(exception) Then
                 Return True
@@ -1244,7 +1244,7 @@ Class SpecialTaks
         Dim ChangedSumm As String = String.Format("Completando {0} referencia{1}", If(fixedCount = 1, "una", fixedCount.ToString), If(fixedCount > 1, "s", ""))
         Dim BrokenSumm As String = String.Format("arcando {0} referencia{1} como rota{1}", If(brokenCount = 1, "una", brokenCount.ToString), If(brokenCount > 1, "s", ""))
         Dim DuplicatesSumm As String = String.Format("niendo {0} referencia{1} repetida{1}", If(duplicatesCount = 1, "una", duplicatesCount.ToString), If(duplicatesCount > 1, "s", ""))
-        Dim RecoveredSumm As String = String.Format("{0} recuperada{1}", If(irrecoverable = 1, "una", recovered.ToString), If(recovered > 1, "s", ""))
+        Dim RecoveredSumm As String = String.Format("{0} recuperada{1}", If(recovered = 1, "una", recovered.ToString), If(recovered > 1, "s", ""))
         Dim IrrecoverableSumm As String = String.Format("{0} irrecuperable{1}", If(irrecoverable = 1, "una", irrecoverable.ToString), If(irrecoverable > 1, "s", ""))
         Dim TestPfx As String = String.Format(". (TEST) #PeriodiBOT {0}", Initializer.BotVersion)
         Dim summary As String = "Bot: "

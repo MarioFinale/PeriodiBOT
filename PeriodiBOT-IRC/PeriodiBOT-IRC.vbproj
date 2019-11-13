@@ -9,8 +9,8 @@
     <Description>PeriodiBOT-IRC .NET Core</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>4.1.7256.8507</AssemblyVersion>
-    <FileVersion>4.1.7256.8507</FileVersion>
+    <AssemblyVersion>4.1.7256.9818</AssemblyVersion>
+    <FileVersion>4.1.7256.9818</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -98,7 +98,7 @@ Public NotInheritable Class Initializer
         'TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(20, 0, 0), True)
 
         'Dim sptask As New SpecialTaks(ESWikiBOT)
-        'sptask.FixRefs(ESWikiBOT.Getpage("William Pereira"))
+        'sptask.FixRefs(ESWikiBOT.Getpage("Centro de Gobierno"))
 
         'Tarea para reparar referencias
         Dim FixRefFunc As New Func(Of Boolean)(Function()
