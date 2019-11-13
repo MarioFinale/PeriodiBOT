@@ -465,4 +465,7 @@
   <data name="UnsignedMessageDetected" xml:space="preserve">
     <value>Mensaje sin firmar detectado en '{0}'.</value>
   </data>
+  <data name="InvalidUser" xml:space="preserve">
+    <value>El usuario '{0}' no cumple con los requisitos mínimos.</value>
+  </data>
 </root>

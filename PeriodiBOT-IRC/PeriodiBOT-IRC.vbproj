@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>PeriodiBOT_IRC</RootNamespace>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <StartupObject>PeriodiBOT_IRC.MainModule</StartupObject>
+    <Version>4.0.0.0</Version>
+    <Description>PeriodiBOT-IRC .NET Core</Description>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <AssemblyVersion>4.1.7256.6899</AssemblyVersion>
+    <FileVersion>4.1.7256.6899</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\Comp\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="LogEngine">
+      <HintPath>..\..\Comp\netcoreapp3.0\LogEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="MWBot.net">
+      <HintPath>..\..\Comp\netcoreapp3.0\MWBot.net.dll</HintPath>
+    </Reference>
+    <Reference Include="Utils">
+      <HintPath>..\..\Comp\netcoreapp3.0\Utils.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="BotMessages.Designer.vb">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BotMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="WPStrings.Designer.vb">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>WPStrings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="BotMessages.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <LastGenOutput>BotMessages.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="WPStrings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <LastGenOutput>WPStrings.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

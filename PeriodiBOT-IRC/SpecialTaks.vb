@@ -6,7 +6,6 @@ Imports MWBot.net.WikiBot
 Imports MWBot.net
 Imports Utils.Utils
 Imports System.Net
-
 Class SpecialTaks
     Private _bot As Bot
 
@@ -208,7 +207,7 @@ Class SpecialTaks
                 End If
 
                 'Anadir los hilos al texto
-                ArchivePageText = ArchivePageText & ThreadText
+                ArchivePageText &= ThreadText
 
                 'Añadir la plantilla de archivo
                 If Not IsTemplatePresent(ArchivePageText, ArchiveMessageTemplateName) Then
@@ -459,7 +458,7 @@ Class SpecialTaks
                         newtext = newtext & "<center>" & ArchiveBoxLink & "</center>" & Environment.NewLine
                     End If
                 Next
-                newtext = newtext & "}}"
+                newtext &= "}}"
                 Indexpage.Save(newtext, BotMessages.CreatingBoxSumm)
 
             Else
@@ -775,7 +774,7 @@ Class SpecialTaks
                 If NewPages > 1 Then
                     NewPageText = String.Format(BotMessages.AddedExtracts, NewPages.ToString)
                 End If
-                EditSummary = EditSummary & NewPageText
+                EditSummary &= NewPageText
             End If
 
             If NotSafepages > 0 Then
@@ -784,7 +783,7 @@ Class SpecialTaks
                     NumbText = String.Format(BotMessages.OmittedExtracts, NotSafepages.ToString)
                 End If
                 NumbText = String.Format(NumbText, NotSafepages)
-                EditSummary = EditSummary & NumbText
+                EditSummary &= NumbText
             End If
             Dim Result As EditResults = ResumePage.Save(NewResumePageText, EditSummary, True, True)
 
@@ -862,7 +861,7 @@ Class SpecialTaks
                 Dim User As New WikiUser(_bot, Username)
                 'Validar usuario
                 If Not ValidUser(User) Then
-                    EventLogger.Debug_Log(String.Format(Messages.InvalidUser, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+                    EventLogger.Debug_Log(String.Format(BotMessages.InvalidUser, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                     Continue For
                 End If
 
@@ -950,7 +949,7 @@ Class SpecialTaks
     End Function
 
 
-    Private Function redirectionAllowed(ByVal turi As Uri) As Boolean
+    Private Function RedirectionAllowed(ByVal turi As Uri) As Boolean
         Dim exceptions As String() = {"fishbase.org", "blogspot.com.ar", "blogspot.com.pe", "blogspot.com.bo", "blogspot.com.co"}
         For Each exception As String In exceptions
             If turi.Authority.Contains(exception) Then
@@ -1051,9 +1050,8 @@ Class SpecialTaks
                         End If
                     End If
                 Catch ex As Exception
-
+                    tp = ""
                 End Try
-
             Catch ex As MaxRetriesExeption
                 tp = ""
             End Try
@@ -1250,7 +1248,6 @@ Class SpecialTaks
         Dim IrrecoverableSumm As String = String.Format("{0} irrecuperable{1}", If(irrecoverable = 1, "una", irrecoverable.ToString), If(irrecoverable > 1, "s", ""))
         Dim TestPfx As String = String.Format(". (TEST) #PeriodiBOT {0}", Initializer.BotVersion)
         Dim summary As String = "Bot: "
-        summary = "Bot: "
 
         Select Case True
             Case fixedCount > 0 And brokenCount = 0 And duplicatesCount = 0

@@ -6,6 +6,7 @@ Imports System.Text.RegularExpressions
 Imports MWBot.net
 Imports MWBot.net.WikiBot
 Imports PeriodiBOT_IRC.Initializer
+Imports PeriodiBOT_IRC.My.Resources
 Imports Utils.Utils
 
 Public Class SignPatroller

@@ -1,10 +1,8 @@
 ﻿Option Strict On
 Option Explicit On
-Imports IRCCLIENT.IRC
-Imports PeriodiBOT_IRC.My.Resources
+
 Imports MWBot.net
 Imports MWBot.net.WikiBot
-Imports MWBot.net.GlobalVars
 Imports Utils.Utils
 
 Public NotInheritable Class Initializer
@@ -100,7 +98,6 @@ Public NotInheritable Class Initializer
         'TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(20, 0, 0), True)
 
         'Dim sptask As New SpecialTaks(ESWikiBOT)
-
         'sptask.FixRefs(ESWikiBOT.Getpage("William Pereira"))
 
         'Tarea para reparar referencias
