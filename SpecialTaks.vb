@@ -834,7 +834,7 @@ Class SpecialTaks
         If newThreads Then
             For Each u As String In userList
                 Dim user As New WikiUser(_bot, u)
-                If user.Exists Then
+                If user.Exists And Not user.Blocked Then
                     Dim userTalkPage As Page = user.TalkPage
                     userTalkPage.AddSection(WPStrings.InfMedTitle, WPStrings.InfMedMsg, WPStrings.InfMedSumm, False)
                 End If
