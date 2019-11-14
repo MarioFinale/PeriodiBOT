@@ -1,6 +1,6 @@
 # Ideas
 
-- [x] Autologin en múltiples canales IRC. ~~ Hecho
-- [ ] Añadir la generación automática de una página HTML que contenga el celebraciones nacionales e internacionales.
-- [ ] Webchat (¿en otro programa?) integrar a al bot ahí.
-- [ ] Actualizar el contador de solicitudes de autorizaciones de bots automáticamente
+- [x] Autologin en mÃºltiples canales IRC. ~~ Hecho
+- [ ] AÃ±adir la generaciÃ³n automÃ¡tica de una pÃ¡gina HTML que contenga el celebraciones nacionales e internacionales.
+- [ ] Webchat (Â¿en otro programa?) integrar a al bot ahÃ­.
+- [x] Actualizar el contador de solicitudes de autorizaciones de bots automÃ¡ticamente
