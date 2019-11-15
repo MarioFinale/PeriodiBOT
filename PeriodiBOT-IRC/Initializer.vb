@@ -100,9 +100,10 @@ Public NotInheritable Class Initializer
         'Dim sptask As New SpecialTaks(ESWikiBOT)
         'sptask.FixRefs(ESWikiBOT.Getpage("Centro de Gobierno"))
 
+
         'Tarea para reparar referencias
         Dim FixRefFunc As New Func(Of Boolean)(Function()
-                                                   Dim sptask As New SpecialTaks(ESWikiBOT)
+                                                   Dim sptask As New RefTool(ESWikiBOT)
                                                    Dim rpage As Page = ESWikiBOT.GetRandomPage()
                                                    Return sptask.FixRefs(rpage)
                                                End Function)

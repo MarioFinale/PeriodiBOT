@@ -5,17 +5,26 @@
     <RootNamespace>PeriodiBOT_IRC</RootNamespace>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <StartupObject>PeriodiBOT_IRC.MainModule</StartupObject>
-    <Version>4.0.0.0</Version>
+    <Version>4.1.0.0</Version>
     <Description>PeriodiBOT-IRC .NET Core</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>4.1.7256.9818</AssemblyVersion>
-    <FileVersion>4.1.7256.9818</FileVersion>
+    <AssemblyVersion>4.1.7258.524</AssemblyVersion>
+    <FileVersion>4.1.7258.524</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>..\..\Comp\</OutputPath>
+    <DocumentationFile>PeriodiBOT-IRC.xml</DocumentationFile>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>PeriodiBOT-IRC.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="LogEngine">

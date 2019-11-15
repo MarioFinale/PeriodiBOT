@@ -152,7 +152,7 @@ Public Class SignPatroller
     End Function
 
     Function IsOverORESThreshold(ByRef tpage As Page) As Boolean
-        Return tpage.ORESScores(0) < OresThreshold
+        Return tpage.ORESScore(0) < OresThreshold
     End Function
 
     Function EditedByOwner(ByRef tpage As Page) As Boolean
