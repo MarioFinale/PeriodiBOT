@@ -32,11 +32,11 @@ Public Class RefTool
         Dim duplicatesCount As Integer = 0
         Dim cref As Integer = 0
         Dim bref As Integer = 0
-        Dim removedDuplicates As Tuple(Of String, Integer) = Fixref_RemoveDuplicates(newtext)
+        Dim removedDuplicates As Tuple(Of String, Integer) = RemoveDuplicates(newtext)
         If Not removedDuplicates Is Nothing Then newtext = removedDuplicates.Item1
         If Not removedDuplicates Is Nothing Then duplicatesCount = removedDuplicates.Item2
         Dim refmatches As MatchCollection = Regex.Matches(newtext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
-        Dim tmatches As String() = FixRefs_FilterRefs(refmatches)
+        Dim tmatches As String() = FilterRefs(refmatches)
         If tmatches.Count <= 0 Then Return False
         Dim turist As New List(Of Tuple(Of String, Uri, String)) 'ref original, uri de la ref, nombre de la ref
         For Each ref As String In tmatches
@@ -210,11 +210,11 @@ Public Class RefTool
             newtext = newtext.Replace(ref.Item1, newref)
         Next
 
-        Dim normalizedDates As Tuple(Of String, Integer) = Fixref_NormalizeDates(newtext)
+        Dim normalizedDates As Tuple(Of String, Integer) = NormalizeDates(newtext)
         newtext = normalizedDates.Item1
         cref += normalizedDates.Item2
 
-        Dim summary As String = Fixref_GenSummary(cref, bref, duplicatesCount, irrecoverable, recovered)
+        Dim summary As String = GenSummary(cref, bref, duplicatesCount, irrecoverable, recovered)
         If cref > 0 OrElse bref > 0 OrElse duplicatesCount > 0 Then
             Return (tpage.Save(newtext, summary, False, True) = EditResults.Edit_successful)
         End If
@@ -222,7 +222,7 @@ Public Class RefTool
         Return False
     End Function
 
-    Function Fixref_NormalizeDates(ByVal pagetext As String) As Tuple(Of String, Integer)
+    Function NormalizeDates(ByVal pagetext As String) As Tuple(Of String, Integer)
         Dim matches As MatchCollection = Regex.Matches(pagetext, "(\|[\s]*?[fF]echa)(acceso)?( *=)([\s]*?)(\d{1,2} ?- ?\d{1,2} ?- ?(?:\d{2}){1,2})([\s]*?)(\|)")
         Dim modifiedDates As Integer = 0
         If matches.Count > 0 Then
@@ -269,9 +269,9 @@ Public Class RefTool
     End Function
 
 
-    Private Function Fixref_RemoveDuplicates(ByVal pagetext As String) As Tuple(Of String, Integer)
+    Private Function RemoveDuplicates(ByVal pagetext As String) As Tuple(Of String, Integer)
         Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
-        Dim tmatches As String() = FixRefs_FilterRefs(refmatches)
+        Dim tmatches As String() = FilterRefs(refmatches)
         Dim refs As New HashSet(Of String)
         Dim duplicatesCount As Integer = 0
         If Not (tmatches.Distinct().Count = tmatches.Count) Then
@@ -306,7 +306,7 @@ Public Class RefTool
     End Function
 
 
-    Private Function Fixref_GenSummary(ByVal fixedCount As Integer, ByVal brokenCount As Integer, ByVal duplicatesCount As Integer, ByVal irrecoverable As Integer, ByVal recovered As Integer) As String
+    Private Function GenSummary(ByVal fixedCount As Integer, ByVal brokenCount As Integer, ByVal duplicatesCount As Integer, ByVal irrecoverable As Integer, ByVal recovered As Integer) As String
         Dim ChangedSumm As String = String.Format("Completando {0} referencia{1}", If(fixedCount = 1, "una", fixedCount.ToString), If(fixedCount > 1, "s", ""))
         Dim BrokenSumm As String = String.Format("arcando {0} referencia{1} como rota{1}", If(brokenCount = 1, "una", brokenCount.ToString), If(brokenCount > 1, "s", ""))
         Dim DuplicatesSumm As String = String.Format("niendo {0} referencia{1} repetida{1}", If(duplicatesCount = 1, "una", duplicatesCount.ToString), If(duplicatesCount > 1, "s", ""))
@@ -373,7 +373,7 @@ Public Class RefTool
 
 
 
-    Private Function FixRefs_FilterRefs(ByVal matc As MatchCollection) As String()
+    Private Function FilterRefs(ByVal matc As MatchCollection) As String()
         Return matc.OfType(Of Match)().Select(Function(x) x.Value).Where(Function(x)
                                                                              Return (Not x.Contains("{{") _
                                                                              AndAlso Not x.Contains("]]") _
