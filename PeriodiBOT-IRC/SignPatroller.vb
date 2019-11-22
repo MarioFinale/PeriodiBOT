@@ -46,7 +46,7 @@ Public Class SignPatroller
                              Exit While
                          End Try
                      End While
-                 Catch ex As Exception
+                 Catch ex As Exception When Not Debugger.IsAttached
                      EventLogger.EX_Log("FATAL EX: " & ex.Message, "AutoSignPatrol", WorkerBot.UserName)
                  End Try
                  Return False
@@ -62,18 +62,18 @@ Public Class SignPatroller
 
     End Sub
 
-    Function GetEditInfoFromStreamLine(ByRef tline As String) As Tuple(Of String, String, Date)
+    Private Function GetEditInfoFromStreamLine(ByRef tline As String) As Tuple(Of String, String, Date)
         Dim tusername As String = If(TextInBetween(tline, ",""user"":""", """,").Count >= 1, TextInBetween(tline, ",""user"":""", """,")(0), "")
         Dim tpagename As String = If(TextInBetween(tline, ",""title"":""", """,").Count >= 1, TextInBetween(tline, ",""title"":""", """,")(0), "")
         Dim tdate As Date = Date.UtcNow
         Return New Tuple(Of String, String, Date)(tusername, tpagename, tdate)
     End Function
 
-    Function ContainsAutosignatureTemplate(ByRef pageContent As String) As Boolean
+    Private Function ContainsAutosignatureTemplate(ByRef pageContent As String) As Boolean
         Return Regex.IsMatch(pageContent, "(\{\{[Pp]lantilla:[Ff]irma automática)([\s\S]+?\}\})")
     End Function
 
-    Function EditIsValid(ByRef tline As String) As Boolean
+    Private Function EditIsValid(ByRef tline As String) As Boolean
         If Not tline.Contains("""wiki"":""eswiki""") Then Return False
         If tline.Contains("""bot"":true,") Then Return False
         If Not tline.Contains(",""type"":""edit"",") Then Return False
@@ -155,7 +155,7 @@ Public Class SignPatroller
         Return tpage.ORESScore(0) < OresThreshold
     End Function
 
-    Function EditedByOwner(ByRef tpage As Page) As Boolean
+    Private Function EditedByOwner(ByRef tpage As Page) As Boolean
         Dim tusername As String = String.Empty
         If tpage.PageNamespace = 3 Then
             If tpage.Title.Contains(":") Then
@@ -211,7 +211,7 @@ Public Class SignPatroller
             ElseIf oldPageThreads.Count < currentPageThreads.Count Then
                 editedthreads = GetSecondArrayAddedDiff(oldPageThreads, currentPageThreads)
             Else
-                editedthreads = {}
+                editedthreads = Array.Empty(Of String)
             End If
         End If
 
@@ -227,7 +227,7 @@ Public Class SignPatroller
 
     Function Lastpdt2(ByVal text As String) As Date
         If String.IsNullOrEmpty(text) Then
-            Throw New ArgumentException("Empty parameter", "text")
+            Throw New ArgumentException("Empty parameter", NameOf(text))
         End If
         Dim lastparagraph As String = String.Empty
         For count As Integer = 0 To 2
@@ -238,7 +238,8 @@ Public Class SignPatroller
                 Exit For
             End If
         Next
-        Dim TheDate As Date = ESWikiDatetime(lastparagraph)
+        Dim TheDate As Date = Nothing
+        ESWikiDatetime(lastparagraph)
         EventLogger.Debug_Log("Returning " & TheDate.ToString, Reflection.MethodBase.GetCurrentMethod().Name, WorkerBot.UserName)
         Return TheDate
     End Function

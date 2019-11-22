@@ -176,9 +176,8 @@ Class SpecialTaks
         'Revisar hilos y archivar si corresponde
         Dim archiveResults As Tuple(Of SortedList(Of String, String), String, Integer) =
             CheckAndArchiveThreads(PageToArchive.Title, pageThreads, PageToArchive.Content,
-                                   strategy, pageDest, maxDays, ArchiveTemplateName,
-                                   DoNotArchiveTemplateName, ProgrammedArchiveTemplateName,
-                                   ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+                                   strategy, pageDest, maxDays,
+                                   DoNotArchiveTemplateName, ProgrammedArchiveTemplateName)
 
         Dim ArchivedList As SortedList(Of String, String) = archiveResults.Item1
         Dim Newpagetext As String = archiveResults.Item2
@@ -265,9 +264,8 @@ Class SpecialTaks
     End Function
 
     Private Function CheckAndArchiveThreads(ByVal Pagename As String, ByVal threads As String(), pagetext As String, strategy As String,
-                                            ConfigDest As String, maxDays As Integer, ArchiveTemplateName As String, DoNotArchiveTemplateName As String,
-                                            ProgrammedArchiveTemplateName As String, ArchiveBoxTemplateName As String,
-                                            ArchiveMessageTemplateName As String) As Tuple(Of SortedList(Of String, String), String, Integer)
+                                            ConfigDest As String, maxDays As Integer, DoNotArchiveTemplateName As String,
+                                            ProgrammedArchiveTemplateName As String) As Tuple(Of SortedList(Of String, String), String, Integer)
 
         Dim archiveList As New SortedList(Of String, String)
         Dim newText As String = pagetext
@@ -287,9 +285,8 @@ Class SpecialTaks
                 End If
                 Dim threadresult As Tuple(Of Tuple(Of String, String), String) =
                     CheckAndArchiveThread(thread, tDate, maxDate, newText, ConfigDest,
-                                          ArchiveTemplateName, DoNotArchiveTemplateName,
-                                          ProgrammedArchiveTemplateName, ArchiveBoxTemplateName,
-                                          ArchiveMessageTemplateName)
+                                          DoNotArchiveTemplateName,
+                                          ProgrammedArchiveTemplateName)
 
                 If threadresult Is Nothing Then Continue For
                 archivedThreads += 1
@@ -302,7 +299,7 @@ Class SpecialTaks
                 Else
                     archiveList.Add(ArchivePageName, ArchiveThreadText)
                 End If
-            Catch ex As Exception
+            Catch ex As Exception When Not Debugger.IsAttached
                 EventLogger.EX_Log(String.Format(BotMessages.WikiThreadError, Pagename, i.ToString, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             End Try
         Next
@@ -321,7 +318,7 @@ Class SpecialTaks
     Function GetTemplate(ByVal text As String, templatename As String) As Template
         Dim tlist As List(Of Template) = Template.GetTemplates(text)
         For Each t As Template In tlist
-            If (t.Name.Trim.Substring(0, 1).ToUpper & t.Name.Trim.Substring(1).ToLower) = (templatename.Trim.Substring(0, 1).ToUpper & templatename.Trim.Substring(1).ToLower) Then
+            If t.Valid AndAlso (t.Name.Trim.Substring(0, 1).ToUpper & t.Name.Trim.Substring(1).ToLower) = (templatename.Trim.Substring(0, 1).ToUpper & templatename.Trim.Substring(1).ToLower) Then
                 Return t
             End If
         Next
@@ -340,7 +337,7 @@ Class SpecialTaks
         End If
         Dim tlist As List(Of Template) = Template.GetTemplates(text)
         For Each t As Template In tlist
-            If (t.Name.Trim.Substring(0, 1).ToUpper & t.Name.Trim.Substring(1).ToLower) = (templatename.Trim.Substring(0, 1).ToUpper & templatename.Trim.Substring(1).ToLower) Then
+            If t.Valid AndAlso (t.Name.Trim.Substring(0, 1).ToUpper & t.Name.Trim.Substring(1).ToLower) = (templatename.Trim.Substring(0, 1).ToUpper & templatename.Trim.Substring(1).ToLower) Then
                 Return True
             End If
         Next
@@ -368,9 +365,8 @@ Class SpecialTaks
     End Function
 
     Private Function CheckAndArchiveThread(ByVal threadtext As String, threaddate As Date, limitdate As Date,
-                                           pagetext As String, ConfigDestination As String, ArchiveTemplateName As String,
-                                           DoNotArchiveTemplateName As String, ProgrammedArchiveTemplateName As String, ArchiveBoxTemplateName As String,
-                                           ArchiveMessageTemplateName As String) As Tuple(Of Tuple(Of String, String), String)
+                                           pagetext As String, ConfigDestination As String,
+                                           DoNotArchiveTemplateName As String, ProgrammedArchiveTemplateName As String) As Tuple(Of Tuple(Of String, String), String)
 
         Dim ProgrammedArchive As Boolean = IsTemplatePresent(threadtext, ProgrammedArchiveTemplateName)
         Dim DoNotArchive As Boolean = IsTemplatePresent(threadtext, DoNotArchiveTemplateName)
@@ -509,7 +505,7 @@ Class SpecialTaks
                 End If
             End If
 
-        Catch ex As Exception
+        Catch ex As Exception When Not Debugger.IsAttached
             EventLogger.EX_Log(String.Format(BotMessages.UpdateBoxEx, Indexpage.Title, ex.Message), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End Try
@@ -578,7 +574,7 @@ Class SpecialTaks
                 Try
                     AutoArchive(_Page, ArchiveTemplateName, DoNotArchiveTemplateName, ProgrammedArchiveTemplateName,
                                 ArchiveBoxTemplateName, ArchiveMessageTemplateName)
-                Catch ex As Exception
+                Catch ex As Exception When Not Debugger.IsAttached
                     EventLogger.EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 End Try
             End If
@@ -595,7 +591,7 @@ Class SpecialTaks
         Dim templist As List(Of Template) = Template.GetTemplates(Template.GetTemplateTextArray(PageToGet.Content))
         Dim signtemp As New Template
         For Each t As Template In templist
-            If Regex.Match(t.Name, WPStrings.AutoSignatureTemplateInsideRegex).Success Then
+            If t.Valid AndAlso Regex.Match(t.Name, WPStrings.AutoSignatureTemplateInsideRegex).Success Then
                 signtemp = t
                 Exit For
             End If
@@ -620,7 +616,7 @@ Class SpecialTaks
                         plist.Add(s2, {Pag.Lastuser, Pag.Title})
                     End If
                 Next
-            Catch ex As Exception
+            Catch ex As Exception When Not Debugger.IsAttached
                 EventLogger.EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             End Try
         Next
@@ -699,7 +695,7 @@ Class SpecialTaks
         For Each Page As String In Page_Resume_pair.Keys
             Dim containsimage As Boolean = False
             If Page_Image_pair.Keys.Contains(Page) Then
-                If Not Page_Image_pair.Item(Page) = String.Empty Then
+                If Not String.IsNullOrEmpty(Page_Image_pair.Item(Page)) Then
                     containsimage = True
                 End If
             End If
@@ -809,7 +805,7 @@ Class SpecialTaks
         Dim uTempList As List(Of Template) = Template.GetTemplates(subthreads(0))
         Dim userList As New List(Of String)
         For Each temp As Template In uTempList
-            If temp.Name = "u" Then
+            If temp.Valid AndAlso temp.Name = "u" Then
                 userList.Add(temp.Parameters(0).Item2)
             End If
         Next

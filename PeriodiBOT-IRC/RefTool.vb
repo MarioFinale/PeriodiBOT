@@ -8,10 +8,10 @@ Imports Utils.Utils
 
 Public Class RefTool
 
-    Private _bot As Bot
+    Private Property WorkerBot As Bot
 
     Sub New(ByRef workerbot As Bot)
-        _bot = workerbot
+        Me.WorkerBot = workerbot
     End Sub
 
     Private Function RedirectionAllowed(ByVal turi As Uri) As Boolean
@@ -22,6 +22,202 @@ Public Class RefTool
             End If
         Next
         Return False
+    End Function
+
+    Private Function GetRefs(ByVal pagetext As String) As WikiRef()
+        Dim matches As MatchCollection = Regex.Matches(pagetext, "((?:< *ref *)(?:[^/]*?>))([\s\S]+?)(< *\/ref>)", RegexOptions.IgnoreCase)
+        Dim refList As New List(Of WikiRef)
+
+        For Each m As Match In matches
+            Dim openingTag As String = m.Groups(1).Value
+            Dim content As String = m.Groups(2).Value
+            Dim closingTag As String = m.Groups(3).Value
+            Dim refName As String = String.Empty
+
+            Dim nameMatch As Match = Regex.Match(openingTag, "(name *= *"")([\s\S]+?)("")", RegexOptions.IgnoreCase)
+            If nameMatch.Success Then
+                refName = nameMatch.Groups(2).Value
+            End If
+
+            Dim ref As New WikiRef With {
+            .OpeningTag = openingTag,
+            .Content = content,
+            .ClosingTag = closingTag,
+            .Name = refName,
+            .OriginalString = m.Value
+            }
+            refList.Add(ref)
+        Next
+
+        Return refList.ToArray()
+    End Function
+
+    Private Function IsWebRef(ByVal ref As WikiRef) As Boolean
+        Dim isWeb As Boolean = Regex.Match(ref.Content, "(\|[\s]*url[\s]*)=(.+?)(\|)|(\[.+\])", RegexOptions.IgnoreCase).Success
+        If isWeb Then Return isWeb
+        Return Uri.IsWellFormedUriString(ref.Content.Split(" "c)(0).Trim, UriKind.RelativeOrAbsolute)
+    End Function
+
+    Private Function GetWebRefs(ByVal refs As WikiRef()) As WikiWebReference()
+        Dim refList As New List(Of WikiWebReference)
+        For Each ref As WikiRef In refs
+            If Not IsWebRef(ref) Then Continue For
+            Dim refName As String = ref.Name
+            Dim refString As String = ref.OriginalString
+            Dim refOpeningTag As String = ref.OpeningTag
+            Dim refClosingTag As String = ref.ClosingTag
+            Dim refPageUrl As String = Regex.Match(ref.Content, "((https*:\/\/)|(([A-z]+?\.){1,3}([A-z]+?)\/))([^\s\|\}\{\[\]]+)", RegexOptions.IgnoreCase).Value
+            Dim refPageRoot As String = New Uri(refPageUrl).Authority
+            Dim refPageName As String = String.Empty
+
+            Dim externalLink As Match = Regex.Match(ref.Content, "([^\[]\[(?!\[))(.+?)(\])")
+            Dim refIsExternalLink As Boolean = externalLink.Success
+            Dim refIsAlreadyArchived As Boolean = Regex.Match(ref.Content, "(web\.archive\.org|\{\{ *Wayback)", RegexOptions.IgnoreCase).Success
+            Dim refIsCiteWeb As Boolean = Regex.Match(ref.Content, "(\{\{ *cita web)", RegexOptions.IgnoreCase).Success
+
+            Dim templatesInref As List(Of Template) = Template.GetTemplates(ref.Content)
+            Dim noTemplates As Boolean = True
+
+            For Each t As Template In templatesInref
+                Dim urlFound As Boolean = False
+                Dim nameFound As Boolean = False
+                If t.Name.ToLower.Contains("cita ") Then
+                    noTemplates = False
+                    For Each parameter As Tuple(Of String, String) In t.Parameters
+                        If parameter.Item1.ToLower = "url" Then
+                            refPageUrl = parameter.Item2
+                            urlFound = True
+                        End If
+
+                        If parameter.Item1.ToLower = "título" Then
+                            refPageName = parameter.Item2
+                            nameFound = True
+                        End If
+
+                        If urlFound And nameFound Then Exit For
+                    Next
+                End If
+            Next
+
+            If refIsExternalLink And noTemplates Then
+                Dim extLinkText As String = externalLink.Groups(2).Value
+                refPageName = ref.Content.Replace(externalLink.Value, extLinkText.Replace(extLinkText.Split(" "c)(0), "").Trim())
+            End If
+
+
+            Dim tWebref As New WikiWebReference With {
+                .AlreadyArchived = refIsAlreadyArchived,
+                .CiteWeb = refIsCiteWeb,
+                .ClosingTag = refClosingTag,
+                .Complete = False,
+                .Content = ref.Content,
+                .Language = Nothing,
+                .Name = refName,
+                .OpeningTag = refOpeningTag,
+                .OriginalString = ref.OriginalString,
+                .PageIsDown = Nothing,
+                .PageName = refPageName,
+                .PageRoot = refPageRoot,
+                .PageUrl = refPageUrl,
+                .RefDate = Nothing,
+                .SpokenDate = Nothing,
+                .Valid = False}
+
+            refList.Add(tWebref)
+
+        Next
+
+        Return refList.ToArray()
+    End Function
+
+
+    Function GetWebsiteContent(ByVal weburi As Uri) As String
+        Dim tp As String
+        Try
+            tp = WorkerBot.GET(weburi)
+            Try
+                Dim request As Net.HttpWebRequest = DirectCast(HttpWebRequest.Create(weburi), HttpWebRequest)
+                request.Timeout = 30000
+                request.Method = "GET"
+                request.UserAgent = WorkerBot.BotApiHandler.UserAgent
+                request.ContentType = "application/x-www-form-urlencoded"
+                Dim location As String = ""
+                Using response As Net.WebResponse = request.GetResponse
+                    location = response.ResponseUri.OriginalString
+                End Using
+                If Not location = weburi.OriginalString Then
+                    If Not RedirectionAllowed(weburi) Then
+                        If weburi.OriginalString.Substring(0, 5) = location.Substring(0, 5) Then
+                            tp = ""
+                        End If
+                    End If
+                End If
+            Catch ex As Exception
+                tp = ""
+            End Try
+        Catch ex As MaxRetriesExeption
+            tp = ""
+        End Try
+        Return tp
+    End Function
+
+    Private Function GetRefsNameAndUris(ByVal refs As String()) As List(Of Tuple(Of String, Uri, String))
+        Dim refsList As New List(Of Tuple(Of String, Uri, String))
+        For Each ref As String In refs
+            If Regex.Match(ref, "\[.+\]").Success Then
+                Dim tref As String = Regex.Match(ref, "\[.+\]").Value
+                tref = tref.Substring(1, tref.Length - 1).Trim()
+                tref = ReplaceFirst(tref, "]", "")
+                Dim refinfo As String() = {tref.Split(" "c)(0), tref.Replace(tref.Split(" "c)(0), "").Trim()}
+                Dim tur As New Uri("http://x.z") : Uri.TryCreate(refinfo(0).Trim(), UriKind.Absolute, tur)
+                Dim refdesc As String = Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase)
+                refdesc = ReplaceFirst(refdesc, "[", "").Replace(tur.OriginalString, "").Trim()
+                If refdesc(refdesc.Length - 1) = "]"c Then
+                    refdesc = refdesc.Substring(0, refdesc.Length - 1)
+                Else
+                    refdesc = ReplaceFirst(refdesc, "]", "")
+                End If
+                refdesc = ReplaceFirst(refdesc, "]", "-").Trim()
+                If tur Is Nothing Then Continue For
+                refsList.Add(New Tuple(Of String, Uri, String)(ref, tur, refdesc))
+            Else
+                Dim tref As New Uri("http://x.z") : Uri.TryCreate(Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase), UriKind.Absolute, tref)
+                If tref Is Nothing Then Continue For
+                refsList.Add(New Tuple(Of String, Uri, String)(ref, tref, ""))
+            End If
+        Next
+        Return refsList
+    End Function
+
+    Private Function GetDateOfRefs(ByVal sourcePage As Page, ByVal refSet As HashSet(Of Tuple(Of String, Uri, String))) As HashSet(Of Tuple(Of Uri, Date, String, String))
+        Dim UrlAndDateList As New HashSet(Of Tuple(Of Uri, Date, String, String))
+        Dim temppage As Page = sourcePage
+        Dim lasttimestamp As Date = temppage.LastEdit
+        While True
+            If temppage.ParentRevId <= 0 Then
+                For Each ref As Tuple(Of String, Uri, String) In refSet
+                    UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(ref.Item2, lasttimestamp, ref.Item3, ref.Item1))
+                Next
+                Exit While
+            End If
+
+            temppage = WorkerBot.Getpage(temppage.ParentRevId)
+            Dim allmissing As Boolean = True
+            Dim refsToCheck As Tuple(Of String, Uri, String)() = refSet.ToArray
+
+            For Each ref As Tuple(Of String, Uri, String) In refsToCheck
+                If temppage.Content.Contains(ref.Item2.OriginalString) Then
+                    lasttimestamp = temppage.LastEdit
+                    allmissing = False
+                Else
+                    UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(ref.Item2, lasttimestamp, ref.Item3, ref.Item1))
+                    refSet.Remove(ref)
+                End If
+            Next
+
+            If allmissing Then Exit While
+        End While
+        Return UrlAndDateList
     End Function
 
 
@@ -38,36 +234,14 @@ Public Class RefTool
         Dim refmatches As MatchCollection = Regex.Matches(newtext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
         Dim tmatches As String() = FilterRefs(refmatches)
         If tmatches.Count <= 0 Then Return False
-        Dim turist As New List(Of Tuple(Of String, Uri, String)) 'ref original, uri de la ref, nombre de la ref
-        For Each ref As String In tmatches
-            If Regex.Match(ref, "\[.+\]").Success Then
-                Dim tref As String = Regex.Match(ref, "\[.+\]").Value
-                tref = tref.Substring(1, tref.Length - 1).Trim()
-                tref = ReplaceFirst(tref, "]", "")
-                Dim refinfo As String() = {tref.Split(" "c)(0), tref.Replace(tref.Split(" "c)(0), "").Trim()}
-                Dim tur As New Uri("http://x.z") : Uri.TryCreate(refinfo(0).Trim(), UriKind.Absolute, tur)
-                Dim refdesc As String = Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase)
-                refdesc = ReplaceFirst(refdesc, "[", "").Replace(tur.OriginalString, "").Trim()
-                If refdesc(refdesc.Length - 1) = "]"c Then
-                    refdesc = refdesc.Substring(0, refdesc.Length - 1)
-                Else
-                    refdesc = ReplaceFirst(refdesc, "]", "")
-                End If
-                refdesc = ReplaceFirst(refdesc, "]", "-").Trim()
-                If tur Is Nothing Then Continue For
-                turist.Add(New Tuple(Of String, Uri, String)(ref, tur, refdesc))
-            Else
-                Dim tref As New Uri("http://x.z") : Uri.TryCreate(Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase), UriKind.Absolute, tref)
-                If tref Is Nothing Then Continue For
-                turist.Add(New Tuple(Of String, Uri, String)(ref, tref, ""))
-            End If
-        Next
+        Dim turist As List(Of Tuple(Of String, Uri, String)) = GetRefsNameAndUris(tmatches) 'ref original, uri de la ref, nombre de la ref
+
         If turist.Count <= 0 And duplicatesCount <= 0 Then Return False
 
         Dim pageslist As New List(Of String)
         Dim UrlAndDateList As New HashSet(Of Tuple(Of Uri, Date, String, String))
         Dim temppage = tpage
-        Dim lasttimestamp As Date = temppage.EditDate
+        Dim lasttimestamp As Date = temppage.LastEdit
 
         While True
             If temppage.ParentRevId <= 0 Then
@@ -76,12 +250,12 @@ Public Class RefTool
                 Next
                 Exit While
             End If
-            temppage = _bot.Getpage(temppage.ParentRevId)
+            temppage = WorkerBot.Getpage(temppage.ParentRevId)
             Dim tempuris As Tuple(Of String, Uri, String)() = turist.ToArray
             Dim Allmissing As Boolean = True
             For Each tref As Tuple(Of String, Uri, String) In tempuris
                 If temppage.Content.Contains(tref.Item2.OriginalString) Then
-                    lasttimestamp = temppage.EditDate
+                    lasttimestamp = temppage.LastEdit
                     Allmissing = False
                 Else
                     UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(tref.Item2, lasttimestamp, tref.Item3, tref.Item1))
@@ -94,33 +268,9 @@ Public Class RefTool
         Dim datlist As New List(Of WikiWebReference)
 
 
-        For Each tup As Tuple(Of Uri, Date, String, String) In UrlAndDateList
-            Dim tp As String
-            Try
-                tp = _bot.GET(tup.Item1)
-                Try
-                    Dim request As Net.HttpWebRequest = DirectCast(HttpWebRequest.Create(tup.Item1), HttpWebRequest)
-                    request.Timeout = 30000
-                    request.Method = "GET"
-                    request.UserAgent = _bot.BotApiHandler.UserAgent
-                    request.ContentType = "application/x-www-form-urlencoded"
-                    Dim location As String = ""
-                    Using response As Net.WebResponse = request.GetResponse
-                        location = response.ResponseUri.OriginalString
-                    End Using
-                    If Not location = tup.Item1.OriginalString Then
-                        If Not RedirectionAllowed(tup.Item1) Then
-                            If tup.Item1.OriginalString.Substring(0, 5) = location.Substring(0, 5) Then
-                                tp = ""
-                            End If
-                        End If
-                    End If
-                Catch ex As Exception
-                    tp = ""
-                End Try
-            Catch ex As MaxRetriesExeption
-                tp = ""
-            End Try
+        For Each tup As Tuple(Of Uri, Date, String, String) In UrlAndDateList 'uri, fecha, nombre, ref original
+            Dim tp As String = GetWebsiteContent(tup.Item1)
+
             Dim pageDown As Boolean = String.IsNullOrWhiteSpace(tp)
             Dim pagename As String = Regex.Replace(Regex.Replace(Regex.Match(tp, "<title>[\s\S]+?<\/title>", RegexOptions.IgnoreCase).Value.Trim(), "(<title>|<\/title>)", "", RegexOptions.IgnoreCase), "[\n\r]", "").Trim()
             If Not String.IsNullOrWhiteSpace(tup.Item3) Then pagename = Regex.Replace(tup.Item3.Trim(), "[\n\r]", "")
@@ -156,7 +306,7 @@ Public Class RefTool
                 .PageName = pagename,
                 .SpokenDate = tdate,
                 .PageRoot = pageroot,
-                .OriginalRef = tup.Item4,
+                .OriginalString = tup.Item4,
                 .PageIsDown = pageDown,
                 .Language = lang,
                 .RefDate = tup.Item2
@@ -173,11 +323,11 @@ Public Class RefTool
             If nref.PageIsDown = True Then 'Ok se que es redundante pero igual
                 'Verificar si está disponible en Internet Archive
                 Dim datestring As String = nref.RefDate.ToString("yyyyMMddHHmmss", New Globalization.CultureInfo("es-ES"))
-                Dim WayBackResponse As String = _bot.GET(New Uri("http://archive.org/wayback/available?" & "timestamp=" & datestring & "&url=" & nref.PageUrl))
+                Dim WayBackResponse As String = WorkerBot.GET(New Uri("http://archive.org/wayback/available?" & "timestamp=" & datestring & "&url=" & nref.PageUrl))
                 Dim Unavaliable As Boolean = WayBackResponse.Contains("""archived_snapshots"": {}")
                 Dim tstring As String = ""
                 If Unavaliable Then
-                    tstring = String.Format("{{{{Enlace roto |1={0} |2={1} |fechaacceso={2} |bot={3} }}}}", nref.PageName, nref.PageUrl, nref.SpokenDate, _bot.UserName)
+                    tstring = String.Format("{{{{Enlace roto |1={0} |2={1} |fechaacceso={2} |bot={3} }}}}", nref.PageName, nref.PageUrl, nref.SpokenDate, WorkerBot.UserName)
                     tstring &= " <small>enlace irrecuperable</small>"
                     irrecoverable += 1
                 Else
@@ -190,16 +340,16 @@ Public Class RefTool
                                                       archiveuri, archiveSpokenDate)
                     recovered += 1
                 End If
-                tlist.Add(New Tuple(Of String, String)(nref.OriginalRef, tstring))
+                tlist.Add(New Tuple(Of String, String)(nref.OriginalString, tstring))
                 bref += 1
             Else
-                _bot.POST(New Uri("https://pragma.archivelab.org"), "{""url"": """ & nref.PageUrl & """, ""annotation"": {""id"": ""lst-ib"", ""message"": """ _
+                WorkerBot.POST(New Uri("https://pragma.archivelab.org"), "{""url"": """ & nref.PageUrl & """, ""annotation"": {""id"": ""lst-ib"", ""message"": """ _
                           & "Respaldo automático de referencia para el artículo '" & tpage.Title & "' de Wikipedia en español por PeriodiBOT (https://es.wikipedia.org/wiki/Usuario:PeriodiBOT).") 'Aprovechar de respaldarla en internet archive
 
                 Dim tstring As String = String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}}",
                                                       nref.PageUrl, nref.PageName, nref.SpokenDate, nref.PageRoot, If(Not String.IsNullOrWhiteSpace(nref.Language), " |idioma=" & nref.Language, ""))
 
-                tlist.Add(New Tuple(Of String, String)(nref.OriginalRef, tstring))
+                tlist.Add(New Tuple(Of String, String)(nref.OriginalString, tstring))
                 cref += 1
             End If
         Next
@@ -222,7 +372,7 @@ Public Class RefTool
         Return False
     End Function
 
-    Function NormalizeDates(ByVal pagetext As String) As Tuple(Of String, Integer)
+    Private Function NormalizeDates(ByVal pagetext As String) As Tuple(Of String, Integer)
         Dim matches As MatchCollection = Regex.Matches(pagetext, "(\|[\s]*?[fF]echa)(acceso)?( *=)([\s]*?)(\d{1,2} ?- ?\d{1,2} ?- ?(?:\d{2}){1,2})([\s]*?)(\|)")
         Dim modifiedDates As Integer = 0
         If matches.Count > 0 Then

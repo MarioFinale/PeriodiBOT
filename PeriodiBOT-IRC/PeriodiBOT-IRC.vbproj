@@ -9,8 +9,8 @@
     <Description>PeriodiBOT-IRC .NET Core</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>4.1.7258.524</AssemblyVersion>
-    <FileVersion>4.1.7258.524</FileVersion>
+    <AssemblyVersion>4.1.7264.6428</AssemblyVersion>
+    <FileVersion>4.1.7264.6428</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -27,6 +27,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="IRCCLIENT">
+      <HintPath>..\..\Comp\netcoreapp3.0\IRCCLIENT.dll</HintPath>
+    </Reference>
     <Reference Include="LogEngine">
       <HintPath>..\..\Comp\netcoreapp3.0\LogEngine.dll</HintPath>
     </Reference>

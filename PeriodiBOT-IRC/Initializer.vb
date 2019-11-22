@@ -4,6 +4,8 @@ Option Explicit On
 Imports MWBot.net
 Imports MWBot.net.WikiBot
 Imports Utils.Utils
+Imports IRCCLIENT.IRC
+Imports PeriodiBOT_IRC.My.Resources
 
 Public NotInheritable Class Initializer
     Private Sub New()
@@ -26,88 +28,85 @@ Public NotInheritable Class Initializer
         LoadSettings()
         Dim ESWikiBOT As New Bot(ConfigFilePath)
         If Not ESWikiBOT.SetLogConfig(LogPath, UserPath, BotName, Verbose) Then End
-        'Dim BotIRC As New IRC_Client(IrcConfigPath, 6667, IrcOpPath, ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"})
-        'If Not BotIRC.SetLogConfig(LogPath, UserPath, BotName, Verbose) Then End
-        'Dim tPatroller As New SignPatroller(ESWikiBOT)
-        'BotIRC.StartClient()
-        'tPatroller.StartPatroller()
+        Dim BotIRC As New IRC_Client(IrcConfigPath, 6667, IrcOpPath, ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"})
+        If Not BotIRC.SetLogConfig(LogPath, UserPath, BotName, Verbose) Then End
+        Dim tPatroller As New SignPatroller(ESWikiBOT)
+        BotIRC.StartClient()
+        tPatroller.StartPatroller()
 
-        ''Tarea para actualizar el contador de solicitudes de autorizaciones de bots
-        'Dim BotCountFunc As New Func(Of Boolean) _
-        '    (Function()
-        '         Dim sp As New SpecialTaks(ESWikiBOT)
-        '         Return sp.UpdateBotRecuestCount(ESWikiBOT.Getpage("Wikipedia:Bot/Autorizaciones"), ESWikiBOT.Getpage("Wikipedia:Bot/Autorizaciones/número"), 1)
-        '     End Function)
-        'TaskAdm.NewTask("Actualizar el contador de solicitudes de autorizaciones de bots", ESWikiBOT.UserName, BotCountFunc, 300000, True)
+        'Tarea para actualizar el contador de solicitudes de autorizaciones de bots
+        Dim BotCountFunc As New Func(Of Boolean) _
+            (Function()
+                 Dim sp As New SpecialTaks(ESWikiBOT)
+                 Return sp.UpdateBotRecuestCount(ESWikiBOT.Getpage("Wikipedia:Bot/Autorizaciones"), ESWikiBOT.Getpage("Wikipedia:Bot/Autorizaciones/número"), 1)
+             End Function)
+        TaskAdm.NewTask("Actualizar el contador de solicitudes de autorizaciones de bots", ESWikiBOT.UserName, BotCountFunc, 300000, True)
 
-        ''Tarea para revisar si hay solicitudes en mediacion informal
-        'Dim InfMedFunc As New Func(Of Boolean)(Function()
-        '                                           Dim sptask As New SpecialTaks(ESWikiBOT)
-        '                                           Return sptask.CheckInformalMediation()
-        '                                       End Function)
-        'TaskAdm.NewTask("Verificar solicitudes en mediacion informal", ESWikiBOT.UserName, InfMedFunc, 600000, True)
-
-        ''Tarea para actualizar plantilla de usuario conectado
-        'Dim UserStatusFunc As New Func(Of Boolean) _
-        '    (Function()
-        '         Dim sptask As New SpecialTaks(ESWikiBOT)
-        '         Dim p As Page = ESWikiBOT.Getpage("Plantilla:Estado usuario")
-        '         sptask.CheckUsersActivity(p, p)
-        '         Return True
-        '     End Function)
-        'TaskAdm.NewTask("Actualizar plantilla de usuario conectado", ESWikiBOT.UserName, UserStatusFunc, 600000, True)
-
-        ''Tarea para actualizar el café temático
-        'Dim TopicFunc As New Func(Of Boolean)(Function()
-        '                                          Dim topicw As New WikiTopicList(ESWikiBOT)
-        '                                          Return topicw.UpdateTopics
-        '                                      End Function)
-        'TaskAdm.NewTask("Actualizar el café temático", ESWikiBOT.UserName, TopicFunc, New TimeSpan(12, 0, 0), True)
-
-        ''Tarea para actualizar la lista de los hilos mas largos
-        'Dim BiggestThreadsFunc As New Func(Of Boolean) _
-        '    (Function()
-        '         Dim topicw As New WikiTopicList(ESWikiBOT)
-        '         Return topicw.BiggestThreadsEver()
-        '     End Function)
-        'TaskAdm.NewTask("Actualizar la lista con los hilos más grandes del café.", ESWikiBOT.UserName, BiggestThreadsFunc, New TimeSpan(9, 0, 0), True)
-
-        ''Tarea para actualizar extractos
-        'Dim UpdateExtractFunc As New Func(Of Boolean)(Function()
-        '                                                  Dim sptask As New SpecialTaks(ESWikiBOT)
-        '                                                  Return sptask.UpdatePageExtracts(WPStrings.ResumePageName)
-        '                                              End Function)
-        'TaskAdm.NewTask("Actualizar extractos", ESWikiBOT.UserName, UpdateExtractFunc, 300000, True)
-
-        ''Tarea para archivar todo
-        'Dim ArchiveAllFunc As New Func(Of Boolean) _
-        '    (Function()
-
-        '         Dim signtask As New SpecialTaks(ESWikiBOT)
-        '         Return signtask.ArchiveAllInclusions(ArchiveTemplateName, DoNotArchiveTemplateName,
-        '                                               ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
-        '     End Function)
-        'TaskAdm.NewTask("Archivado automático", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
-
-        ''Tarea para actualizar lista de bots
-        'Dim UpdateBotsListFunc As New Func(Of Boolean) _
-        '    (Function()
-        '         Dim signtask As New SpecialTaks(ESWikiBOT)
-        '         Return signtask.UpdateBotList(ESWikiBOT.Getpage("Plantilla:Controlador"), ESWikiBOT.Getpage("Wikipedia:Bot/Bots activos"), "ficha de bot")
-        '     End Function)
-        'TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(20, 0, 0), True)
-
-        'Dim sptask As New SpecialTaks(ESWikiBOT)
-        'sptask.FixRefs(ESWikiBOT.Getpage("Centro de Gobierno"))
-
-
-        'Tarea para reparar referencias
-        Dim FixRefFunc As New Func(Of Boolean)(Function()
-                                                   Dim sptask As New RefTool(ESWikiBOT)
-                                                   Dim rpage As Page = ESWikiBOT.GetRandomPage()
-                                                   Return sptask.FixRefs(rpage)
+        'Tarea para revisar si hay solicitudes en mediacion informal
+        Dim InfMedFunc As New Func(Of Boolean)(Function()
+                                                   Dim sptask As New SpecialTaks(ESWikiBOT)
+                                                   Return sptask.CheckInformalMediation()
                                                End Function)
-        TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
+        TaskAdm.NewTask("Verificar solicitudes en mediacion informal", ESWikiBOT.UserName, InfMedFunc, 600000, True)
+
+        'Tarea para actualizar plantilla de usuario conectado
+        Dim UserStatusFunc As New Func(Of Boolean) _
+            (Function()
+
+                 Dim sptask As New SpecialTaks(ESWikiBOT)
+                 Dim p As Page = ESWikiBOT.Getpage("Plantilla:Estado usuario")
+                 sptask.CheckUsersActivity(p, p)
+                 Return True
+             End Function)
+        TaskAdm.NewTask("Actualizar plantilla de usuario conectado", ESWikiBOT.UserName, UserStatusFunc, 600000, True)
+
+        'Tarea para actualizar el café temático
+        Dim TopicFunc As New Func(Of Boolean)(Function()
+                                                  Dim topicw As New WikiTopicList(ESWikiBOT)
+                                                  Return topicw.UpdateTopics
+                                              End Function)
+        TaskAdm.NewTask("Actualizar el café temático", ESWikiBOT.UserName, TopicFunc, New TimeSpan(12, 0, 0), True)
+
+        'Tarea para actualizar la lista de los hilos mas largos
+        Dim BiggestThreadsFunc As New Func(Of Boolean) _
+            (Function()
+                 Dim topicw As New WikiTopicList(ESWikiBOT)
+                 Return topicw.BiggestThreadsEver()
+             End Function)
+        TaskAdm.NewTask("Actualizar la lista con los hilos más grandes del café.", ESWikiBOT.UserName, BiggestThreadsFunc, New TimeSpan(9, 0, 0), True)
+
+        'Tarea para actualizar extractos
+        Dim UpdateExtractFunc As New Func(Of Boolean)(Function()
+                                                          Dim sptask As New SpecialTaks(ESWikiBOT)
+                                                          Return sptask.UpdatePageExtracts(WPStrings.ResumePageName)
+                                                      End Function)
+        TaskAdm.NewTask("Actualizar extractos", ESWikiBOT.UserName, UpdateExtractFunc, 300000, True)
+
+        'Tarea para archivar todo
+        Dim ArchiveAllFunc As New Func(Of Boolean) _
+            (Function()
+
+                 Dim signtask As New SpecialTaks(ESWikiBOT)
+                 Return signtask.ArchiveAllInclusions(ArchiveTemplateName, DoNotArchiveTemplateName,
+                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+             End Function)
+        TaskAdm.NewTask("Archivado automático", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
+
+        'Tarea para actualizar lista de bots
+        Dim UpdateBotsListFunc As New Func(Of Boolean) _
+            (Function()
+                 Dim signtask As New SpecialTaks(ESWikiBOT)
+                 Return signtask.UpdateBotList(ESWikiBOT.Getpage("Plantilla:Controlador"), ESWikiBOT.Getpage("Wikipedia:Bot/Bots activos"), "ficha de bot")
+             End Function)
+        TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(20, 0, 0), True)
+
+        ''Tarea para reparar referencias
+        'Dim FixRefFunc As New Func(Of Boolean)(Function()
+        '                                           Dim sptask As New RefTool(ESWikiBOT)
+        '                                           Dim rpage As Page = ESWikiBOT.GetRandomPage()
+        '                                           Return sptask.FixRefs(rpage)
+        '                                       End Function)
+        'TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
 
 
     End Sub
