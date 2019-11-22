@@ -83,6 +83,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Archivado de páginas completo..
+        '''</summary>
+        Public Shared ReadOnly Property AllArchived() As String
+            Get
+                Return ResourceManager.GetString("AllArchived", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Aparentemente el resultado es {0}..
         '''</summary>
         Public Shared ReadOnly Property ApparentResult() As String

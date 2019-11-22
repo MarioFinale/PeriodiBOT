@@ -468,4 +468,7 @@
   <data name="InvalidUser" xml:space="preserve">
     <value>El usuario '{0}' no cumple con los requisitos mínimos.</value>
   </data>
+  <data name="AllArchived" xml:space="preserve">
+    <value>Archivado de páginas completo.</value>
+  </data>
 </root>

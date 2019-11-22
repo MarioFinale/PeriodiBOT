@@ -579,6 +579,7 @@ Class SpecialTaks
                 End Try
             End If
         Next
+        EventLogger.Log(BotMessages.AllArchived, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         Return True
     End Function
 
