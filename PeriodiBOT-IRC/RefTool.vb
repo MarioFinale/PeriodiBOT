@@ -104,7 +104,6 @@ Public Class RefTool
                 refPageName = ref.Content.Replace(externalLink.Value, extLinkText.Replace(extLinkText.Split(" "c)(0), "").Trim())
             End If
 
-
             Dim tWebref As New WikiWebReference With {
                 .AlreadyArchived = refIsAlreadyArchived,
                 .CiteWeb = refIsCiteWeb,
@@ -418,7 +417,6 @@ Public Class RefTool
 
     End Function
 
-
     Private Function RemoveDuplicates(ByVal pagetext As String) As Tuple(Of String, Integer)
         Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
         Dim tmatches As String() = FilterRefs(refmatches)
@@ -454,7 +452,6 @@ Public Class RefTool
         End If
         Return New Tuple(Of String, Integer)(pagetext, duplicatesCount)
     End Function
-
 
     Private Function GenSummary(ByVal fixedCount As Integer, ByVal brokenCount As Integer, ByVal duplicatesCount As Integer, ByVal irrecoverable As Integer, ByVal recovered As Integer) As String
         Dim ChangedSumm As String = String.Format("Completando {0} referencia{1}", If(fixedCount = 1, "una", fixedCount.ToString), If(fixedCount > 1, "s", ""))
