@@ -27,8 +27,6 @@ Public NotInheritable Class Initializer
         Uptime = Date.Now
         LoadSettings()
         Dim ESWikiBOT As New Bot(ConfigFilePath, EventLogger)
-        If Not ESWikiBOT.SetLogConfig(LogPath, UserPath, BotName, Verbose) Then End
-
         Dim BotIRC As New IRC_Client(IrcConfigPath, 6667, IrcOpPath, ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"}, EventLogger)
         Dim tPatroller As New SignPatroller(ESWikiBOT)
         BotIRC.StartClient()
@@ -98,7 +96,7 @@ Public NotInheritable Class Initializer
                  Dim signtask As New SpecialTaks(ESWikiBOT)
                  Return signtask.UpdateBotList(ESWikiBOT.Getpage("Plantilla:Controlador"), ESWikiBOT.Getpage("Wikipedia:Bot/Bots activos"), "ficha de bot")
              End Function)
-        TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(20, 0, 0), True)
+        TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, 3600000, True)
 
         ''Tarea para reparar referencias
         'Dim FixRefFunc As New Func(Of Boolean)(Function()

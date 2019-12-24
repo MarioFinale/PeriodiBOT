@@ -28,7 +28,7 @@ Class SpecialTaks
 
         'Verificar si el usuario está bloqueado.
         If user.Blocked Then
-            EventLogger.Log(String.Format(BotMessages.UserBlocked, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+            EventLogger.Debug_Log(String.Format(BotMessages.UserBlocked, user.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End If
 
@@ -184,6 +184,24 @@ Class SpecialTaks
         Dim ArchivedThreads As Integer = archiveResults.Item3
 
         If ArchivedThreads > 0 Then
+
+            'Guardar pagina principal
+            If Not String.IsNullOrEmpty(Newpagetext) Then
+                'Si debe tener caja de archivos...
+                If useBox Then
+                    If Not Regex.Match(Newpagetext, "{{" & IndexPage.Title & "}}", RegexOptions.IgnoreCase).Success Then
+                        Dim Archivetemplate As String = GetTemplate(PageToArchive.Content, ArchiveTemplateName, True).Text
+                        Newpagetext = Newpagetext.Replace(Archivetemplate, Archivetemplate & Environment.NewLine & "{{" & IndexPage.Title & "}}" & Environment.NewLine)
+                    End If
+                End If
+                Dim isminor As Boolean = Not notify
+                Dim Summary As String = String.Format(BotMessages.ArchivedThreadSumm, ArchivedThreads, maxDays.ToString)
+                If ArchivedThreads > 1 Then
+                    Summary = String.Format(BotMessages.ArchivedThreadsSumm, ArchivedThreads, maxDays.ToString)
+                End If
+                If Not PageToArchive.Save(Newpagetext, Summary, isminor, True) = EditResults.Edit_successful Then Return False
+            End If
+
             'Guardar los hilos en los archivos correspondientes por fecha
             For Each k As KeyValuePair(Of String, String) In ArchivedList
                 Dim isminor As Boolean = Not notify
@@ -240,22 +258,6 @@ Class SpecialTaks
                 UpdateBox(IndexPage, ArchivePages, ArchiveBoxTemplateName)
             End If
 
-            'Guardar pagina principal
-            If Not String.IsNullOrEmpty(Newpagetext) Then
-                'Si debe tener caja de archivos...
-                If useBox Then
-                    If Not Regex.Match(Newpagetext, "{{" & IndexPage.Title & "}}", RegexOptions.IgnoreCase).Success Then
-                        Dim Archivetemplate As String = GetTemplate(PageToArchive.Content, ArchiveTemplateName, True).Text
-                        Newpagetext = Newpagetext.Replace(Archivetemplate, Archivetemplate & Environment.NewLine & "{{" & IndexPage.Title & "}}" & Environment.NewLine)
-                    End If
-                End If
-                Dim isminor As Boolean = Not notify
-                Dim Summary As String = String.Format(BotMessages.ArchivedThreadSumm, ArchivedThreads, maxDays.ToString)
-                If ArchivedThreads > 1 Then
-                    Summary = String.Format(BotMessages.ArchivedThreadsSumm, ArchivedThreads, maxDays.ToString)
-                End If
-                PageToArchive.Save(Newpagetext, Summary, isminor, True)
-            End If
         Else
             EventLogger.Log(String.Format(BotMessages.NothingToArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         End If
@@ -845,20 +847,32 @@ Class SpecialTaks
 
         Dim ActiveUsers As New Dictionary(Of String, WikiUser)
         Dim InactiveUsers As New Dictionary(Of String, WikiUser)
-        Dim inclusions As Page() = _bot.GetallInclusionsPages(templatePage)
-        For Each p As Page In inclusions
-
-            If (p.PageNamespace = 3) Or (p.PageNamespace = 2) Then
-                Dim Username As String = p.Title.Split(":"c)(1)
-                'si es una subpágina
-                If Username.Contains("/") Then
-                    Username = Username.Split("/"c)(0)
-                End If
+        Dim InvalidUsers As New Dictionary(Of String, WikiUser)
+        Dim inclusions As String() = _bot.GetallInclusions(templatePage)
+        For Each p As String In inclusions
+            Dim Username As String = p.Split(":"c)(1).Trim()
+            'si es una subpágina
+            If Username.Contains("/") Then
+                Username = Username.Split("/"c)(0)
+            End If
+            'No cargar usuarios más de una vez
+            If ActiveUsers.Keys.Contains(Username) Then
+                Continue For
+            End If
+            If InactiveUsers.Keys.Contains(Username) Then
+                Continue For
+            End If
+            If InvalidUsers.Keys.Contains(Username) Then
+                Continue For
+            End If
+            Dim tpage As Page = _bot.Getpage(p)
+            If (tpage.PageNamespace = 3) Or (tpage.PageNamespace = 2) Then
                 'Cargar usuario
                 Dim User As New WikiUser(_bot, Username)
                 'Validar usuario
                 If Not ValidUser(User) Then
                     EventLogger.Debug_Log(String.Format(BotMessages.InvalidUser, User.UserName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+                    InvalidUsers.Add(User.UserName, User)
                     Continue For
                 End If
 
@@ -897,8 +911,8 @@ Class SpecialTaks
             t.Parameters.Add(New Tuple(Of String, String)(u.UserName, linetext))
         Next
 
-        Dim templatetext As String = "{{Noart|1=<div style=""position:absolute; z-index:100; right:10px; top:5px;"" class=""metadata"">" & Environment.NewLine & t.Text
-        templatetext = templatetext & Environment.NewLine & "</div>}}" & Environment.NewLine & "<noinclude>" & "{{documentación}}" & "</noinclude>"
+        Dim templatetext As String = "{{Noart|1=<indicator name=""z-estado-usuario"">" & Environment.NewLine & t.Text
+        templatetext = templatetext & Environment.NewLine & "</indicator>}}" & Environment.NewLine & "<noinclude>" & "{{documentación}}" & "</noinclude>"
         pageToSave.Save(templatetext, "Bot: Actualizando lista.", True, True, False)
 
     End Sub
@@ -937,7 +951,7 @@ Class SpecialTaks
             Dim tcontroller As WikiUser = New WikiUser(_bot, Regex.Replace(p.Item2, tpattern, "").Trim())
             BotText = BotText & Environment.NewLine & "{{/bot|nombre=" & tbot.UserName & "|controlador=" & tcontroller.UserName & "|primera=" & If(tbot.EditCount < 2, "N/A", tbot.FirstEdit.ToString("dd-MM-yyyy")) _
             & "|última=" & If(tbot.EditCount < 2, "N/A", tbot.LastEdit.ToString("dd-MM-yyyy")) & "|días inactivo=" & If(tbot.EditCount < 2, "N/A", Date.UtcNow.Subtract(tbot.LastEdit).Days.ToString) & "|ediciones=" & tbot.EditCount.ToString _
-            & "|flag=" & If(tbot.Exists AndAlso tbot.IsBot, "Sí", "No") & "|ficha de bot=" & If(tbot.Exists AndAlso tbot.UserPage.Content.ToLower.Contains("{{" & BotInfoBoxTemplateName.ToLower), "Sí", "No") _
+            & "|flag=" & If(tbot.Exists AndAlso tbot.IsBot, "Sí", "No") & "|ficha de bot=" & If(tbot.Exists AndAlso If(tbot.UserPage.Content, "").ToLower.Contains("{{" & BotInfoBoxTemplateName.ToLower), "Sí", "No") _
             & "|bloqueo=" & If(tbot.Exists AndAlso tbot.Blocked, "Sí", "No") & "|bloqueo controlador=" & If(tcontroller.Exists AndAlso tcontroller.Blocked, "Sí", "No") & "}}"
         Next
         Dim tcontent As String = PageToUpdate.Content.Replace(TextInBetween(PageToUpdate.Content, "<!-- Marca de inicio de datos -->", "<!-- Marca de fin de datos -->")(0), BotText & Environment.NewLine)
