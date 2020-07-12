@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>PeriodiBOT_IRC</RootNamespace>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <StartupObject>PeriodiBOT_IRC.MainModule</StartupObject>
     <Version>4.1.0.0</Version>
     <Description>PeriodiBOT-IRC .NET Core</Description>
@@ -31,16 +31,16 @@
 
   <ItemGroup>
     <Reference Include="IRCCLIENT">
-      <HintPath>..\..\Comp\netcoreapp3.0\IRCCLIENT.dll</HintPath>
+      <HintPath>..\..\Comp\netcoreapp3.1\IRCCLIENT.dll</HintPath>
     </Reference>
     <Reference Include="LogEngine">
-      <HintPath>..\..\Comp\netcoreapp3.0\LogEngine.dll</HintPath>
+      <HintPath>..\..\Comp\netcoreapp3.1\LogEngine.dll</HintPath>
     </Reference>
     <Reference Include="MWBot.net">
-      <HintPath>..\..\Comp\netcoreapp3.0\MWBot.net.dll</HintPath>
+      <HintPath>..\..\Comp\netcoreapp3.1\MWBot.net.dll</HintPath>
     </Reference>
     <Reference Include="Utils">
-      <HintPath>..\..\Comp\netcoreapp3.0\Utils.dll</HintPath>
+      <HintPath>..\..\Comp\netcoreapp3.1\Utils.dll</HintPath>
     </Reference>
   </ItemGroup>
 
