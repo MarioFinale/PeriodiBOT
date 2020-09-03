@@ -8,7 +8,7 @@ Module Vars
     Public LogPath As String = Exepath & "Log.psv"
     Public UserPath As String = Exepath & "Users.psv"
     Public SettingsPath As String = Exepath & "Settings.psv"
-    Public Verbose As Boolean = True
+    Public Verbose As Boolean = False
     Public EventLogger As New LogEngine.LogEngine(LogPath, UserPath, BotName, Verbose)
     Public SettingsProvider As New Settings(SettingsPath)
 
