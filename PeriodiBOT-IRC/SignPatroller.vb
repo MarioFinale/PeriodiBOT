@@ -3,11 +3,10 @@ Option Explicit On
 Imports System.IO
 Imports System.Net
 Imports System.Text.RegularExpressions
-Imports MWBot.net
+Imports MWBot.net.Utility.Utils
 Imports MWBot.net.WikiBot
 Imports PeriodiBOT_IRC.Initializer
 Imports PeriodiBOT_IRC.My.Resources
-Imports Utils.Utils
 
 Public Class SignPatroller
 

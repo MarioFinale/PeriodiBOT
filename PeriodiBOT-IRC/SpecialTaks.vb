@@ -3,9 +3,7 @@ Option Explicit On
 Imports System.Text.RegularExpressions
 Imports PeriodiBOT_IRC.My.Resources
 Imports MWBot.net.WikiBot
-Imports MWBot.net
-Imports Utils.Utils
-Imports System.Net
+Imports MWBot.net.Utility.Utils
 Class SpecialTaks
     Private _bot As Bot
 

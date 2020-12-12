@@ -1,7 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
-Imports Utils.Utils
-Imports LogEngine
+Imports MWBot.net.Utility
+Imports MWBot.net.Utility.Utils
 Module Vars
     Public BotName As String = "PeriodiBOT"
     Public ConfigFilePath As String = Exepath & "Config.cfg"
@@ -9,9 +9,6 @@ Module Vars
     Public UserPath As String = Exepath & "Users.psv"
     Public SettingsPath As String = Exepath & "Settings.psv"
     Public Verbose As Boolean = False
-    Public EventLogger As New LogEngine.LogEngine(LogPath, UserPath, BotName, Verbose)
+    Public EventLogger As New SimpleLogger(LogPath, UserPath, BotName, Verbose)
     Public SettingsProvider As New Settings(SettingsPath)
-
-
-
 End Module

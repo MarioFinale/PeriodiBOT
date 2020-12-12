@@ -33,14 +33,8 @@
     <Reference Include="IRCCLIENT">
       <HintPath>..\..\Comp\netcoreapp3.1\IRCCLIENT.dll</HintPath>
     </Reference>
-    <Reference Include="LogEngine">
-      <HintPath>..\..\Comp\netcoreapp3.1\LogEngine.dll</HintPath>
-    </Reference>
     <Reference Include="MWBot.net">
       <HintPath>..\..\Comp\netcoreapp3.1\MWBot.net.dll</HintPath>
-    </Reference>
-    <Reference Include="Utils">
-      <HintPath>..\..\Comp\netcoreapp3.1\Utils.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -1,12 +1,10 @@
 ﻿Option Strict On
 Option Explicit On
 Imports PeriodiBOT_IRC.My.Resources
-Imports PeriodiBOT_IRC.Initializer
-Imports MWBot.net
+Imports MWBot.net.Utility.Utils
 Imports MWBot.net.WikiBot
 Imports System.Text.RegularExpressions
 Imports System.Text
-Imports Utils.Utils
 
 Public Class WikiTopicList
     Private Property WorkerBot As Bot

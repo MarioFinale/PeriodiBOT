@@ -4,7 +4,7 @@ Imports System.Net
 Imports System.Text.RegularExpressions
 Imports MWBot.net
 Imports MWBot.net.WikiBot
-Imports Utils.Utils
+Imports MWBot.net.Utility.Utils
 
 Public Class RefTool
 

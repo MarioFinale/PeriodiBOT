@@ -1,9 +1,9 @@
 ﻿Option Strict On
 Option Explicit On
 
-Imports MWBot.net
 Imports MWBot.net.WikiBot
-Imports Utils.Utils
+Imports MWBot.net.Utility
+Imports MWBot.net.Utility.Utils
 Imports IRCCLIENT.IRC
 Imports PeriodiBOT_IRC.My.Resources
 
@@ -96,7 +96,7 @@ Public NotInheritable Class Initializer
                  Dim signtask As New SpecialTaks(ESWikiBOT)
                  Return signtask.UpdateBotList(ESWikiBOT.Getpage("Plantilla:Controlador"), ESWikiBOT.Getpage("Wikipedia:Bot/Bots activos"), "ficha de bot")
              End Function)
-        TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, 3600000, True)
+        TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(12, 0, 0), True)
 
         ''Tarea para reparar referencias
         'Dim FixRefFunc As New Func(Of Boolean)(Function()
