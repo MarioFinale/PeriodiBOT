@@ -30,6 +30,7 @@ Public NotInheritable Class Initializer
         Dim BotIRC As New IRC_Client(IrcConfigPath, 6667, IrcOpPath, ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"}, EventLogger)
         Dim tPatroller As New SignPatroller(ESWikiBOT)
         BotIRC.StartClient()
+
         tPatroller.StartPatroller()
 
         'Tarea para actualizar el contador de solicitudes de autorizaciones de bots
@@ -97,6 +98,7 @@ Public NotInheritable Class Initializer
                  Return signtask.UpdateBotList(ESWikiBOT.Getpage("Plantilla:Controlador"), ESWikiBOT.Getpage("Wikipedia:Bot/Bots activos"), "ficha de bot")
              End Function)
         TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(12, 0, 0), True)
+
 
         ''Tarea para reparar referencias
         'Dim FixRefFunc As New Func(Of Boolean)(Function()

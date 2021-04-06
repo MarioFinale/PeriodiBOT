@@ -415,15 +415,29 @@ Class SpecialTaks
         Dim ThreadMonth As String = threaddate.ToString("MM", System.Globalization.CultureInfo.InvariantCulture)
         Dim ThreadMonth2 As String = UppercaseFirstCharacter(threaddate.ToString("MMMM", New System.Globalization.CultureInfo("es-ES")))
         Dim ThreadDay As String = threaddate.ToString("dd", System.Globalization.CultureInfo.InvariantCulture)
-        Dim Threadhyear As Integer
+        Dim ThreadSem As Integer
+        Dim ThreadTrim As Integer
 
         If threaddate.Month < 7 Then
-            Threadhyear = 1
+            ThreadSem = 1
         Else
-            Threadhyear = 2
+            ThreadSem = 2
         End If
+
+        Select Case True
+            Case threaddate.Month <= 3
+                ThreadTrim = 1
+            Case threaddate.Month <= 6
+                ThreadTrim = 2
+            Case threaddate.Month <= 9
+                ThreadTrim = 3
+            Case threaddate.Month <= 12
+                ThreadTrim = 4
+        End Select
+
+
         Dim PageDestination As String = destination.Replace("AAAA", Threadyear).Replace("MMMM", ThreadMonth2).Replace("MM", ThreadMonth) _
-                      .Replace("DD", ThreadDay).Replace("SEM", Threadhyear.ToString)
+                      .Replace("DD", ThreadDay).Replace("SEM", ThreadSem.ToString).Replace("TRIM", ThreadTrim.ToString)
 
         Return PageDestination
     End Function
