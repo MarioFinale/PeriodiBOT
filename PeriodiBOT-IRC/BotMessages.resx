@@ -471,4 +471,7 @@
   <data name="AllArchived" xml:space="preserve">
     <value>Archivado de páginas completo.</value>
   </data>
+  <data name="EditResultMessage" xml:space="preserve">
+    <value>Resultado de la edición en '{0}': {1}</value>
+  </data>
 </root>

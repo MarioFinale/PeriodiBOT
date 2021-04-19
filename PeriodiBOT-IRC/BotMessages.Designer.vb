@@ -281,6 +281,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Resultado de la edición en &apos;{0}&apos;: {1}.
+        '''</summary>
+        Public Shared ReadOnly Property EditResultMessage() As String
+            Get
+                Return ResourceManager.GetString("EditResultMessage", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Entrando a {0}..
         '''</summary>
         Public Shared ReadOnly Property EnteringRoom() As String

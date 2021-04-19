@@ -197,7 +197,7 @@ Class SpecialTaks
                 If ArchivedThreads > 1 Then
                     Summary = String.Format(BotMessages.ArchivedThreadsSumm, ArchivedThreads, maxDays.ToString)
                 End If
-                If Not PageToArchive.Save(Newpagetext, Summary, isminor, True) = EditResults.Edit_successful Then Return False
+                If Not PageToArchive.Save(Newpagetext, Summary, isminor, True, True) = EditResults.Edit_successful Then Return False
             End If
 
             'Guardar los hilos en los archivos correspondientes por fecha
@@ -242,13 +242,14 @@ Class SpecialTaks
                 End If
 
                 'Texto de resumen de edicion
-                Dim SummaryText As String = String.Format(BotMessages.ArchivedThreadDestSumm, threadcount, maxDays.ToString, PageToArchive.Title)
+                Dim SummaryText As String = String.Format(BotMessages.ArchivedThreadDestSumm, threadcount, maxDays.ToString(), PageToArchive.Title)
                 If threadcount > 1 Then
-                    SummaryText = String.Format(BotMessages.ArchivedThreadsDestSumm, threadcount, maxDays.ToString, PageToArchive.Title)
+                    SummaryText = String.Format(BotMessages.ArchivedThreadsDestSumm, threadcount, maxDays.ToString(), PageToArchive.Title)
                 End If
 
                 'Guardar
-                ArchPage.Save(ArchivePageText, SummaryText, isminor, True)
+                Dim result As EditResults = ArchPage.Save(ArchivePageText, SummaryText, isminor, True, True)
+                EventLogger.Log(String.Format(BotMessages.EditResultMessage, PageToArchive.Title, result.ToString()), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Next
 
             'Actualizar caja si corresponde

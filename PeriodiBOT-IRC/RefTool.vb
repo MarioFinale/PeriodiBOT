@@ -129,34 +129,55 @@ Public Class RefTool
         Return refList.ToArray()
     End Function
 
-
-    Function GetWebsiteContent(ByVal weburi As Uri) As String
+    ''' <summary>
+    ''' Verifica e intenta cargar un recurso web. Si se trata de un archivo FTP, solo retorna la cadena de texto "FTP FILE".
+    ''' </summary>
+    ''' <param name="weburi"></param>
+    ''' <returns></returns>
+    Function CheckAndTryLoadWebResource(ByVal weburi As Uri) As String
         Dim tp As String
-        Try
-            tp = WorkerBot.GET(weburi)
+        If weburi.Scheme.ToLower = "ftp" Or weburi.Scheme.ToLower = "sftp" Then
+            Dim request As WebRequest = WebRequest.Create(weburi)
+            request.Method = WebRequestMethods.Ftp.GetFileSize
             Try
-                Dim request As Net.HttpWebRequest = DirectCast(HttpWebRequest.Create(weburi), HttpWebRequest)
-                request.Timeout = 30000
-                request.Method = "GET"
-                request.UserAgent = WorkerBot.BotApiHandler.UserAgent
-                request.ContentType = "application/x-www-form-urlencoded"
-                Dim location As String = ""
-                Using response As Net.WebResponse = request.GetResponse
-                    location = response.ResponseUri.OriginalString
-                End Using
-                If Not location = weburi.OriginalString Then
-                    If Not RedirectionAllowed(weburi) Then
-                        If weburi.OriginalString.Substring(0, 5) = location.Substring(0, 5) Then
-                            tp = ""
+                request.GetResponse()
+                tp = "FTP FILE"
+            Catch e As WebException
+                Dim response As FtpWebResponse = CType(e.Response, FtpWebResponse)
+
+                If response.StatusCode = FtpStatusCode.ActionNotTakenFileUnavailable Then
+                    tp = ""
+                Else
+                    tp = ""
+                End If
+            End Try
+        Else
+            Try
+                tp = WorkerBot.GET(weburi)
+                Try
+                    Dim request As HttpWebRequest = DirectCast(HttpWebRequest.Create(weburi), HttpWebRequest)
+                    request.Timeout = 30000
+                    request.Method = "GET"
+                    request.UserAgent = WorkerBot.BotApiHandler.UserAgent
+                    request.ContentType = "application/x-www-form-urlencoded"
+                    Dim location As String = ""
+                    Using response As Net.WebResponse = request.GetResponse
+                        location = response.ResponseUri.OriginalString
+                    End Using
+                    If Not location = weburi.OriginalString Then
+                        If Not RedirectionAllowed(weburi) Then
+                            If weburi.OriginalString.Substring(0, 5) = location.Substring(0, 5) Then
+                                tp = ""
+                            End If
                         End If
                     End If
-                End If
-            Catch ex As Exception
+                Catch ex As Exception
+                    tp = ""
+                End Try
+            Catch ex As MaxRetriesExeption
                 tp = ""
             End Try
-        Catch ex As MaxRetriesExeption
-            tp = ""
-        End Try
+        End If
         Return tp
     End Function
 
@@ -268,7 +289,7 @@ Public Class RefTool
 
 
         For Each tup As Tuple(Of Uri, Date, String, String) In UrlAndDateList 'uri, fecha, nombre, ref original
-            Dim tp As String = GetWebsiteContent(tup.Item1)
+            Dim tp As String = CheckAndTryLoadWebResource(tup.Item1)
 
             Dim pageDown As Boolean = String.IsNullOrWhiteSpace(tp)
             Dim pagename As String = Regex.Replace(Regex.Replace(Regex.Match(tp, "<title>[\s\S]+?<\/title>", RegexOptions.IgnoreCase).Value.Trim(), "(<title>|<\/title>)", "", RegexOptions.IgnoreCase), "[\n\r]", "").Trim()
@@ -327,7 +348,7 @@ Public Class RefTool
                 Dim tstring As String = ""
                 If Unavaliable Then
                     tstring = String.Format("{{{{Enlace roto |1={0} |2={1} |fechaacceso={2} |bot={3} }}}}", nref.PageName, nref.PageUrl, nref.SpokenDate, WorkerBot.UserName)
-                    tstring &= " <small>enlace irrecuperable</small>"
+                    tstring &= " <!-- Enlace irrecuperable. No hay snapshots de esa URL exacta disponibles en Internet Archive a la fecha de la consulta. -->"
                     irrecoverable += 1
                 Else
                     Dim timestamp As String = RemoveAllAlphas(TextInBetween(WayBackResponse, """timestamp"": """, """,").DefaultIfEmpty(datestring).LastOrDefault())
@@ -342,8 +363,10 @@ Public Class RefTool
                 tlist.Add(New Tuple(Of String, String)(nref.OriginalString, tstring))
                 bref += 1
             Else
-                WorkerBot.POST(New Uri("https://pragma.archivelab.org"), "{""url"": """ & nref.PageUrl & """, ""annotation"": {""id"": ""lst-ib"", ""message"": """ _
-                          & "Respaldo automático de referencia para el artículo '" & tpage.Title & "' de Wikipedia en español por PeriodiBOT (https://es.wikipedia.org/wiki/Usuario:PeriodiBOT).") 'Aprovechar de respaldarla en internet archive
+                Task.Run(Sub()
+                             Dim saveuristring = "https://web.archive.org/save/" & nref.PageUrl
+                             Dim waaresponse As String = WorkerBot.GET(New Uri(saveuristring)) 'Enviar la URL de la referencia a Archive.org para que guarde un snapshot. Hacer en otro hilo porque tarda muuucho tiempo.
+                         End Sub)
 
                 Dim tstring As String = String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}}",
                                                       nref.PageUrl, nref.PageName, nref.SpokenDate, nref.PageRoot, If(Not String.IsNullOrWhiteSpace(nref.Language), " |idioma=" & nref.Language, ""))
@@ -450,8 +473,47 @@ Public Class RefTool
 
             Next
         End If
+
+        Dim repFunc As Tuple(Of String, Integer) = RemoveRefWithSameNameButDifferentContent(pagetext)
+        pagetext = repFunc.Item1
+        duplicatesCount += repFunc.Item2
         Return New Tuple(Of String, Integer)(pagetext, duplicatesCount)
     End Function
+
+    Private Function RemoveRefWithSameNameButDifferentContent(ByVal pagetext As String) As Tuple(Of String, Integer)
+        Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
+        Dim matches As String() = refmatches.OfType(Of Match)().Select(Function(x) x.Value).ToArray()
+        Dim refList As New Dictionary(Of String, HashSet(Of String))
+
+        For Each m As String In matches
+            Dim refmatch As Match = Regex.Match(m, "(<ref name *=)([^\/]+?)(>)")
+            If Not refmatch.Success Then Continue For
+            Dim refname As String = refmatch.Groups(2).Value
+            If Not refList.ContainsKey(refname) Then
+                refList.Add(refname, New HashSet(Of String))
+            End If
+            refList(refname).Add(m)
+        Next
+
+        Dim replaceList As New List(Of Tuple(Of String, String))
+
+        For Each m As String In refList.Keys
+            Dim refs As String() = refList(m).ToArray
+            If refs.Count <= 1 Then Continue For
+            Dim count As Integer = 1
+            For Each s As String In refs
+                replaceList.Add(New Tuple(Of String, String)(s, s.Replace(m, m.TrimEnd(""""c) & "_" & count & """")))
+                count += 1
+            Next
+        Next
+        Dim replacements As Integer = 0
+        For Each replaceTup As Tuple(Of String, String) In replaceList
+            pagetext = pagetext.Replace(replaceTup.Item1, replaceTup.Item2)
+            replacements += 1
+        Next
+        Return New Tuple(Of String, Integer)(pagetext, replacements)
+    End Function
+
 
     Private Function GenSummary(ByVal fixedCount As Integer, ByVal brokenCount As Integer, ByVal duplicatesCount As Integer, ByVal irrecoverable As Integer, ByVal recovered As Integer) As String
         Dim ChangedSumm As String = String.Format("Completando {0} referencia{1}", If(fixedCount = 1, "una", fixedCount.ToString), If(fixedCount > 1, "s", ""))
