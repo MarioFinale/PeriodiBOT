@@ -109,7 +109,6 @@ Public NotInheritable Class Initializer
         'TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
 
 
-
     End Sub
 
 
