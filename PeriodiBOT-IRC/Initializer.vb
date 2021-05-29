@@ -28,6 +28,7 @@ Public NotInheritable Class Initializer
         LoadSettings()
         Dim ESWikiBOT As New Bot(ConfigFilePath, EventLogger)
         Dim BotIRC As New IRC_Client(IrcConfigPath, 6667, IrcOpPath, ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"}, EventLogger)
+        BotIRC.UseSASL = True
         Dim tPatroller As New SignPatroller(ESWikiBOT)
         BotIRC.StartClient()
 

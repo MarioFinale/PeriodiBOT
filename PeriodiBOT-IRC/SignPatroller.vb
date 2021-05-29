@@ -85,11 +85,12 @@ Public Class SignPatroller
         If editsqueue.Count = 0 Then Return False
         SyncLock editsqueue
             tedit = editsqueue.Dequeue
-            If Not Date.UtcNow.Subtract(tedit.Item3).Minutes > 4 Then
+            If Not Date.UtcNow.Subtract(tedit.Item3).Minutes > 1 Then
                 editsqueue.Enqueue(tedit)
                 Return False
             End If
         End SyncLock
+
         Dim tpagename As String = tedit.Item2
 
         Dim expagethreads As String() = WorkerBot.Getpage("Usuario:PeriodiBOT/Paginas exentas de firma").Threads
@@ -104,10 +105,11 @@ Public Class SignPatroller
         Dim tuser As WikiUser = New WikiUser(WorkerBot, tedit.Item1)
         Dim tpage As Page = WorkerBot.Getpage(tedit.Item2)
 
-        If (tuser.EditCount < 500 And (Not exuserlist.Contains(tuser.UserName)) Or achecklist.Contains(tuser.UserName)) Then
-            If Date.UtcNow.Subtract(tpage.LastEdit).Minutes < 4 Then Return False
-            Return AddMissingSignature2(tpage, False, True, String.Empty) '"TEST (" & GlobalVars.Codename & " " & GlobalVars.MwBotVersion & "/" & BotName & " " & BotVersion & "):"
+        If ((Not exuserlist.Contains(tuser.UserName)) Or achecklist.Contains(tuser.UserName)) Then
+            If Date.UtcNow.Subtract(tpage.LastEdit).Minutes < 1 Then Return False
+            Return AddMissingSignature2(tpage, False, True, String.Empty)
         End If
+
         EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: EC=" & tuser.EditCount _
                               & " EXULIST=" & exuserlist.Contains(tuser.UserName).ToString & " ACHECK=" & achecklist.Contains(tuser.UserName).ToString & " EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue", WorkerBot.UserName)
         Return False
@@ -142,6 +144,7 @@ Public Class SignPatroller
         If tpage.Lastuser = WorkerBot.UserName Then Return False 'No completar firma en páginas en las que el mismo bot haya editado.
         If LastUserIsBot(tpage) Then Return False 'No firmar ediciones de bot.
         If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar reversiones, nunca.
+        If tpage.Comment.ToLower.Contains("reverted") Then Return False 'No firmar ediciones revertidas (EN), nunca.
         If tpage.Comment.ToLower.Contains("deshecha la edición") Then Return False 'No firmar ediciones deshechas, nunca.
         If EditedByOwner(tpage) Then Return False 'No completar firma en páginas de usuario en las que el mismo usuario haya editado.
         If GetThreadCountDiffLastEdit(tpage) >= 2 Then Return False 'Si el usuario edita 2 o mas hilos de golpe ignorar el edit.
@@ -151,7 +154,7 @@ Public Class SignPatroller
     End Function
 
     Function IsOverORESThreshold(ByRef tpage As Page) As Boolean
-        Return tpage.ORESScore(0) < OresThreshold
+        Return tpage.ORESScore(0) > OresThreshold
     End Function
 
     Private Function EditedByOwner(ByRef tpage As Page) As Boolean
@@ -237,8 +240,7 @@ Public Class SignPatroller
                 Exit For
             End If
         Next
-        Dim TheDate As Date = Nothing
-        ESWikiDatetime(lastparagraph)
+        Dim TheDate As Date = ESWikiDatetime(lastparagraph)
         EventLogger.Debug_Log("Returning " & TheDate.ToString, Reflection.MethodBase.GetCurrentMethod().Name, WorkerBot.UserName)
         Return TheDate
     End Function
