@@ -10,7 +10,7 @@ Imports PeriodiBOT_IRC.My.Resources
 
 Public Class SignPatroller
 
-    Public OresThreshold As Double = 96.8#
+    Public OresThreshold As Double = 91.8#
 
     ReadOnly Property WorkerBot As Bot
     Sub New(ByRef workerbot As Bot)
@@ -159,6 +159,7 @@ Public Class SignPatroller
         If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar reversiones, nunca.
         If tpage.Comment.ToLower.Contains("reverted") Then Return False 'No firmar ediciones revertidas (EN), nunca.
         If tpage.Comment.ToLower.Contains("deshecha la edición") Then Return False 'No firmar ediciones deshechas, nunca.
+        If tpage.Threads.Count() <= 1 Then Return False 'No firmar páginas con 1 o menos hilos
         If EditedByOwner(tpage) Then Return False 'No completar firma en páginas de usuario en las que el mismo usuario haya editado.
         If GetThreadCountDiffLastEdit(tpage) >= 2 Then Return False 'Si el usuario edita 2 o mas hilos de golpe ignorar el edit.
         If IsOverORESThreshold(tpage) Then Return False 'Si el edit tiene un puntaje ores 'damaging' sobre el limite ignorarlo.
@@ -167,7 +168,7 @@ Public Class SignPatroller
     End Function
 
     Function IsOverORESThreshold(ByRef tpage As Page) As Boolean
-        Return tpage.ORESScore(0) > OresThreshold
+        Return Not (tpage.ORESScore(1) > OresThreshold) '(0) damaging = true | (1) goodfaith = true
     End Function
 
     Private Function EditedByOwner(ByRef tpage As Page) As Boolean
