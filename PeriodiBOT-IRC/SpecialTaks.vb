@@ -646,7 +646,8 @@ Class SpecialTaks
     ''' el último usuario que la editó y el segundo el título real de la página.
     ''' Solo contiene las páginas que no existen en la plantilla.
     ''' </summary>
-    Function GetResumeRequests(ByVal pageName As String) As SortedList(Of String, String())
+    Function GetResumeRequests(ByVal pageName As String) As Tuple(Of Page(), SortedList(Of String, String()))
+        Dim pagesList As New List(Of Page)
         Dim slist As SortedList(Of String, String()) = GetAllRequestedpages(pageName)
         Dim Reqlist As New SortedList(Of String, String())
         Dim ResumePage As Page = _bot.Getpage(WPStrings.ResumePageName)
@@ -658,12 +659,13 @@ Class SpecialTaks
                     Dim pag As Page = _bot.Getpage(pair.Key)
                     If pag.Exists Then
                         Reqlist.Add(pair.Key, pair.Value)
+                        pagesList.Add(pag)
                     End If
                 End If
             Catch ex As IndexOutOfRangeException
             End Try
         Next
-        Return Reqlist
+        Return New Tuple(Of Page(), SortedList(Of String, String()))(pagesList.ToArray, Reqlist)
     End Function
 
     ''' <summary>
@@ -694,8 +696,8 @@ Class SpecialTaks
             PageNames.Add(PageResume.Item1)
             OldResumes.Add(PageResume.Item1, "|" & PageResume.Item1 & "=" & PageResume.Item2)
         Next
-
-        Dim ResumeRequests As SortedList(Of String, String()) = GetResumeRequests(pageName)
+        Dim resRequest As Tuple(Of Page(), SortedList(Of String, String())) = GetResumeRequests(pageName)
+        Dim ResumeRequests As SortedList(Of String, String()) = resRequest.Item2
         For Each p As KeyValuePair(Of String, String()) In ResumeRequests
             PageNames.Add(p.Key)
             NewPages += 1
@@ -706,27 +708,27 @@ Class SpecialTaks
         EventLogger.Debug_Log(String.Format(BotMessages.LoadingNewExtracts, PageNames.Count.ToString), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         '============================================================================================
         ' Adding New resumes to list
-        Dim Page_Resume_pair As SortedList(Of String, String) = _bot.GetWikiExtractFromPageNames(PageNames.ToArray, 660)
+        Dim Page_Extracts As HashSet(Of WikiExtract) = _bot.GetWikiExtractFromPages(resRequest.Item1, 660)
         Dim Page_Image_pair As SortedList(Of String, String) = _bot.GetImagesExtract(PageNames.ToArray)
 
-        For Each Page As String In Page_Resume_pair.Keys
+        For Each extract As WikiExtract In Page_Extracts
             Dim containsimage As Boolean = False
-            If Page_Image_pair.Keys.Contains(Page) Then
-                If Not String.IsNullOrEmpty(Page_Image_pair.Item(Page)) Then
+            If Page_Image_pair.Keys.Contains(extract.PageName) Then
+                If Not String.IsNullOrEmpty(Page_Image_pair.Item(extract.PageName)) Then
                     containsimage = True
                 End If
             End If
             If containsimage Then
                 'If the page contais a image
-                NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
-                       & "[[File:" & Page_Image_pair(Page) & "|thumb|x120px]]" & Environment.NewLine _
-                       & Page_Resume_pair.Item(Page) & Environment.NewLine _
-                       & ":'''[[" & Page & "|Leer más...]]'''" & Environment.NewLine)
+                NewResumes.Add(extract.PageName, "|" & extract.PageName & "=" & Environment.NewLine _
+                       & "[[File:" & Page_Image_pair(extract.PageName) & "|thumb|x120px]]" & Environment.NewLine _
+                       & extract.ExtractContent & Environment.NewLine _
+                       & ":'''[[" & extract.PageName & "|Leer más...]]'''" & Environment.NewLine)
             Else
                 'If the page doesn't contain a image
-                NewResumes.Add(Page, "|" & Page & "=" & Environment.NewLine _
-                  & Page_Resume_pair.Item(Page) & Environment.NewLine _
-                  & ":'''[[" & Page & "|Leer más...]]'''" & Environment.NewLine)
+                NewResumes.Add(extract.PageName, "|" & extract.PageName & "=" & Environment.NewLine _
+                  & extract.ExtractContent & Environment.NewLine _
+                  & ":'''[[" & extract.PageName & "|Leer más...]]'''" & Environment.NewLine)
             End If
         Next
 
