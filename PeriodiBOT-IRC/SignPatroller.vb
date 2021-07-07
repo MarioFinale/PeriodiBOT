@@ -26,12 +26,24 @@ Public Class SignPatroller
                      While True
                          Try
                              Dim tclient As WebClient = New WebClient()
+                             EventLogger.Debug_Log("Connecting to WMF's recent changes stream...", "RecentChanges watcher")
                              Dim tstream As Stream = tclient.OpenRead(New Uri("https://stream.wikimedia.org/v2/stream/recentchange"))
                              Dim tstreamreader As StreamReader = New StreamReader(tstream)
+                             Dim StreamStartingTime As DateTime = Date.UtcNow()
+                             EventLogger.Debug_Log("Connected to WMF's recent changes stream!", "RecentChanges watcher")
                              While True
+                                 Dim timeElapsed As TimeSpan = Date.UtcNow.Subtract(StreamStartingTime)
+                                 If timeElapsed >= New TimeSpan(0, 14, 58) Then 'WMF's HTTP connection termination layer enforces a connection timeout of 15 minutes.
+                                     tstreamreader.Close()
+                                     tstream.Close()
+                                     tclient.Dispose()
+                                     EventLogger.Debug_Log("Disconnecting WMF's recent changes stream before server-side timeout at 15 minutes", "RecentChanges watcher")
+                                     Exit While
+                                 End If
                                  Dim currentLine As String = tstreamreader.ReadLine
                                  If Not EditIsValid(currentLine) Then Continue While
                                  Dim editInfo As Tuple(Of String, String, Date) = GetEditInfoFromStreamLine(currentLine)
+                                 If String.IsNullOrWhiteSpace(editInfo.Item1) Or String.IsNullOrWhiteSpace(editInfo.Item2) Then Continue While
                                  SyncLock editsqueue
                                      editsqueue.Enqueue(editInfo)
                                  End SyncLock
@@ -69,7 +81,7 @@ Public Class SignPatroller
     End Function
 
     Private Function ContainsAutosignatureTemplate(ByRef pageContent As String) As Boolean
-        Return Regex.IsMatch(pageContent, "(\{\{[Pp]lantilla:[Ff]irma automática)([\s\S]+?\}\})")
+        Return Regex.IsMatch(pageContent, "{{ *[Ff]irma automática .*?}}")
     End Function
 
     Private Function EditIsValid(ByRef tline As String) As Boolean
@@ -110,7 +122,7 @@ Public Class SignPatroller
             Return AddMissingSignature2(tpage, False, True, String.Empty)
         End If
 
-        EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: EC=" & tuser.EditCount _
+        EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: USER=" & tuser.UserName & "EC=" & tuser.EditCount _
                               & " EXULIST=" & exuserlist.Contains(tuser.UserName).ToString & " ACHECK=" & achecklist.Contains(tuser.UserName).ToString & " EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue", WorkerBot.UserName)
         Return False
     End Function
@@ -141,6 +153,7 @@ Public Class SignPatroller
     End Function
 
     Function PageIsAutoSignable(ByRef tpage As Page) As Boolean
+        If tpage Is Nothing Then Return False 'No comprobar páginas nulas.
         If tpage.Lastuser = WorkerBot.UserName Then Return False 'No completar firma en páginas en las que el mismo bot haya editado.
         If LastUserIsBot(tpage) Then Return False 'No firmar ediciones de bot.
         If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar reversiones, nunca.
@@ -149,7 +162,7 @@ Public Class SignPatroller
         If EditedByOwner(tpage) Then Return False 'No completar firma en páginas de usuario en las que el mismo usuario haya editado.
         If GetThreadCountDiffLastEdit(tpage) >= 2 Then Return False 'Si el usuario edita 2 o mas hilos de golpe ignorar el edit.
         If IsOverORESThreshold(tpage) Then Return False 'Si el edit tiene un puntaje ores 'damaging' sobre el limite ignorarlo.
-        If Not ContainsAutosignatureTemplate(tpage.Content) Then Return False 'De momento solo firmar las páginas con la plantilla de firma automática.
+        ' If Not ContainsAutosignatureTemplate(tpage.Content) Then Return False 'De momento solo firmar las páginas con la plantilla de firma automática.
         Return True
     End Function
 
@@ -173,7 +186,10 @@ Public Class SignPatroller
     End Function
 
     Function LastUserIsBot(ByRef tpage As Page) As Boolean
-        Return New WikiUser(WorkerBot, tpage.Lastuser).IsBot
+        Dim username As String = tpage.Lastuser
+        If String.IsNullOrWhiteSpace(username) Then Return True
+        Dim user As WikiUser = New WikiUser(WorkerBot, tpage.Lastuser)
+        Return user.IsBot
     End Function
 
     ''' <summary>
@@ -182,7 +198,6 @@ Public Class SignPatroller
     ''' <param name="tpage">Pagina a evaluar.</param>
     ''' <returns>Diferencia de hilos.</returns>
     Function GetThreadCountDiffLastEdit(ByRef tpage As Page) As Integer
-        If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name, WorkerBot.UserName)
         Dim oldPage As Page = WorkerBot.Getpage(tpage.ParentRevId)
         Dim oldThreadsCount As Integer = oldPage.Threads.Count()
         Dim currentThreadsCount As Integer = tpage.Threads.Count()
