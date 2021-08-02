@@ -165,12 +165,25 @@ Public Class SignPatroller
         If EditedByOwner(tpage) Then Return False 'No completar firma en páginas de usuario en las que el mismo usuario haya editado.
         If GetThreadCountDiffLastEdit(tpage) >= 2 Then Return False 'Si el usuario edita 2 o mas hilos de golpe ignorar el edit.
         If IsOverORESThreshold(tpage) Then Return False 'Si el edit tiene un puntaje ores 'damaging' sobre el limite ignorarlo.
+        If CheckIfLastEditAddedTemplateOnFirstLine(tpage) Then Return False 'Si la nueva edición solo añadió una plantilla al principio de la página, ignorar el edit
         ' If Not ContainsAutosignatureTemplate(tpage.Content) Then Return False 'De momento solo firmar las páginas con la plantilla de firma automática.
         Return True
     End Function
 
     Function IsOverORESThreshold(ByRef tpage As Page) As Boolean
         Return Not (tpage.ORESScore(1) > OresThreshold) '(0) damaging = true | (1) goodfaith = true
+    End Function
+
+    Function CheckIfLastEditAddedTemplateOnFirstLine(ByRef tpage As Page) As Boolean
+        Dim currentText As String() = Regex.Split(tpage.Content, "[\r\n]+")
+        Dim previousText As String() = Regex.Split(WorkerBot.Getpage(tpage.ParentRevId).Content, "[\r\n]+")
+
+        If (previousText(0) = currentText(0)) Then Return False
+
+        Dim previousHadTemplate As Boolean = (Template.GetTemplates(previousText(0)).Count >= 1)
+        Dim currentHasTemplate As Boolean = (Template.GetTemplates(currentText(0)).Count >= 1)
+
+        Return ((Not previousHadTemplate) And currentHasTemplate)
     End Function
 
     Private Function EditedByOwner(ByRef tpage As Page) As Boolean

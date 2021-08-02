@@ -9,8 +9,8 @@
     <Description>PeriodiBOT-IRC .NET Core</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>4.2.2107.12693</AssemblyVersion>
-    <FileVersion>4.2.2107.12693</FileVersion>
+    <AssemblyVersion>4.2.2108.984</AssemblyVersion>
+    <FileVersion>4.2.2108.984</FileVersion>
     <ReferencePath>C:\Users\mario\Source\Repos\Comp\netcoreapp3.0\</ReferencePath>
   </PropertyGroup>
 
