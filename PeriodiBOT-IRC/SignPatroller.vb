@@ -157,6 +157,8 @@ Public Class SignPatroller
         If tpage.Lastuser = WorkerBot.UserName Then Return False 'No completar firma en páginas en las que el mismo bot haya editado.
         If LastUserIsBot(tpage) Then Return False 'No firmar ediciones de bot.
         If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar reversiones, nunca.
+        If tpage.Comment.ToLower.Contains("revierto") Then Return False 'No firmar reversiones, nunca.
+        If tpage.Comment.ToLower.StartsWith("rv:") Then Return False 'No firmar reversiones manuales.
         If tpage.Comment.ToLower.Contains("reverted") Then Return False 'No firmar ediciones revertidas (EN), nunca.
         If tpage.Comment.ToLower.Contains("deshecha la edición") Then Return False 'No firmar ediciones deshechas, nunca.
         If tpage.Threads.Count() <= 1 Then Return False 'No firmar páginas con 1 o menos hilos
