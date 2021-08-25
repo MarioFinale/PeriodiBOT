@@ -559,7 +559,9 @@ Class SpecialTaks
                 Days = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
                 Days = RemoveAllAlphas(Days)
                 If Integer.Parse(Days) < 7 Then
-                    Days = "7"
+                    If Not PageToArchive.PageNamespace = 4 Then
+                        Days = "7"
+                    End If
                 End If
             End If
             If tup.Item1 = WPStrings.WarnArchiving Then
