@@ -3,14 +3,14 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>PeriodiBOT_IRC</RootNamespace>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <StartupObject>PeriodiBOT_IRC.MainModule</StartupObject>
     <Version>4.1.0.0</Version>
     <Description>PeriodiBOT-IRC .NET Core</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>4.2.2108.984</AssemblyVersion>
-    <FileVersion>4.2.2108.984</FileVersion>
+    <AssemblyVersion>4.2.2110.27742</AssemblyVersion>
+    <FileVersion>4.2.2110.27742</FileVersion>
     <ReferencePath>C:\Users\mario\Source\Repos\Comp\netcoreapp3.0\</ReferencePath>
   </PropertyGroup>
 
