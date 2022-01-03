@@ -201,9 +201,11 @@ Public Class RefTool
                 If tur Is Nothing Then Continue For
                 refsList.Add(New Tuple(Of String, Uri, String)(ref, tur, refdesc))
             Else
-                Dim tref As New Uri("http://x.z") : Uri.TryCreate(Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase), UriKind.Absolute, tref)
-                If tref Is Nothing Then Continue For
-                refsList.Add(New Tuple(Of String, Uri, String)(ref, tref, ""))
+                Dim tref As New Uri("http://x.z")
+                Uri.TryCreate(Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase), UriKind.Absolute, tref)
+                If tref IsNot Nothing AndAlso (tref.Scheme Is Uri.UriSchemeHttp OrElse tref.Scheme Is Uri.UriSchemeHttps OrElse tref.Scheme = Uri.UriSchemeFtp) Then
+                    refsList.Add(New Tuple(Of String, Uri, String)(ref, tref, ""))
+                End If
             End If
         Next
         Return refsList
@@ -347,16 +349,22 @@ Public Class RefTool
                 Dim Unavaliable As Boolean = WayBackResponse.Contains("""archived_snapshots"": {}")
                 Dim tstring As String = ""
                 If Unavaliable Then
-                    tstring = String.Format("{{{{Enlace roto |1={0} |2={1} |fechaacceso={2} |bot={3} }}}}", nref.PageName, nref.PageUrl, nref.SpokenDate, WorkerBot.UserName)
-                    tstring &= " <!-- Enlace irrecuperable. No hay snapshots de esa URL exacta disponibles en Internet Archive a la fecha de la consulta. -->"
+                    Dim tpageName As String = nref.PageName
+                    tpageName = Regex.Replace(tpageName, "(consultado +(en|el) +\w{2,10} +(de|del) +\d{2,4}|consultado +(el) +(\d{1,2}|\w{3,20}) +de +\w{2,10} +(de|del) +\d{2,4})", "", RegexOptions.IgnoreCase)
+                    tpageName = RemoveExcessOfSpaces(tpageName)
+                    tstring = String.Format("{{{{Enlace roto |1={0} |2={1} |fechaacceso={2} |bot={3} }}}}", tpageName, nref.PageUrl, nref.SpokenDate, WorkerBot.UserName)
+                    tstring &= " <small>enlace irrecuperable</small> <!-- Enlace irrecuperable. No hay snapshots de esa URL exacta disponibles en Internet Archive a la fecha de la consulta. -->"
                     irrecoverable += 1
                 Else
                     Dim timestamp As String = RemoveAllAlphas(TextInBetween(WayBackResponse, """timestamp"": """, """,").DefaultIfEmpty(datestring).LastOrDefault())
                     Dim archivedate As Date = New Date(Integer.Parse(timestamp.Substring(0, 4)), Integer.Parse(timestamp.Substring(4, 2)), Integer.Parse(timestamp.Substring(6, 2)))
                     Dim archiveSpokenDate As String = archivedate.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
                     Dim archiveuri As String = {Regex.Match(WayBackResponse, "(?:""url"": "")(http:\/\/web\.archive\.org\/web\/.+?)(?:"")").Groups(1).Value}.DefaultIfEmpty("https://web.archive.org/web/*/" & nref.PageUrl).FirstOrDefault
+                    Dim tpageName As String = nref.PageName
+                    tpageName = Regex.Replace(tpageName, "(consultado +(en|el) +\w{2,10} +(de|del) +\d{2,4}|consultado +(el) +(\d{1,2}|\w{3,20}) +de +\w{2,10} +(de|del) +\d{2,4})", "", RegexOptions.IgnoreCase)
+                    tpageName = RemoveExcessOfSpaces(tpageName)
                     tstring = String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4} |urlarchivo={5}|fechaarchivo={6}}}}}",
-                                                      nref.PageUrl, nref.PageName, nref.SpokenDate, nref.PageRoot, If(Not String.IsNullOrWhiteSpace(nref.Language), " |idioma=" & nref.Language, ""),
+                                                      nref.PageUrl, tpageName, nref.SpokenDate, nref.PageRoot, If(Not String.IsNullOrWhiteSpace(nref.Language), " |idioma=" & nref.Language, ""),
                                                       archiveuri, archiveSpokenDate)
                     recovered += 1
                 End If
@@ -367,9 +375,11 @@ Public Class RefTool
                              Dim saveuristring = "https://web.archive.org/save/" & nref.PageUrl
                              Dim waaresponse As String = WorkerBot.GET(New Uri(saveuristring)) 'Enviar la URL de la referencia a Archive.org para que guarde un snapshot. Hacer en otro hilo porque tarda muuucho tiempo.
                          End Sub)
-
+                Dim tpageName As String = nref.PageName
+                tpageName = Regex.Replace(tpageName, "(consultado +(en|el) +\w{2,10} +(de|del) +\d{2,4}|consultado +(el) +(\d{1,2}|\w{3,20}) +de +\w{2,10} +(de|del) +\d{2,4})", "", RegexOptions.IgnoreCase)
+                tpageName = RemoveExcessOfSpaces(tpageName)
                 Dim tstring As String = String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}}",
-                                                      nref.PageUrl, nref.PageName, nref.SpokenDate, nref.PageRoot, If(Not String.IsNullOrWhiteSpace(nref.Language), " |idioma=" & nref.Language, ""))
+                                                      nref.PageUrl, tpageName, nref.SpokenDate, nref.PageRoot, If(Not String.IsNullOrWhiteSpace(nref.Language), " |idioma=" & nref.Language, ""))
 
                 tlist.Add(New Tuple(Of String, String)(nref.OriginalString, tstring))
                 cref += 1
@@ -444,11 +454,11 @@ Public Class RefTool
         Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
         Dim tmatches As String() = FilterRefs(refmatches)
         Dim refs As New HashSet(Of String)
-        Dim duplicatesCount As Integer = 0
+        Dim changedCount As Integer = 0
         If Not (tmatches.Distinct().Count = tmatches.Count) Then
             Dim duplicates As String() = tmatches.GroupBy(Function(p) p).Where(Function(g) g.Count > 1).Select(Function(g) g.Key).ToArray
-            duplicatesCount = duplicates.Count
-            If duplicatesCount = 0 Then Return Nothing
+            changedCount = duplicates.Count
+            If changedCount = 0 Then Return Nothing
             For Each ref As String In duplicates
                 Dim refname As String = "<ref name=AutoGen-1>"
                 Dim refnameindex As Integer = 1
@@ -474,14 +484,37 @@ Public Class RefTool
             Next
         End If
 
+        Dim shortenFunc As Tuple(Of String, Integer) = ShortenEmptyRefs(pagetext)
+        pagetext = shortenFunc.Item1
+        changedCount += shortenFunc.Item2
         Dim repFunc As Tuple(Of String, Integer) = RemoveRefWithSameNameButDifferentContent(pagetext)
         pagetext = repFunc.Item1
-        duplicatesCount += repFunc.Item2
-        Return New Tuple(Of String, Integer)(pagetext, duplicatesCount)
+        changedCount += repFunc.Item2
+        Return New Tuple(Of String, Integer)(pagetext, changedCount)
+    End Function
+
+    Private Function ShortenEmptyRefs(ByVal pagetext As String) As Tuple(Of String, Integer)
+        Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)(<\/ref>)", RegexOptions.IgnoreCase)
+        Dim matches As String() = refmatches.OfType(Of Match)().Select(Function(x) x.Value).ToArray()
+        Dim refList As New Dictionary(Of String, String)
+        Dim replacements As Integer = 0
+        Dim newPageText As String = pagetext
+        For Each m As String In matches
+            If Not refList.ContainsKey(m) Then
+                Dim newref As String = Regex.Match(m, "(<ref>|<ref name *=[^\/]+?>)(<\/ref>)").Groups(1).Value.Replace(">", "/>")
+                refList.Add(m, newref)
+            End If
+        Next
+
+        For Each r As String In refList.Keys
+            newPageText = newPageText.Replace(r, refList(r))
+            replacements += 1
+        Next
+        Return New Tuple(Of String, Integer)(newPageText, replacements)
     End Function
 
     Private Function RemoveRefWithSameNameButDifferentContent(ByVal pagetext As String) As Tuple(Of String, Integer)
-        Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
+        Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]*?)(<\/ref>)", RegexOptions.IgnoreCase)
         Dim matches As String() = refmatches.OfType(Of Match)().Select(Function(x) x.Value).ToArray()
         Dim refList As New Dictionary(Of String, HashSet(Of String))
 

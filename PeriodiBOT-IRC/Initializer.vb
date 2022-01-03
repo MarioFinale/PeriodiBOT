@@ -101,6 +101,9 @@ Public NotInheritable Class Initializer
         TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(12, 0, 0), True)
 
 
+        ''================================  TEST =====================================
+
+
         ''Tarea para reparar referencias
         'Dim FixRefFunc As New Func(Of Boolean)(Function()
         '                                           Dim sptask As New RefTool(ESWikiBOT)
@@ -109,6 +112,14 @@ Public NotInheritable Class Initializer
         '                                       End Function)
         'TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
 
+
+
+
+        'Dim sptask As New RefTool(ESWikiBOT)
+        'Dim rpage As Page = ESWikiBOT.Getpage("Maurice Sand")
+        'sptask.FixRefs(rpage)
+        'Dim a As Integer = 1
+        ''================================  TEST =====================================
 
     End Sub
 

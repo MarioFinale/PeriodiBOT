@@ -154,20 +154,42 @@ Public Class SignPatroller
 
     Function PageIsAutoSignable(ByRef tpage As Page) As Boolean
         If tpage Is Nothing Then Return False 'No comprobar páginas nulas.
-        If tpage.Lastuser = WorkerBot.UserName Then Return False 'No completar firma en páginas en las que el mismo bot haya editado.
+        If tpage.Lastuser.Equals(WorkerBot.UserName) Then Return False 'No completar firma en páginas en las que el mismo bot haya editado.
         If LastUserIsBot(tpage) Then Return False 'No firmar ediciones de bot.
         If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar reversiones, nunca.
         If tpage.Comment.ToLower.Contains("revierto") Then Return False 'No firmar reversiones, nunca.
         If tpage.Comment.ToLower.StartsWith("rv:") Then Return False 'No firmar reversiones manuales.
         If tpage.Comment.ToLower.Contains("reverted") Then Return False 'No firmar ediciones revertidas (EN), nunca.
         If tpage.Comment.ToLower.Contains("deshecha la edición") Then Return False 'No firmar ediciones deshechas, nunca.
+        If tpage.Comment.ToLower.Contains("deshaciendo") Then Return False 'Idem
+        If tpage.Comment.ToLower.Contains("deshago") Then Return False 'Idem
         If tpage.Threads.Count() <= 1 Then Return False 'No firmar páginas con 1 o menos hilos
         If EditedByOwner(tpage) Then Return False 'No completar firma en páginas de usuario en las que el mismo usuario haya editado.
         If GetThreadCountDiffLastEdit(tpage) >= 2 Then Return False 'Si el usuario edita 2 o mas hilos de golpe ignorar el edit.
         If IsOverORESThreshold(tpage) Then Return False 'Si el edit tiene un puntaje ores 'damaging' sobre el limite ignorarlo.
         If CheckIfLastEditAddedTemplateOnFirstLine(tpage) Then Return False 'Si la nueva edición solo añadió una plantilla al principio de la página, ignorar el edit
+        If AuthorIsRevertingSignature(tpage) Then Return False
+
         ' If Not ContainsAutosignatureTemplate(tpage.Content) Then Return False 'De momento solo firmar las páginas con la plantilla de firma automática.
         Return True
+    End Function
+
+    ''' <summary>
+    ''' Verifica si la edición anterior de la página es del bot firmando al mismo usuario que acaba de editar y si el usuario quitó contenido en la última edición.
+    ''' </summary>
+    ''' <param name="tpage">Página a comprobar.</param>
+    ''' <returns>Retorna verdadero si la última edición es del usuario quitando contenido luego de que el bot complete una firma.</returns>
+    Function AuthorIsRevertingSignature(ByVal tpage As Page) As Boolean
+        Dim LastUser As String = tpage.Lastuser
+        Dim CurrentPageSize As Integer = tpage.Size
+        Dim PreviousEdit As Page = WorkerBot.Getpage(tpage.ParentRevId)
+        Dim PreviousPageSize As Integer = PreviousEdit.Size
+        Dim PreviousUser As String = PreviousEdit.Lastuser
+        Dim PreviousEditRes As String = PreviousEdit.Comment
+        If (PreviousUser.Equals(WorkerBot.UserName) And PreviousEditRes.Contains(LastUser) And PreviousEditRes.Contains("firma") And (PreviousPageSize > CurrentPageSize)) Then
+            Return True
+        End If
+        Return False
     End Function
 
     Function IsOverORESThreshold(ByRef tpage As Page) As Boolean
