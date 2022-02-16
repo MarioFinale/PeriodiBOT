@@ -133,6 +133,14 @@ Class SpecialTaks
                 Return False
             End If
         End If
+
+        'Validar que los espacios de nombres sean iguales
+        Dim ArchiveSubpagePrefix As Page = _bot.Getpage(ArchiveCfg(0))
+        If Not ArchiveSubpagePrefix.PageNamespace = PageToArchive.PageNamespace Then
+            EventLogger.Log(String.Format(BotMessages.InvalidNamespace, ArchiveSubpagePrefix.Title, ArchiveSubpagePrefix.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+            Return False
+        End If
+
         Return True
     End Function
 

@@ -112,13 +112,17 @@ Public NotInheritable Class Initializer
         '                                       End Function)
         'TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
 
-
-
-
         'Dim sptask As New RefTool(ESWikiBOT)
         'Dim rpage As Page = ESWikiBOT.Getpage("Maurice Sand")
         'sptask.FixRefs(rpage)
         'Dim a As Integer = 1
+
+        'Dim task2 As New SpecialTaks(ESWikiBOT)
+        'Dim tpage As Page = ESWikiBOT.Getpage("Usuario discusión:MarioFinale/test")
+        'task2.AutoArchive(tpage, ArchiveTemplateName, DoNotArchiveTemplateName,
+        '                                               ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+        'Dim a As Integer = 1
+
         ''================================  TEST =====================================
 
     End Sub
