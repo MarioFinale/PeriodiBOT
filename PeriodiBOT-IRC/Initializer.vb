@@ -128,6 +128,9 @@ Public NotInheritable Class Initializer
         '                                               ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
         'Dim a As Integer = 1
 
+        'Dim BillArchived As New BillboardArchiver(ESWikiBOT)
+        'BillArchived.ArchivePage("Wikipedia:Cartelera de acontecimientos")
+
 
         ''================================  TEST =====================================
 

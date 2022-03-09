@@ -49,6 +49,12 @@ Class BillboardArchiver
         Dim description As New List(Of String)
         Dim eventList As New List(Of BillboardEvent)
         Dim pagesList As New Dictionary(Of Date, BillBoardPage)
+
+        If Not currentDate.Day = 10 Then
+            EventLogger.Log("No se ha archivado la cartelera (Solo se archiva los 10 de cada mes)", "BillboardArchiver.ArchivePage")
+            Return True
+        End If
+
         Try
             For Each m As Match In results
                 events.Add(m.Groups(1).Value)
@@ -91,7 +97,6 @@ Class BillboardArchiver
                 eventList.Add(bEvent)
             Next
 
-
             For Each e As BillboardEvent In eventList
                 Dim dummydate As New Date(e.EventDate.Year, e.EventDate.Month, 1)
                 If pagesList.ContainsKey(dummydate) Then
@@ -114,9 +119,13 @@ Class BillboardArchiver
                 p.PageContent = "{| class=""wikitable"" style=""width: 100%; clear: both; text-align: left;"""
                 p.PageContent &= Environment.NewLine
                 p.PageContent &= "|-"
+                p.PageContent &= Environment.NewLine
                 p.PageContent &= "! style=""width: 15%;"" | Fecha"
+                p.PageContent &= Environment.NewLine
                 p.PageContent &= "! &ndash;"
+                p.PageContent &= Environment.NewLine
                 p.PageContent &= "! style=""width: 80%;"" | Anuncio / Evento"
+                p.PageContent &= Environment.NewLine
 
                 For Each e In p.BillBoardEvents
                     newPageText = newPageText.Replace(e.EventOriginalText, "")
@@ -127,13 +136,13 @@ Class BillboardArchiver
                 p.PageContent &= Environment.NewLine
                 p.PageContent &= "{{Wikipedia:Cartelera de acontecimientos/Archivo}}"
                 p.PageContent &= Environment.NewLine
-                p.PageContent &= "[[Categoría:Wikipedia:Cartelera de acontecimientos|R" & p.PageMonth.ToString("00") & "]]"
-
+                Dim eventChar As Char = ChrW(p.PageYear - 2004 + 65)
+                p.PageContent &= "[[Categoría:Wikipedia:Cartelera de acontecimientos|" & eventChar & p.PageMonth.ToString("00") & "]]"
                 Dim thePage As Page = Bot.Getpage(p.PageName)
-                thePage.Save(p.PageContent, "(Bot) Archivando Cartelera de acontecimientos", False, True, True)
+                thePage.Save(p.PageContent, "(Bot) Archivando Cartelera de acontecimientos.", False, True, True)
             Next
 
-            pageToArchive.Save(newPageText, "(Bot) Archivando Cartelera de acontecimientos", False, True, True)
+            pageToArchive.Save(newPageText, "(Bot) Archivando Cartelera de acontecimientos.", False, True, True)
             EventLogger.Log("Archivado de cartelera de acontecimientos finalizado", "BillboardArchiver.ArchivePage")
             Return True
 
