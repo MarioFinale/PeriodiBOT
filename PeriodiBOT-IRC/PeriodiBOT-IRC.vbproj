@@ -3,14 +3,14 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>PeriodiBOT_IRC</RootNamespace>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <StartupObject>PeriodiBOT_IRC.MainModule</StartupObject>
     <Version>4.1.0.0</Version>
     <Description>PeriodiBOT-IRC .NET Core</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>4.2.2202.41339</AssemblyVersion>
-    <FileVersion>4.2.2202.41339</FileVersion>
+    <AssemblyVersion>4.2.2202.37574</AssemblyVersion>
+    <FileVersion>4.2.2202.37574</FileVersion>
     <ReferencePath>C:\Users\mario\Source\Repos\Comp\netcoreapp3.0\</ReferencePath>
   </PropertyGroup>
 
@@ -30,11 +30,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="IRCCLIENT">
-      <HintPath>..\..\Comp\netcoreapp3.1\IRCCLIENT.dll</HintPath>
+      <HintPath>..\..\Comp\net6.0\IRCCLIENT.dll</HintPath>
     </Reference>
     <Reference Include="MWBot.net">
-      <HintPath>..\..\Comp\netcoreapp3.1\MWBot.net.dll</HintPath>
+      <HintPath>..\..\Comp\net6.0\MWBot.net.dll</HintPath>
     </Reference>
   </ItemGroup>
 

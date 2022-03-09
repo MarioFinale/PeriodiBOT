@@ -137,7 +137,9 @@ Public Class RefTool
     Function CheckAndTryLoadWebResource(ByVal weburi As Uri) As String
         Dim tp As String
         If weburi.Scheme.ToLower = "ftp" Or weburi.Scheme.ToLower = "sftp" Then
+#Disable Warning SYSLIB0014 ' We need FTP support
             Dim request As WebRequest = WebRequest.Create(weburi)
+#Enable Warning SYSLIB0014 '
             request.Method = WebRequestMethods.Ftp.GetFileSize
             Try
                 request.GetResponse()
@@ -155,7 +157,9 @@ Public Class RefTool
             Try
                 tp = WorkerBot.GET(weburi)
                 Try
-                    Dim request As HttpWebRequest = DirectCast(HttpWebRequest.Create(weburi), HttpWebRequest)
+#Disable Warning SYSLIB0014 ' Type or member is obsolete
+                    Dim request As HttpWebRequest = DirectCast(WebRequest.Create(weburi), HttpWebRequest)
+#Enable Warning SYSLIB0014 ' Type or member is obsolete
                     request.Timeout = 30000
                     request.Method = "GET"
                     request.UserAgent = WorkerBot.BotApiHandler.UserAgent

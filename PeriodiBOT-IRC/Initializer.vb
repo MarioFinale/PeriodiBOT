@@ -80,7 +80,7 @@ Public NotInheritable Class Initializer
                                                           Dim sptask As New SpecialTaks(ESWikiBOT)
                                                           Return sptask.UpdatePageExtracts(WPStrings.ResumePageName)
                                                       End Function)
-        TaskAdm.NewTask("Actualizar extractos", ESWikiBOT.UserName, UpdateExtractFunc, 300000, True)
+        TaskAdm.NewTask("Actualizar extractos generados por PeriodiBOT", ESWikiBOT.UserName, UpdateExtractFunc, 300000, True)
 
         'Tarea para archivar todo
         Dim ArchiveAllFunc As New Func(Of Boolean) _
@@ -90,7 +90,13 @@ Public NotInheritable Class Initializer
                  Return signtask.ArchiveAllInclusions(ArchiveTemplateName, DoNotArchiveTemplateName,
                                                        ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
              End Function)
-        TaskAdm.NewTask("Archivado automático", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
+        TaskAdm.NewTask("Archivado automático de discusiones", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
+
+        Dim ArchiveBillboard As New Func(Of Boolean)(Function()
+                                                         Dim BillArchived As New BillboardArchiver(ESWikiBOT)
+                                                         Return BillArchived.ArchivePage("Wikipedia:Cartelera de acontecimientos")
+                                                     End Function)
+        TaskAdm.NewTask("Archivado de la cartelera de acontecimientos", ESWikiBOT.UserName, ArchiveBillboard, New TimeSpan(10, 0, 0), True)
 
         'Tarea para actualizar lista de bots
         Dim UpdateBotsListFunc As New Func(Of Boolean) _
@@ -102,7 +108,6 @@ Public NotInheritable Class Initializer
 
 
         ''================================  TEST =====================================
-
 
         ''Tarea para reparar referencias
         'Dim FixRefFunc As New Func(Of Boolean)(Function()
@@ -118,10 +123,11 @@ Public NotInheritable Class Initializer
         'Dim a As Integer = 1
 
         'Dim task2 As New SpecialTaks(ESWikiBOT)
-        'Dim tpage As Page = ESWikiBOT.Getpage("Usuario discusión:MarioFinale/test")
+        'Dim tpage As Page = ESWikiBOT.Getpage("Usuario:MarioFinale")
         'task2.AutoArchive(tpage, ArchiveTemplateName, DoNotArchiveTemplateName,
         '                                               ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
         'Dim a As Integer = 1
+
 
         ''================================  TEST =====================================
 

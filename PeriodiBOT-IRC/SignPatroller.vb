@@ -25,30 +25,33 @@ Public Class SignPatroller
                  Try
                      While True
                          Try
-                             Dim tclient As WebClient = New WebClient()
-                             EventLogger.Debug_Log("Connecting to WMF's recent changes stream...", "RecentChanges watcher")
-                             Dim tstream As Stream = tclient.OpenRead(New Uri("https://stream.wikimedia.org/v2/stream/recentchange"))
-                             Dim tstreamreader As StreamReader = New StreamReader(tstream)
-                             Dim StreamStartingTime As DateTime = Date.UtcNow()
-                             EventLogger.Debug_Log("Connected to WMF's recent changes stream!", "RecentChanges watcher")
-                             While True
-                                 Dim timeElapsed As TimeSpan = Date.UtcNow.Subtract(StreamStartingTime)
-                                 If timeElapsed >= New TimeSpan(0, 14, 58) Then 'WMF's HTTP connection termination layer enforces a connection timeout of 15 minutes.
-                                     tstreamreader.Close()
-                                     tstream.Close()
-                                     tclient.Dispose()
-                                     EventLogger.Debug_Log("Disconnecting WMF's recent changes stream before server-side timeout at 15 minutes", "RecentChanges watcher")
-                                     Exit While
-                                 End If
-                                 Dim currentLine As String = tstreamreader.ReadLine
-                                 If Not EditIsValid(currentLine) Then Continue While
-                                 Dim editInfo As Tuple(Of String, String, Date) = GetEditInfoFromStreamLine(currentLine)
-                                 If String.IsNullOrWhiteSpace(editInfo.Item1) Or String.IsNullOrWhiteSpace(editInfo.Item2) Then Continue While
-                                 SyncLock editsqueue
-                                     editsqueue.Enqueue(editInfo)
-                                 End SyncLock
-                                 EventLogger.Debug_Log("Edición en '" & editInfo.Item2 & "'" & " por '" & editInfo.Item1 & "'.", "RecentChanges watcher")
-                             End While
+#Disable Warning SYSLIB0014 ' Type or member is obsolete
+                             Using tclient As New WebClient()
+#Enable Warning SYSLIB0014 ' Type or member is obsolete
+                                 EventLogger.Debug_Log("Connecting to WMF's recent changes stream...", "RecentChanges watcher")
+                                 Dim tstream As Stream = tclient.OpenRead(New Uri("https://stream.wikimedia.org/v2/stream/recentchange"))
+                                 Dim tstreamreader As StreamReader = New StreamReader(tstream)
+                                 Dim StreamStartingTime As DateTime = Date.UtcNow()
+                                 EventLogger.Debug_Log("Connected to WMF's recent changes stream!", "RecentChanges watcher")
+                                 While True
+                                     Dim timeElapsed As TimeSpan = Date.UtcNow.Subtract(StreamStartingTime)
+                                     If timeElapsed >= New TimeSpan(0, 14, 58) Then 'WMF's HTTP connection termination layer enforces a connection timeout of 15 minutes.
+                                         tstreamreader.Close()
+                                         tstream.Close()
+                                         tclient.Dispose()
+                                         EventLogger.Debug_Log("Disconnecting WMF's recent changes stream before server-side timeout at 15 minutes", "RecentChanges watcher")
+                                         Exit While
+                                     End If
+                                     Dim currentLine As String = tstreamreader.ReadLine
+                                     If Not EditIsValid(currentLine) Then Continue While
+                                     Dim editInfo As Tuple(Of String, String, Date) = GetEditInfoFromStreamLine(currentLine)
+                                     If String.IsNullOrWhiteSpace(editInfo.Item1) Or String.IsNullOrWhiteSpace(editInfo.Item2) Then Continue While
+                                     SyncLock editsqueue
+                                         editsqueue.Enqueue(editInfo)
+                                     End SyncLock
+                                     EventLogger.Debug_Log("Edición en '" & editInfo.Item2 & "'" & " por '" & editInfo.Item1 & "'.", "RecentChanges watcher")
+                                 End While
+                             End Using
                          Catch ex As IOException
                              EventLogger.EX_Log(ex.Message, "AutoSignPatrol", WorkerBot.UserName)
                              Exit While
