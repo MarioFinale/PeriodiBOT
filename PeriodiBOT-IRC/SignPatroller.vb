@@ -159,13 +159,17 @@ Public Class SignPatroller
         If tpage Is Nothing Then Return False 'No comprobar páginas nulas.
         If tpage.Lastuser.Equals(WorkerBot.UserName) Then Return False 'No completar firma en páginas en las que el mismo bot haya editado.
         If LastUserIsBot(tpage) Then Return False 'No firmar ediciones de bot.
-        If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar reversiones, nunca.
-        If tpage.Comment.ToLower.Contains("revierto") Then Return False 'No firmar reversiones, nunca.
-        If tpage.Comment.ToLower.StartsWith("rv:") Then Return False 'No firmar reversiones manuales.
-        If tpage.Comment.ToLower.Contains("reverted") Then Return False 'No firmar ediciones revertidas (EN), nunca.
-        If tpage.Comment.ToLower.Contains("deshecha la edición") Then Return False 'No firmar ediciones deshechas, nunca.
-        If tpage.Comment.ToLower.Contains("deshaciendo") Then Return False 'Idem
-        If tpage.Comment.ToLower.Contains("deshago") Then Return False 'Idem
+        If tpage.Tags.Contains("mw-reverted") Then Return False  'No firmar reversiones (verificar el tag primero)
+        If tpage.Tags.Contains("mw-rollback") Then Return False  'No firmar reversiones (verificar el tag primero)
+        If tpage.Tags.Contains("mw-manual-revert") Then Return False  'No firmar reversiones manuales (verificar el tag primero)
+        If tpage.Tags.Contains("mw-undo") Then Return False  'No firmar ediciones deshechas (verificar el tag primero)
+        If tpage.Comment.ToLower.Contains("revertidos los cambios") Then Return False 'No firmar ediciones que dicen ser reversiones (aunque no tengan el tag).
+        If tpage.Comment.ToLower.Contains("revierto") Then Return False 'No firmar ediciones que dicen ser reversiones (aunque no tengan el tag)
+        If tpage.Comment.ToLower.StartsWith("rv:") Then Return False 'No firmar ediciones que dicen ser reversiones (aunque no tengan el tag)
+        If tpage.Comment.ToLower.Contains("reverted") Then Return False 'No firmar ediciones que dicen ser reversiones en inglés (aunque no tengan el tag)
+        If tpage.Comment.ToLower.Contains("deshecha la edición") Then Return False 'No firmar ediciones que dicen ser deshechas (aunque no tengan el tag)
+        If tpage.Comment.ToLower.Contains("deshaciendo") Then Return False 'No firmar ediciones que dicen ser deshechas (aunque no tengan el tag)
+        If tpage.Comment.ToLower.Contains("deshago") Then Return False 'No firmar ediciones que dicen ser deshechas (aunque no tengan el tag)
         If tpage.Threads.Count() <= 1 Then Return False 'No firmar páginas con 1 o menos hilos
         If EditedByOwner(tpage) Then Return False 'No completar firma en páginas de usuario en las que el mismo usuario haya editado.
         If GetThreadCountDiffLastEdit(tpage) >= 2 Then Return False 'Si el usuario edita 2 o mas hilos de golpe ignorar el edit.
