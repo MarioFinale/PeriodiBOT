@@ -10,7 +10,7 @@ Imports PeriodiBOT_IRC.My.Resources
 
 Public Class SignPatroller
 
-    Public OresThreshold As Double = 91.8#
+    Public OresThreshold As Double = 91.5#
 
     ReadOnly Property WorkerBot As Bot
     Sub New(ByRef workerbot As Bot)

@@ -5,6 +5,8 @@ Imports System.Text.RegularExpressions
 Imports MWBot.net
 Imports MWBot.net.WikiBot
 Imports MWBot.net.Utility.Utils
+Imports System.Net.Http
+Imports System.Net.Http.Headers
 
 Public Class RefTool
 
@@ -15,7 +17,7 @@ Public Class RefTool
     End Sub
 
     Private Function RedirectionAllowed(ByVal turi As Uri) As Boolean
-        Dim exceptions As String() = {"fishbase.org", "blogspot.com.ar", "blogspot.com.pe", "blogspot.com.bo", "blogspot.com.co", "parliament.uk"}
+        Dim exceptions As String() = {"fishbase.org", "fishbase.de", "fishbase.in", "blogspot.com.ar", "blogspot.com.pe", "blogspot.com.bo", "blogspot.com.co", "parliament.uk"}
         For Each exception As String In exceptions
             If turi.Authority.Contains(exception) Then
                 Return True
@@ -157,10 +159,8 @@ Public Class RefTool
             Try
                 tp = WorkerBot.GET(weburi)
                 Try
-#Disable Warning SYSLIB0014 ' Type or member is obsolete
                     Dim request As HttpWebRequest = DirectCast(WebRequest.Create(weburi), HttpWebRequest)
-#Enable Warning SYSLIB0014 ' Type or member is obsolete
-                    request.Timeout = 30000
+                    request.Timeout = 60000
                     request.Method = "GET"
                     request.UserAgent = WorkerBot.BotApiHandler.UserAgent
                     request.ContentType = "application/x-www-form-urlencoded"
@@ -175,9 +175,45 @@ Public Class RefTool
                             End If
                         End If
                     End If
+
+                    'Carguemos la página 404 del sitio y verifiquemos si la cabecera <title> es igual. Si lo es, marcar como rota. 
+                    'Algunas páginas ocultan los 404 respondiendo siempre con 302 y entregando contenido genérico como "últimas noticias", etc...
+                    Try
+
+                        Dim turi2 As New Uri(weburi.GetLeftPart(UriPartial.Authority) & "/404")
+
+                        Dim request2 As HttpWebRequest = DirectCast(WebRequest.Create(turi2), HttpWebRequest)
+                        request2.Timeout = 30000
+                        request2.Method = "GET"
+                        request2.UserAgent = WorkerBot.BotApiHandler.UserAgent
+                        request2.ContentType = "application/x-www-form-urlencoded"
+                        Dim isError As Boolean = False
+                        Try
+                            Dim response2 As Net.WebResponse = request2.GetResponse
+                            response2.Close()
+                        Catch exres As WebException
+                            isError = True
+                        End Try
+                        Dim tpage2 As String = WorkerBot.GET(turi2)
+                        Dim originalTitleMatch As Match = Regex.Match(tp, "\<title\b[^>]*\>\s*([\s\S]*?)\<\/title\>", RegexOptions.IgnoreCase)
+                        Dim originalPageTitle As String = ""
+                        If originalTitleMatch.Success Then originalPageTitle = originalTitleMatch.Groups(1).Value
+
+                        Dim titleMatch As Match = Regex.Match(tpage2, "\<title\b[^>]*\>\s*([\s\S]*?)\<\/title\>", RegexOptions.IgnoreCase)
+                        Dim PageTitle As String = ""
+                        If titleMatch.Success Then PageTitle = titleMatch.Groups(1).Value
+
+                        If PageTitle.ToLower.Equals(originalPageTitle.ToLower) And (Not isError) Then
+                            tp = "" 'El <title> es igual al 404! Marcar como caida.
+                        End If
+
+                    Catch ex As Exception
+                    End Try
+
                 Catch ex As Exception
                     tp = ""
                 End Try
+
             Catch ex As MaxRetriesExeption
                 tp = ""
             End Try
@@ -194,6 +230,7 @@ Public Class RefTool
                 tref = ReplaceFirst(tref, "]", "")
                 Dim refinfo As String() = {tref.Split(" "c)(0), tref.Replace(tref.Split(" "c)(0), "").Trim()}
                 Dim tur As New Uri("http://x.z") : Uri.TryCreate(refinfo(0).Trim(), UriKind.Absolute, tur)
+                If tur Is Nothing Then Continue For
                 Dim refdesc As String = Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase)
                 refdesc = ReplaceFirst(refdesc, "[", "").Replace(tur.OriginalString, "").Trim()
                 If refdesc(refdesc.Length - 1) = "]"c Then
@@ -202,7 +239,6 @@ Public Class RefTool
                     refdesc = ReplaceFirst(refdesc, "]", "")
                 End If
                 refdesc = ReplaceFirst(refdesc, "]", "-").Trim()
-                If tur Is Nothing Then Continue For
                 refsList.Add(New Tuple(Of String, Uri, String)(ref, tur, refdesc))
             Else
                 Dim tref As New Uri("http://x.z")
@@ -246,7 +282,6 @@ Public Class RefTool
         Return UrlAndDateList
     End Function
 
-
     Function FixRefs(ByVal tpage As Page) As Boolean
         Dim newtext As String = tpage.Content
         Dim irrecoverable As Integer = 0
@@ -254,6 +289,9 @@ Public Class RefTool
         Dim duplicatesCount As Integer = 0
         Dim cref As Integer = 0
         Dim bref As Integer = 0
+        Dim emptyRefsSimplified As Tuple(Of String, Integer) = SimplifyEmptyRefs(newtext)
+        newtext = emptyRefsSimplified.Item1
+        duplicatesCount = emptyRefsSimplified.Item2
         Dim removedDuplicates As Tuple(Of String, Integer) = RemoveDuplicates(newtext)
         If Not removedDuplicates Is Nothing Then newtext = removedDuplicates.Item1
         If Not removedDuplicates Is Nothing Then duplicatesCount = removedDuplicates.Item2
@@ -295,36 +333,26 @@ Public Class RefTool
 
 
         For Each tup As Tuple(Of Uri, Date, String, String) In UrlAndDateList 'uri, fecha, nombre, ref original
-            Dim tp As String = CheckAndTryLoadWebResource(tup.Item1)
+            Dim referenceWebsiteContent As String = CheckAndTryLoadWebResource(tup.Item1)
 
-            Dim pageDown As Boolean = String.IsNullOrWhiteSpace(tp)
-            Dim pagename As String = Regex.Replace(Regex.Replace(Regex.Match(tp, "<title>[\s\S]+?<\/title>", RegexOptions.IgnoreCase).Value.Trim(), "(<title>|<\/title>)", "", RegexOptions.IgnoreCase), "[\n\r]", "").Trim()
-            If Not String.IsNullOrWhiteSpace(tup.Item3) Then pagename = Regex.Replace(tup.Item3.Trim(), "[\n\r]", "")
-            If String.IsNullOrWhiteSpace(pagename) Then
-                If Regex.IsMatch(tup.Item1.OriginalString, "\/[^\/\s]+\.pdf", RegexOptions.IgnoreCase) Then
-                    pagename = Regex.Match(tup.Item1.OriginalString, "\/[^\/\s]+\.pdf", RegexOptions.IgnoreCase).Value
-                    pagename = UrlWebDecode(pagename.Replace("/", "").Replace(".pdf", ""))
-                Else
-                    pagename = tup.Item1.Authority
-                End If
-            End If
-            Dim lang As String = ""
-            If Regex.IsMatch(tp, "<html[^\>]+?lang=""\w{2}""", RegexOptions.IgnoreCase) Then
-                lang = TextInBetween(Regex.Match(tp, "<html[^\>]+?lang=""\w{2}""", RegexOptions.IgnoreCase).Value, "lang=""", """").DefaultIfEmpty("").FirstOrDefault()
+            Dim pageDown As Boolean = String.IsNullOrWhiteSpace(referenceWebsiteContent)
+            Dim pagename As String = TryGetPagenameFromContent(tup.Item1, referenceWebsiteContent)
+            Dim originalRefHasName As Boolean = (Not String.IsNullOrWhiteSpace(tup.Item3))
+
+            If originalRefHasName Then 'Descartar nombre auto-generado y usar el que ya está en la referencia
+                pagename = Regex.Replace(tup.Item3.Trim(), "[\n\r]", "")
+                pagename = pagename.Replace("|", "-").Replace(" .", ".")
+                pagename = Regex.Replace(pagename, "<.+?>", "")
+                pagename = RemoveExcessOfSpaces(pagename)
+                pagename = UppercaseFirstCharacter(pagename).Trim()
             End If
 
-            Dim langpattern As String = "(\(en )([\wñ]{2,}(es|és|ano|an|án|ino|so|nio|ol))(\))"
-            Dim tmatch As Match = Regex.Match(pagename, langpattern, RegexOptions.IgnoreCase)
-            If tmatch.Success Then
-                Dim gr As Group = tmatch.Groups(2)
-                lang = gr.Value
-                pagename = Regex.Replace(pagename, langpattern, "", RegexOptions.IgnoreCase)
+            Dim tryGetLangResult As Tuple(Of String, String) = TryGetLanguageFromContent(tup.Item1, referenceWebsiteContent, pagename)
+            Dim lang As String = tryGetLangResult.Item1
+            If originalRefHasName Then
+                pagename = tryGetLangResult.Item2
             End If
 
-            pagename = pagename.Replace("|", "-").Replace(" .", ".")
-            pagename = Regex.Replace(pagename, "<.+?>", "")
-            pagename = RemoveExcessOfSpaces(pagename)
-            pagename = UppercaseFirstCharacter(pagename).Trim()
             Dim pageroot As String = tup.Item1.Authority
             Dim tdate As String = tup.Item2.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
             Dim Reference As New WikiWebReference With {
@@ -338,56 +366,29 @@ Public Class RefTool
                 .RefDate = tup.Item2
             }
 
-            Dim i As Integer = 1
-
-
             datlist.Add(Reference)
         Next
         Dim tlist As New HashSet(Of Tuple(Of String, String))
 
         For Each nref As WikiWebReference In datlist
-            If nref.PageIsDown = True Then 'Ok se que es redundante pero igual
-                'Verificar si está disponible en Internet Archive
-                Dim datestring As String = nref.RefDate.ToString("yyyyMMddHHmmss", New Globalization.CultureInfo("es-ES"))
-                Dim WayBackResponse As String = WorkerBot.GET(New Uri("http://archive.org/wayback/available?" & "timestamp=" & datestring & "&url=" & nref.PageUrl))
-                Dim Unavaliable As Boolean = WayBackResponse.Contains("""archived_snapshots"": {}")
-                Dim tstring As String = ""
-                If Unavaliable Then
-                    Dim tpageName As String = nref.PageName
-                    tpageName = Regex.Replace(tpageName, "(consultado +(en|el) +\w{2,10} +(de|del) +\d{2,4}|consultado +(el) +(\d{1,2}|\w{3,20}) +de +\w{2,10} +(de|del) +\d{2,4})", "", RegexOptions.IgnoreCase)
-                    tpageName = RemoveExcessOfSpaces(tpageName)
-                    tstring = String.Format("{{{{Enlace roto |1={0} |2={1} |fechaacceso={2} |bot={3} }}}}", tpageName, nref.PageUrl, nref.SpokenDate, WorkerBot.UserName)
-                    tstring &= " <small>enlace irrecuperable</small> <!-- Enlace irrecuperable. No hay snapshots de esa URL exacta disponibles en Internet Archive a la fecha de la consulta. -->"
-                    irrecoverable += 1
-                Else
-                    Dim timestamp As String = RemoveAllAlphas(TextInBetween(WayBackResponse, """timestamp"": """, """,").DefaultIfEmpty(datestring).LastOrDefault())
-                    Dim archivedate As Date = New Date(Integer.Parse(timestamp.Substring(0, 4)), Integer.Parse(timestamp.Substring(4, 2)), Integer.Parse(timestamp.Substring(6, 2)))
-                    Dim archiveSpokenDate As String = archivedate.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
-                    Dim archiveuri As String = {Regex.Match(WayBackResponse, "(?:""url"": "")(http:\/\/web\.archive\.org\/web\/.+?)(?:"")").Groups(1).Value}.DefaultIfEmpty("https://web.archive.org/web/*/" & nref.PageUrl).FirstOrDefault
-                    Dim tpageName As String = nref.PageName
-                    tpageName = Regex.Replace(tpageName, "(consultado +(en|el) +\w{2,10} +(de|del) +\d{2,4}|consultado +(el) +(\d{1,2}|\w{3,20}) +de +\w{2,10} +(de|del) +\d{2,4})", "", RegexOptions.IgnoreCase)
-                    tpageName = RemoveExcessOfSpaces(tpageName)
-                    tstring = String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4} |urlarchivo={5}|fechaarchivo={6}}}}}",
-                                                      nref.PageUrl, tpageName, nref.SpokenDate, nref.PageRoot, If(Not String.IsNullOrWhiteSpace(nref.Language), " |idioma=" & nref.Language, ""),
-                                                      archiveuri, archiveSpokenDate)
-                    recovered += 1
-                End If
-                tlist.Add(New Tuple(Of String, String)(nref.OriginalString, tstring))
-                bref += 1
-            Else
-                Task.Run(Sub()
-                             Dim saveuristring = "https://web.archive.org/save/" & nref.PageUrl
-                             Dim waaresponse As String = WorkerBot.GET(New Uri(saveuristring)) 'Enviar la URL de la referencia a Archive.org para que guarde un snapshot. Hacer en otro hilo porque tarda muuucho tiempo.
-                         End Sub)
-                Dim tpageName As String = nref.PageName
-                tpageName = Regex.Replace(tpageName, "(consultado +(en|el) +\w{2,10} +(de|del) +\d{2,4}|consultado +(el) +(\d{1,2}|\w{3,20}) +de +\w{2,10} +(de|del) +\d{2,4})", "", RegexOptions.IgnoreCase)
-                tpageName = RemoveExcessOfSpaces(tpageName)
-                Dim tstring As String = String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}}",
-                                                      nref.PageUrl, tpageName, nref.SpokenDate, nref.PageRoot, If(Not String.IsNullOrWhiteSpace(nref.Language), " |idioma=" & nref.Language, ""))
 
-                tlist.Add(New Tuple(Of String, String)(nref.OriginalString, tstring))
-                cref += 1
-            End If
+            Dim generatedRef As GenerateReferenceTextResult = GenerateReferenceText(nref, tpage, True)
+            Select Case generatedRef.result
+                Case GenerateReferenceTextResult.Results.Generation_Sucessful
+                    cref += 1
+                Case GenerateReferenceTextResult.Results.Alternative_Prefered
+                    cref += 1
+                Case GenerateReferenceTextResult.Results.Broken_Alternative_Source
+                    recovered += 1
+                    bref += 1
+                Case GenerateReferenceTextResult.Results.Broken_WebArchive_Recovered
+                    recovered += 1
+                    bref += 1
+                Case GenerateReferenceTextResult.Results.Broken_Unrecoverable
+                    irrecoverable += 1
+                    bref += 1
+            End Select
+            tlist.Add(New Tuple(Of String, String)(nref.OriginalString, generatedRef.text))
         Next
 
         For Each ref As Tuple(Of String, String) In tlist
@@ -407,6 +408,278 @@ Public Class RefTool
 
         Return False
     End Function
+
+
+    Function GenerateReferenceText(ByRef reference As WikiWebReference, ByRef page As Page, ByVal tryGetAlternativeSources As Boolean) As GenerateReferenceTextResult
+        Dim referenceText As String
+        Dim result As GenerateReferenceTextResult
+
+        Dim newPageurl As Tuple(Of String, String) = HandleSpecialWebsites(New Uri(reference.PageUrl), reference)
+        If (Not String.IsNullOrWhiteSpace(newPageurl.Item1) AndAlso tryGetAlternativeSources) Then
+            SendUrlToWaybackMachine(reference.PageUrl, page.Title)
+            Dim newDate As Date = Date.Now()
+            Dim newSpokenDate As String = newDate.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
+            Dim newRefUri As New Uri(newPageurl.Item1)
+
+            If (newRefUri.Authority.Contains("web.archive.org")) Then
+                Dim originalRefUrl As String = Regex.Match(reference.PageUrl, "(https?\:\/\/web\.archive\.org\/web\/(\d{1,14})\/)(.+)", RegexOptions.IgnoreCase).Groups(3).Value
+                Dim originalRefUri As New Uri(originalRefUrl)
+                Dim originalRefArchiveDateString As String = Regex.Match(reference.PageUrl, "(https?\:\/\/web\.archive\.org\/web\/(\d{1,14})\/)(.+)", RegexOptions.IgnoreCase).Groups(2).Value
+                Dim originalRefArchiveDateInts As Integer() = {Integer.Parse(originalRefArchiveDateString.Substring(0, 4)), Integer.Parse(originalRefArchiveDateString.Substring(4, 2)), Integer.Parse(originalRefArchiveDateString.Substring(6, 2))}
+                Dim archiveDate As Date = New Date(originalRefArchiveDateInts(0), originalRefArchiveDateInts(1), originalRefArchiveDateInts(2))
+                Dim archiveSpokenDate As String = archiveDate.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
+                referenceText = GenerateWaybackReferenceText(originalRefUrl, newPageurl.Item2, reference.SpokenDate, originalRefUri.Authority, reference.Language, newPageurl.Item1, archiveSpokenDate)
+
+            Else
+                referenceText = GenerateNormalReferenceText(newPageurl.Item1, newPageurl.Item2, newSpokenDate, newRefUri.Authority, reference.Language)
+                referenceText &= String.Format(" <!-- PeriodiBOT ha reemplazado el enlace original de la referencia en {0} con uno actualizado de {1} -->",
+                                           reference.PageRoot, newRefUri.Authority)
+            End If
+
+            result = New GenerateReferenceTextResult(referenceText, GenerateReferenceTextResult.Results.Alternative_Prefered)
+                Return result
+            End If
+
+
+            If (reference.PageIsDown) Then
+
+            'Verificar si está disponible en Internet Archive
+            Dim datestring As String = reference.RefDate.ToString("yyyyMMddHHmmss", New Globalization.CultureInfo("es-ES"))
+            Dim WayBackResponse As String = WorkerBot.GET(New Uri("https://archive.org/wayback/available?" & "timestamp=" & datestring & "&url=" & reference.PageUrl))
+            Dim Unavaliable As Boolean = WayBackResponse.Contains("""archived_snapshots"": {}") ''No need to parse
+
+            If Unavaliable Then
+                Dim pageName As String = reference.PageName
+                SendUrlToWaybackMachine(reference.PageUrl, page.Title)
+                Dim newDate As Date = Date.Now()
+                Dim newSpokenDate As String = newDate.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
+                Dim newRefUri As New Uri(reference.PageUrl)
+                referenceText = GenerateBrokenReferenceText(reference.PageUrl, pageName, newSpokenDate, newRefUri.Authority, reference.Language)
+                result = New GenerateReferenceTextResult(referenceText, GenerateReferenceTextResult.Results.Broken_Unrecoverable)
+
+            Else
+                Dim timestamp As String = RemoveAllAlphas(TextInBetween(WayBackResponse, """timestamp"": """, """,").DefaultIfEmpty(datestring).LastOrDefault())
+                Dim archivedate As Date = New Date(Integer.Parse(timestamp.Substring(0, 4)), Integer.Parse(timestamp.Substring(4, 2)), Integer.Parse(timestamp.Substring(6, 2)))
+                Dim archiveSpokenDate As String = archivedate.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
+                Dim archiveuri As String = {Regex.Match(WayBackResponse, "(?:""url"": "")(http:\/\/web\.archive\.org\/web\/.+?)(?:"")").Groups(1).Value}.DefaultIfEmpty("https://web.archive.org/web/*/" & reference.PageUrl).FirstOrDefault
+                If archiveuri.StartsWith("http://") Then archiveuri = ReplaceFirst(archiveuri, "http://", "https://")
+                Dim pageName As String = reference.PageName
+                pageName = Regex.Replace(pageName, "(consultado +(en|el) +\w{2,10} +(de|del) +\d{2,4}|consultado +(el) +(\d{1,2}|\w{3,20}) +de +\w{2,10} +(de|del) +\d{2,4})", "", RegexOptions.IgnoreCase)
+                pageName = RemoveExcessOfSpaces(pageName)
+                referenceText = GenerateWaybackReferenceText(reference.PageUrl, pageName, reference.SpokenDate, reference.PageRoot, reference.Language, archiveuri, archiveSpokenDate)
+                result = New GenerateReferenceTextResult(referenceText, GenerateReferenceTextResult.Results.Broken_WebArchive_Recovered)
+            End If
+
+            Return result
+        End If
+
+
+        ''Sitio ok, regenerar referencia
+        SendUrlToWaybackMachine(reference.PageUrl, page.Title)
+        Dim tpageName As String = reference.PageName
+        tpageName = Regex.Replace(tpageName, "(consultado +(en|el) +\w{2,10} +(de|del) +\d{2,4}|consultado +(el) +(\d{1,2}|\w{3,20}) +de +\w{2,10} +(de|del) +\d{2,4})", "", RegexOptions.IgnoreCase)
+        tpageName = RemoveExcessOfSpaces(tpageName)
+        referenceText = GenerateNormalReferenceText(reference.PageUrl, tpageName, reference.SpokenDate, reference.PageRoot, reference.Language)
+        result = New GenerateReferenceTextResult(referenceText, GenerateReferenceTextResult.Results.Generation_Sucessful)
+        Return result
+
+    End Function
+
+    Private Function GenerateNormalReferenceText(ByVal url As String, title As String, accessDate As String, websiteRoot As String, websiteLang As String) As String
+        Return String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}}",
+                                              url, title, accessDate, websiteRoot, If(Not String.IsNullOrWhiteSpace(websiteLang), " |idioma=" & websiteLang, ""))
+    End Function
+
+    Private Function GenerateBrokenReferenceText(ByVal url As String, title As String, accessDate As String, websiteRoot As String, websiteLang As String) As String
+        Return String.Format("{{{{Enlace roto |1={{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}} |2={0} }}}}",
+                              url, title, accessDate, websiteRoot, If(Not String.IsNullOrWhiteSpace(websiteLang), " |idioma=" & websiteLang, "")) &
+                              String.Format("<small>enlace irrecuperable</small> <!-- El enlace original de la referencia en {0} es irrecuperable (Sitio caído y no hay snapshots en Internet Archive). -->",
+                                       websiteRoot)
+    End Function
+
+    Private Function GenerateWaybackReferenceText(ByVal url As String, title As String, accessDate As String, websiteRoot As String, websiteLang As String, archiveUrl As String, archiveDate As String) As String
+        Return String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4} |urlarchivo={5} |fechaarchivo={6}}}}}",
+                                      url, title, accessDate, websiteRoot, If(Not String.IsNullOrWhiteSpace(websiteLang), " |idioma=" & websiteLang, ""),
+                                      archiveUrl, archiveDate)
+    End Function
+
+
+    Private Function HandleSpecialWebsites(ByVal siteUri As Uri, ByRef reference As WikiWebReference) As Tuple(Of String, String) 'Retornamos una cadena de texto vacía si la página no aplica
+        If siteUri.Authority.Contains("aob.oxfordjournals.org") Then ''Nuevo sitio para Annals of Botany
+            Dim newUrl As String = GetRedirectUrl(siteUri) 'Obtenemos la url del redirect
+            Return New Tuple(Of String, String)(newUrl, reference.PageName)
+        End If
+
+        If siteUri.Authority.Contains("www.tropicos.org") Then ''Los sinónimos y nombres de tropico redireccionan a la página legacy. Es un redirect Javascript pero conocemos el formato...
+            Dim synonymsMatch As Match = Regex.Match(siteUri.OriginalString, "https?:\/\/www\.tropicos\.org\/namesynonyms\.aspx\?nameid=\d{7,9}", RegexOptions.IgnoreCase)
+            If synonymsMatch.Success Then
+                Dim newUrl As String = "http://legacy.tropicos.org/Name/" + synonymsMatch.Groups(1).Value + "?tab=synonyms" 'El certificado SSL de tropico no es válido, usemos http
+                Return New Tuple(Of String, String)(newUrl, reference.PageName)
+            End If
+            Dim namesMatch As Match = Regex.Match(siteUri.OriginalString, "https?:\/\/www\.tropicos\.org\/name\/(\d{6,9})", RegexOptions.IgnoreCase)
+            If namesMatch.Success Then
+                Dim newUrl As String = "http://legacy.tropicos.org/Name/" + namesMatch.Groups(1).Value 'El certificado SSL de tropico no es válido, usemos http
+                Return New Tuple(Of String, String)(newUrl, reference.PageName)
+            End If
+            Return New Tuple(Of String, String)(String.Empty, String.Empty)
+        End If
+
+        If siteUri.Authority.Contains("theplantlist.org") Then 'Plantlist es obsoleto, en su lugar debe usarse World Flora Online
+            Dim newUrl As String
+            Dim newTitle As String
+            Dim searchMatch As Match = Regex.Match(reference.PageUrl, "(https*:\/\/.+?search\?q=)(\w+)", RegexOptions.IgnoreCase)
+            If Not searchMatch.Success Then
+                Dim recordMatch As Match = Regex.Match(reference.PageUrl, "(https*:\/\/.+?)(record\/)(.+)", RegexOptions.IgnoreCase)
+                If Not recordMatch.Success Then Return New Tuple(Of String, String)(String.Empty, String.Empty)
+                newUrl = "http://www.worldfloraonline.org/tpl/" + recordMatch.Groups(3).Value.Trim 'WFO compat TPL link
+                newTitle = "The World Flora Online. Search: " & recordMatch.Groups(3).Value.Trim
+                Try
+                    Dim content As String = WorkerBot.GET(New Uri(newUrl))
+                    Dim titleMatch As Match = Regex.Match(content, "<title>(.+?)<\/title>")
+                    Dim idMatch As Match = Regex.Match(content, "<div itemid=""(.+?)"" itemtype=""")
+                    Dim wfoid As String = idMatch.Groups(1).Value()
+                    Dim wfoName As String = titleMatch.Groups(1).Value.Trim()
+                    newTitle = "WFO (" & Date.UtcNow().Year.ToString() & "): " & wfoName
+                    newUrl = "http://www.worldfloraonline.org/taxon/" & wfoid 'WFO no tiene sitio en https
+                Catch ex As Exception
+                End Try
+            Else
+                newUrl = "http://www.worldfloraonline.org/search?query=" + searchMatch.Groups(2).Value.Trim 'WFO no tiene sitio en https
+                newTitle = "The World Flora Online. Search: " & searchMatch.Groups(2).Value.Trim
+            End If
+            Return New Tuple(Of String, String)(newUrl, newTitle)
+        End If
+
+        If siteUri.Authority.Contains("web.archive.org") Then 'Referencias obtenidas desde web archive
+            Dim searchMatch As Match = Regex.Match(reference.PageUrl, "(https?\:\/\/web\.archive\.org\/web\/\d{1,14}\/)(.+)", RegexOptions.IgnoreCase)
+            If searchMatch.Success Then
+                Return New Tuple(Of String, String)(searchMatch.Value, reference.PageName)
+            End If
+        End If
+
+
+        If siteUri.Authority.Contains("apps.kew.org") Then 'Sinónimos de KEW no funcionan, usemos WFO
+            Dim kewIDMatch As Match = Regex.Match(reference.PageUrl, "synonomy.+accepted_id=(\d{1,10})|name_id=(\d{1,10})", RegexOptions.IgnoreCase)
+            If kewIDMatch.Success Then
+                Dim id As String = If(kewIDMatch.Groups(1).Value, kewIDMatch.Groups(2).Value)
+                Dim newUrl As String = "http://www.worldfloraonline.org/tpl/kew-" + id + "" 'WFO compat TPL link
+                Dim newTitle As String = "Sinónimos en The World Flora Online."
+                Try
+                    Dim content As String = WorkerBot.GET(New Uri(newUrl))
+                    Dim titleMatch As Match = Regex.Match(content, "<title>(.+?)<\/title>")
+                    Dim idMatch As Match = Regex.Match(content, "<div itemid=""(.+?)"" itemtype=""")
+                    Dim wfoid As String = idMatch.Groups(1).Value()
+                    Dim wfoName As String = titleMatch.Groups(1).Value.Trim()
+                    newTitle = "WFO (" & Date.UtcNow().Year.ToString() & "): Sinónimos de " & wfoName
+                    newUrl = "http://www.worldfloraonline.org/taxon/" & wfoid + "#synonyms" 'WFO no tiene sitio en https
+                Catch ex As Exception
+                End Try
+                Return New Tuple(Of String, String)(newUrl, newTitle)
+            End If
+        End If
+
+        Return New Tuple(Of String, String)(String.Empty, String.Empty)
+    End Function
+
+    Function GetRedirectUrl(ByVal siteUri As Uri) As String
+        Dim handler As New HttpClientHandler()
+        handler.AllowAutoRedirect = False
+        Dim redirectedUrl As String = String.Empty
+        Using client As HttpClient = New HttpClient(handler)
+            Using response As HttpResponseMessage = client.GetAsync(siteUri).Result()
+                Using content As HttpContent = response.Content
+                    If (response.StatusCode = HttpStatusCode.Found Or response.StatusCode = HttpStatusCode.Moved Or response.StatusCode = HttpStatusCode.MovedPermanently) Then
+                        Dim headers As HttpResponseHeaders = response.Headers
+                        If (headers.Location IsNot Nothing AndAlso headers.Location IsNot Nothing) Then
+                            redirectedUrl = headers.Location.AbsoluteUri
+                        End If
+                    End If
+                End Using
+            End Using
+        End Using
+        Return redirectedUrl
+    End Function
+
+    Class GenerateReferenceTextResult
+        Public ReadOnly Property text As String
+        Public ReadOnly Property result As Results
+        Enum Results
+            Generation_Sucessful
+            Alternative_Prefered
+            Broken_Unrecoverable
+            Broken_WebArchive_Recovered
+            Broken_Alternative_Source
+            Broken_New_Site_Used
+        End Enum
+        Public Sub New(ByVal referenceText As String, operationResult As Results)
+            text = referenceText
+            result = operationResult
+        End Sub
+    End Class
+
+    ''' <summary>
+    ''' Envá la URL a Archive.org para que guarde un snapshot. Genera la operación en otro hilo porque tarda muuucho tiempo.
+    ''' </summary>
+    ''' <param name="ref"></param>
+    Private Sub SendUrlToWaybackMachine(ByVal ref As String, ByVal ArticleName As String)
+
+        Dim urlRefFunc As New Func(Of Boolean)(Function()
+                                                   Try
+                                                       Dim saveuristring = "https://web.archive.org/save/" & ref
+                                                       WorkerBot.GET(New Uri(saveuristring))
+                                                   Catch ex As Exception
+                                                       Return False
+                                                   End Try
+                                                   Return True
+                                               End Function)
+        Initializer.TaskAdm.NewTask("Archivar referencia utilicada en '" & ArticleName & "' en Archive.org", WorkerBot.UserName, urlRefFunc, 0, False)
+    End Sub
+
+    Private Function TryGetPagenameFromContent(ByVal webUri As Uri, websiteContent As String) As String
+        Dim pageDown As Boolean = String.IsNullOrWhiteSpace(websiteContent)
+        Dim pagename As String = String.Empty
+        If Not String.IsNullOrWhiteSpace(websiteContent) Then pagename = Regex.Replace(Regex.Replace(Regex.Match(websiteContent, "<title>[\s\S]+?<\/title>", RegexOptions.IgnoreCase).Value.Trim(), "(<title>|<\/title>)", "", RegexOptions.IgnoreCase), "[\n\r]", "").Trim()
+
+        If String.IsNullOrWhiteSpace(pagename) Then
+            If Regex.IsMatch(webUri.OriginalString, "\/[^\/\s]+\.pdf", RegexOptions.IgnoreCase) Then
+                pagename = Regex.Match(webUri.OriginalString, "\/[^\/\s]+\.pdf", RegexOptions.IgnoreCase).Value
+                pagename = UrlWebDecode(pagename.Replace("/", "").Replace(".pdf", ""))
+            Else
+                pagename = webUri.Authority
+            End If
+        End If
+        pagename = pagename.Replace("|", "-").Replace(" .", ".")
+        pagename = Regex.Replace(pagename, "<.+?>", "")
+        pagename = RemoveExcessOfSpaces(pagename)
+        pagename = UppercaseFirstCharacter(pagename).Trim()
+        Return pagename
+    End Function
+
+    ''' <summary>
+    ''' Entrega el idioma de la referencia si es posible y elimina el texto que indica el idioma de la referencia entregado en el parámetro wikiContent.
+    ''' </summary>
+    ''' <param name="webUri"></param>
+    ''' <param name="websiteContent"></param>
+    ''' <param name="wikiContent"></param>
+    ''' <returns></returns>
+    Private Function TryGetLanguageFromContent(ByVal webUri As Uri, websiteContent As String, wikiContent As String) As Tuple(Of String, String)
+        Dim lang As String = ""
+        If (Not String.IsNullOrWhiteSpace(websiteContent)) AndAlso Regex.IsMatch(websiteContent, "<html[^\>]+?lang=""\w{2}""", RegexOptions.IgnoreCase) Then
+            lang = TextInBetween(Regex.Match(websiteContent, "<html[^\>]+?lang=""\w{2}""", RegexOptions.IgnoreCase).Value, "lang=""", """").DefaultIfEmpty("").FirstOrDefault()
+        End If
+
+        Dim langpattern As String = "(\(en )([\wñ]{2,}(es|és|ano|an|án|ino|so|nio|ol))(\))"
+        Dim tmatch As Match = Regex.Match(wikiContent, langpattern, RegexOptions.IgnoreCase)
+        If tmatch.Success Then
+            Dim gr As Group = tmatch.Groups(2)
+            lang = gr.Value
+            wikiContent = Regex.Replace(wikiContent, langpattern, "", RegexOptions.IgnoreCase)
+            wikiContent = RemoveExcessOfSpaces(wikiContent).Trim()
+        End If
+        Return New Tuple(Of String, String)(lang, wikiContent)
+    End Function
+
+
 
     Private Function NormalizeDates(ByVal pagetext As String) As Tuple(Of String, Integer)
         Dim matches As MatchCollection = Regex.Matches(pagetext, "(\|[\s]*?[fF]echa)(acceso)?( *=)([\s]*?)(\d{1,2} ?- ?\d{1,2} ?- ?(?:\d{2}){1,2})([\s]*?)(\|)")
@@ -453,6 +726,18 @@ Public Class RefTool
 
 
     End Function
+
+    Private Function SimplifyEmptyRefs(ByVal pagetext As String) As Tuple(Of String, Integer)
+        Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)[\s]+(<\/ref>)", RegexOptions.IgnoreCase)
+        Dim changedCount As Integer = 0
+        For Each m As Match In refmatches
+            Dim simplifiedRef As String = m.Groups(1).Value.TrimEnd(">"c) & "/>"
+            pagetext = pagetext.Replace(m.Value, simplifiedRef)
+            changedCount += 1
+        Next
+        Return New Tuple(Of String, Integer)(pagetext, changedCount)
+    End Function
+
 
     Private Function RemoveDuplicates(ByVal pagetext As String) As Tuple(Of String, Integer)
         Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
@@ -632,7 +917,6 @@ Public Class RefTool
                                                                              AndAlso Not CountCharacter(x, "]"c) > 1)
                                                                          End Function).ToArray()
     End Function
-
 
 
 End Class

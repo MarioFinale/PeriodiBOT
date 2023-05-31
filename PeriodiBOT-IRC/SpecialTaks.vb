@@ -282,6 +282,7 @@ Class SpecialTaks
         Dim archivedThreads As Integer = 0
 
         For i As Integer = 0 To threads.Count - 1
+            If archivedThreads >= threads.Count - 1 Then Continue For 'Dejar al menos un hilo!
             Dim thread As String = threads(i)
             Try
                 Dim tDate As Date
@@ -985,8 +986,107 @@ Class SpecialTaks
         Return True
     End Function
 
+    Function RemoveTemplateParameterFromContent(ByVal templateName As String, ByVal templateParameterName As String, ByVal wikiContent As String) As String
+        If Template.IsTemplatePresentInText(wikiContent, templateName) Then
+            Dim templates As List(Of Template) = Template.GetTemplates(wikiContent)
+            For Each t As Template In templates
+                Dim originalTemplateText As String = t.Text
+                If t.Name.Trim.Equals(templateName.Trim) Then
+                    t.RemoveParameter(templateParameterName)
+                    wikiContent = wikiContent.Replace(originalTemplateText, t.Text)
+                End If
+            Next
+        End If
+        Return wikiContent
+    End Function
 
 
+    Function ReplaceTemplateParameterNameFromContent(ByVal templateName As String, ByVal templateParameterName As String, ByVal templateParameterNewName As String, ByVal wikiContent As String) As String
+        If Template.IsTemplatePresentInText(wikiContent, templateName) Then
+            Dim templates As List(Of Template) = Template.GetTemplates(wikiContent)
+            For Each t As Template In templates
+                Dim originalTemplateText As String = t.Text
+                If t.Name.Trim.Equals(templateName.Trim) Then
+                    t.ChangeNameOfParameter(templateParameterName, templateParameterNewName)
+                    wikiContent = wikiContent.Replace(originalTemplateText, t.Text)
+                End If
+            Next
+        End If
+        Return wikiContent
+    End Function
+
+
+    Function ReplaceTemplateContentFromContent(ByVal templateName As String, ByVal templateParameterName As String, ByVal templateParameterNewContent As String, ByVal wikiContent As String) As String
+        If Template.IsTemplatePresentInText(wikiContent, templateName) Then
+            Dim templates As List(Of Template) = Template.GetTemplates(wikiContent)
+            For Each t As Template In templates
+                Dim originalTemplateText As String = t.Text
+                If t.Name.Trim.Equals(templateName.Trim) Then
+                    t.ReplaceParameterContent(templateParameterName, templateParameterNewContent)
+                    wikiContent = wikiContent.Replace(originalTemplateText, t.Text)
+                End If
+            Next
+        End If
+        Return wikiContent
+    End Function
+
+    Function AppendTemplateContentFromContent(ByVal templateName As String, ByVal templateParameterName As String, ByVal templateParameterContentToAppend As String, ByVal wikiContent As String) As String
+        If Template.IsTemplatePresentInText(wikiContent, templateName) Then
+            Dim templates As List(Of Template) = Template.GetTemplates(wikiContent)
+            For Each t As Template In templates
+                Dim originalTemplateText As String = t.Text
+                If t.Name.Trim.Equals(templateName.Trim) Then
+                    t.AppendParameterContent(templateParameterName, templateParameterContentToAppend)
+                    wikiContent = wikiContent.Replace(originalTemplateText, t.Text)
+                End If
+            Next
+        End If
+        Return wikiContent
+    End Function
+
+    Function CheckIfTemplateContainsParamFromContent(ByVal templateName As String, ByVal templateParameterName As String, ByVal wikiContent As String) As Boolean
+        If Template.IsTemplatePresentInText(wikiContent, templateName) Then
+            Dim templates As List(Of Template) = Template.GetTemplates(wikiContent)
+            For Each t As Template In templates
+                If t.Name.Trim.Equals(templateName.Trim) Then
+                    If t.ContainsParameter(templateParameterName) Then Return True
+                End If
+            Next
+        End If
+        Return False
+    End Function
+
+    Function AddParameterToTemplateFromContent(ByVal templateName As String, ByVal templateNewParameterName As String, ByVal templateNewParameterContent As String, ByVal wikiContent As String) As String
+        If Template.IsTemplatePresentInText(wikiContent, templateName) Then
+            Dim templates As List(Of Template) = Template.GetTemplates(wikiContent)
+            For Each t As Template In templates
+                Dim originalTemplateText As String = t.Text
+                If t.Name.Trim.Equals(templateName.Trim) Then
+                    t.AppendParameter(templateNewParameterName, templateNewParameterContent)
+                    wikiContent = wikiContent.Replace(originalTemplateText, t.Text)
+                End If
+            Next
+        End If
+        Return wikiContent
+    End Function
+
+    Function RemoveParameterFromTemplateIfEmptyFromContent(ByVal templateName As String, ByVal templateParameterName As String, ByVal wikiContent As String) As String
+        If Template.IsTemplatePresentInText(wikiContent, templateName) Then
+            Dim templates As List(Of Template) = Template.GetTemplates(wikiContent)
+            For Each t As Template In templates
+                Dim originalTemplateText As String = t.Text
+                If t.Name.Trim.Equals(templateName.Trim) Then
+                    If t.ContainsParameter(templateParameterName) Then
+                        If String.IsNullOrWhiteSpace(t.GetParameterContent(templateParameterName)) Then
+                            t.RemoveParameter(templateParameterName)
+                        End If
+                    End If
+                End If
+                wikiContent = wikiContent.Replace(originalTemplateText, t.Text)
+            Next
+        End If
+        Return wikiContent
+    End Function
 
 
 End Class

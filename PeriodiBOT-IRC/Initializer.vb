@@ -6,6 +6,7 @@ Imports MWBot.net.Utility
 Imports MWBot.net.Utility.Utils
 Imports IRCCLIENT.IRC
 Imports PeriodiBOT_IRC.My.Resources
+Imports System.Text.RegularExpressions
 
 Public NotInheritable Class Initializer
     Private Sub New()
@@ -115,11 +116,19 @@ Public NotInheritable Class Initializer
         '                                           Dim rpage As Page = ESWikiBOT.GetRandomPage()
         '                                           Return sptask.FixRefs(rpage)
         '                                       End Function)
-        'TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
-
+        ''TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
         'Dim sptask As New RefTool(ESWikiBOT)
-        'Dim rpage As Page = ESWikiBOT.Getpage("Maurice Sand")
-        'sptask.FixRefs(rpage)
+        ''sptask.FixRefs(ESWikiBOT.Getpage("Lac de Payolle"))
+        'Dim pages As String() = ESWikiBOT.SearchPagesForText("incategory:Flora_de_Sudamérica_occidental", 500)
+
+        'For Each p As String In pages
+        '    Dim rpage As Page = ESWikiBOT.Getpage(p)
+        '    If sptask.FixRefs(rpage) = True Then
+        '        Debugger.Break()
+        '    End If
+
+        'Next
+
         'Dim a As Integer = 1
 
         'Dim task2 As New SpecialTaks(ESWikiBOT)
@@ -127,6 +136,60 @@ Public NotInheritable Class Initializer
         'task2.AutoArchive(tpage, ArchiveTemplateName, DoNotArchiveTemplateName,
         '                                               ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
         'Dim a As Integer = 1
+
+        'Dim sp As New SpecialTaks(ESWikiBOT)
+        'Dim pages As String() = ESWikiBOT.SearchPagesForText("hastemplate:Ficha_de_diócesis insource:/\| *Latín_diócesis *\= *[A-Za-z\[\{]/", 500)
+        'pages = pages.Concat(ESWikiBOT.SearchPagesForText("hastemplate:Ficha_de_diócesis insource:/\| *Latín diócesis *\= *[A-Za-z\[\{]/", 500)).ToArray()
+        'pages = pages.Concat(ESWikiBOT.SearchPagesForText("hastemplate:Ficha_de_diócesis insource:/\| *Papa *\= *[A-Za-z\[\{]/", 500)).ToArray()
+        'pages = pages.Concat(ESWikiBOT.SearchPagesForText("hastemplate:Ficha_de_diócesis insource:/\| *papa *\= *[A-Za-z\[\{]/", 500)).ToArray()
+        'pages = pages.Distinct.ToArray()
+
+        'For Each p As String In pages
+        '    Dim pageToChange As Page = ESWikiBOT.Getpage(p)
+        '    Dim content As String = pageToChange.Content
+        '    Dim newContent As String = sp.ReplaceTemplateParameterNameFromContent("Ficha de diócesis", "Latín_diócesis", "latín", content)
+        '    newContent = sp.ReplaceTemplateParameterNameFromContent("Ficha de diócesis", "Latín diócesis", "latín", newContent)
+        '    newContent = sp.RemoveTemplateParameterFromContent("Ficha de diócesis", "Papa", newContent)
+        '    newContent = sp.RemoveTemplateParameterFromContent("Ficha de diócesis", "papa", newContent)
+        '    If Not newContent.Equals(content) Then
+        '        If Not (sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "tipo", newContent) Or sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "Tipo", newContent)) Then
+        '            If sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "nombre", newContent) Or sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "Nombre", newContent) Then
+        '                Dim tnewparam As String = If(newContent.Contains("| Nombre") Or newContent.Contains("| nombre"), "| tipo = diócesis", "|tipo = diócesis")
+        '                newContent = sp.AppendTemplateContentFromContent("Ficha de diócesis", "nombre", tnewparam & Environment.NewLine, newContent)
+        '                newContent = sp.AppendTemplateContentFromContent("Ficha de diócesis", "Nombre", tnewparam & Environment.NewLine, newContent)
+        '            Else
+        '                If sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "español", newContent) Or sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "Español", newContent) Then
+        '                    Dim tnewparam As String = If(newContent.Contains("| Español") Or newContent.Contains("| español"), "| tipo = diócesis", "|tipo = diócesis")
+        '                    newContent = sp.AppendTemplateContentFromContent("Ficha de diócesis", "español", tnewparam & Environment.NewLine, newContent)
+        '                    newContent = sp.AppendTemplateContentFromContent("Ficha de diócesis", "Español", tnewparam & Environment.NewLine, newContent)
+        '                Else
+        '                    newContent = sp.AddParameterToTemplateFromContent("Ficha de diócesis", " tipo ", "diócesis" & Environment.NewLine, newContent)
+        '                End If
+        '            End If
+        '        End If
+        '        pageToChange.Save(newContent, "(Bot) Ajustando plantilla 'Ficha de diócesis'", True, True)
+        '    End If
+        'Next
+
+        'Dim b As Integer = 1
+
+
+        'Dim sp As New SpecialTaks(ESWikiBOT)
+        'Dim pages As String() = ESWikiBOT.SearchPagesForText("hastemplate:Bandera insource:/[Bb]andera *\| *Europa/", 500)
+        'pages = pages.Concat(ESWikiBOT.SearchPagesForText("hastemplate:Bandera insource:/[Bb]andera2 *\| *Europa/", 500)).Distinct().ToArray()
+
+        'For Each p As String In pages
+        '    Dim pageToChange As Page = ESWikiBOT.Getpage(p)
+        '    Dim content As String = pageToChange.Content
+
+        '    content = Text.RegularExpressions.Regex.Replace(content, "\{\{ *[Bb]andera *\| *[Ee]uropa *\}\}", String.Empty)
+        '    content = Text.RegularExpressions.Regex.Replace(content, "\{\{ *[Bb]andera2 *\| *[Ee]uropa *\}\}", "[[Europa]]")
+
+        '    pageToChange.Save(content, "(Bot) Quitando bandera inexistente.", True, True, True)
+
+        'Next
+
+        'Dim b As Integer = 1
 
         'Dim BillArchived As New BillboardArchiver(ESWikiBOT)
         'BillArchived.ArchivePage("Wikipedia:Cartelera de acontecimientos")
