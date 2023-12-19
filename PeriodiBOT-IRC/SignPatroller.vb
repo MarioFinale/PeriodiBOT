@@ -2,6 +2,7 @@
 Option Explicit On
 Imports System.IO
 Imports System.Net
+Imports System.Reflection
 Imports System.Text.RegularExpressions
 Imports MWBot.net.Utility.Utils
 Imports MWBot.net.WikiBot
@@ -88,46 +89,56 @@ Public Class SignPatroller
     End Function
 
     Private Function EditIsValid(ByRef tline As String) As Boolean
-        If Not tline.Contains("""wiki"":""eswiki""") Then Return False
-        If tline.Contains("""bot"":true,") Then Return False
-        If Not tline.Contains(",""type"":""edit"",") Then Return False
-        If Not (Regex.Match(tline, """namespace"":(1|3|9|11|13|15|101|103|105|829),").Success) Then Return False
-        Return True
+        Return tline.Contains("""wiki"":""eswiki""") AndAlso
+           Not tline.Contains("""bot"":true,") AndAlso
+           tline.Contains(",""type"":""edit"",") AndAlso
+           Regex.Match(tline, """namespace"":(1|3|9|11|13|15|101|103|105|829),").Success
     End Function
 
-    Private Function ResolveQueue(ByRef editsqueue As Queue(Of Tuple(Of String, String, Date))) As Boolean
-        Dim tedit As Tuple(Of String, String, Date)
-        If editsqueue.Count = 0 Then Return False
-        SyncLock editsqueue
-            tedit = editsqueue.Dequeue
-            If Not Date.UtcNow.Subtract(tedit.Item3).Minutes > 1 Then
-                editsqueue.Enqueue(tedit)
+
+    Private Function ResolveQueue(ByRef editsQueue As Queue(Of Tuple(Of String, String, Date))) As Boolean
+        Dim editTuple As Tuple(Of String, String, Date) = Nothing
+
+        SyncLock editsQueue
+            If editsQueue.Count = 0 Then Return False
+
+            editTuple = editsQueue.Dequeue
+            If Date.UtcNow.Subtract(editTuple.Item3).Minutes <= 1 Then
+                editsQueue.Enqueue(editTuple)
                 Return False
             End If
         End SyncLock
 
-        Dim tpagename As String = tedit.Item2
-
-        Dim expagethreads As String() = WorkerBot.Getpage("Usuario:PeriodiBOT/Paginas exentas de firma").Threads
-        Dim expageslist As String() = (From tmatch In Regex.Matches(If(expagethreads.Count >= 1, expagethreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
-        If expageslist.Contains(tpagename) Then : EventLogger.Log(String.Format(BotMessages.NotSigned, tpagename) & " INFO: EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue", WorkerBot.UserName) : Return False : End If
-
-        Dim exuserthreads As String() = WorkerBot.Getpage("Usuario:PeriodiBOT/Exentos firma").Threads
-        Dim exuserlist As String() = (From tmatch In Regex.Matches(If(exuserthreads.Count >= 1, exuserthreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
-
-        Dim ackeckpagethreads As String() = WorkerBot.Getpage("Usuario:PeriodiBOT/Comprobar siempre firma").Threads
-        Dim achecklist As String() = (From tmatch In Regex.Matches(If(ackeckpagethreads.Count >= 1, ackeckpagethreads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
-        Dim tuser As WikiUser = New WikiUser(WorkerBot, tedit.Item1)
-        Dim tpage As Page = WorkerBot.Getpage(tedit.Item2)
-
-        If ((Not exuserlist.Contains(tuser.UserName)) Or achecklist.Contains(tuser.UserName)) Then
-            If Date.UtcNow.Subtract(tpage.LastEdit).Minutes < 1 Then Return False
-            Return AddMissingSignature2(tpage, False, True, String.Empty)
+        If editTuple Is Nothing Then
+            ' Handle the case where editTuple is not assigned within the SyncLock block.
+            Return False
         End If
 
-        EventLogger.Log(String.Format(BotMessages.NotSigned, tpage.Title) & " INFO: USER=" & tuser.UserName & "EC=" & tuser.EditCount _
-                              & " EXULIST=" & exuserlist.Contains(tuser.UserName).ToString & " ACHECK=" & achecklist.Contains(tuser.UserName).ToString & " EXPLIST=" & expageslist.Contains(tpagename).ToString, "ResolveQueue", WorkerBot.UserName)
+        Dim targetPageName As String = editTuple.Item2
+        Dim exemptPagesList As String() = GetThreadList("Usuario:PeriodiBOT/Paginas exentas de firma")
+        Dim exemptUsersList As String() = GetThreadList("Usuario:PeriodiBOT/Exentos firma")
+        Dim checkAlwaysList As String() = GetThreadList("Usuario:PeriodiBOT/Comprobar siempre firma")
+        Dim editingUser As WikiUser = New WikiUser(WorkerBot, editTuple.Item1)
+        Dim targetPage As Page = WorkerBot.Getpage(editTuple.Item2)
+
+        Dim logMessage As String = String.Format(BotMessages.NotSigned, targetPage.Title) & " INFO: USER=" & editingUser.UserName & "EC=" & editingUser.EditCount & " EXULIST=" & exemptUsersList.Contains(editingUser.UserName).ToString & " ACHECK=" & checkAlwaysList.Contains(editingUser.UserName).ToString & " EXPLIST=" & exemptPagesList.Contains(targetPageName).ToString
+        EventLogger.Log(logMessage, "ResolveQueue", WorkerBot.UserName)
+
+        If (Not exemptUsersList.Contains(editingUser.UserName) Or checkAlwaysList.Contains(editingUser.UserName)) Then
+            If Date.UtcNow.Subtract(targetPage.LastEdit).Minutes < 1 Then
+                ' Log another message for this case.
+                EventLogger.Log(String.Format(BotMessages.NotSigned, targetPage.Title) & " INFO: User edited within 1 minute of the previous edit.", "ResolveQueue", WorkerBot.UserName)
+                Return False
+            End If
+            Return AddMissingSignature2(targetPage, False, True, String.Empty)
+        End If
+
         Return False
+    End Function
+
+    Private Function GetThreadList(threadPageTitle As String) As String()
+        Dim threadPage As Page = WorkerBot.Getpage(threadPageTitle)
+        Return (From tmatch In Regex.Matches(If(threadPage.Threads.Count >= 1, threadPage.Threads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
     End Function
 
 

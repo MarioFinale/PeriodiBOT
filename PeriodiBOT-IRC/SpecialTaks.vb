@@ -250,9 +250,10 @@ Class SpecialTaks
                 End If
 
                 'Texto de resumen de edicion
-                Dim SummaryText As String = String.Format(BotMessages.ArchivedThreadDestSumm, threadcount, maxDays.ToString(), PageToArchive.Title)
+                Dim PageToArchivePermanentLink As String = "[{{fullurl:" & PageToArchive.Title & "|oldid=" & PageToArchive.CurrentRevId & "}} " & PageToArchive.Title & "]"
+                Dim SummaryText As String = String.Format(BotMessages.ArchivedThreadDestSumm, threadcount, maxDays.ToString(), PageToArchivePermanentLink)
                 If threadcount > 1 Then
-                    SummaryText = String.Format(BotMessages.ArchivedThreadsDestSumm, threadcount, maxDays.ToString(), PageToArchive.Title)
+                    SummaryText = String.Format(BotMessages.ArchivedThreadsDestSumm, threadcount, maxDays.ToString(), PageToArchivePermanentLink)
                 End If
 
                 'Guardar

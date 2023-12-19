@@ -110,15 +110,19 @@ Public NotInheritable Class Initializer
 
         ''================================  TEST =====================================
 
+
+
+
         ''Tarea para reparar referencias
         'Dim FixRefFunc As New Func(Of Boolean)(Function()
         '                                           Dim sptask As New RefTool(ESWikiBOT)
         '                                           Dim rpage As Page = ESWikiBOT.GetRandomPage()
         '                                           Return sptask.FixRefs(rpage)
         '                                       End Function)
-        ''TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
+        'TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
+
         'Dim sptask As New RefTool(ESWikiBOT)
-        ''sptask.FixRefs(ESWikiBOT.Getpage("Lac de Payolle"))
+        'sptask.FixRefs(ESWikiBOT.Getpage("Dark web"))
         'Dim pages As String() = ESWikiBOT.SearchPagesForText("incategory:Flora_de_Sudamérica_occidental", 500)
 
         'For Each p As String In pages
@@ -132,7 +136,7 @@ Public NotInheritable Class Initializer
         'Dim a As Integer = 1
 
         'Dim task2 As New SpecialTaks(ESWikiBOT)
-        'Dim tpage As Page = ESWikiBOT.Getpage("Usuario:MarioFinale")
+        'Dim tpage As Page = ESWikiBOT.Getpage("Usuario Discusión:MarioFinale")
         'task2.AutoArchive(tpage, ArchiveTemplateName, DoNotArchiveTemplateName,
         '                                               ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
         'Dim a As Integer = 1

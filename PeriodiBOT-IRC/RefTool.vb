@@ -286,21 +286,27 @@ Public Class RefTool
         Dim newtext As String = tpage.Content
         Dim irrecoverable As Integer = 0
         Dim recovered As Integer = 0
-        Dim duplicatesCount As Integer = 0
         Dim cref As Integer = 0
         Dim bref As Integer = 0
         Dim emptyRefsSimplified As Tuple(Of String, Integer) = SimplifyEmptyRefs(newtext)
         newtext = emptyRefsSimplified.Item1
-        duplicatesCount = emptyRefsSimplified.Item2
+
+        Dim duplicatesCount As Integer = emptyRefsSimplified.Item2
         Dim removedDuplicates As Tuple(Of String, Integer) = RemoveDuplicates(newtext)
         If Not removedDuplicates Is Nothing Then newtext = removedDuplicates.Item1
         If Not removedDuplicates Is Nothing Then duplicatesCount = removedDuplicates.Item2
         Dim refmatches As MatchCollection = Regex.Matches(newtext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
         Dim tmatches As String() = FilterRefs(refmatches)
-        If tmatches.Count <= 0 Then Return False
+        If tmatches.Count <= 0 Then
+            EventLogger.Log("Nothing to fix in " + tpage.Title, "FixRefs")
+            Return False
+        End If
         Dim turist As List(Of Tuple(Of String, Uri, String)) = GetRefsNameAndUris(tmatches) 'ref original, uri de la ref, nombre de la ref
 
-        If turist.Count <= 0 And duplicatesCount <= 0 Then Return False
+        If turist.Count <= 0 And duplicatesCount <= 0 Then
+            EventLogger.Log("Nothing to fix in " + tpage.Title, "FixRefs")
+            Return False
+        End If
 
         Dim pageslist As New List(Of String)
         Dim UrlAndDateList As New HashSet(Of Tuple(Of Uri, Date, String, String))
@@ -406,6 +412,7 @@ Public Class RefTool
             Return (tpage.Save(newtext, summary, False, True) = EditResults.Edit_successful)
         End If
 
+        EventLogger.Log("No changes in " + tpage.Title, "FixRefs")
         Return False
     End Function
 

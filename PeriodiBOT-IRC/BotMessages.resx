@@ -121,10 +121,10 @@
     <value>Aparentemente el resultado es {0}.</value>
   </data>
   <data name="ArchivedThreadDestSumm" xml:space="preserve">
-    <value>Bot: Archivando {0} hilo con más de {1} días de antigüedad desde '[[{2}]]'.</value>
+    <value>Bot: Archivando {0} hilo con más de {1} días de antigüedad desde '{2}'.</value>
   </data>
   <data name="ArchivedThreadsDestSumm" xml:space="preserve">
-    <value>Bot: Archivando {0} hilos con más de {1} días de antigüedad desde '[[{2}]]'.</value>
+    <value>Bot: Archivando {0} hilos con más de {1} días de antigüedad desde '{2}'.</value>
   </data>
   <data name="ArchivedThreadsSumm" xml:space="preserve">
     <value>Bot: Archivando {0} hilos con más de {1} días de antigüedad.</value>
