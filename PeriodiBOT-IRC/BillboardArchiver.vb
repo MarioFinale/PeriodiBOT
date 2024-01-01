@@ -25,10 +25,12 @@ Class BillboardArchiver
         Public BillBoardEvents As List(Of BillboardEvent)
         Public PageContent As String
 
-        Public Function PageName() As String
+        Public Function GetResumePageName(OriginalPage As Page, Optional RootPageName As String = "") As String
+            If Not String.IsNullOrWhiteSpace(RootPageName) Then RootPageName &= "/"
+            If RootPageName.Contains(":") Then RootPageName = RootPageName.Split(":"c)(1).Trim()
             Dim dummyDate As New Date(PageYear, PageMonth, 1)
             Dim monthString As String = dummyDate.ToString("MMMM", CultureInfo.CreateSpecificCulture("es"))
-            Return "Wikipedia:Resumen de " + monthString + " de " + PageYear.ToString
+            Return OriginalPage.PageNamespaceString & ":" & RootPageName & "Resumen de " + monthString + " de " + PageYear.ToString
         End Function
     End Class
 
@@ -61,7 +63,7 @@ Class BillboardArchiver
             Next
 
             For Each d As String In events
-                Dim m As Match = Regex.Match(d, "\| (\d{1,2} +\w{1,2} +\w{4,11})")
+                Dim m As Match = Regex.Match(d, "\| *(\d{1,2} +\w{1,2} +\w{4,11})")
                 If m.Success Then
                     dates.Add(m.Groups(1).Value)
                 Else
@@ -107,7 +109,6 @@ Class BillboardArchiver
                     bPage.PageMonth = e.EventDate.Month
                     bPage.PageYear = e.EventDate.Year
                     bPage.BillBoardEvents.Add(e)
-                    Dim asd As String = bPage.PageName()
                     pagesList.Add(dummydate, bPage)
                 End If
             Next
@@ -134,11 +135,11 @@ Class BillboardArchiver
 
                 p.PageContent &= "|}"
                 p.PageContent &= Environment.NewLine
-                p.PageContent &= "{{Wikipedia:Cartelera de acontecimientos/Archivo}}"
+                p.PageContent &= "{{" & pageToArchive.Title & "/Archivo}}"
                 p.PageContent &= Environment.NewLine
                 Dim eventChar As Char = ChrW(p.PageYear - 2004 + 65)
-                p.PageContent &= "[[Categoría:Wikipedia:Cartelera de acontecimientos|" & eventChar & p.PageMonth.ToString("00") & "]]"
-                Dim thePage As Page = Bot.Getpage(p.PageName)
+                p.PageContent &= "[[Categoría:" & pageToArchive.Title & "|" & eventChar & p.PageMonth.ToString("00") & "]]"
+                Dim thePage As Page = Bot.Getpage(p.GetResumePageName(pageToArchive))
                 thePage.Save(p.PageContent, "(Bot) Archivando Cartelera de acontecimientos.", False, True, True)
             Next
 

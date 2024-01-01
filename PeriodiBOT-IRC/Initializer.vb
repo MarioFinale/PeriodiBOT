@@ -110,9 +110,6 @@ Public NotInheritable Class Initializer
 
         ''================================  TEST =====================================
 
-
-
-
         ''Tarea para reparar referencias
         'Dim FixRefFunc As New Func(Of Boolean)(Function()
         '                                           Dim sptask As New RefTool(ESWikiBOT)
