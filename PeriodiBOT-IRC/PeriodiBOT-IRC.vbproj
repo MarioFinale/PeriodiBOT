@@ -5,13 +5,14 @@
     <RootNamespace>PeriodiBOT_IRC</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
     <StartupObject>PeriodiBOT_IRC.MainModule</StartupObject>
-    <Version>4.3.0.0</Version>
+    <Version>4.4.2404.17</Version>
     <Description>PeriodiBOT-IRC .NET Core</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>4.3.2022.032002</AssemblyVersion>
-    <FileVersion>4.3.2022.032002</FileVersion>
+    <AssemblyVersion>4.4.2404.17</AssemblyVersion>
+    <FileVersion>4.4.2404.17</FileVersion>
     <ReferencePath>C:\Users\mario\Source\Repos\Comp\netcoreapp3.0\</ReferencePath>
+    <Title>PeriodiBOT-IRC</Title>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

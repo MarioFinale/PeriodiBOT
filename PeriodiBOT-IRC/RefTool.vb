@@ -282,7 +282,22 @@ Public Class RefTool
         Return UrlAndDateList
     End Function
 
+    Function IsFixRefsEnabled() As Boolean
+        Dim enabledPage As Page = WorkerBot.Getpage("Usuario:" & WorkerBot.UserName + "/data.json")
+        If (Not enabledPage.Exists) Then
+            enabledPage.Save("Fixrefs = Si", "(Bot) Creando página de ajustes", False, True)
+            Return True
+        End If
+        Dim parsedPageContent As String = enabledPage.Content.ToUpperInvariant()
+        Return Regex.Match(parsedPageContent, "(^|\n)FIXREFS *= * (SI|SÍ)").Success
+    End Function
+
+
     Function FixRefs(ByVal tpage As Page) As Boolean
+        If Not IsFixRefsEnabled() Then
+            EventLogger.Log("Fixrefs is disabled", "FixRefs")
+            Return False
+        End If
         Dim newtext As String = tpage.Content
         Dim irrecoverable As Integer = 0
         Dim recovered As Integer = 0
@@ -291,19 +306,19 @@ Public Class RefTool
         Dim emptyRefsSimplified As Tuple(Of String, Integer) = SimplifyEmptyRefs(newtext)
         newtext = emptyRefsSimplified.Item1
 
-        Dim duplicatesCount As Integer = emptyRefsSimplified.Item2
-        Dim removedDuplicates As Tuple(Of String, Integer) = RemoveDuplicates(newtext)
+        Dim duplicatedReferencesCount As Integer = emptyRefsSimplified.Item2
+        Dim removedDuplicates As Tuple(Of String, Integer) = RemoveDuplicatedReferences(newtext)
         If Not removedDuplicates Is Nothing Then newtext = removedDuplicates.Item1
-        If Not removedDuplicates Is Nothing Then duplicatesCount = removedDuplicates.Item2
+        If Not removedDuplicates Is Nothing Then duplicatedReferencesCount = removedDuplicates.Item2
         Dim refmatches As MatchCollection = Regex.Matches(newtext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
         Dim tmatches As String() = FilterRefs(refmatches)
         If tmatches.Count <= 0 Then
             EventLogger.Log("Nothing to fix in " + tpage.Title, "FixRefs")
             Return False
         End If
-        Dim turist As List(Of Tuple(Of String, Uri, String)) = GetRefsNameAndUris(tmatches) 'ref original, uri de la ref, nombre de la ref
+        Dim refUriAndRefNameTupleList As List(Of Tuple(Of String, Uri, String)) = GetRefsNameAndUris(tmatches) 'ref original, uri de la ref, nombre de la ref
 
-        If turist.Count <= 0 And duplicatesCount <= 0 Then
+        If refUriAndRefNameTupleList.Count <= 0 And duplicatedReferencesCount <= 0 Then
             EventLogger.Log("Nothing to fix in " + tpage.Title, "FixRefs")
             Return False
         End If
@@ -315,13 +330,13 @@ Public Class RefTool
 
         While True
             If temppage.ParentRevId <= 0 Then
-                For Each tref As Tuple(Of String, Uri, String) In turist
+                For Each tref As Tuple(Of String, Uri, String) In refUriAndRefNameTupleList
                     UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(tref.Item2, lasttimestamp, tref.Item3, tref.Item1))
                 Next
                 Exit While
             End If
             temppage = WorkerBot.Getpage(temppage.ParentRevId)
-            Dim tempuris As Tuple(Of String, Uri, String)() = turist.ToArray
+            Dim tempuris As Tuple(Of String, Uri, String)() = refUriAndRefNameTupleList.ToArray
             Dim Allmissing As Boolean = True
             For Each tref As Tuple(Of String, Uri, String) In tempuris
                 If temppage.Content.Contains(tref.Item2.OriginalString) Then
@@ -329,7 +344,7 @@ Public Class RefTool
                     Allmissing = False
                 Else
                     UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(tref.Item2, lasttimestamp, tref.Item3, tref.Item1))
-                    turist.Remove(tref)
+                    refUriAndRefNameTupleList.Remove(tref)
                 End If
             Next
             If Allmissing Then Exit While
@@ -407,8 +422,8 @@ Public Class RefTool
         newtext = normalizedDates.Item1
         cref += normalizedDates.Item2
 
-        Dim summary As String = GenSummary(cref, bref, duplicatesCount, irrecoverable, recovered)
-        If cref > 0 OrElse bref > 0 OrElse duplicatesCount > 0 Then
+        Dim summary As String = GenSummary(cref, bref, duplicatedReferencesCount, irrecoverable, recovered)
+        If cref > 0 OrElse bref > 0 OrElse duplicatedReferencesCount > 0 Then
             Return (tpage.Save(newtext, summary, False, True) = EditResults.Edit_successful)
         End If
 
@@ -444,11 +459,11 @@ Public Class RefTool
             End If
 
             result = New GenerateReferenceTextResult(referenceText, GenerateReferenceTextResult.Results.Alternative_Prefered)
-                Return result
-            End If
+            Return result
+        End If
 
 
-            If (reference.PageIsDown) Then
+        If (reference.PageIsDown) Then
 
             'Verificar si está disponible en Internet Archive
             Dim datestring As String = reference.RefDate.ToString("yyyyMMddHHmmss", New Globalization.CultureInfo("es-ES"))
@@ -500,7 +515,7 @@ Public Class RefTool
     Private Function GenerateBrokenReferenceText(ByVal url As String, title As String, accessDate As String, websiteRoot As String, websiteLang As String) As String
         Return String.Format("{{{{Enlace roto |1={{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}} |2={0} }}}}",
                               url, title, accessDate, websiteRoot, If(Not String.IsNullOrWhiteSpace(websiteLang), " |idioma=" & websiteLang, "")) &
-                              String.Format("<small>enlace irrecuperable</small> <!-- El enlace original de la referencia en {0} es irrecuperable (Sitio caído y no hay snapshots en Internet Archive). -->",
+                              String.Format("<small> Enlace irrecuperable.</small> <!-- El enlace original de la referencia en {0} es irrecuperable (Sitio caído y no hay snapshots en Internet Archive). -->",
                                        websiteRoot)
     End Function
 
@@ -538,23 +553,37 @@ Public Class RefTool
             If Not searchMatch.Success Then
                 Dim recordMatch As Match = Regex.Match(reference.PageUrl, "(https*:\/\/.+?)(record\/)(.+)", RegexOptions.IgnoreCase)
                 If Not recordMatch.Success Then Return New Tuple(Of String, String)(String.Empty, String.Empty)
-                newUrl = "http://www.worldfloraonline.org/tpl/" + recordMatch.Groups(3).Value.Trim 'WFO compat TPL link
-                newTitle = "The World Flora Online. Search: " & recordMatch.Groups(3).Value.Trim
-                Try
-                    Dim content As String = WorkerBot.GET(New Uri(newUrl))
-                    Dim titleMatch As Match = Regex.Match(content, "<title>(.+?)<\/title>")
-                    Dim idMatch As Match = Regex.Match(content, "<div itemid=""(.+?)"" itemtype=""")
-                    Dim wfoid As String = idMatch.Groups(1).Value()
-                    Dim wfoName As String = titleMatch.Groups(1).Value.Trim()
-                    newTitle = "WFO (" & Date.UtcNow().Year.ToString() & "): " & wfoName
-                    newUrl = "http://www.worldfloraonline.org/taxon/" & wfoid 'WFO no tiene sitio en https
-                Catch ex As Exception
-                End Try
+                Dim record As String = recordMatch.Groups(3).Value.Trim().ToLowerInvariant()
+                If record.Contains("kew") Then
+                    Dim results As String() = WorkerBot.WikiDataSearch(record)
+                    Dim firstResult As String = WorkerBot.WikiDataGetQRaw(results(0))
+                    Dim wikidataKewMatch As Match = Regex.Match(firstResult, "P1070\\"",.+?value\\"":\\""(.+?)\\")
+                    If wikidataKewMatch.Success Then
+                        Dim wikidatamatch As String = wikidataKewMatch.Groups(1).Value.Trim().ToLowerInvariant()
+                        If (record.Equals(wikidatamatch)) Then
+                            Dim wikidataWFOmatch As Match = Regex.Match(firstResult, "P7715\\"",.+?value\\"":\\""(.+?)\\")
+                            If (wikidataWFOmatch.Success) Then
+                                Dim wfoid As String = wikidataWFOmatch.Groups(1).Value.Trim().ToLowerInvariant()
+                                newUrl = "https://www.worldfloraonline.org/taxon/" & wfoid
+                                Try
+                                    Dim pageResponse As String = WorkerBot.GET(New Uri(newUrl))
+                                    Dim title As String = Regex.Match(pageResponse, "<title>(.+)<\/title>").Groups(1).Value
+                                    newTitle = "WFO (" & Date.UtcNow().Year.ToString() & "): " & title
+
+                                Catch ex As Exception
+                                    newTitle = "WFO (" & Date.UtcNow().Year.ToString() & "): " & wfoid
+                                End Try
+                                Return New Tuple(Of String, String)(newUrl, newTitle)
+                            End If
+                        End If
+                    End If
+                End If
+
             Else
-                newUrl = "http://www.worldfloraonline.org/search?query=" + searchMatch.Groups(2).Value.Trim 'WFO no tiene sitio en https
+                newUrl = "https://www.worldfloraonline.org/search?query=" + searchMatch.Groups(2).Value.Trim
                 newTitle = "The World Flora Online. Search: " & searchMatch.Groups(2).Value.Trim
+                Return New Tuple(Of String, String)(newUrl, newTitle)
             End If
-            Return New Tuple(Of String, String)(newUrl, newTitle)
         End If
 
         If siteUri.Authority.Contains("web.archive.org") Then 'Referencias obtenidas desde web archive
@@ -746,7 +775,7 @@ Public Class RefTool
     End Function
 
 
-    Private Function RemoveDuplicates(ByVal pagetext As String) As Tuple(Of String, Integer)
+    Private Function RemoveDuplicatedReferences(ByVal pagetext As String) As Tuple(Of String, Integer)
         Dim refmatches As MatchCollection = Regex.Matches(pagetext, "(<ref>|<ref name *=[^\/]+?>)([\s\S]+?)(<\/ref>)", RegexOptions.IgnoreCase)
         Dim tmatches As String() = FilterRefs(refmatches)
         Dim refs As New HashSet(Of String)

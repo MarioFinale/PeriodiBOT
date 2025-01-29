@@ -27,7 +27,7 @@ Class BillboardArchiver
 
         Public Function GetResumePageName(OriginalPage As Page, Optional RootPageName As String = "") As String
             If Not String.IsNullOrWhiteSpace(RootPageName) Then RootPageName &= "/"
-            If RootPageName.Contains(":") Then RootPageName = RootPageName.Split(":"c)(1).Trim()
+            If RootPageName.Contains(":"c) Then RootPageName = RootPageName.Split(":"c)(1).Trim()
             Dim dummyDate As New Date(PageYear, PageMonth, 1)
             Dim monthString As String = dummyDate.ToString("MMMM", CultureInfo.CreateSpecificCulture("es"))
             Return OriginalPage.PageNamespaceString & ":" & RootPageName & "Resumen de " + monthString + " de " + PageYear.ToString

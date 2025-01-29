@@ -28,11 +28,16 @@ Public NotInheritable Class Initializer
         Uptime = Date.Now
         LoadSettings()
         Dim ESWikiBOT As New Bot(ConfigFilePath, EventLogger)
+
+        '''================================  Tareas Activas =====================================
+
+        'Bot IRC
         Dim BotIRC As New IRC_Client(IrcConfigPath, 6667, IrcOpPath, ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"}, EventLogger)
         BotIRC.UseSASL = True
-        Dim tPatroller As New SignPatroller(ESWikiBOT)
         BotIRC.StartClient()
 
+        'Patrulla de cambios recientes
+        Dim tPatroller As New SignPatroller(ESWikiBOT)
         tPatroller.StartPatroller()
 
         'Tarea para actualizar el contador de solicitudes de autorizaciones de bots
@@ -93,6 +98,7 @@ Public NotInheritable Class Initializer
              End Function)
         TaskAdm.NewTask("Archivado automático de discusiones", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
 
+        'Tarea para archivar la cartelera de acontecimientos
         Dim ArchiveBillboard As New Func(Of Boolean)(Function()
                                                          Dim BillArchived As New BillboardArchiver(ESWikiBOT)
                                                          Return BillArchived.ArchivePage("Wikipedia:Cartelera de acontecimientos")
@@ -108,73 +114,10 @@ Public NotInheritable Class Initializer
         TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(12, 0, 0), True)
 
 
-        ''================================  TEST =====================================
 
-        ''Tarea para reparar referencias
-        'Dim FixRefFunc As New Func(Of Boolean)(Function()
-        '                                           Dim sptask As New RefTool(ESWikiBOT)
-        '                                           Dim rpage As Page = ESWikiBOT.GetRandomPage()
-        '                                           Return sptask.FixRefs(rpage)
-        '                                       End Function)
-        'TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
+        ''================================  Tareas Inactivas =====================================
 
-        'Dim sptask As New RefTool(ESWikiBOT)
-        'sptask.FixRefs(ESWikiBOT.Getpage("Dark web"))
-        'Dim pages As String() = ESWikiBOT.SearchPagesForText("incategory:Flora_de_Sudamérica_occidental", 500)
-
-        'For Each p As String In pages
-        '    Dim rpage As Page = ESWikiBOT.Getpage(p)
-        '    If sptask.FixRefs(rpage) = True Then
-        '        Debugger.Break()
-        '    End If
-
-        'Next
-
-        'Dim a As Integer = 1
-
-        'Dim task2 As New SpecialTaks(ESWikiBOT)
-        'Dim tpage As Page = ESWikiBOT.Getpage("Usuario Discusión:MarioFinale")
-        'task2.AutoArchive(tpage, ArchiveTemplateName, DoNotArchiveTemplateName,
-        '                                               ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
-        'Dim a As Integer = 1
-
-        'Dim sp As New SpecialTaks(ESWikiBOT)
-        'Dim pages As String() = ESWikiBOT.SearchPagesForText("hastemplate:Ficha_de_diócesis insource:/\| *Latín_diócesis *\= *[A-Za-z\[\{]/", 500)
-        'pages = pages.Concat(ESWikiBOT.SearchPagesForText("hastemplate:Ficha_de_diócesis insource:/\| *Latín diócesis *\= *[A-Za-z\[\{]/", 500)).ToArray()
-        'pages = pages.Concat(ESWikiBOT.SearchPagesForText("hastemplate:Ficha_de_diócesis insource:/\| *Papa *\= *[A-Za-z\[\{]/", 500)).ToArray()
-        'pages = pages.Concat(ESWikiBOT.SearchPagesForText("hastemplate:Ficha_de_diócesis insource:/\| *papa *\= *[A-Za-z\[\{]/", 500)).ToArray()
-        'pages = pages.Distinct.ToArray()
-
-        'For Each p As String In pages
-        '    Dim pageToChange As Page = ESWikiBOT.Getpage(p)
-        '    Dim content As String = pageToChange.Content
-        '    Dim newContent As String = sp.ReplaceTemplateParameterNameFromContent("Ficha de diócesis", "Latín_diócesis", "latín", content)
-        '    newContent = sp.ReplaceTemplateParameterNameFromContent("Ficha de diócesis", "Latín diócesis", "latín", newContent)
-        '    newContent = sp.RemoveTemplateParameterFromContent("Ficha de diócesis", "Papa", newContent)
-        '    newContent = sp.RemoveTemplateParameterFromContent("Ficha de diócesis", "papa", newContent)
-        '    If Not newContent.Equals(content) Then
-        '        If Not (sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "tipo", newContent) Or sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "Tipo", newContent)) Then
-        '            If sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "nombre", newContent) Or sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "Nombre", newContent) Then
-        '                Dim tnewparam As String = If(newContent.Contains("| Nombre") Or newContent.Contains("| nombre"), "| tipo = diócesis", "|tipo = diócesis")
-        '                newContent = sp.AppendTemplateContentFromContent("Ficha de diócesis", "nombre", tnewparam & Environment.NewLine, newContent)
-        '                newContent = sp.AppendTemplateContentFromContent("Ficha de diócesis", "Nombre", tnewparam & Environment.NewLine, newContent)
-        '            Else
-        '                If sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "español", newContent) Or sp.CheckIfTemplateContainsParamFromContent("Ficha de diócesis", "Español", newContent) Then
-        '                    Dim tnewparam As String = If(newContent.Contains("| Español") Or newContent.Contains("| español"), "| tipo = diócesis", "|tipo = diócesis")
-        '                    newContent = sp.AppendTemplateContentFromContent("Ficha de diócesis", "español", tnewparam & Environment.NewLine, newContent)
-        '                    newContent = sp.AppendTemplateContentFromContent("Ficha de diócesis", "Español", tnewparam & Environment.NewLine, newContent)
-        '                Else
-        '                    newContent = sp.AddParameterToTemplateFromContent("Ficha de diócesis", " tipo ", "diócesis" & Environment.NewLine, newContent)
-        '                End If
-        '            End If
-        '        End If
-        '        pageToChange.Save(newContent, "(Bot) Ajustando plantilla 'Ficha de diócesis'", True, True)
-        '    End If
-        'Next
-
-        'Dim b As Integer = 1
-
-
+        ''Tarea para quitar bandera de europa (inexistente)
         'Dim sp As New SpecialTaks(ESWikiBOT)
         'Dim pages As String() = ESWikiBOT.SearchPagesForText("hastemplate:Bandera insource:/[Bb]andera *\| *Europa/", 500)
         'pages = pages.Concat(ESWikiBOT.SearchPagesForText("hastemplate:Bandera insource:/[Bb]andera2 *\| *Europa/", 500)).Distinct().ToArray()
@@ -190,10 +133,27 @@ Public NotInheritable Class Initializer
 
         'Next
 
-        'Dim b As Integer = 1
 
-        'Dim BillArchived As New BillboardArchiver(ESWikiBOT)
-        'BillArchived.ArchivePage("Wikipedia:Cartelera de acontecimientos")
+
+        ''================================  TEST =====================================
+
+        'Tarea para reparar referencias
+        'Dim FixRefFunc As New Func(Of Boolean)(Function()
+        '                                           Dim sptask As New RefTool(ESWikiBOT)
+        '                                           Dim rpage As Page = ESWikiBOT.GetRandomPage()
+        '                                           Return sptask.FixRefs(rpage)
+        '                                       End Function)
+        'TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
+
+
+        'Dim sptask As New RefTool(ESWikiBOT)
+        'Dim rpage As Page = ESWikiBOT.Getpage("Usuario:PeriodiBOT/Test")
+        'rpage.Save(rpage.Content & Environment.NewLine & "http://eaeaq.info", "Spam-blacklist test", True, True, True)
+
+
+
+
+
 
 
         ''================================  TEST =====================================
