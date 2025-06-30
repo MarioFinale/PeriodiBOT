@@ -91,10 +91,10 @@ Public NotInheritable Class Initializer
         'Tarea para archivar todo
         Dim ArchiveAllFunc As New Func(Of Boolean) _
             (Function()
-                 Dim ExcludingPaterrns As String = "{{[\s]*Admintab[\s]*(\|[\s]*\$0)*[\s]*}}" 'Excepción admintab sin parámetro o parámetro $0
+                 Dim ExcludingPatern As String = "{{[\s]*Admintab[\s]*(\|[\s]*\$0)*[\s]*}}" 'Excepción admintab sin parámetro o parámetro $0
                  Dim signtask As New SpecialTaks(ESWikiBOT)
                  Return signtask.ArchiveAllInclusions(ArchiveTemplateName, {DoNotArchiveTemplateName},
-                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName, "")
+                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName, ExcludingPatern)
              End Function)
         TaskAdm.NewTask("Archivado automático de discusiones", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
 
