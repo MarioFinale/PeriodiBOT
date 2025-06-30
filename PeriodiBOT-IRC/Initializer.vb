@@ -29,7 +29,7 @@ Public NotInheritable Class Initializer
         LoadSettings()
         Dim ESWikiBOT As New Bot(ConfigFilePath, EventLogger)
 
-        '''================================  Tareas Activas =====================================
+        '================================  Tareas Activas =====================================
 
         'Bot IRC
         Dim BotIRC As New IRC_Client(IrcConfigPath, 6667, IrcOpPath, ESWikiBOT, TaskAdm, BotVersion, BotName, {"%", "%%", "pepino:"}, EventLogger)
@@ -91,10 +91,10 @@ Public NotInheritable Class Initializer
         'Tarea para archivar todo
         Dim ArchiveAllFunc As New Func(Of Boolean) _
             (Function()
-
+                 Dim ExcludingPaterrns As String = "{{[\s]*Admintab[\s]*(\|[\s]*\$0)*[\s]*}}" 'Excepción admintab sin parámetro o parámetro $0
                  Dim signtask As New SpecialTaks(ESWikiBOT)
-                 Return signtask.ArchiveAllInclusions(ArchiveTemplateName, DoNotArchiveTemplateName,
-                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+                 Return signtask.ArchiveAllInclusions(ArchiveTemplateName, {DoNotArchiveTemplateName},
+                                                       ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName, "")
              End Function)
         TaskAdm.NewTask("Archivado automático de discusiones", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
 

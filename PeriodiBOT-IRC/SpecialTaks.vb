@@ -149,13 +149,13 @@ Class SpecialTaks
     ''' </summary>
     ''' <param name="PageToArchive">Página a archivar.</param>
     ''' <param name="ArchiveTemplateName">Plantilla de archivado.</param>
-    ''' <param name="DoNotArchiveTemplateName">Plantilla de "No archivar".</param>
+    ''' <param name="DoNotArchiveTemplateName">Plantillas de "No archivar".</param>
     ''' <param name="ProgrammedArchiveTemplateName">Plantilla de archivo programado.</param>
     ''' <param name="ArchiveBoxTemplateName">Plantilla de caja de archivos.</param>
     ''' <param name="ArchiveMessageTemplateName">Plantilla de mensaje de archivo.</param>
     ''' <returns></returns>
-    Function AutoArchive(ByVal PageToArchive As Page, ArchiveTemplateName As String, DoNotArchiveTemplateName As String,
-                          ProgrammedArchiveTemplateName As String, ArchiveBoxTemplateName As String, ArchiveMessageTemplateName As String) As Boolean
+    Function AutoArchive(ByVal PageToArchive As Page, ArchiveTemplateName As String, DoNotArchiveTemplateName As String(),
+                          ProgrammedArchiveTemplateName As String, ArchiveBoxTemplateName As String, ArchiveMessageTemplateName As String, ExcludingRegexPattern As String) As Boolean
 
         EventLogger.Log(String.Format(BotMessages.AutoArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         If PageToArchive Is Nothing Then Return False
@@ -183,7 +183,7 @@ Class SpecialTaks
         Dim archiveResults As Tuple(Of SortedList(Of String, String), String, Integer) =
             CheckAndArchiveThreads(PageToArchive.Title, pageThreads, PageToArchive.Content,
                                    strategy, pageDest, maxDays,
-                                   DoNotArchiveTemplateName, ProgrammedArchiveTemplateName)
+                                   DoNotArchiveTemplateName, ProgrammedArchiveTemplateName, ExcludingRegexPattern)
 
         Dim ArchivedList As SortedList(Of String, String) = archiveResults.Item1
         Dim Newpagetext As String = archiveResults.Item2
@@ -274,8 +274,8 @@ Class SpecialTaks
     End Function
 
     Private Function CheckAndArchiveThreads(ByVal Pagename As String, ByVal threads As String(), pagetext As String, strategy As String,
-                                            ConfigDest As String, maxDays As Integer, DoNotArchiveTemplateName As String,
-                                            ProgrammedArchiveTemplateName As String) As Tuple(Of SortedList(Of String, String), String, Integer)
+                                            ConfigDest As String, maxDays As Integer, DoNotArchiveTemplateNames As String(),
+                                            ProgrammedArchiveTemplateName As String, ExcludingRegexPattern As String) As Tuple(Of SortedList(Of String, String), String, Integer)
 
         Dim archiveList As New SortedList(Of String, String)
         Dim newText As String = pagetext
@@ -296,8 +296,8 @@ Class SpecialTaks
                 End If
                 Dim threadresult As Tuple(Of Tuple(Of String, String), String) =
                     CheckAndArchiveThread(thread, tDate, maxDate, newText, ConfigDest,
-                                          DoNotArchiveTemplateName,
-                                          ProgrammedArchiveTemplateName)
+                                          DoNotArchiveTemplateNames,
+                                          ProgrammedArchiveTemplateName, ExcludingRegexPattern)
 
                 If threadresult Is Nothing Then Continue For
                 archivedThreads += 1
@@ -377,48 +377,51 @@ Class SpecialTaks
 
     Private Function CheckAndArchiveThread(ByVal threadtext As String, threaddate As Date, limitdate As Date,
                                            pagetext As String, ConfigDestination As String,
-                                           DoNotArchiveTemplateName As String, ProgrammedArchiveTemplateName As String) As Tuple(Of Tuple(Of String, String), String)
+                                           DoNotArchiveTemplateNames As String(), ProgrammedArchiveTemplateName As String, ExcludingRegexPattern As String) As Tuple(Of Tuple(Of String, String), String)
 
         Dim ProgrammedArchive As Boolean = IsTemplatePresent(threadtext, ProgrammedArchiveTemplateName)
-        Dim DoNotArchive As Boolean = IsTemplatePresent(threadtext, DoNotArchiveTemplateName)
-
+        Dim DoNotArchive As Boolean = False
+        For Each Templatename As String In DoNotArchiveTemplateNames
+            DoNotArchive = DoNotArchive Or IsTemplatePresent(threadtext, Templatename)
+        Next
+        DoNotArchive = DoNotArchive Or Regex.Match(threadtext, ExcludingRegexPattern).Success
         If Not DoNotArchive Then
-            'Archivado programado
-            If ProgrammedArchive Then
-                Dim ProgrammedTemplate As Template = GetTemplate(threadtext, ProgrammedArchiveTemplateName, True)
-                Dim fechastr As String = String.Empty
-                For Each t As Tuple(Of String, String) In ProgrammedTemplate.Parameters
-                    If t.Item1.ToLower.Trim = "fecha" Or t.Item1.ToLower.Trim = "1" Then
-                        fechastr = t.Item2.Trim
-                        Exit For
-                    End If
-                Next
-                fechastr = " " & fechastr & " "
-                fechastr = fechastr.Replace(" 1-", "01-").Replace(" 2-", "02-").Replace(" 3-", "03-").Replace(" 4-", "04-") _
+                'Archivado programado
+                If ProgrammedArchive Then
+                    Dim ProgrammedTemplate As Template = GetTemplate(threadtext, ProgrammedArchiveTemplateName, True)
+                    Dim fechastr As String = String.Empty
+                    For Each t As Tuple(Of String, String) In ProgrammedTemplate.Parameters
+                        If t.Item1.ToLower.Trim = "fecha" Or t.Item1.ToLower.Trim = "1" Then
+                            fechastr = t.Item2.Trim
+                            Exit For
+                        End If
+                    Next
+                    fechastr = " " & fechastr & " "
+                    fechastr = fechastr.Replace(" 1-", "01-").Replace(" 2-", "02-").Replace(" 3-", "03-").Replace(" 4-", "04-") _
                     .Replace(" 5-", "05-").Replace(" 6-", "06-").Replace(" 7-", "07-").Replace(" 8-", "08-").Replace(" 9-", "09-") _
                     .Replace("-1-", "-01-").Replace("-2-", "-02-").Replace("-3-", "-03-").Replace("-4-", "-04-").Replace("-5-", "-05-") _
                     .Replace("-6-", "-06-").Replace("-7-", "-07-").Replace("-8-", "-08-").Replace("-9-", "-09-").Trim()
-                fechastr = RemoveAllAlphas(fechastr)
+                    fechastr = RemoveAllAlphas(fechastr)
 
-                Dim fecha As DateTime = DateTime.ParseExact(fechastr, "ddMMyyyy", System.Globalization.CultureInfo.InvariantCulture)
+                    Dim fecha As DateTime = DateTime.ParseExact(fechastr, "ddMMyyyy", System.Globalization.CultureInfo.InvariantCulture)
 
-                If DateTime.Now > fecha.AddDays(1) Then
-                    pagetext = pagetext.Replace(threadtext, "")
-                    Dim destination As String = SetPageDestination(threaddate, ConfigDestination)
-                    Dim tdest As New Tuple(Of String, String)(destination, threadtext)
-                    Return New Tuple(Of Tuple(Of String, String), String)(tdest, pagetext)
-                End If
-            Else
-                'Archivado normal
-                If threaddate < limitdate Then
-                    pagetext = pagetext.Replace(threadtext, "")
-                    Dim destination As String = SetPageDestination(threaddate, ConfigDestination)
-                    Dim tdest As New Tuple(Of String, String)(destination, threadtext)
-                    Return New Tuple(Of Tuple(Of String, String), String)(tdest, pagetext)
+                    If DateTime.Now > fecha.AddDays(1) Then
+                        pagetext = pagetext.Replace(threadtext, "")
+                        Dim destination As String = SetPageDestination(threaddate, ConfigDestination)
+                        Dim tdest As New Tuple(Of String, String)(destination, threadtext)
+                        Return New Tuple(Of Tuple(Of String, String), String)(tdest, pagetext)
+                    End If
+                Else
+                    'Archivado normal
+                    If threaddate < limitdate Then
+                        pagetext = pagetext.Replace(threadtext, "")
+                        Dim destination As String = SetPageDestination(threaddate, ConfigDestination)
+                        Dim tdest As New Tuple(Of String, String)(destination, threadtext)
+                        Return New Tuple(Of Tuple(Of String, String), String)(tdest, pagetext)
+                    End If
                 End If
             End If
-        End If
-        Return Nothing
+            Return Nothing
     End Function
 
     Private Function SetPageDestination(ByVal threaddate As Date, destination As String) As String
@@ -592,8 +595,8 @@ Class SpecialTaks
     ''' Actualiza todas las paginas que incluyan la plantilla de archivado automático.
     ''' </summary>
     ''' <returns></returns>
-    Function ArchiveAllInclusions(ByVal ArchiveTemplateName As String, DoNotArchiveTemplateName As String, ProgrammedArchiveTemplateName As String,
-                                  ArchiveBoxTemplateName As String, ArchiveMessageTemplateName As String) As Boolean
+    Function ArchiveAllInclusions(ByVal ArchiveTemplateName As String, DoNotArchiveTemplateName As String(), ProgrammedArchiveTemplateName As String,
+                                  ArchiveBoxTemplateName As String, ArchiveMessageTemplateName As String, ExcludingRegexPattern As String) As Boolean
         Dim includedpages As String() = _bot.GetallInclusions(ArchiveTemplateName)
         EventLogger.Log(String.Format(BotMessages.ArchivingInclusions, ArchiveTemplateName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         For Each pa As String In includedpages
@@ -601,7 +604,7 @@ Class SpecialTaks
             If _Page.Exists Then
                 Try
                     AutoArchive(_Page, ArchiveTemplateName, DoNotArchiveTemplateName, ProgrammedArchiveTemplateName,
-                                ArchiveBoxTemplateName, ArchiveMessageTemplateName)
+                                ArchiveBoxTemplateName, ArchiveMessageTemplateName, ExcludingRegexPattern)
                 Catch ex As Exception When Not Debugger.IsAttached
                     EventLogger.EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 End Try
