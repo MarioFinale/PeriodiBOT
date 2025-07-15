@@ -158,6 +158,12 @@ Public NotInheritable Class Initializer
         'ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName, ExcludingPatern)
 
 
+        'Dim ExcludingPatern As String = "{{[\s]*Admintab[\s]*(\|[\s]*\$0)*[\s]*}}" 'Excepción admintab sin parámetro o parámetro $0
+        'Dim Archiver As New Archiver(ESWikiBOT)
+        'Archiver.ArchiveAllInclusions(ArchiveTemplateName, {DoNotArchiveTemplateName},
+        '                                      ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName, ExcludingPatern)
+        'Dim pause As Integer = 0
+
 
 
         ''================================  TEST =====================================

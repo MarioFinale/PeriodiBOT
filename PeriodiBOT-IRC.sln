@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "MWBot.net", "..\MWBot.net\MWBot.net\MWBot.net.vbproj", "{96B3CAA4-CD4A-4F33-8CF2-BCC6F7472068}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "IRCCLIENT", "..\IRCCLIENT\IRCCLIENT\IRCCLIENT.vbproj", "{2BDF7EBD-0D6C-8973-A7C5-7CEECF5550E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{96B3CAA4-CD4A-4F33-8CF2-BCC6F7472068}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96B3CAA4-CD4A-4F33-8CF2-BCC6F7472068}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96B3CAA4-CD4A-4F33-8CF2-BCC6F7472068}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BDF7EBD-0D6C-8973-A7C5-7CEECF5550E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BDF7EBD-0D6C-8973-A7C5-7CEECF5550E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BDF7EBD-0D6C-8973-A7C5-7CEECF5550E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BDF7EBD-0D6C-8973-A7C5-7CEECF5550E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

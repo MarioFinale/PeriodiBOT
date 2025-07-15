@@ -278,7 +278,7 @@ Public Class Archiver
 
         Dim archiveTemplate As Template = Utils.GetTemplate(PageToArchive.Content, ArchiveTemplateName, True)
         If String.IsNullOrEmpty(archiveTemplate?.Name) Then
-            Return New ArchiveTemplateData
+            Return New ArchiveTemplateData()
         End If
 
         Dim destination As String = ""
@@ -496,10 +496,16 @@ Public Class Archiver
         Return True
     End Function
 
-    Function ValidPage(ByVal PageToArchive As Page, ByVal ArchiveCfg As ArchiveTemplateData) As Boolean
+    Function ValidPage(ByVal PageToArchive As Page, ByRef ArchiveCfg As ArchiveTemplateData) As Boolean
         'Verificar el espacio de nombres de la página se archiva
         If Not ValidNamespace(PageToArchive) Then
             EventLogger.Debug_Log(String.Format(BotMessages.InvalidNamespace, PageToArchive.Title, PageToArchive.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+            Return False
+        End If
+
+        'En caso de que el parámetro esté vacío o nulo
+        If (String.IsNullOrWhiteSpace(ArchiveCfg.Destination)) Then
+            EventLogger.Debug_Log(String.Format(BotMessages.InvalidPageName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End If
 
@@ -531,6 +537,8 @@ Public Class Archiver
             EventLogger.Log(String.Format(BotMessages.InvalidNamespace, ArchiveSubpagePrefix.Title, ArchiveSubpagePrefix.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
         End If
+
+        ArchiveCfg.Valid = True
 
         Return True
     End Function

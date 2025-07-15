@@ -474,4 +474,7 @@
   <data name="EditResultMessage" xml:space="preserve">
     <value>Resultado de la edición en '{0}': {1}</value>
   </data>
+  <data name="InvalidPageName" xml:space="preserve">
+    <value>El nombre de la página es inválido</value>
+  </data>
 </root>
