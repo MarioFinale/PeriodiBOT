@@ -92,8 +92,8 @@ Public NotInheritable Class Initializer
         Dim ArchiveAllFunc As New Func(Of Boolean) _
             (Function()
                  Dim ExcludingPatern As String = "{{[\s]*Admintab[\s]*(\|[\s]*\$0)*[\s]*}}" 'Excepción admintab sin parámetro o parámetro $0
-                 Dim Archive As New Archiver(ESWikiBOT)
-                 Return Archive.ArchiveAllInclusions(ArchiveTemplateName, {DoNotArchiveTemplateName},
+                 Dim Archiver As New Archiver(ESWikiBOT)
+                 Return Archiver.ArchiveAllInclusions(ArchiveTemplateName, {DoNotArchiveTemplateName},
                                                        ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName, ExcludingPatern)
              End Function)
         TaskAdm.NewTask("Archivado automático de discusiones", ESWikiBOT.UserName, ArchiveAllFunc, New TimeSpan(0, 0, 0), True)
@@ -151,7 +151,11 @@ Public NotInheritable Class Initializer
         'rpage.Save(rpage.Content & Environment.NewLine & "http://eaeaq.info", "Spam-blacklist test", True, True, True)
 
 
-
+        'Dim Archiver As New Archiver(ESWikiBOT)
+        'Dim testpage As Page = ESWikiBOT.Getpage("Usuario_discusión:RageJam")
+        'Dim ExcludingPatern As String = "{{[\s]*Admintab[\s]*(\|[\s]*\$0)*[\s]*}}" 'Excepción admintab sin parámetro o parámetro $0
+        'Archiver.AutoArchive(testpage, ArchiveTemplateName, {DoNotArchiveTemplateName},
+        'ProgrammedArchiveTemplateName, ArchiveBoxTemplateName, ArchiveMessageTemplateName, ExcludingPatern)
 
 
 

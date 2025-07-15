@@ -1,4 +1,6 @@
-﻿Imports System.Text.RegularExpressions
+﻿Option Explicit On
+Option Strict On
+Imports System.Text.RegularExpressions
 Imports MWBot.net.Utility
 Imports MWBot.net.WikiBot
 Imports PeriodiBOT_IRC.My.Resources
@@ -49,7 +51,7 @@ Public Class Archiver
         EventLogger.Log(String.Format(BotMessages.AutoArchive, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         If PageToArchive Is Nothing Then Return False
         Dim IndexPage As Page = _bot.Getpage(PageToArchive.Title & WPStrings.ArchiveIndex)
-        Dim ArchiveCfg As String() = GetArchiveTemplateData(PageToArchive, ArchiveTemplateName)
+        Dim ArchiveCfg As ArchiveTemplateData = GetArchiveTemplateData(PageToArchive, ArchiveTemplateName)
 
         If Not ValidPage(PageToArchive, ArchiveCfg) Then Return False
 
@@ -206,104 +208,122 @@ Public Class Archiver
         Return New ThreadsArchiveResult(archiveList, newText, archivedThreads)
     End Function
 
-    Private Function CheckAndArchiveThread(ByVal threadtext As String, threaddate As Date, limitdate As Date,
-                                           pagetext As String, ConfigDestination As String,
-                                           DoNotArchiveTemplateNames As String(), ProgrammedArchiveTemplateName As String, ExcludingRegexPattern As String) As ThreadArchiveResult
+    Private Function CheckAndArchiveThread(
+    ByVal threadtext As String,
+    threaddate As Date,
+    limitdate As Date,
+    pagetext As String,
+    ConfigDestination As String,
+    DoNotArchiveTemplateNames As String(),
+    ProgrammedArchiveTemplateName As String,
+    ExcludingRegexPattern As String) As ThreadArchiveResult
 
-        Dim ProgrammedArchive As Boolean = Utils.IsTemplatePresent(threadtext, ProgrammedArchiveTemplateName)
-        Dim DoNotArchive As Boolean = False
-        For Each Templatename As String In DoNotArchiveTemplateNames
-            DoNotArchive = DoNotArchive Or Utils.IsTemplatePresent(threadtext, Templatename)
-        Next
-        DoNotArchive = DoNotArchive Or Regex.Match(threadtext, ExcludingRegexPattern).Success
-        If Not DoNotArchive Then
-            'Archivado programado
-            If ProgrammedArchive Then
-                Dim ProgrammedTemplate As Template = Utils.GetTemplate(threadtext, ProgrammedArchiveTemplateName, True)
-                Dim fechastr As String = String.Empty
-                For Each t As Tuple(Of String, String) In ProgrammedTemplate.Parameters
-                    If t.Item1.ToLower.Trim = "fecha" Or t.Item1.ToLower.Trim = "1" Then
-                        fechastr = t.Item2.Trim
-                        Exit For
-                    End If
-                Next
-                fechastr = " " & fechastr & " "
-                fechastr = fechastr.Replace(" 1-", "01-").Replace(" 2-", "02-").Replace(" 3-", "03-").Replace(" 4-", "04-") _
+        ' Check if thread should not be archived
+        Dim doNotArchive As Boolean = DoNotArchiveTemplateNames.Any(Function(t) Utils.IsTemplatePresent(threadtext, t)) OrElse
+                                 Regex.Match(threadtext, ExcludingRegexPattern).Success
+        If doNotArchive Then
+            Return Nothing
+        End If
+
+        ' Common archiving logic
+        Dim shouldArchive As Boolean = False
+        Dim destination As String = ReplaceDatePlaceholders(threaddate, ConfigDestination)
+
+        ' Programmed archive check
+        If Utils.IsTemplatePresent(threadtext, ProgrammedArchiveTemplateName) Then
+            Dim programmedTemplate As Template = Utils.GetTemplate(threadtext, ProgrammedArchiveTemplateName, True)
+            Dim fechaStr As String = programmedTemplate.Parameters _
+            .FirstOrDefault(Function(p) p.Item1?.Trim().ToLower() = "fecha" OrElse p.Item1?.Trim().ToLower() = "1")?.Item2?.Trim()
+
+            If Not String.IsNullOrEmpty(fechaStr) Then
+                Try
+                    ' Normalize date string
+                    fechaStr = $" {fechaStr} ".Replace(" 1-", "01-").Replace(" 2-", "02-").Replace(" 3-", "03-").Replace(" 4-", "04-") _
                     .Replace(" 5-", "05-").Replace(" 6-", "06-").Replace(" 7-", "07-").Replace(" 8-", "08-").Replace(" 9-", "09-") _
                     .Replace("-1-", "-01-").Replace("-2-", "-02-").Replace("-3-", "-03-").Replace("-4-", "-04-").Replace("-5-", "-05-") _
                     .Replace("-6-", "-06-").Replace("-7-", "-07-").Replace("-8-", "-08-").Replace("-9-", "-09-").Trim()
-                fechastr = Utils.RemoveAllAlphas(fechastr)
+                    fechaStr = Utils.RemoveAllAlphas(fechaStr)
 
-                Dim fecha As DateTime = DateTime.ParseExact(fechastr, "ddMMyyyy", System.Globalization.CultureInfo.InvariantCulture)
-
-                If DateTime.Now > fecha.AddDays(1) Then
-                    pagetext = pagetext.Replace(threadtext, "")
-                    Dim destination As String = ReplaceDatePlaceholders(threaddate, ConfigDestination)
-                    Dim result As ThreadArchiveResult = New ThreadArchiveResult(destination, threadtext, pagetext)
-                    Return result
-                End If
-            Else
-                'Archivado normal
-                If threaddate < limitdate Then
-                    pagetext = pagetext.Replace(threadtext, "")
-                    Dim destination As String = ReplaceDatePlaceholders(threaddate, ConfigDestination)
-                    Dim result As ThreadArchiveResult = New ThreadArchiveResult(destination, threadtext, pagetext)
-                    Return result
-                End If
+                    Dim fecha As DateTime = DateTime.ParseExact(fechaStr, "ddMMyyyy", System.Globalization.CultureInfo.InvariantCulture)
+                    shouldArchive = DateTime.Now > fecha.AddDays(1)
+                Catch ex As FormatException
+                    EventLogger.Debug_Log($"Invalid date format in programmed archive template: {fechaStr}", "CheckAndArchiveThread", _bot.UserName)
+                    Return Nothing
+                End Try
             End If
+        Else
+            ' Normal archive check
+            shouldArchive = threaddate < limitdate
         End If
+
+        ' Perform archiving if applicable
+        If shouldArchive Then
+            Dim updatedPageText As String = pagetext.Replace(threadtext, "")
+            Return New ThreadArchiveResult(destination, threadtext, updatedPageText)
+        End If
+
         Return Nothing
     End Function
 
 
     ''' <summary>
-    ''' Obtiene los datos de una plantilla de archivado y retorna estos como array.
+    ''' Obtiene los datos de una plantilla de archivado y retorna estos como ArchiveTemplateData.
     ''' </summary>
     ''' <param name="PageToArchive">Página desde donde se busca la plantilla.</param>
     ''' <returns></returns>
-    Function GetArchiveTemplateData(PageToArchive As Page, ArchiveTemplateName As String) As String()
-        Dim ArchiveTemplate As Template = Utils.GetTemplate(PageToArchive.Content, ArchiveTemplateName, True)
-        If String.IsNullOrEmpty(ArchiveTemplate.Name) Then
-            Return {"", "", "", "", ""}
+    Function GetArchiveTemplateData(PageToArchive As Page, ArchiveTemplateName As String) As ArchiveTemplateData
+        If PageToArchive Is Nothing OrElse String.IsNullOrEmpty(ArchiveTemplateName) Then
+            Return New ArchiveTemplateData()
         End If
-        Dim Destination As String = String.Empty
-        Dim Days As String = "30"
-        Dim Notify As String = String.Empty
-        Dim Strategy As String = String.Empty
-        Dim UseBox As String = String.Empty
 
-        For Each tup As Tuple(Of String, String) In ArchiveTemplate.Parameters
-            If tup.Item1 = WPStrings.ArchiveDestiny Then
-                Destination = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim()
-                If Destination.Contains(":") Then
-                    Dim destNamespace As String = Destination.Split(":"c)(0)
-                    Dim destPagename As String = Utils.ReplaceFirst(Destination, destNamespace & ":", "")
-                    Dim destParsedNamespace As String = Utils.UppercaseFirstCharacter(destNamespace.ToLower)
-                    Dim destParsedPagename As String = Utils.UppercaseFirstCharacter(destPagename)
-                    Destination = destParsedNamespace & ":" & destParsedPagename
-                End If
-            End If
-            If tup.Item1 = WPStrings.DaysTokeep Then
-                Days = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
-                Days = Utils.RemoveAllAlphas(Days)
-                If Integer.Parse(Days) < 7 Then
-                    If Not PageToArchive.PageNamespace = 4 Then
-                        Days = "7"
+        Dim archiveTemplate As Template = Utils.GetTemplate(PageToArchive.Content, ArchiveTemplateName, True)
+        If String.IsNullOrEmpty(archiveTemplate?.Name) Then
+            Return New ArchiveTemplateData
+        End If
+
+        Dim destination As String = ""
+        Dim days As String = "7"
+        Dim notify As String = "No"
+        Dim strategy As String = "FirmaEnÚltimoPárrafo"
+        Dim useBox As String = "No"
+
+        For Each param As Tuple(Of String, String) In archiveTemplate.Parameters
+            Dim key As String = param.Item1?.Trim().ToLower()
+            Dim value As String = param.Item2?.Trim()
+
+            Select Case key
+                Case WPStrings.ArchiveDestiny.ToLower()
+                    If Not String.IsNullOrEmpty(value) Then
+                        If value.Contains(":"c) Then
+                            Dim parts As String() = value.Split(":"c, 2)
+                            Dim destNamespace As String = Utils.UppercaseFirstCharacter(parts(0).Trim().ToLower())
+                            Dim destPagename As String = Utils.UppercaseFirstCharacter(parts(1).Trim())
+                            destination = $"{destNamespace}:{destPagename}"
+                        Else
+                            destination = value
+                        End If
                     End If
-                End If
-            End If
-            If tup.Item1 = WPStrings.WarnArchiving Then
-                Notify = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
-            End If
-            If tup.Item1 = WPStrings.Strategy Then
-                Strategy = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
-            End If
-            If tup.Item1 = WPStrings.KeepFileBox Then
-                UseBox = tup.Item2.Trim(CType(Environment.NewLine, Char())).Trim(CType(" ", Char()))
-            End If
+
+                Case WPStrings.DaysTokeep.ToLower()
+                    Dim cleanedDays As String = Utils.RemoveAllAlphas(value)
+                    If Integer.TryParse(cleanedDays, Nothing) AndAlso Integer.Parse(cleanedDays) >= 7 Then
+                        days = cleanedDays
+                    ElseIf PageToArchive.PageNamespace = 4 Then
+                        days = cleanedDays
+                    End If
+
+                Case WPStrings.WarnArchiving.ToLower()
+                    notify = value
+
+                Case WPStrings.Strategy.ToLower()
+                    strategy = value
+
+                Case WPStrings.KeepFileBox.ToLower()
+                    useBox = value
+            End Select
         Next
 
-        Return {Destination, Days, Notify, Strategy, UseBox}
+        Return New ArchiveTemplateData(destination, days, notify, strategy, useBox)
     End Function
 
     Private Function ReplaceDatePlaceholders(ByVal threaddate As Date, destination As String) As String
@@ -423,60 +443,60 @@ Public Class Archiver
         Return True
     End Function
 
-    Private Function PageConfig(ByVal Params As String(), ByRef destination As String, ByRef maxDays As Integer,
-                                ByRef strategy As String, ByRef useBox As Boolean, ByRef notify As Boolean, sourcePageName As String) As Boolean
 
-        If Not Params.Count >= 4 Then Return False
-        'Destino
-        If String.IsNullOrEmpty(Params(0)) Then
+    Private Function PageConfig(
+    ByVal Params As ArchiveTemplateData,
+    ByRef destination As String,
+    ByRef maxDays As Integer,
+    ByRef strategy As String,
+    ByRef useBox As Boolean,
+    ByRef notify As Boolean,
+    sourcePageName As String) As Boolean
+
+        ' Validate ArchiveTemplateData
+        If Params Is Nothing OrElse Not Params.Valid Then
             EventLogger.Log(String.Format(BotMessages.MalformedArchiveConfig, sourcePageName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
-        Else
-            destination = Params(0)
         End If
-        'Dias a mantener
-        If String.IsNullOrEmpty(Params(1)) Then
+
+        ' Destination
+        destination = Params.Destination?.Trim()
+        If String.IsNullOrEmpty(destination) Then
             EventLogger.Log(String.Format(BotMessages.MalformedArchiveConfig, sourcePageName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
-        Else
-            maxDays = Integer.Parse(Params(1))
         End If
-        'Avisar al archivar
-        If String.IsNullOrEmpty(Params(2)) Then
-            notify = True
-        Else
-            If Params(2).ToLower.Contains("si") Or Params(2).ToLower.Contains("sí") Then
-                notify = True
-            Else
-                notify = False
+
+        ' Days to keep
+        Dim daysStr As String = Params.Days?.Trim()
+        If Not Integer.TryParse(daysStr, maxDays) OrElse maxDays < 7 Then
+            maxDays = Math.Max(maxDays, 7)
+            If String.IsNullOrEmpty(daysStr) Then
+                EventLogger.Log(String.Format(BotMessages.MalformedArchiveConfig, sourcePageName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+                Return False
             End If
         End If
-        'Estrategia
-        If String.IsNullOrEmpty(Params(3)) Then
-            strategy = WPStrings.LastPSignature
-        Else
-            If Params(3) = WPStrings.LastPSignature Then
-                strategy = WPStrings.LastPSignature
-            ElseIf Params(3) = WPStrings.MostRecentSignature Then
-                strategy = WPStrings.MostRecentSignature
-            Else
-                strategy = WPStrings.LastPSignature
-            End If
-        End If
-        'Usar caja de archivos
-        If String.IsNullOrEmpty(Params(4)) Then
-            useBox = False
-        Else
-            If Params(4).ToLower.Contains(WPStrings.YES) Or Params(4).ToLower.Contains(WPStrings.YES2) Then
-                useBox = True
-            Else
-                useBox = False
-            End If
-        End If
+
+        ' Notify
+        Dim notifyStr As String = Params.Notify?.Trim().ToLower()
+        notify = String.IsNullOrEmpty(notifyStr) OrElse notifyStr.Contains(WPStrings.YES) OrElse notifyStr.Contains(WPStrings.YES2)
+
+        ' Strategy
+        Dim validStrategies As New HashSet(Of String) From {
+        WPStrings.LastPSignature,
+        WPStrings.MostRecentSignature}
+
+        Dim strategyInput As String = Params.Strategy?.Trim()
+        strategy = If(validStrategies.Contains(strategyInput), strategyInput, WPStrings.LastPSignature)
+
+        ' Use archive box
+        Dim useBoxStr As String = Params.UseBox?.Trim().ToLower()
+        useBox = Not String.IsNullOrEmpty(useBoxStr) AndAlso
+             (useBoxStr.Contains(WPStrings.YES) OrElse useBoxStr.Contains(WPStrings.YES2))
+
         Return True
     End Function
 
-    Function ValidPage(ByVal PageToArchive As Page, ByVal ArchiveCfg As String()) As Boolean
+    Function ValidPage(ByVal PageToArchive As Page, ByVal ArchiveCfg As ArchiveTemplateData) As Boolean
         'Verificar el espacio de nombres de la página se archiva
         If Not ValidNamespace(PageToArchive) Then
             EventLogger.Debug_Log(String.Format(BotMessages.InvalidNamespace, PageToArchive.Title, PageToArchive.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
@@ -499,14 +519,14 @@ Public Class Archiver
                 Return False
             End If
             'Validar que destino de archivado sea una subpágina del usuario.
-            If Not ArchiveCfg(0).StartsWith(PageToArchive.Title) Then
-                EventLogger.Log(String.Format(BotMessages.NotASubPage, ArchiveCfg(0), PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+            If Not ArchiveCfg.Destination.StartsWith(PageToArchive.Title) Then
+                EventLogger.Log(String.Format(BotMessages.NotASubPage, ArchiveCfg.Destination, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
                 Return False
             End If
         End If
 
         'Validar que los espacios de nombres sean iguales
-        Dim ArchiveSubpagePrefix As Page = _bot.Getpage(ArchiveCfg(0))
+        Dim ArchiveSubpagePrefix As Page = _bot.Getpage(ArchiveCfg.Destination)
         If Not ArchiveSubpagePrefix.PageNamespace = PageToArchive.PageNamespace Then
             EventLogger.Log(String.Format(BotMessages.InvalidNamespace, ArchiveSubpagePrefix.Title, ArchiveSubpagePrefix.PageNamespace), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False
@@ -560,6 +580,27 @@ Public Class Archiver
     Private Function ValidUser(ByVal user As WikiUser) As Boolean
         Return ValidUser(user, _bot)
     End Function
+
+    'Class that holds an archive template data
+    Public Class ArchiveTemplateData
+        Public Destination As String
+        Public Days As String
+        Public Notify As String
+        Public Strategy As String
+        Public UseBox As String
+        Public Valid As Boolean
+        Sub New(T_Destination As String, T_Days As String, T_Notify As String, T_Strategy As String, T_UseBox As String)
+            Destination = T_Destination
+            Days = T_Days
+            Notify = T_Notify
+            Strategy = T_Strategy
+            UseBox = T_UseBox
+            Valid = True
+        End Sub
+        Sub New()
+            Valid = False
+        End Sub
+    End Class
 
     ' Class that holds the result of archiving multiple threads
     Public Class ThreadsArchiveResult
