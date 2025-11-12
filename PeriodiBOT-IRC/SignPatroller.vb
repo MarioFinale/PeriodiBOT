@@ -29,6 +29,7 @@ Public Class SignPatroller
 #Disable Warning SYSLIB0014 ' Type or member is obsolete
                              Using tclient As New WebClient()
 #Enable Warning SYSLIB0014 ' Type or member is obsolete
+                                 tclient.Headers.Add(HttpRequestHeader.UserAgent, WorkerBot.BotApiHandler.UserAgent)
                                  EventLogger.Debug_Log("Connecting to WMF's recent changes stream...", "RecentChanges watcher")
                                  Dim tstream As Stream = tclient.OpenRead(New Uri("https://stream.wikimedia.org/v2/stream/recentchange"))
                                  Dim tstreamreader As StreamReader = New StreamReader(tstream)
