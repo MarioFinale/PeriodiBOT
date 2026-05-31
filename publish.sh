@@ -18,7 +18,7 @@ RIDS=(
 )
 # ==================================================
 
-echo "🧹 Cleaning old publish folder..."
+echo "Cleaning old publish folder..."
 rm -rf "$OUTPUT"
 
 for RID in "${RIDS[@]}"; do
