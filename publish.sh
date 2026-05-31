@@ -39,6 +39,6 @@ for RID in "${RIDS[@]}"; do
 done
 
 echo ""
-echo "🎉 All builds finished!"
+echo "All builds finished!"
 echo "Output folder: $OUTPUT/"
 ls -l "$OUTPUT"
