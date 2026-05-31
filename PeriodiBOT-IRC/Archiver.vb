@@ -21,15 +21,17 @@ Public Class Archiver
         Dim includedpages As String() = _bot.GetallInclusions(ArchiveTemplateName)
         EventLogger.Log(String.Format(BotMessages.ArchivingInclusions, ArchiveTemplateName), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         For Each pa As String In includedpages
-            Dim _Page As Page = _bot.Getpage(pa)
-            If _Page.Exists Then
-                Try
+            try
+                Dim _Page As Page = _bot.Getpage(pa)
+                If _Page.Exists Then
+                
                     AutoArchive(_Page, ArchiveTemplateName, DoNotArchiveTemplateName, ProgrammedArchiveTemplateName,
-                                ArchiveBoxTemplateName, ArchiveMessageTemplateName, ExcludingRegexPattern)
-                Catch ex As Exception When Not Debugger.IsAttached
-                    EventLogger.EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
-                End Try
+                                ArchiveBoxTemplateName, ArchiveMessageTemplateName, ExcludingRegexPattern)   
             End If
+            Catch ex As Exception 
+            EventLogger.EX_Log(ex.Message, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+            End Try
+            
         Next
         EventLogger.Log(BotMessages.AllArchived, Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
         Return True

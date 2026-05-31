@@ -1,0 +1,10 @@
+{
+    "vbnetcompanion.enableLanguageClientBridge": true,
+    "vbnetcompanion.enableBridgeForCSharp": true,
+    "vbnetcompanion.enableBridgeForVisualBasic": true,
+    "vbnetcompanion.languageClientServerCommand": "dotnet",
+    "vbnetcompanion.languageClientServerArgs": [
+        "/Users/mariofinale/.vscode/extensions/roies.vbnet-companion-0.1.47/server/VBNetCompanion.LanguageServer/publish/VBNetCompanion.LanguageServer.dll",
+        "--stdio"
+    ]
+}

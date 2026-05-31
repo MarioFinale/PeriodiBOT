@@ -39,12 +39,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\MWBot.net\MWBot.net\MWBot.net.vbproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="IRCCLIENT">
-      <HintPath>..\..\Comp\net6.0\IRCCLIENT.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\..\IRCCLIENT\IRCCLIENT\IRCCLIENT.vbproj" />
   </ItemGroup>
 
   <ItemGroup>

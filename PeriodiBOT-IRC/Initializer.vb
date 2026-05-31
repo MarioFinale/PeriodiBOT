@@ -37,8 +37,8 @@ Public NotInheritable Class Initializer
         BotIRC.StartClient()
 
         'Patrulla de cambios recientes
-        Dim tPatroller As New SignPatroller(ESWikiBOT)
-        tPatroller.StartPatroller()
+        'Dim tPatroller As New SignPatroller(ESWikiBOT)
+        'tPatroller.StartPatroller()
 
         'Tarea para actualizar el contador de solicitudes de autorizaciones de bots
         Dim BotCountFunc As New Func(Of Boolean) _
