@@ -351,8 +351,8 @@ Class SpecialTaks
             t.Parameters.Add(New Tuple(Of String, String)(u.UserName, linetext))
         Next
 
-        Dim templatetext As String = "{{Noart|1=<indicator name=""z-estado-usuario"">" & Environment.NewLine & t.Text
-        templatetext = templatetext & Environment.NewLine & "</indicator>}}" & Environment.NewLine & "<noinclude>" & "{{documentación}}" & "</noinclude>"
+        Dim templatetext As String = "{{Noart|1={{#tag:indicator|" & Environment.NewLine & t.Text
+        templatetext = templatetext & Environment.NewLine & "|name=z-estado-usuario}} }}" & Environment.NewLine & "<noinclude>" & "{{documentación}}" & "</noinclude>"
         pageToSave.Save(templatetext, "Bot: Actualizando lista.", True, True, False)
 
     End Sub
