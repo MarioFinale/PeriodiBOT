@@ -64,7 +64,7 @@ Public NotInheritable Class Initializer
                  sptask.CheckUsersActivity(p, p)
                  Return True
              End Function)
-        TaskAdm.NewTask("Actualizar plantilla de usuario conectado", ESWikiBOT.UserName, UserStatusFunc, New TimeSpan(0, 20, 0), True)
+        TaskAdm.NewTask("Actualizar plantilla de usuario conectado", ESWikiBOT.UserName, UserStatusFunc, 1200000, True)
 
         'Tarea para actualizar el café temático
         Dim TopicFunc As New Func(Of Boolean)(Function()
