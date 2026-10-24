@@ -282,6 +282,12 @@ Class SpecialTaks
     End Function
 
 
+    ''' <summary>
+    ''' Actualiza la plantilla de estado de usuario con la actividad reciente (conectado si editó en los últimos 20 minutos).
+    ''' Usa {{#tag:indicator}} para permitir la expansión correcta de parámetros.
+    ''' </summary>
+    ''' <param name="templatePage">Página de la plantilla cuyas inclusiones se analizan.</param>
+    ''' <param name="pageToSave">Página donde se guarda el contenido generado.</param>
     Sub CheckUsersActivity(ByVal templatePage As Page, ByVal pageToSave As Page)
         If pageToSave Is Nothing Then Exit Sub
 
@@ -316,7 +322,7 @@ Class SpecialTaks
                     Continue For
                 End If
 
-                If Date.Now.Subtract(User.LastEdit) < New TimeSpan(0, 30, 0) Then
+                If Date.UtcNow.Subtract(User.LastEdit) < New TimeSpan(0, 20, 0) Then
                     If Not ActiveUsers.Keys.Contains(User.UserName) Then
                         ActiveUsers.Add(User.UserName, User)
                     End If
@@ -351,9 +357,13 @@ Class SpecialTaks
             t.Parameters.Add(New Tuple(Of String, String)(u.UserName, linetext))
         Next
 
-        Dim templatetext As String = "{{Noart|1={{#tag:indicator|" & Environment.NewLine & t.Text
-        templatetext = templatetext & Environment.NewLine & "|name=z-estado-usuario}} }}" & Environment.NewLine & "<noinclude>" & "{{documentación}}" & "</noinclude>"
-        pageToSave.Save(templatetext, "Bot: Actualizando lista.", True, True, False)
+        Dim switchText As String = t.Text
+        Dim indicatorTag As String = "{{#tag:indicator|" & Environment.NewLine & switchText & Environment.NewLine & "|name=""z-estado-usuario""}}"
+        Dim templatetext As String = "{{Noart|1=" & indicatorTag & "}}" & Environment.NewLine & "<noinclude>{{documentación}}</noinclude>"
+
+        If pageToSave.Content <> templatetext Then
+            pageToSave.Save(templatetext, "Bot: Actualizando lista.", True, True, False)
+        End If
 
     End Sub
 

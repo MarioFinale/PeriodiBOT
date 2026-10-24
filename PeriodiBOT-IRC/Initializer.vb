@@ -37,8 +37,8 @@ Public NotInheritable Class Initializer
         BotIRC.StartClient()
 
         'Patrulla de cambios recientes
-        'Dim tPatroller As New SignPatroller(ESWikiBOT)
-        'tPatroller.StartPatroller()
+        Dim tPatroller As New SignPatroller(ESWikiBOT)
+        tPatroller.StartPatroller()
 
         'Tarea para actualizar el contador de solicitudes de autorizaciones de bots
         Dim BotCountFunc As New Func(Of Boolean) _
@@ -64,7 +64,7 @@ Public NotInheritable Class Initializer
                  sptask.CheckUsersActivity(p, p)
                  Return True
              End Function)
-        TaskAdm.NewTask("Actualizar plantilla de usuario conectado", ESWikiBOT.UserName, UserStatusFunc, 600000, True)
+        TaskAdm.NewTask("Actualizar plantilla de usuario conectado", ESWikiBOT.UserName, UserStatusFunc, New TimeSpan(0, 20, 0), True)
 
         'Tarea para actualizar el café temático
         Dim TopicFunc As New Func(Of Boolean)(Function()

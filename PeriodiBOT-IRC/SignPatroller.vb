@@ -155,6 +155,12 @@ Public Class SignPatroller
         If Regex.Match(lastparagraph, "\[\[(:\w{2,7}:)*(user|usuario):.+?\]\]", RegexOptions.IgnoreCase).Success Then Return False
         If Regex.Match(lastparagraph, signpattern).Success Then Return False
 
+        ' Evitar falsos positivos: solo firmar si el párrafo fue introducido por esta edición
+        If Not WasTextIntroducedByLastEdit(tpage, lastparagraph) Then
+            EventLogger.Debug_Log(String.Format("Párrafo ya presente en revisión anterior de '{0}'. Posible falso positivo ignorado.", tpage.Title), "AddMissingSignature2", WorkerBot.UserName)
+            Return False
+        End If
+
         Dim Username As String = UnsignedSectionInfo.Item2
         EventLogger.Log(String.Format(BotMessages.UnsignedMessageDetected, tpage.Title), "AddMissingSignature2", WorkerBot.UserName)
 
@@ -190,6 +196,43 @@ Public Class SignPatroller
         If AuthorIsRevertingSignature(tpage) Then Return False
 
         ' If Not ContainsAutosignatureTemplate(tpage.Content) Then Return False 'De momento solo firmar las páginas con la plantilla de firma automática.
+        Return True
+    End Function
+
+    ''' <summary>
+    ''' Verifica si un fragmento de texto fue introducido por la última edición de la página.
+    ''' Camina hasta 5 revisiones anteriores (similar al recorrido de historial de RefTool)
+    ''' para reducir falsos positivos al firmar secciones que ya existían sin firma.
+    ''' </summary>
+    ''' <param name="tpage">Página actual.</param>
+    ''' <param name="textFragment">Fragmento a comprobar (normalmente el último párrafo de la sección).</param>
+    ''' <returns>True si el fragmento no existía en ninguna de las hasta 5 revisiones anteriores; False si ya estaba presente.</returns>
+    Private Function WasTextIntroducedByLastEdit(ByVal tpage As Page, ByVal textFragment As String) As Boolean
+        If String.IsNullOrWhiteSpace(textFragment) Then Return False
+        If tpage.ParentRevId <= 0 Then Return True
+
+        Dim normalizedFragment As String = Regex.Replace(textFragment.Trim(), "\s+", " ")
+        If normalizedFragment.Length < 15 Then Return True
+
+        Dim currentRevId As Integer = tpage.ParentRevId
+        Dim maxDepth As Integer = 5
+        Dim depth As Integer = 0
+
+        While currentRevId > 0 AndAlso depth < maxDepth
+            Dim previousPage As Page = WorkerBot.Getpage(currentRevId)
+            If previousPage Is Nothing OrElse Not previousPage.Exists Then
+                Exit While
+            End If
+
+            Dim normalizedPrevious As String = Regex.Replace(previousPage.Content, "\s+", " ")
+            If normalizedPrevious.Contains(normalizedFragment) Then
+                Return False
+            End If
+
+            currentRevId = previousPage.ParentRevId
+            depth += 1
+        End While
+
         Return True
     End Function
 
