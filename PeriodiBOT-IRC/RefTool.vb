@@ -175,48 +175,60 @@ Public Class RefTool
                     End If
                 End If
 
-                ' Detección de soft-404: comparar título de /404 y buscar patrones comunes de error en el título o contenido.
+                ' Detección de soft-404 / hard-404: primero examinar el contenido original (título y cuerpo).
+                ' Evita fallos cuando la carga de /404 o una redirección produce nulos.
                 Try
-                    Dim turi2 As New Uri(weburi.GetLeftPart(UriPartial.Authority) & "/404")
+                    If Not String.IsNullOrWhiteSpace(tp) Then
+                        Dim originalTitleMatch As Match = Regex.Match(tp, "<title\b[^>]*>\s*([\s\S]*?)</title>", RegexOptions.IgnoreCase)
+                        Dim originalPageTitle As String = String.Empty
+                        If originalTitleMatch.Success Then originalPageTitle = originalTitleMatch.Groups(1).Value
 
-                    Dim request2 As HttpWebRequest = DirectCast(WebRequest.Create(turi2), HttpWebRequest)
-                    request2.Timeout = 30000
-                    request2.Method = "GET"
-                    request2.UserAgent = WorkerBot.BotApiHandler.UserAgent
-                    request2.ContentType = "application/x-www-form-urlencoded"
-                    Dim isError As Boolean = False
-                    Try
-                        Dim response2 As Net.WebResponse = request2.GetResponse()
-                        response2.Close()
-                    Catch exres As WebException
-                        isError = True
-                        EventLogger.Debug_Log("Respuesta de error al cargar /404 de " & weburi.Authority & ": " & exres.Message, "CheckAndTryLoadWebResource", WorkerBot.UserName)
-                    End Try
+                        Dim titleLower As String = If(originalPageTitle, String.Empty).ToLowerInvariant()
+                        Dim contentLower As String = tp.ToLowerInvariant()
 
-                    Dim tpage2 As String = WorkerBot.GET(turi2)
-                    Dim originalTitleMatch As Match = Regex.Match(tp, "\<title\b[^>]*\>\s*([\s\S]*?)\<\/title\>", RegexOptions.IgnoreCase)
-                    Dim originalPageTitle As String = String.Empty
-                    If originalTitleMatch.Success Then originalPageTitle = originalTitleMatch.Groups(1).Value
-
-                    Dim titleMatch As Match = Regex.Match(tpage2, "\<title\b[^>]*\>\s*([\s\S]*?)\<\/title\>", RegexOptions.IgnoreCase)
-                    Dim pageTitle As String = String.Empty
-                    If titleMatch.Success Then pageTitle = titleMatch.Groups(1).Value
-
-                    If pageTitle.ToLowerInvariant().Equals(originalPageTitle.ToLowerInvariant()) AndAlso (Not isError) Then
-                        tp = String.Empty 'El <title> es igual al 404! Marcar como caída.
+                        Dim errorPatterns As String() = {"404", "not found", "página no encontrada", "page not found", "error 404", "no existe", "no encontrado", "isn't available", "is not available", "page isn't available"}
+                        For Each pattern As String In errorPatterns
+                            If titleLower.Contains(pattern) OrElse contentLower.Contains(pattern) Then
+                                tp = String.Empty
+                                EventLogger.Log("Soft-404 detectado por patrón '" & pattern & "' en " & weburi.OriginalString, "CheckAndTryLoadWebResource", WorkerBot.UserName)
+                                Exit For
+                            End If
+                        Next
                     End If
 
-                    ' Heurística adicional: títulos o fragmentos que indican error aunque el código HTTP sea 200.
-                    Dim errorPatterns As String() = {"404", "not found", "página no encontrada", "page not found", "error 404", "no existe", "no encontrado"}
-                    Dim titleLower As String = originalPageTitle.ToLowerInvariant()
-                    For Each pattern As String In errorPatterns
-                        If titleLower.Contains(pattern) Then
-                            tp = String.Empty
-                            EventLogger.Log("Soft-404 detectado por patrón en título: " & pattern & " en " & weburi.OriginalString, "CheckAndTryLoadWebResource", WorkerBot.UserName)
-                            Exit For
-                        End If
-                    Next
+                    ' Comparación adicional con la página /404 del mismo host (solo si aún no se marcó como caída).
+                    If Not String.IsNullOrWhiteSpace(tp) Then
+                        Dim turi2 As New Uri(weburi.GetLeftPart(UriPartial.Authority) & "/404")
+                        Dim isError As Boolean = False
+                        Try
+                            Dim request2 As HttpWebRequest = DirectCast(WebRequest.Create(turi2), HttpWebRequest)
+                            request2.Timeout = 30000
+                            request2.Method = "GET"
+                            request2.UserAgent = WorkerBot.BotApiHandler.UserAgent
+                            request2.ContentType = "application/x-www-form-urlencoded"
+                            Dim response2 As Net.WebResponse = request2.GetResponse()
+                            response2.Close()
+                        Catch exres As WebException
+                            isError = True
+                            EventLogger.Debug_Log("Respuesta de error al cargar /404 de " & weburi.Authority & ": " & exres.Message, "CheckAndTryLoadWebResource", WorkerBot.UserName)
+                        End Try
 
+                        Dim tpage2 As String = WorkerBot.GET(turi2)
+                        If Not String.IsNullOrWhiteSpace(tpage2) AndAlso Not String.IsNullOrWhiteSpace(tp) Then
+                            Dim originalTitleMatch2 As Match = Regex.Match(tp, "<title\b[^>]*>\s*([\s\S]*?)</title>", RegexOptions.IgnoreCase)
+                            Dim originalPageTitle2 As String = String.Empty
+                            If originalTitleMatch2.Success Then originalPageTitle2 = originalTitleMatch2.Groups(1).Value
+
+                            Dim titleMatch As Match = Regex.Match(tpage2, "<title\b[^>]*>\s*([\s\S]*?)</title>", RegexOptions.IgnoreCase)
+                            Dim pageTitle As String = String.Empty
+                            If titleMatch.Success Then pageTitle = titleMatch.Groups(1).Value
+
+                            If Not String.IsNullOrWhiteSpace(pageTitle) AndAlso pageTitle.ToLowerInvariant().Equals(originalPageTitle2.ToLowerInvariant()) AndAlso (Not isError) Then
+                                tp = String.Empty
+                                EventLogger.Log("Soft-404 detectado por título idéntico a /404 en " & weburi.OriginalString, "CheckAndTryLoadWebResource", WorkerBot.UserName)
+                            End If
+                        End If
+                    End If
                 Catch ex As Exception
                     EventLogger.EX_Log("Error en detección de soft-404 para " & weburi.OriginalString & ": " & ex.Message, "CheckAndTryLoadWebResource", WorkerBot.UserName)
                 End Try
@@ -342,13 +354,14 @@ Public Class RefTool
     ''' </summary>
     ''' <returns>True si está habilitada o si la página no existe (se crea habilitada).</returns>
     Function IsFixRefsEnabled() As Boolean
-        Dim enabledPage As Page = WorkerBot.Getpage("Usuario:" & WorkerBot.UserName + "/Config")
+        Dim enabledPage As Page = WorkerBot.Getpage("Usuario:" & WorkerBot.UserName + "/Config") 'Bots no pueden editar json. Así que usamos Config. Esperemos que nadie más toque la página... En el peor de los casos la protegemos.
         If (Not enabledPage.Exists) Then
             enabledPage.Save("Fixrefs = Si", "(Bot) Creando página de ajustes", False, True)
             Return True
         End If
         Dim parsedPageContent As String = enabledPage.Content
-        ' Permite espacios alrededor de = y del valor, pero exige el identificador exacto FIXREFS y un valor SI/SÍ.
+        ' IgnoreCase hace innecesario listar variantes de mayúsculas/minúsculas.
+        ' Acepta espacios opcionales y el valor SI o SÍ.
         Return Regex.IsMatch(parsedPageContent, "(^|\n)\s*FIXREFS\s*=\s*(SI|SÍ)\s*($|\n|\r)", RegexOptions.IgnoreCase)
     End Function
 
