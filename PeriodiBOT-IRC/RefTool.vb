@@ -136,163 +136,229 @@ Public Class RefTool
     ''' </summary>
     ''' <param name="weburi"></param>
     ''' <returns></returns>
+    ''' <summary>
+    ''' Verifica e intenta cargar un recurso web. FTP/SFTP están deshabilitados por problemas conocidos.
+    ''' Detecta redirecciones no permitidas y soft-404 mediante comparación de títulos y patrones comunes de error.
+    ''' </summary>
+    ''' <param name="weburi">URI del recurso a comprobar.</param>
+    ''' <returns>Contenido de la página si está disponible; cadena vacía si está caída o no se pudo cargar.</returns>
     Function CheckAndTryLoadWebResource(ByVal weburi As Uri) As String
-        Dim tp As String
-        If weburi.Scheme.ToLower = "ftp" Or weburi.Scheme.ToLower = "sftp" Then
-#Disable Warning SYSLIB0014 ' We need FTP support
-            Dim request As WebRequest = WebRequest.Create(weburi)
-#Enable Warning SYSLIB0014 '
-            request.Method = WebRequestMethods.Ftp.GetFileSize
-            Try
-                request.GetResponse()
-                tp = "FTP FILE"
-            Catch e As WebException
-                Dim response As FtpWebResponse = CType(e.Response, FtpWebResponse)
+        Dim tp As String = String.Empty
 
-                If response.StatusCode = FtpStatusCode.ActionNotTakenFileUnavailable Then
-                    tp = ""
-                Else
-                    tp = ""
-                End If
-            End Try
-        Else
+        If weburi.Scheme.ToLowerInvariant() = "ftp" OrElse weburi.Scheme.ToLowerInvariant() = "sftp" Then
+            EventLogger.Log("Referencias FTP/SFTP deshabilitadas por problemas conocidos: " & weburi.OriginalString, "CheckAndTryLoadWebResource", WorkerBot.UserName)
+            Return String.Empty
+        End If
+
+        Try
+            tp = WorkerBot.GET(weburi)
+
             Try
-                tp = WorkerBot.GET(weburi)
-                Try
-                    Dim request As HttpWebRequest = DirectCast(WebRequest.Create(weburi), HttpWebRequest)
-                    request.Timeout = 60000
-                    request.Method = "GET"
-                    request.UserAgent = WorkerBot.BotApiHandler.UserAgent
-                    request.ContentType = "application/x-www-form-urlencoded"
-                    Dim location As String = ""
-                    Using response As Net.WebResponse = request.GetResponse
-                        location = response.ResponseUri.OriginalString
-                    End Using
-                    If Not location = weburi.OriginalString Then
-                        If Not RedirectionAllowed(weburi) Then
-                            If weburi.OriginalString.Substring(0, 5) = location.Substring(0, 5) Then
-                                tp = ""
-                            End If
+                Dim request As HttpWebRequest = DirectCast(WebRequest.Create(weburi), HttpWebRequest)
+                request.Timeout = 60000
+                request.Method = "GET"
+                request.UserAgent = WorkerBot.BotApiHandler.UserAgent
+                request.ContentType = "application/x-www-form-urlencoded"
+                Dim location As String = String.Empty
+                Using response As Net.WebResponse = request.GetResponse()
+                    location = response.ResponseUri.OriginalString
+                End Using
+                If Not location = weburi.OriginalString Then
+                    If Not RedirectionAllowed(weburi) Then
+                        Dim originalPrefix As String = String.Empty
+                        Dim locationPrefix As String = String.Empty
+                        If weburi.OriginalString.Length >= 5 Then originalPrefix = weburi.OriginalString.Substring(0, 5)
+                        If location.Length >= 5 Then locationPrefix = location.Substring(0, 5)
+                        If originalPrefix = locationPrefix AndAlso Not String.IsNullOrEmpty(originalPrefix) Then
+                            tp = String.Empty
                         End If
                     End If
+                End If
 
-                    'Carguemos la página 404 del sitio y verifiquemos si la cabecera <title> es igual. Si lo es, marcar como rota. 
-                    'Algunas páginas ocultan los 404 respondiendo siempre con 302 y entregando contenido genérico como "últimas noticias", etc...
+                ' Detección de soft-404: comparar título de /404 y buscar patrones comunes de error en el título o contenido.
+                Try
+                    Dim turi2 As New Uri(weburi.GetLeftPart(UriPartial.Authority) & "/404")
+
+                    Dim request2 As HttpWebRequest = DirectCast(WebRequest.Create(turi2), HttpWebRequest)
+                    request2.Timeout = 30000
+                    request2.Method = "GET"
+                    request2.UserAgent = WorkerBot.BotApiHandler.UserAgent
+                    request2.ContentType = "application/x-www-form-urlencoded"
+                    Dim isError As Boolean = False
                     Try
-
-                        Dim turi2 As New Uri(weburi.GetLeftPart(UriPartial.Authority) & "/404")
-
-                        Dim request2 As HttpWebRequest = DirectCast(WebRequest.Create(turi2), HttpWebRequest)
-                        request2.Timeout = 30000
-                        request2.Method = "GET"
-                        request2.UserAgent = WorkerBot.BotApiHandler.UserAgent
-                        request2.ContentType = "application/x-www-form-urlencoded"
-                        Dim isError As Boolean = False
-                        Try
-                            Dim response2 As Net.WebResponse = request2.GetResponse
-                            response2.Close()
-                        Catch exres As WebException
-                            isError = True
-                        End Try
-                        Dim tpage2 As String = WorkerBot.GET(turi2)
-                        Dim originalTitleMatch As Match = Regex.Match(tp, "\<title\b[^>]*\>\s*([\s\S]*?)\<\/title\>", RegexOptions.IgnoreCase)
-                        Dim originalPageTitle As String = ""
-                        If originalTitleMatch.Success Then originalPageTitle = originalTitleMatch.Groups(1).Value
-
-                        Dim titleMatch As Match = Regex.Match(tpage2, "\<title\b[^>]*\>\s*([\s\S]*?)\<\/title\>", RegexOptions.IgnoreCase)
-                        Dim PageTitle As String = ""
-                        If titleMatch.Success Then PageTitle = titleMatch.Groups(1).Value
-
-                        If PageTitle.ToLower.Equals(originalPageTitle.ToLower) And (Not isError) Then
-                            tp = "" 'El <title> es igual al 404! Marcar como caida.
-                        End If
-
-                    Catch ex As Exception
+                        Dim response2 As Net.WebResponse = request2.GetResponse()
+                        response2.Close()
+                    Catch exres As WebException
+                        isError = True
+                        EventLogger.Debug_Log("Respuesta de error al cargar /404 de " & weburi.Authority & ": " & exres.Message, "CheckAndTryLoadWebResource", WorkerBot.UserName)
                     End Try
 
+                    Dim tpage2 As String = WorkerBot.GET(turi2)
+                    Dim originalTitleMatch As Match = Regex.Match(tp, "\<title\b[^>]*\>\s*([\s\S]*?)\<\/title\>", RegexOptions.IgnoreCase)
+                    Dim originalPageTitle As String = String.Empty
+                    If originalTitleMatch.Success Then originalPageTitle = originalTitleMatch.Groups(1).Value
+
+                    Dim titleMatch As Match = Regex.Match(tpage2, "\<title\b[^>]*\>\s*([\s\S]*?)\<\/title\>", RegexOptions.IgnoreCase)
+                    Dim pageTitle As String = String.Empty
+                    If titleMatch.Success Then pageTitle = titleMatch.Groups(1).Value
+
+                    If pageTitle.ToLowerInvariant().Equals(originalPageTitle.ToLowerInvariant()) AndAlso (Not isError) Then
+                        tp = String.Empty 'El <title> es igual al 404! Marcar como caída.
+                    End If
+
+                    ' Heurística adicional: títulos o fragmentos que indican error aunque el código HTTP sea 200.
+                    Dim errorPatterns As String() = {"404", "not found", "página no encontrada", "page not found", "error 404", "no existe", "no encontrado"}
+                    Dim titleLower As String = originalPageTitle.ToLowerInvariant()
+                    For Each pattern As String In errorPatterns
+                        If titleLower.Contains(pattern) Then
+                            tp = String.Empty
+                            EventLogger.Log("Soft-404 detectado por patrón en título: " & pattern & " en " & weburi.OriginalString, "CheckAndTryLoadWebResource", WorkerBot.UserName)
+                            Exit For
+                        End If
+                    Next
+
                 Catch ex As Exception
-                    tp = ""
+                    EventLogger.EX_Log("Error en detección de soft-404 para " & weburi.OriginalString & ": " & ex.Message, "CheckAndTryLoadWebResource", WorkerBot.UserName)
                 End Try
 
-            Catch ex As MaxRetriesExeption
-                tp = ""
+            Catch ex As Exception
+                EventLogger.EX_Log("Error al verificar redirección o estado de " & weburi.OriginalString & ": " & ex.Message, "CheckAndTryLoadWebResource", WorkerBot.UserName)
+                tp = String.Empty
             End Try
-        End If
+
+        Catch ex As MaxRetriesExeption
+            EventLogger.EX_Log("Máximo de reintentos alcanzado para " & weburi.OriginalString & ": " & ex.Message, "CheckAndTryLoadWebResource", WorkerBot.UserName)
+            tp = String.Empty
+        Catch ex As Exception
+            EventLogger.EX_Log("Error general al cargar " & weburi.OriginalString & ": " & ex.Message, "CheckAndTryLoadWebResource", WorkerBot.UserName)
+            tp = String.Empty
+        End Try
+
         Return tp
     End Function
 
+    ''' <summary>
+    ''' Extrae la URI y el nombre descriptivo de cada referencia simple.
+    ''' </summary>
+    ''' <param name="refs">Referencias en texto plano.</param>
+    ''' <returns>Lista de (referencia original, Uri, nombre descriptivo).</returns>
     Private Function GetRefsNameAndUris(ByVal refs As String()) As List(Of Tuple(Of String, Uri, String))
         Dim refsList As New List(Of Tuple(Of String, Uri, String))
         For Each ref As String In refs
-            If Regex.Match(ref, "\[.+\]").Success Then
-                Dim tref As String = Regex.Match(ref, "\[.+\]").Value
-                tref = tref.Substring(1, tref.Length - 1).Trim()
-                tref = ReplaceFirst(tref, "]", "")
-                Dim refinfo As String() = {tref.Split(" "c)(0), tref.Replace(tref.Split(" "c)(0), "").Trim()}
-                Dim tur As New Uri("http://x.z") : Uri.TryCreate(refinfo(0).Trim(), UriKind.Absolute, tur)
-                If tur Is Nothing Then Continue For
-                Dim refdesc As String = Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase)
-                refdesc = ReplaceFirst(refdesc, "[", "").Replace(tur.OriginalString, "").Trim()
-                If refdesc(refdesc.Length - 1) = "]"c Then
-                    refdesc = refdesc.Substring(0, refdesc.Length - 1)
+            Try
+                If Regex.Match(ref, "\[.+\]").Success Then
+                    Dim tref As String = Regex.Match(ref, "\[.+\]").Value
+                    If tref.Length < 2 Then Continue For
+                    tref = tref.Substring(1, tref.Length - 1).Trim()
+                    tref = ReplaceFirst(tref, "]", "")
+                    Dim parts As String() = tref.Split(" "c)
+                    If parts.Length = 0 Then Continue For
+                    Dim urlPart As String = parts(0).Trim()
+                    Dim tur As Uri = Nothing
+                    If Not Uri.TryCreate(urlPart, UriKind.Absolute, tur) Then Continue For
+                    Dim refdesc As String = Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase)
+                    refdesc = ReplaceFirst(refdesc, "[", "").Replace(tur.OriginalString, "").Trim()
+                    If refdesc.Length > 0 AndAlso refdesc(refdesc.Length - 1) = "]"c Then
+                        refdesc = refdesc.Substring(0, refdesc.Length - 1)
+                    Else
+                        refdesc = ReplaceFirst(refdesc, "]", "")
+                    End If
+                    refdesc = ReplaceFirst(refdesc, "]", "-").Trim()
+                    refsList.Add(New Tuple(Of String, Uri, String)(ref, tur, refdesc))
                 Else
-                    refdesc = ReplaceFirst(refdesc, "]", "")
+                    Dim cleanRef As String = Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase)
+                    Dim tref As Uri = Nothing
+                    If Uri.TryCreate(cleanRef.Trim(), UriKind.Absolute, tref) AndAlso tref IsNot Nothing AndAlso (tref.Scheme Is Uri.UriSchemeHttp OrElse tref.Scheme Is Uri.UriSchemeHttps) Then
+                        refsList.Add(New Tuple(Of String, Uri, String)(ref, tref, ""))
+                    End If
                 End If
-                refdesc = ReplaceFirst(refdesc, "]", "-").Trim()
-                refsList.Add(New Tuple(Of String, Uri, String)(ref, tur, refdesc))
-            Else
-                Dim tref As New Uri("http://x.z")
-                Uri.TryCreate(Regex.Replace(ref, "(<ref( name *=.+?)*>|<\/ref>)", "", RegexOptions.IgnoreCase), UriKind.Absolute, tref)
-                If tref IsNot Nothing AndAlso (tref.Scheme Is Uri.UriSchemeHttp OrElse tref.Scheme Is Uri.UriSchemeHttps OrElse tref.Scheme = Uri.UriSchemeFtp) Then
-                    refsList.Add(New Tuple(Of String, Uri, String)(ref, tref, ""))
-                End If
-            End If
+            Catch ex As Exception
+                EventLogger.EX_Log("Error al procesar referencia: " & If(ref.Length > 80, ref.Substring(0, 80) & "...", ref) & " - " & ex.Message, "GetRefsNameAndUris", WorkerBot.UserName)
+            End Try
         Next
         Return refsList
     End Function
 
+    ''' <summary>
+    ''' Determina la fecha de la primera aparición de cada URL en el historial de la página.
+    ''' Recorre el historial completo (autorizado, baja frecuencia) hasta encontrar la introducción de cada referencia o el inicio de la página.
+    ''' En caso de error al cargar una revisión, registra el fallo y asigna la última fecha conocida a las referencias restantes.
+    ''' </summary>
+    ''' <param name="sourcePage">Página de origen.</param>
+    ''' <param name="refSet">Conjunto de referencias (original, Uri, nombre) a rastrear. Se modifica durante el recorrido.</param>
+    ''' <returns>Conjunto de (Uri, fecha de introducción, nombre, referencia original).</returns>
     Private Function GetDateOfRefs(ByVal sourcePage As Page, ByVal refSet As HashSet(Of Tuple(Of String, Uri, String))) As HashSet(Of Tuple(Of Uri, Date, String, String))
-        Dim UrlAndDateList As New HashSet(Of Tuple(Of Uri, Date, String, String))
-        Dim temppage As Page = sourcePage
-        Dim lasttimestamp As Date = temppage.LastEdit
+        Dim urlAndDateList As New HashSet(Of Tuple(Of Uri, Date, String, String))
+        Dim tempPage As Page = sourcePage
+        Dim lastTimestamp As Date = tempPage.LastEdit
+
         While True
-            If temppage.ParentRevId <= 0 Then
+            If tempPage.ParentRevId <= 0 Then
                 For Each ref As Tuple(Of String, Uri, String) In refSet
-                    UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(ref.Item2, lasttimestamp, ref.Item3, ref.Item1))
+                    urlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(ref.Item2, lastTimestamp, ref.Item3, ref.Item1))
                 Next
                 Exit While
             End If
 
-            temppage = WorkerBot.Getpage(temppage.ParentRevId)
-            Dim allmissing As Boolean = True
-            Dim refsToCheck As Tuple(Of String, Uri, String)() = refSet.ToArray
+            Dim parentRevId As Integer = tempPage.ParentRevId
+            Try
+                tempPage = WorkerBot.Getpage(parentRevId)
+                If tempPage Is Nothing OrElse Not tempPage.Exists Then
+                    EventLogger.Log("Revisión padre no disponible: " & parentRevId.ToString() & " en " & sourcePage.Title, "GetDateOfRefs", WorkerBot.UserName)
+                    For Each ref As Tuple(Of String, Uri, String) In refSet
+                        urlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(ref.Item2, lastTimestamp, ref.Item3, ref.Item1))
+                    Next
+                    Exit While
+                End If
+            Catch ex As Exception
+                EventLogger.EX_Log("Error al cargar revisión padre " & parentRevId.ToString() & " de " & sourcePage.Title & ": " & ex.Message, "GetDateOfRefs", WorkerBot.UserName)
+                For Each ref As Tuple(Of String, Uri, String) In refSet
+                    urlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(ref.Item2, lastTimestamp, ref.Item3, ref.Item1))
+                Next
+                Exit While
+            End Try
+
+            Dim allMissing As Boolean = True
+            Dim refsToCheck As Tuple(Of String, Uri, String)() = refSet.ToArray()
 
             For Each ref As Tuple(Of String, Uri, String) In refsToCheck
-                If temppage.Content.Contains(ref.Item2.OriginalString) Then
-                    lasttimestamp = temppage.LastEdit
-                    allmissing = False
+                If tempPage.Content.Contains(ref.Item2.OriginalString) Then
+                    lastTimestamp = tempPage.LastEdit
+                    allMissing = False
                 Else
-                    UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(ref.Item2, lasttimestamp, ref.Item3, ref.Item1))
+                    urlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(ref.Item2, lastTimestamp, ref.Item3, ref.Item1))
                     refSet.Remove(ref)
                 End If
             Next
 
-            If allmissing Then Exit While
+            If allMissing Then Exit While
         End While
-        Return UrlAndDateList
+
+        Return urlAndDateList
     End Function
 
+    ''' <summary>
+    ''' Comprueba si la corrección de referencias está habilitada en la página de configuración del bot.
+    ''' </summary>
+    ''' <returns>True si está habilitada o si la página no existe (se crea habilitada).</returns>
     Function IsFixRefsEnabled() As Boolean
-        Dim enabledPage As Page = WorkerBot.Getpage("Usuario:" & WorkerBot.UserName + "/data.json")
+        Dim enabledPage As Page = WorkerBot.Getpage("Usuario:" & WorkerBot.UserName + "/Config")
         If (Not enabledPage.Exists) Then
             enabledPage.Save("Fixrefs = Si", "(Bot) Creando página de ajustes", False, True)
             Return True
         End If
-        Dim parsedPageContent As String = enabledPage.Content.ToUpperInvariant()
-        Return Regex.Match(parsedPageContent, "(^|\n)FIXREFS *= * (SI|SÍ)").Success
+        Dim parsedPageContent As String = enabledPage.Content
+        ' Permite espacios alrededor de = y del valor, pero exige el identificador exacto FIXREFS y un valor SI/SÍ.
+        Return Regex.IsMatch(parsedPageContent, "(^|\n)\s*FIXREFS\s*=\s*(SI|SÍ)\s*($|\n|\r)", RegexOptions.IgnoreCase)
     End Function
 
 
+    ''' <summary>
+    ''' Corrige referencias web simples en una página: elimina duplicados, completa plantillas Cita web y marca enlaces rotos.
+    ''' Utiliza el historial para determinar la fecha de acceso original de cada enlace.
+    ''' </summary>
+    ''' <param name="tpage">Página a procesar.</param>
+    ''' <returns>True si se realizó al menos una edición exitosa.</returns>
     Function FixRefs(ByVal tpage As Page) As Boolean
         If Not IsFixRefsEnabled() Then
             EventLogger.Log("Fixrefs is disabled", "FixRefs")
@@ -323,37 +389,13 @@ Public Class RefTool
             Return False
         End If
 
-        Dim pageslist As New List(Of String)
-        Dim UrlAndDateList As New HashSet(Of Tuple(Of Uri, Date, String, String))
-        Dim temppage = tpage
-        Dim lasttimestamp As Date = temppage.LastEdit
-
-        While True
-            If temppage.ParentRevId <= 0 Then
-                For Each tref As Tuple(Of String, Uri, String) In refUriAndRefNameTupleList
-                    UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(tref.Item2, lasttimestamp, tref.Item3, tref.Item1))
-                Next
-                Exit While
-            End If
-            temppage = WorkerBot.Getpage(temppage.ParentRevId)
-            Dim tempuris As Tuple(Of String, Uri, String)() = refUriAndRefNameTupleList.ToArray
-            Dim Allmissing As Boolean = True
-            For Each tref As Tuple(Of String, Uri, String) In tempuris
-                If temppage.Content.Contains(tref.Item2.OriginalString) Then
-                    lasttimestamp = temppage.LastEdit
-                    Allmissing = False
-                Else
-                    UrlAndDateList.Add(New Tuple(Of Uri, Date, String, String)(tref.Item2, lasttimestamp, tref.Item3, tref.Item1))
-                    refUriAndRefNameTupleList.Remove(tref)
-                End If
-            Next
-            If Allmissing Then Exit While
-        End While
+        Dim refSet As New HashSet(Of Tuple(Of String, Uri, String))(refUriAndRefNameTupleList)
+        Dim urlAndDateList As HashSet(Of Tuple(Of Uri, Date, String, String)) = GetDateOfRefs(tpage, refSet)
 
         Dim datlist As New List(Of WikiWebReference)
 
 
-        For Each tup As Tuple(Of Uri, Date, String, String) In UrlAndDateList 'uri, fecha, nombre, ref original
+        For Each tup As Tuple(Of Uri, Date, String, String) In urlAndDateList 'uri, fecha, nombre, ref original
             Dim referenceWebsiteContent As String = CheckAndTryLoadWebResource(tup.Item1)
 
             Dim pageDown As Boolean = String.IsNullOrWhiteSpace(referenceWebsiteContent)
@@ -432,6 +474,69 @@ Public Class RefTool
     End Function
 
 
+    ''' <summary>
+    ''' Intenta encontrar una fuente alternativa libre para una URL rota mediante APIs públicas que permiten consultas gratuitas.
+    ''' Prioriza Unpaywall para DOIs (versiones de acceso abierto) y usa la API CDX de Internet Archive como respaldo.
+    ''' </summary>
+    ''' <param name="originalUrl">URL original rota.</param>
+    ''' <param name="pageName">Título de la página de referencia.</param>
+    ''' <returns>Tupla (nueva URL, título) si se encuentra una alternativa; Nothing en caso contrario.</returns>
+    Private Function TryGetAlternativeFromFreeApis(ByVal originalUrl As String, ByVal pageName As String) As Tuple(Of String, String)
+        If String.IsNullOrWhiteSpace(originalUrl) Then Return Nothing
+
+        ' 1. Unpaywall para DOIs (acceso abierto gratuito, sin clave de API, solo requiere email)
+        Dim doiMatch As Match = Regex.Match(originalUrl, "(10\.\d{4,9}/[-._;()/:A-Z0-9]+)", RegexOptions.IgnoreCase)
+        If doiMatch.Success Then
+            Dim doi As String = doiMatch.Value.TrimEnd("."c, ","c, ";"c)
+            Try
+                Dim email As String = "periodibot@" & WorkerBot.UserName & ".wikipedia.org"
+                Dim unpaywallUri As New Uri("https://api.unpaywall.org/v2/" & Uri.EscapeDataString(doi) & "?email=" & Uri.EscapeDataString(email))
+                Dim response As String = WorkerBot.GET(unpaywallUri)
+                If Not String.IsNullOrWhiteSpace(response) AndAlso response.Contains("""is_oa"":true") OrElse response.Contains("""is_oa"": true") Then
+                    Dim pdfMatch As Match = Regex.Match(response, """url_for_pdf""\s*:\s*""([^""]+)""")
+                    If pdfMatch.Success AndAlso Not String.IsNullOrWhiteSpace(pdfMatch.Groups(1).Value) Then
+                        EventLogger.Log("Alternativa OA encontrada vía Unpaywall para DOI " & doi, "TryGetAlternativeFromFreeApis", WorkerBot.UserName)
+                        Return New Tuple(Of String, String)(pdfMatch.Groups(1).Value, pageName)
+                    End If
+                    Dim urlMatch As Match = Regex.Match(response, """url""\s*:\s*""([^""]+)""")
+                    If urlMatch.Success AndAlso Not String.IsNullOrWhiteSpace(urlMatch.Groups(1).Value) Then
+                        EventLogger.Log("Alternativa OA (landing) encontrada vía Unpaywall para DOI " & doi, "TryGetAlternativeFromFreeApis", WorkerBot.UserName)
+                        Return New Tuple(Of String, String)(urlMatch.Groups(1).Value, pageName)
+                    End If
+                End If
+            Catch ex As Exception
+                EventLogger.EX_Log("Error consultando Unpaywall para " & doi & ": " & ex.Message, "TryGetAlternativeFromFreeApis", WorkerBot.UserName)
+            End Try
+        End If
+
+        ' 2. Wayback CDX API (más completa que el endpoint available; gratuita y sin clave)
+        Try
+            Dim cdxUri As New Uri("https://web.archive.org/cdx/search/cdx?url=" & Uri.EscapeDataString(originalUrl) & "&output=json&limit=1&filter=statuscode:200&fl=timestamp")
+            Dim cdxResponse As String = WorkerBot.GET(cdxUri)
+            If Not String.IsNullOrWhiteSpace(cdxResponse) AndAlso cdxResponse.Length > 20 Then
+                Dim tsMatch As Match = Regex.Match(cdxResponse, """(\d{14})""")
+                If tsMatch.Success Then
+                    Dim timestamp As String = tsMatch.Groups(1).Value
+                    Dim archiveUrl As String = "https://web.archive.org/web/" & timestamp & "/" & originalUrl
+                    EventLogger.Log("Snapshot encontrado vía CDX para " & originalUrl, "TryGetAlternativeFromFreeApis", WorkerBot.UserName)
+                    Return New Tuple(Of String, String)(archiveUrl, pageName)
+                End If
+            End If
+        Catch ex As Exception
+            EventLogger.EX_Log("Error consultando CDX para " & originalUrl & ": " & ex.Message, "TryGetAlternativeFromFreeApis", WorkerBot.UserName)
+        End Try
+
+        Return Nothing
+    End Function
+
+    ''' <summary>
+    ''' Genera el texto de una referencia Cita web a partir de una WikiWebReference.
+    ''' Intenta recuperar fuentes alternativas o snapshots de Internet Archive si el sitio está caído.
+    ''' </summary>
+    ''' <param name="reference">Referencia web a procesar.</param>
+    ''' <param name="page">Página en la que se insertará la referencia.</param>
+    ''' <param name="tryGetAlternativeSources">Si se deben buscar fuentes alternativas o actualizadas.</param>
+    ''' <returns>Resultado con el texto generado y el tipo de operación realizada.</returns>
     Function GenerateReferenceText(ByRef reference As WikiWebReference, ByRef page As Page, ByVal tryGetAlternativeSources As Boolean) As GenerateReferenceTextResult
         Dim referenceText As String
         Dim result As GenerateReferenceTextResult
@@ -465,7 +570,31 @@ Public Class RefTool
 
         If (reference.PageIsDown) Then
 
-            'Verificar si está disponible en Internet Archive
+            ' Intentar fuentes alternativas vía APIs gratuitas (Unpaywall, CDX) antes de marcar como irrecuperable.
+            Dim freeApiAlt As Tuple(Of String, String) = TryGetAlternativeFromFreeApis(reference.PageUrl, reference.PageName)
+            If freeApiAlt IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(freeApiAlt.Item1) Then
+                Dim altUri As New Uri(freeApiAlt.Item1)
+                Dim newDate As Date = Date.Now()
+                Dim newSpokenDate As String = newDate.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
+                If altUri.Authority.Contains("web.archive.org") Then
+                    Dim archiveSpokenDate As String = newSpokenDate
+                    Dim tsMatch As Match = Regex.Match(freeApiAlt.Item1, "/web/(\d{14})/")
+                    If tsMatch.Success Then
+                        Dim ts As String = tsMatch.Groups(1).Value
+                        Dim archiveDate As New Date(Integer.Parse(ts.Substring(0, 4)), Integer.Parse(ts.Substring(4, 2)), Integer.Parse(ts.Substring(6, 2)))
+                        archiveSpokenDate = archiveDate.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
+                    End If
+                    referenceText = GenerateWaybackReferenceText(reference.PageUrl, freeApiAlt.Item2, reference.SpokenDate, reference.PageRoot, reference.Language, freeApiAlt.Item1, archiveSpokenDate)
+                    result = New GenerateReferenceTextResult(referenceText, GenerateReferenceTextResult.Results.Broken_WebArchive_Recovered)
+                Else
+                    referenceText = GenerateNormalReferenceText(freeApiAlt.Item1, freeApiAlt.Item2, newSpokenDate, altUri.Authority, reference.Language)
+                    referenceText &= String.Format(" <!-- PeriodiBOT ha reemplazado el enlace original roto de {0} con una alternativa de acceso abierto encontrada vía API -->", reference.PageRoot)
+                    result = New GenerateReferenceTextResult(referenceText, GenerateReferenceTextResult.Results.Broken_Alternative_Source)
+                End If
+                Return result
+            End If
+
+            'Verificar si está disponible en Internet Archive (endpoint available)
             Dim datestring As String = reference.RefDate.ToString("yyyyMMddHHmmss", New Globalization.CultureInfo("es-ES"))
             Dim WayBackResponse As String = WorkerBot.GET(New Uri("https://archive.org/wayback/available?" & "timestamp=" & datestring & "&url=" & reference.PageUrl))
             Dim Unavaliable As Boolean = WayBackResponse.Contains("""archived_snapshots"": {}") ''No need to parse
@@ -526,6 +655,12 @@ Public Class RefTool
     End Function
 
 
+    ''' <summary>
+    ''' Maneja sitios web con reglas especiales de redirección o sustitución (Tropicos, PlantList, Kew, Archive, etc.).
+    ''' </summary>
+    ''' <param name="siteUri">URI del sitio.</param>
+    ''' <param name="reference">Referencia asociada.</param>
+    ''' <returns>Tupla (nueva URL, nuevo título) o cadenas vacías si no aplica.</returns>
     Private Function HandleSpecialWebsites(ByVal siteUri As Uri, ByRef reference As WikiWebReference) As Tuple(Of String, String) 'Retornamos una cadena de texto vacía si la página no aplica
         If siteUri.Authority.Contains("aob.oxfordjournals.org") Then ''Nuevo sitio para Annals of Botany
             Dim newUrl As String = GetRedirectUrl(siteUri) 'Obtenemos la url del redirect
@@ -790,11 +925,19 @@ Public Class RefTool
                 If Regex.Match(ref, "<ref name *=.+?>", RegexOptions.IgnoreCase).Success Then
                     refname = Regex.Match(ref, "<ref name *=.+?>", RegexOptions.IgnoreCase).Value
                 Else
+                    ' Buscar un nombre AutoGen-N que no exista en toda la página.
                     While True
-                        If Not Regex.Match(ref, "<ref name *=AutoGen-" & refnameindex & ">").Success Then Exit While
+                        Dim candidate As String = "<ref name=AutoGen-" & refnameindex.ToString() & ">"
+                        If Not Regex.IsMatch(pagetext, Regex.Escape(candidate), RegexOptions.IgnoreCase) Then
+                            refname = candidate
+                            Exit While
+                        End If
                         refnameindex += 1
+                        If refnameindex > 500 Then
+                            EventLogger.Log("No se encontró nombre AutoGen libre tras 500 intentos", "RemoveDuplicatedReferences", WorkerBot.UserName)
+                            Exit While
+                        End If
                     End While
-                    refname = "<ref name=AutoGen-" & refnameindex & ">"
                 End If
                 Dim actualRefName As String = Regex.Match(ref, "(<ref>|<ref name *=[^\/]+?>)").Value
                 Dim newMainRef As String = ReplaceFirst(ref, actualRefName, refname)

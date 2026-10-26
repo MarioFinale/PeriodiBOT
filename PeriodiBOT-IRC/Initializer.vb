@@ -113,6 +113,13 @@ Public NotInheritable Class Initializer
              End Function)
         TaskAdm.NewTask("Actualizar Wikipedia:Bot/Bots activos", ESWikiBOT.UserName, UpdateBotsListFunc, New TimeSpan(12, 0, 0), True)
 
+        'Tarea para reparar referencias
+        Dim FixRefFunc As New Func(Of Boolean)(Function()
+                                                   Dim sptask As New RefTool(ESWikiBOT)
+                                                   Dim rpage As Page = ESWikiBOT.GetRandomPage()
+                                                   Return sptask.FixRefs(rpage)
+                                               End Function)
+        TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 36000000, True) 'Un check por hora, de a poco vamos incrementando la frecuencia.
 
 
         ''================================  Tareas Inactivas =====================================
@@ -137,13 +144,7 @@ Public NotInheritable Class Initializer
 
         ''================================  TEST =====================================
 
-        'Tarea para reparar referencias
-        'Dim FixRefFunc As New Func(Of Boolean)(Function()
-        '                                           Dim sptask As New RefTool(ESWikiBOT)
-        '                                           Dim rpage As Page = ESWikiBOT.GetRandomPage()
-        '                                           Return sptask.FixRefs(rpage)
-        '                                       End Function)
-        'TaskAdm.NewTask("Completar referencias", ESWikiBOT.UserName, FixRefFunc, 1000, True)
+
 
 
         'Dim sptask As New RefTool(ESWikiBOT)
