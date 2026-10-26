@@ -37,7 +37,7 @@ Public Class SignPatroller
                                  EventLogger.Debug_Log("Connected to WMF's recent changes stream!", "RecentChanges watcher")
                                  While True
                                      Dim timeElapsed As TimeSpan = Date.UtcNow.Subtract(StreamStartingTime)
-                                     If timeElapsed >= New TimeSpan(0, 14, 58) Then 'WMF's HTTP connection termination layer enforces a connection timeout of 15 minutes.
+                                     If timeElapsed >= New TimeSpan(0, 10, 01) Then 'WMF's HTTP connection termination layer enforces a connection timeout of 15 minutes.
                                          tstreamreader.Close()
                                          tstream.Close()
                                          tclient.Dispose()
