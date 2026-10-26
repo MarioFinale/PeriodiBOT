@@ -297,3 +297,4 @@ __pycache__/
 *.ide
 **.vs\*
 **obj\*
+.DS_Store
