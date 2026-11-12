@@ -1,0 +1,38 @@
+# Auto-detect text files and normalize line endings to LF in the repository
+* text=auto
+
+# VB.NET source files
+*.vb        text
+
+# Resource files (XML)
+*.resx      text
+
+# Project / solution files (Visual Studio traditionally expects CRLF)
+*.vbproj    text eol=crlf
+*.sln       text eol=crlf
+
+# Other common text files in .NET projects
+*.config    text
+*.settings  text
+*.xml       text
+*.json      text
+*.md        text
+*.txt       text
+
+# Force LF for shell scripts (if any)
+*.sh        text eol=lf
+
+# Force CRLF for Windows batch/cmd
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+
+# Binary files — do not touch
+*.dll       binary
+*.exe       binary
+*.pdb       binary
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.snk       binary

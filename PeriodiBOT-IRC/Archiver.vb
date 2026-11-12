@@ -67,6 +67,12 @@ Public Class Archiver
         Dim maxDays As Integer = 0
         If Not PageConfig(ArchiveCfg, pageDest, maxDays, strategy, useBox, notify, PageToArchive.Title) Then Return False
 
+        'Evitar bucle de auto-archivado: si el destino es la misma página, no procesar.
+        If String.Equals(pageDest.Trim(), PageToArchive.Title, StringComparison.OrdinalIgnoreCase) Then
+            EventLogger.Log(String.Format("Omitiendo archivado de '{0}': el destino configurado es la propia página (posible plantilla residual en archivo).", PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
+            Return False
+        End If
+
         If pageThreads.Count = 1 Then
             EventLogger.Log(String.Format(BotMessages.OneThreadPage, PageToArchive.Title), Reflection.MethodBase.GetCurrentMethod().Name, _bot.UserName)
             Return False

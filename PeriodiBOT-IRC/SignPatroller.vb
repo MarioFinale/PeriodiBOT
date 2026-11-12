@@ -13,11 +13,23 @@ Public Class SignPatroller
 
     Public OresThreshold As Double = 91.5#
 
+    Private _WorkerBot As Bot
+    ' Patrón aproximado de firma (usuario + marca de tiempo). Ajustar si es necesario.
+    Private Const SignPattern As String = "\[\[(:\w{2,7}:)*(user|usuario):.+?\]\].*?\d{1,2}:\d{2}"
+
     ReadOnly Property WorkerBot As Bot
+        Get
+            Return _WorkerBot
+        End Get
+    End Property
+
     Sub New(ByRef workerbot As Bot)
         _WorkerBot = workerbot
     End Sub
 
+    ''' <summary>
+    ''' Inicia la vigilancia del stream de cambios recientes y la cola de procesamiento de firmas.
+    ''' </summary>
     Public Sub StartPatroller()
         Dim editsqueue As New Queue(Of Tuple(Of String, String, Date))
 
@@ -37,7 +49,7 @@ Public Class SignPatroller
                                  EventLogger.Debug_Log("Connected to WMF's recent changes stream!", "RecentChanges watcher")
                                  While True
                                      Dim timeElapsed As TimeSpan = Date.UtcNow.Subtract(StreamStartingTime)
-                                     If timeElapsed >= New TimeSpan(0, 10, 01) Then 'WMF's HTTP connection termination layer enforces a connection timeout of 15 minutes.
+                                     If timeElapsed >= New TimeSpan(0, 14, 58) Then 'WMF's HTTP connection termination layer enforces a connection timeout of 15 minutes.
                                          tstreamreader.Close()
                                          tstream.Close()
                                          tclient.Dispose()
@@ -78,6 +90,11 @@ Public Class SignPatroller
 
     End Sub
 
+    ''' <summary>
+    ''' Extrae usuario, página y fecha aproximada de una línea del stream de cambios recientes.
+    ''' </summary>
+    ''' <param name="tline">Línea JSON del stream de cambios recientes.</param>
+    ''' <returns>Tupla con nombre de usuario, título de página y fecha UTC aproximada.</returns>
     Private Function GetEditInfoFromStreamLine(ByRef tline As String) As Tuple(Of String, String, Date)
         Dim tusername As String = If(TextInBetween(tline, ",""user"":""", """,").Count >= 1, TextInBetween(tline, ",""user"":""", """,")(0), "")
         Dim tpagename As String = If(TextInBetween(tline, ",""title"":""", """,").Count >= 1, TextInBetween(tline, ",""title"":""", """,")(0), "")
@@ -85,10 +102,20 @@ Public Class SignPatroller
         Return New Tuple(Of String, String, Date)(tusername, tpagename, tdate)
     End Function
 
+    ''' <summary>
+    ''' Comprueba si el contenido de la página incluye la plantilla de firma automática.
+    ''' </summary>
+    ''' <param name="pageContent">Contenido completo de la página.</param>
+    ''' <returns>True si se encuentra la plantilla de firma automática.</returns>
     Private Function ContainsAutosignatureTemplate(ByRef pageContent As String) As Boolean
         Return Regex.IsMatch(pageContent, "{{ *[Ff]irma automática .*?}}")
     End Function
 
+    ''' <summary>
+    ''' Valida si una línea del stream de cambios recientes corresponde a una edición relevante para firmar.
+    ''' </summary>
+    ''' <param name="tline">Línea JSON del stream.</param>
+    ''' <returns>True si la línea describe una edición de usuario en un espacio de nombres de discusión válido.</returns>
     Private Function EditIsValid(ByRef tline As String) As Boolean
         Return tline.Contains("""wiki"":""eswiki""") AndAlso
            Not tline.Contains("""bot"":true,") AndAlso
@@ -97,6 +124,11 @@ Public Class SignPatroller
     End Function
 
 
+    ''' <summary>
+    ''' Procesa la cola de ediciones pendientes y decide si intentar firmar.
+    ''' </summary>
+    ''' <param name="editsQueue">Cola de ediciones pendientes (usuario, página, fecha).</param>
+    ''' <returns>True si se procesó una edición y se intentó firmar; False en caso contrario.</returns>
     Private Function ResolveQueue(ByRef editsQueue As Queue(Of Tuple(Of String, String, Date))) As Boolean
         Dim editTuple As Tuple(Of String, String, Date) = Nothing
 
@@ -137,12 +169,27 @@ Public Class SignPatroller
         Return False
     End Function
 
+    ''' <summary>
+    ''' Obtiene la lista de elementos (usuarios, páginas o plantillas) de una página de configuración en wiki.
+    ''' Lee solo el primer hilo y las líneas que empiezan por "* ".
+    ''' </summary>
+    ''' <param name="threadPageTitle">Título de la página de configuración.</param>
+    ''' <returns>Array con los elementos de la lista (sin el asterisco inicial).</returns>
     Private Function GetThreadList(threadPageTitle As String) As String()
         Dim threadPage As Page = WorkerBot.Getpage(threadPageTitle)
         Return (From tmatch In Regex.Matches(If(threadPage.Threads.Count >= 1, threadPage.Threads(0), ""), "\*.+(?=\n|$|\n+$)") Select CType(tmatch, Match).Value.Replace("* ", "").Trim).ToArray
     End Function
 
 
+    ''' <summary>
+    ''' Añade la plantilla de firma faltante al último párrafo sin firmar de la sección editada,
+    ''' si todas las comprobaciones de validez pasan.
+    ''' </summary>
+    ''' <param name="tpage">Página a evaluar y posiblemente editar.</param>
+    ''' <param name="newthreads">True si solo se deben considerar hilos nuevos.</param>
+    ''' <param name="minor">True si la edición debe marcarse como menor.</param>
+    ''' <param name="addmsg">Texto adicional para el resumen de edición.</param>
+    ''' <returns>True si la firma se añadió correctamente; False en caso contrario.</returns>
     Function AddMissingSignature2(ByRef tpage As Page, newthreads As Boolean, minor As Boolean, addmsg As String) As Boolean
         If Not PageIsAutoSignable(tpage) Then Return False 'Verificar si la pagina puede firmarse.
 
@@ -153,7 +200,18 @@ Public Class SignPatroller
         Dim lastparagraph As String = Regex.Match(UnsignedThread.TrimEnd, ".+(?=\n+==[^=].+==[^=]|$|\n+$)").Value
         If String.IsNullOrWhiteSpace(lastparagraph) Then Return False
         If Regex.Match(lastparagraph, "\[\[(:\w{2,7}:)*(user|usuario):.+?\]\]", RegexOptions.IgnoreCase).Success Then Return False
-        If Regex.Match(lastparagraph, signpattern).Success Then Return False
+        If Regex.Match(lastparagraph, SignPattern, RegexOptions.IgnoreCase).Success Then Return False
+
+        ' Lista de plantillas que no deben firmarse cuando se añaden
+        Dim templatesToIgnore As String() = GetThreadList("Usuario:PeriodiBOT/Plantillas a no firmar")
+        If templatesToIgnore.Length = 0 Then
+            templatesToIgnore = {"Archivado automático", "Autoarchivado", "Archivo automático"}
+        End If
+
+        If LastEditAddedIgnoredTemplate(tpage, lastparagraph, templatesToIgnore) Then
+            EventLogger.Debug_Log(String.Format("Edición añadió plantilla ignorada en '{0}'. No se firma.", tpage.Title), "AddMissingSignature2", WorkerBot.UserName)
+            Return False
+        End If
 
         ' Evitar falsos positivos: solo firmar si el párrafo fue introducido por esta edición
         If Not WasTextIntroducedByLastEdit(tpage, lastparagraph) Then
@@ -173,6 +231,11 @@ Public Class SignPatroller
         Return False
     End Function
 
+    ''' <summary>
+    ''' Comprueba si la página y la edición actual son candidatas a recibir una firma automática.
+    ''' </summary>
+    ''' <param name="tpage">Página a comprobar.</param>
+    ''' <returns>True si la edición puede recibir firma automática; False si debe ignorarse.</returns>
     Function PageIsAutoSignable(ByRef tpage As Page) As Boolean
         If tpage Is Nothing Then Return False 'No comprobar páginas nulas.
         If tpage.Lastuser.Equals(WorkerBot.UserName) Then Return False 'No completar firma en páginas en las que el mismo bot haya editado.
@@ -237,10 +300,56 @@ Public Class SignPatroller
     End Function
 
     ''' <summary>
+    ''' Comprueba si la última edición introdujo una plantilla nueva en el párrafo indicado
+    ''' que esté en la lista de plantillas a ignorar.
+    ''' </summary>
+    ''' <param name="tpage">Página actual.</param>
+    ''' <param name="paragraph">Párrafo a examinar (normalmente el último de la sección editada).</param>
+    ''' <param name="templatesToIgnore">Nombres de plantillas que, si se añaden, no deben firmarse.</param>
+    ''' <returns>True si se añadió alguna plantilla de la lista.</returns>
+    Private Function LastEditAddedIgnoredTemplate(ByVal tpage As Page, ByVal paragraph As String, ByVal templatesToIgnore As String()) As Boolean
+        If String.IsNullOrWhiteSpace(paragraph) OrElse templatesToIgnore Is Nothing OrElse templatesToIgnore.Length = 0 Then
+            Return False
+        End If
+        If tpage.ParentRevId <= 0 Then Return False
+
+        Dim previousPage As Page = WorkerBot.Getpage(tpage.ParentRevId)
+        If previousPage Is Nothing OrElse Not previousPage.Exists Then Return False
+
+        Dim currentNames As String() = Template.GetTemplatesNamesInText(paragraph)
+        Dim previousNames As String() = Template.GetTemplatesNamesInText(previousPage.Content)
+
+        For Each name As String In currentNames
+            Dim cleanName As String = name.Trim()
+            Dim isIgnored As Boolean = False
+            For Each ignoreName As String In templatesToIgnore
+                If String.Equals(cleanName, ignoreName.Trim(), StringComparison.OrdinalIgnoreCase) Then
+                    isIgnored = True
+                    Exit For
+                End If
+            Next
+            If isIgnored Then
+                Dim wasPresent As Boolean = False
+                For Each prevName As String In previousNames
+                    If String.Equals(cleanName, prevName.Trim(), StringComparison.OrdinalIgnoreCase) Then
+                        wasPresent = True
+                        Exit For
+                    End If
+                Next
+                If Not wasPresent Then
+                    Return True
+                End If
+            End If
+        Next
+
+        Return False
+    End Function
+
+    ''' <summary>
     ''' Verifica si la edición anterior de la página es del bot firmando al mismo usuario que acaba de editar y si el usuario quitó contenido en la última edición.
     ''' </summary>
     ''' <param name="tpage">Página a comprobar.</param>
-    ''' <returns>Retorna verdadero si la última edición es del usuario quitando contenido luego de que el bot complete una firma.</returns>
+    ''' <returns>True si la última edición es del usuario quitando contenido luego de que el bot complete una firma.</returns>
     Function AuthorIsRevertingSignature(ByVal tpage As Page) As Boolean
         Dim LastUser As String = tpage.Lastuser
         Dim CurrentPageSize As Integer = tpage.Size
@@ -248,16 +357,26 @@ Public Class SignPatroller
         Dim PreviousPageSize As Integer = PreviousEdit.Size
         Dim PreviousUser As String = PreviousEdit.Lastuser
         Dim PreviousEditRes As String = PreviousEdit.Comment
-        If (PreviousUser.Equals(WorkerBot.UserName) And PreviousEditRes.Contains(LastUser) And PreviousEditRes.Contains("firma") And (PreviousPageSize > CurrentPageSize)) Then
+        If (PreviousUser.Equals(WorkerBot.UserName) AndAlso PreviousEditRes.Contains(LastUser) AndAlso PreviousEditRes.Contains("firma") AndAlso (PreviousPageSize > CurrentPageSize)) Then
             Return True
         End If
         Return False
     End Function
 
+    ''' <summary>
+    ''' Indica si el puntaje ORES de la edición supera el umbral configurado.
+    ''' </summary>
+    ''' <param name="tpage">Página a evaluar.</param>
+    ''' <returns>True si el puntaje de buena fe está por debajo del umbral (edición potencialmente dañina).</returns>
     Function IsOverORESThreshold(ByRef tpage As Page) As Boolean
         Return Not (tpage.ORESScore(1) > OresThreshold) '(0) damaging = true | (1) goodfaith = true
     End Function
 
+    ''' <summary>
+    ''' Comprueba si la última edición añadió una plantilla únicamente en la primera línea de la página.
+    ''' </summary>
+    ''' <param name="tpage">Página a comprobar.</param>
+    ''' <returns>True si la primera línea cambió de no tener plantilla a tenerla.</returns>
     Function CheckIfLastEditAddedTemplateOnFirstLine(ByRef tpage As Page) As Boolean
         Dim currentText As String() = Regex.Split(tpage.Content, "[\r\n]+")
         Dim previousText As String() = Regex.Split(WorkerBot.Getpage(tpage.ParentRevId).Content, "[\r\n]+")
@@ -267,9 +386,14 @@ Public Class SignPatroller
         Dim previousHadTemplate As Boolean = (Template.GetTemplates(previousText(0)).Count >= 1)
         Dim currentHasTemplate As Boolean = (Template.GetTemplates(currentText(0)).Count >= 1)
 
-        Return ((Not previousHadTemplate) And currentHasTemplate)
+        Return ((Not previousHadTemplate) AndAlso currentHasTemplate)
     End Function
 
+    ''' <summary>
+    ''' Indica si el usuario de la última edición es el propietario de la página de discusión.
+    ''' </summary>
+    ''' <param name="tpage">Página a comprobar.</param>
+    ''' <returns>True si el último editor es el propietario de la página de usuario.</returns>
     Private Function EditedByOwner(ByRef tpage As Page) As Boolean
         Dim tusername As String = String.Empty
         If tpage.PageNamespace = 3 Then
@@ -285,6 +409,11 @@ Public Class SignPatroller
         Return False
     End Function
 
+    ''' <summary>
+    ''' Indica si el usuario de la última edición es un bot.
+    ''' </summary>
+    ''' <param name="tpage">Página a comprobar.</param>
+    ''' <returns>True si el último editor es un bot o el nombre de usuario está vacío.</returns>
     Function LastUserIsBot(ByRef tpage As Page) As Boolean
         Dim username As String = tpage.Lastuser
         If String.IsNullOrWhiteSpace(username) Then Return True
@@ -293,10 +422,10 @@ Public Class SignPatroller
     End Function
 
     ''' <summary>
-    ''' Retorna la diferencia en la cantidad de hilos entre la edicion actual y la anterior.
+    ''' Retorna la diferencia en la cantidad de hilos entre la edición actual y la anterior.
     ''' </summary>
-    ''' <param name="tpage">Pagina a evaluar.</param>
-    ''' <returns>Diferencia de hilos.</returns>
+    ''' <param name="tpage">Página a evaluar.</param>
+    ''' <returns>Diferencia de hilos (anterior menos actual).</returns>
     Function GetThreadCountDiffLastEdit(ByRef tpage As Page) As Integer
         Dim oldPage As Page = WorkerBot.Getpage(tpage.ParentRevId)
         Dim oldThreadsCount As Integer = oldPage.Threads.Count()
@@ -304,6 +433,12 @@ Public Class SignPatroller
         Return oldThreadsCount - currentThreadsCount
     End Function
 
+    ''' <summary>
+    ''' Obtiene el último hilo editado que carece de firma y devuelve su texto, autor y fecha.
+    ''' </summary>
+    ''' <param name="tpage">Página a evaluar.</param>
+    ''' <param name="newthreads">True si solo se deben considerar hilos nuevos.</param>
+    ''' <returns>Tupla con el texto del hilo, el último usuario y la fecha de edición; Nothing si no hay candidato.</returns>
     Function GetLastUnsignedSection2(ByRef tpage As Page, newthreads As Boolean) As Tuple(Of String, String, Date)
         If tpage Is Nothing Then Throw New ArgumentNullException(Reflection.MethodBase.GetCurrentMethod().Name, WorkerBot.UserName)
         Dim oldPage As Page = WorkerBot.Getpage(tpage.ParentRevId)
@@ -342,6 +477,11 @@ Public Class SignPatroller
         Return Nothing
     End Function
 
+    ''' <summary>
+    ''' Extrae la fecha del último párrafo de un hilo. Devuelve DateTime.MaxValue si no hay firma.
+    ''' </summary>
+    ''' <param name="text">Texto del hilo a analizar.</param>
+    ''' <returns>Fecha de la firma más reciente en el último párrafo, o DateTime.MaxValue si no se encuentra.</returns>
     Function Lastpdt2(ByVal text As String) As Date
         If String.IsNullOrEmpty(text) Then
             Throw New ArgumentException("Empty parameter", NameOf(text))

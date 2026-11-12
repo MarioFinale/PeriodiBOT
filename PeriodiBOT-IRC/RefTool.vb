@@ -16,13 +16,39 @@ Public Class RefTool
         Me.WorkerBot = workerbot
     End Sub
 
+    ''' <summary>
+    ''' Indica si se permite una redirección para la URI dada.
+    ''' Algunas páginas redirigen de forma habitual entre dominios o espejos sin que el destino sea un error.
+    ''' </summary>
+    ''' <param name="turi">URI a evaluar.</param>
+    ''' <returns>True si la redirección debe considerarse válida.</returns>
     Private Function RedirectionAllowed(ByVal turi As Uri) As Boolean
-        Dim exceptions As String() = {"fishbase.org", "fishbase.de", "fishbase.in", "blogspot.com.ar", "blogspot.com.pe", "blogspot.com.bo", "blogspot.com.co", "parliament.uk"}
-        For Each exception As String In exceptions
-            If turi.Authority.Contains(exception) Then
-                Return True
-            End If
-        Next
+        If turi Is Nothing Then Return False
+
+        Dim authority As String = turi.Authority.ToLowerInvariant()
+
+        ' Lista de dominios que permiten redirecciones. Cada entrada indica el motivo.
+        
+        ' FishBase (fishbase.org, fishbase.de, fishbase.in y espejos).
+        ' El proyecto mantiene varios espejos y redirige entre ellos o entre versiones de idioma de forma habitual.
+        If authority.Contains("fishbase.org") OrElse authority.Contains("fishbase.de") OrElse authority.Contains("fishbase.in") Then
+            Return True
+        End If
+        
+        ' Blogger / Blogspot en variantes de país (.com.ar, .com.pe, .com.bo, .com.co, etc.).
+        'Blogspot redirige frecuentemente entre el dominio genérico y los dominios de país sin que el contenido cambie.
+        If authority.Contains("blogspot.com.") Then
+            Return True
+        End If
+        
+        ' Parlamento del Reino Unido (parliament.uk).
+        ' Las páginas oficiales suelen redirigir entre subdominios o entre versiones http/https de forma permanente y válida.
+        If authority.Contains("parliament.uk") Then
+            Return True
+        End If
+
+        ' Añadir más excepciones de redirección debajo siguiendo el mismo patrón.
+
         Return False
     End Function
 
@@ -42,12 +68,12 @@ Public Class RefTool
             End If
 
             Dim ref As New WikiRef With {
-            .OpeningTag = openingTag,
-            .Content = content,
-            .ClosingTag = closingTag,
-            .Name = refName,
-            .OriginalString = m.Value
-            }
+                    .OpeningTag = openingTag,
+                    .Content = content,
+                    .ClosingTag = closingTag,
+                    .Name = refName,
+                    .OriginalString = m.Value
+                    }
             refList.Add(ref)
         Next
 
@@ -107,22 +133,22 @@ Public Class RefTool
             End If
 
             Dim tWebref As New WikiWebReference With {
-                .AlreadyArchived = refIsAlreadyArchived,
-                .CiteWeb = refIsCiteWeb,
-                .ClosingTag = refClosingTag,
-                .Complete = False,
-                .Content = ref.Content,
-                .Language = Nothing,
-                .Name = refName,
-                .OpeningTag = refOpeningTag,
-                .OriginalString = ref.OriginalString,
-                .PageIsDown = Nothing,
-                .PageName = refPageName,
-                .PageRoot = refPageRoot,
-                .PageUrl = refPageUrl,
-                .RefDate = Nothing,
-                .SpokenDate = Nothing,
-                .Valid = False}
+                    .AlreadyArchived = refIsAlreadyArchived,
+                    .CiteWeb = refIsCiteWeb,
+                    .ClosingTag = refClosingTag,
+                    .Complete = False,
+                    .Content = ref.Content,
+                    .Language = Nothing,
+                    .Name = refName,
+                    .OpeningTag = refOpeningTag,
+                    .OriginalString = ref.OriginalString,
+                    .PageIsDown = Nothing,
+                    .PageName = refPageName,
+                    .PageRoot = refPageRoot,
+                    .PageUrl = refPageUrl,
+                    .RefDate = Nothing,
+                    .SpokenDate = Nothing,
+                    .Valid = False}
 
             refList.Add(tWebref)
 
@@ -132,13 +158,57 @@ Public Class RefTool
     End Function
 
     ''' <summary>
-    ''' Verifica e intenta cargar un recurso web. Si se trata de un archivo FTP, solo retorna la cadena de texto "FTP FILE".
+    ''' Indica si una URL debe quedar exenta de la detección automática de enlaces rotos o soft-404.
+    ''' Útil para sitios que responden 200 pero cuyo contenido real solo es usable con un navegador completo
+    ''' (JavaScript pesado, anti-bot, etc.) y que casi nunca se archivan bien en Internet Archive.
     ''' </summary>
-    ''' <param name="weburi"></param>
-    ''' <returns></returns>
+    ''' <param name="uri">URI a evaluar.</param>
+    ''' <returns>True si la URL debe tratarse como válida aunque el bot no pueda obtener contenido útil.</returns>
+    Private Function IsExemptFromBrokenDetection(ByVal uri As Uri) As Boolean
+        If uri Is Nothing Then Return False
+
+        Dim host As String = uri.Host.ToLowerInvariant()
+        Dim absolutePath As String = uri.AbsolutePath.ToLowerInvariant()
+
+        ' Lista de excepciones. Cada entrada está comentada con su motivo.
+        ' Añadir nuevas entradas aquí cuando se detecten falsos positivos similares.
+        
+        ' Google Maps (google.com/maps, google.es/maps, maps.google.*, etc.).
+        ' Devuelve un shell HTML con título "Google Maps" y requiere JavaScript para mostrar el lugar.
+        ' Casi nunca tiene snapshots útiles en Internet Archive. El bot lo marcaba como irrecuperable
+        ' (ejemplo: Tatari (Pleven), oldid 176212215).
+        If host.Contains("google.") AndAlso (absolutePath.Contains("/maps") OrElse host.StartsWith("maps.")) Then
+            Return True
+        End If
+        
+        ' Google Maps short links (goo.gl/maps, maps.app.goo.gl).
+        ' Mismos problemas que las URLs largas de Maps.
+        If host.Contains("goo.gl") AndAlso absolutePath.Contains("/maps") Then
+            Return True
+        End If
+        
+        ' OpenStreetMap (openstreetmap.org, osm.org).
+        ' Similar a Google Maps: el contenido real del mapa se carga con JavaScript y los enlaces directos
+        ' suelen devolver un shell mínimo. Rara vez se archivan de forma útil en Internet Archive.
+        If host.Contains("openstreetmap.org") OrElse host.Contains("osm.org") Then
+            Return True
+        End If
+        
+        ' Bing Maps / Microsoft Maps (bing.com/maps, maps.bing.com).
+        ' Mismo patrón que Google Maps: página muy dependiente de JavaScript y con bajo valor de archivo en Wayback.
+        If (host.Contains("bing.com") AndAlso absolutePath.Contains("/maps")) OrElse host.StartsWith("maps.bing.") Then
+            Return True
+        End If
+
+        ' Añadir más excepciones debajo siguiendo el mismo patrón (comentario XML + condición).
+
+        Return False
+    End Function
+
     ''' <summary>
     ''' Verifica e intenta cargar un recurso web. FTP/SFTP están deshabilitados por problemas conocidos.
     ''' Detecta redirecciones no permitidas y soft-404 mediante comparación de títulos y patrones comunes de error.
+    ''' Las URLs exentas (ver IsExemptFromBrokenDetection) se consideran válidas aunque el contenido sea mínimo.
     ''' </summary>
     ''' <param name="weburi">URI del recurso a comprobar.</param>
     ''' <returns>Contenido de la página si está disponible; cadena vacía si está caída o no se pudo cargar.</returns>
@@ -148,6 +218,23 @@ Public Class RefTool
         If weburi.Scheme.ToLowerInvariant() = "ftp" OrElse weburi.Scheme.ToLowerInvariant() = "sftp" Then
             EventLogger.Log("Referencias FTP/SFTP deshabilitadas por problemas conocidos: " & weburi.OriginalString, "CheckAndTryLoadWebResource", WorkerBot.UserName)
             Return String.Empty
+        End If
+
+        ' Excepciones: sitios que el bot no puede evaluar correctamente (Google Maps, etc.).
+        ' Se tratan como válidos para evitar falsos positivos de "enlace roto / irrecuperable".
+        If IsExemptFromBrokenDetection(weburi) Then
+            EventLogger.Log("URL exenta de detección de enlace roto: " & weburi.OriginalString, "CheckAndTryLoadWebResource", WorkerBot.UserName)
+            ' Intentamos cargar el contenido igualmente; si viene vacío devolvemos un marcador no vacío
+            ' para que no se marque como página caída.
+            Try
+                tp = WorkerBot.GET(weburi)
+            Catch
+                ' Ignorado a propósito: la URL está exenta.
+            End Try
+            If String.IsNullOrWhiteSpace(tp) Then
+                tp = "<!-- exempt -->"
+            End If
+            Return tp
         End If
 
         Try
@@ -432,15 +519,15 @@ Public Class RefTool
             Dim pageroot As String = tup.Item1.Authority
             Dim tdate As String = tup.Item2.ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
             Dim Reference As New WikiWebReference With {
-                .PageUrl = tup.Item1.OriginalString.Trim().Split(" "c)(0),
-                .PageName = pagename,
-                .SpokenDate = tdate,
-                .PageRoot = pageroot,
-                .OriginalString = tup.Item4,
-                .PageIsDown = pageDown,
-                .Language = lang,
-                .RefDate = tup.Item2
-            }
+                    .PageUrl = tup.Item1.OriginalString.Trim().Split(" "c)(0),
+                    .PageName = pagename,
+                    .SpokenDate = tdate,
+                    .PageRoot = pageroot,
+                    .OriginalString = tup.Item4,
+                    .PageIsDown = pageDown,
+                    .Language = lang,
+                    .RefDate = tup.Item2
+                    }
 
             datlist.Add(Reference)
         Next
@@ -573,7 +660,7 @@ Public Class RefTool
             Else
                 referenceText = GenerateNormalReferenceText(newPageurl.Item1, newPageurl.Item2, newSpokenDate, newRefUri.Authority, reference.Language)
                 referenceText &= String.Format(" <!-- PeriodiBOT ha reemplazado el enlace original de la referencia en {0} con uno actualizado de {1} -->",
-                                           reference.PageRoot, newRefUri.Authority)
+                                               reference.PageRoot, newRefUri.Authority)
             End If
 
             result = New GenerateReferenceTextResult(referenceText, GenerateReferenceTextResult.Results.Alternative_Prefered)
@@ -651,20 +738,20 @@ Public Class RefTool
 
     Private Function GenerateNormalReferenceText(ByVal url As String, title As String, accessDate As String, websiteRoot As String, websiteLang As String) As String
         Return String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}}",
-                                              url, title, accessDate, websiteRoot, If(Not String.IsNullOrWhiteSpace(websiteLang), " |idioma=" & websiteLang, ""))
+                             url, title, accessDate, websiteRoot, If(Not String.IsNullOrWhiteSpace(websiteLang), " |idioma=" & websiteLang, ""))
     End Function
 
     Private Function GenerateBrokenReferenceText(ByVal url As String, title As String, accessDate As String, websiteRoot As String, websiteLang As String) As String
         Return String.Format("{{{{Enlace roto |1={{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4}}}}} |2={0} }}}}",
-                              url, title, accessDate, websiteRoot, If(Not String.IsNullOrWhiteSpace(websiteLang), " |idioma=" & websiteLang, "")) &
-                              String.Format("<small> Enlace irrecuperable.</small> <!-- El enlace original de la referencia en {0} es irrecuperable (Sitio caído y no hay snapshots en Internet Archive). -->",
-                                       websiteRoot)
+                             url, title, accessDate, websiteRoot, If(Not String.IsNullOrWhiteSpace(websiteLang), " |idioma=" & websiteLang, "")) &
+               String.Format("<small> Enlace irrecuperable.</small> <!-- El enlace original de la referencia en {0} es irrecuperable (Sitio caído y no hay snapshots en Internet Archive). -->",
+                             websiteRoot)
     End Function
 
     Private Function GenerateWaybackReferenceText(ByVal url As String, title As String, accessDate As String, websiteRoot As String, websiteLang As String, archiveUrl As String, archiveDate As String) As String
         Return String.Format("{{{{Cita web |url={0} |título={1} |fechaacceso={2} |sitioweb={3}{4} |urlarchivo={5} |fechaarchivo={6}}}}}",
-                                      url, title, accessDate, websiteRoot, If(Not String.IsNullOrWhiteSpace(websiteLang), " |idioma=" & websiteLang, ""),
-                                      archiveUrl, archiveDate)
+                             url, title, accessDate, websiteRoot, If(Not String.IsNullOrWhiteSpace(websiteLang), " |idioma=" & websiteLang, ""),
+                             archiveUrl, archiveDate)
     End Function
 
 
@@ -808,14 +895,14 @@ Public Class RefTool
     Private Sub SendUrlToWaybackMachine(ByVal ref As String, ByVal ArticleName As String)
 
         Dim urlRefFunc As New Func(Of Boolean)(Function()
-                                                   Try
-                                                       Dim saveuristring = "https://web.archive.org/save/" & ref
-                                                       WorkerBot.GET(New Uri(saveuristring))
-                                                   Catch ex As Exception
-                                                       Return False
-                                                   End Try
-                                                   Return True
-                                               End Function)
+            Try
+                Dim saveuristring = "https://web.archive.org/save/" & ref
+                WorkerBot.GET(New Uri(saveuristring))
+            Catch ex As Exception
+                Return False
+            End Try
+            Return True
+        End Function)
         Initializer.TaskAdm.NewTask("Archivar referencia utilicada en '" & ArticleName & "' en Archive.org", WorkerBot.UserName, urlRefFunc, 0, False)
     End Sub
 
@@ -871,12 +958,12 @@ Public Class RefTool
         If matches.Count > 0 Then
             For Each match As Match In matches
                 Dim mdate As String() = match.Groups(5).Value.Split("-"c).Select(Function(s As String)
-                                                                                     s = s.Replace(" "c, "")
-                                                                                     s = s.Trim()
-                                                                                     Dim i As Integer = Integer.Parse(s)
-                                                                                     s = i.ToString("00")
-                                                                                     Return s
-                                                                                 End Function).ToArray
+                    s = s.Replace(" "c, "")
+                    s = s.Trim()
+                    Dim i As Integer = Integer.Parse(s)
+                    s = i.ToString("00")
+                    Return s
+                End Function).ToArray
                 If Integer.Parse(mdate(1)) > 12 Then
                     Dim ns As String() = {mdate(1), mdate(0), mdate(2)}
                     mdate = ns
@@ -899,8 +986,8 @@ Public Class RefTool
 
                 Dim newdate As String = New Date(Integer.Parse(mdate(2)), Integer.Parse(mdate(1)), Integer.Parse(mdate(0))).ToString("d 'de' MMMM 'de' yyyy", New Globalization.CultureInfo("es-ES"))
                 pagetext = pagetext.Replace(match.Value, match.Groups(1).Value & match.Groups(2).Value _
-                                             & match.Groups(3).Value & match.Groups(4).Value & newdate _
-                                             & match.Groups(6).Value & match.Groups(7).Value)
+                                                         & match.Groups(3).Value & match.Groups(4).Value & newdate _
+                                                         & match.Groups(6).Value & match.Groups(7).Value)
                 modifiedDates += 1
             Next
             Return New Tuple(Of String, Integer)(pagetext, modifiedDates)
@@ -1098,16 +1185,16 @@ Public Class RefTool
 
     Private Function FilterRefs(ByVal matc As MatchCollection) As String()
         Return matc.OfType(Of Match)().Select(Function(x) x.Value).Where(Function(x)
-                                                                             Return (Not x.Contains("{{") _
-                                                                             AndAlso Not x.Contains("]]") _
-                                                                             AndAlso Not x.ToLower.Contains("<cite") _
-                                                                             AndAlso Not x.ToLower.Contains("consultado el") _
-                                                                             AndAlso Not x.ToLower.Contains("consultada el") _
-                                                                             AndAlso Not Regex.IsMatch(x, "acces(o|sed) \w{1,2}", RegexOptions.IgnoreCase) _
-                                                                             AndAlso Not Regex.IsMatch(x, "retrieved \w{1,2}", RegexOptions.IgnoreCase) _
-                                                                             AndAlso Not Regex.IsMatch(x, "(\[.+?\]).+?(\[.+?\])") _
-                                                                             AndAlso Not CountCharacter(x, "]"c) > 1)
-                                                                         End Function).ToArray()
+            Return (Not x.Contains("{{") _
+                    AndAlso Not x.Contains("]]") _
+                    AndAlso Not x.ToLower.Contains("<cite") _
+                    AndAlso Not x.ToLower.Contains("consultado el") _
+                    AndAlso Not x.ToLower.Contains("consultada el") _
+                    AndAlso Not Regex.IsMatch(x, "acces(o|sed) \w{1,2}", RegexOptions.IgnoreCase) _
+                    AndAlso Not Regex.IsMatch(x, "retrieved \w{1,2}", RegexOptions.IgnoreCase) _
+                    AndAlso Not Regex.IsMatch(x, "(\[.+?\]).+?(\[.+?\])") _
+                    AndAlso Not CountCharacter(x, "]"c) > 1)
+        End Function).ToArray()
     End Function
 
 
